@@ -1,0 +1,42 @@
+ORIGINAL FILENAME:       dots.js
+PURPOSE:                 Provides Part 1 of the JavaScript 3dots LCARS Support
+SCRIPT LANGUAGE/VERSION: JavaScript 1.2
+FILE VERSION:            1.01.2001.1
+PART OF:                 PointedEars' LCARS extensions
+DEPENDS ON:              Any JavaScript 1.2 or HTML that defines the <span> object named "dots"
+REQUIRES:                undots.js
+TESTED WITH:
+  Microsoft Internet Explorer 5.50, displayed 5.50.4134.0600IC
+
+VERSION HISTORY
+1.01.2001.1   2001-01-11  Moved general documentation to text file for faster processing.
+1.00.2000.10  2000-10-21  Introduced script file moved from HTML inline scripts
+
+COPYRIGHT (c) 2000 by PointedEars Software (PES).
+mailto:webmaster@PointedEars.de
+
+TERMS OF USE:
+This code may be used and modified within the limits described below
+for non-commercial purposes only and if the copyright above is also
+mentioned.
+
+HOW TO USE:
+I recommend to utilize the functions of this script in different
+HTML documents when saving the entire file as script.js and appending the
+following section within the <BODY><DIV id="div_content"></DIV></BODY> tags
+of that documents where DIV defines the text to be hidden until loading is completed:
+
+<script language="JavaScript1.2" src="dots.js" type="text/javascript"></script>
+
+dots.js requires undots.js (removes the status display and returns to normal display)
+to be called at the end of the HTML document for the function make sense.
+
+
+Description
+------------
+
+This script initializes a window interval in which the <span> object named "dots" is
+modified. For the first second the script is running, one dot is displayed in "dots".
+The next second a dot and a space is added to that display. When the amount of dots
+reaches 3, the next second it will continue displaying with no dots and so on until
+undots.js is included.
