@@ -1,0 +1,46 @@
+ORIGINAL FILENAME:       top.js
+PURPOSE:                 Provides JavaScript TopOfPage Support
+SCRIPT LANGUAGE/VERSION: JavaScript 1.2
+FILE VERSION:            1.02.2001.1
+PART OF:                 PointedEars' LCARS extensions
+DEPENDS ON:              Any HTML that includes lcars.css with defined span.symbol
+REQUIRES:                no file(s)
+TESTED WITH:
+  Netscape Navigator 6.1
+  Microsoft Internet Explorer 5.50, displayed 5.50.4522.1800IC
+  Microsoft Internet Explorer 5.50, displayed 5.50.4134.0600IC
+
+VERSION HISTORY
+1.02.2001.1   2001-01-11  Moved general documentation to text file for faster processing.
+1.01.2000.11  2001-01-08  Updated documentation
+1.01.2000.11  2000-11-15  Updated script with advanced Netscape-compatible version;
+                          requires application of HTML code if formerly used with
+                          previous version
+1.00.2000.11  2000-11-10  Introduced script file moved from HTML inline scripts
+
+COPYRIGHT (c) 2000 by PointedEars Software (PES).
+mailto:webmaster@PointedEars.de
+
+TERMS OF USE:
+This code may be used and modified within the limits described below
+for non-commercial purposes only and if the copyright above is also
+mentioned.
+
+HOW TO USE:
+I recommend to utilize the functions of this script in different
+HTML documents when saving the entire file as top.js and appending the
+following section within the <BODY></BODY> as follows:
+
+<p><a href="#top" class="button" onClick='this.blur();'><script language="JavaScript1.2" src="top.js" type="text/javascript"></script><noscript>&nbsp;</noscript>[...]</a></p>
+
+You should write the code including the <script></script> section without any (CR)LF
+to avoid undesired spaces on display.
+
+
+Description
+____________
+
+Dependent whether W3C-conform DHTML is available (at the creation of
+this script this was only IE 5 and above, and NS 6 and above), it utilizes the cascading style-sheet
+(CSS) named span.symbol defined in lcars.css to write the "top" character
+defined by this CSS instead of writing &nbsp;.
