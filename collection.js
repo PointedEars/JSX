@@ -4,7 +4,7 @@
  * 
  * @section Copyright & Disclaimer
  * 
- * @author (C) 2002-2004  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ * @author (C) 2002-2005  Thomas Lahn &lt;collection.js@PointedEars.de&gt;
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -54,13 +54,13 @@
 
 function Collection(/** @optional Object */ o)
 {
-  this.version   = "0.1.2004050402";
+  this.version   = "0.1.2005021522";
 /**
  * @partof
  *   PointedEars JavaScript Extensions (JSX)
  * 
  */
-  this.copyright = "Copyright \xA9 2002-2004";
+  this.copyright = "Copyright \xA9 2002-2005";
   this.author    = "Thomas Lahn";
   this.email     = "collection.js@PointedEars.de";
   this.path      = "http://pointedears.de/scripts/";
@@ -68,10 +68,12 @@ function Collection(/** @optional Object */ o)
 //  this.docURI    = this.path + "collection.htm";
   this.allowExceptionMsg = true;
 
-  this.addItems =
+  Collection.prototype.addItems =
   function collection_addItems(
     /** @optional Object */ o)
   {
+    var result = null;
+  
     for (var i in o)
     {
       if (typeof o[i] != "undefined") // omit deleted items
@@ -81,19 +83,21 @@ function Collection(/** @optional Object */ o)
         {
           this.items[this.items.length] = this.items[i];
         }
+
+        result = this.items[i];
       }
     }
     
-    return this.items[i];
-  }
-    
-  this.set =
+    return result;
+  };
+  
+  Collection.prototype.set =
   function collection_set(
     /** @optional Object */ o)
   { 
     this.items = new Array(); // no real array, but Array.length is useful
     return this.addItems(o);
-  }
+  };
 
   this.set(o);
 }
@@ -247,26 +251,31 @@ function /** @type boolean */ iterator_hasPrev()
   var result = false;
   this.prevItem = -1;
 
-  if (this.currItem < 1
-      || this.currItem > t.length - 1)
-  {
-    this.currItem = t.length;
-  }
+  var t = this.target;
 
-  var i = this.currItem - 1;            // start from next possible item
-  while (i != this.currItem             // run through only one time
-         && typeof t[i] == "undefined") 
+  if (t)
   {
-    if (--i < 0)
+    if (this.currItem < 1
+        || this.currItem > t.length - 1)
     {
-      i = t.length - 1;
+      this.currItem = t.length;
     }
-  }
 
-  if (typeof t[i] != "undefined")
-  {
-    this.prevItem = i;
-    result = true;
+    var i = this.currItem - 1;            // start from next possible item
+    while (i != this.currItem             // run through only one time
+           && typeof t[i] == "undefined") 
+    {
+      if (--i < 0)
+      {
+        i = t.length - 1;
+      }
+    }
+
+    if (typeof t[i] != "undefined")
+    {
+      this.prevItem = i;
+      result = true;
+    }
   }
   
   return result;
@@ -278,26 +287,31 @@ function /** @type boolean */ iterator_hasNext()
   var result = false;
   this.nextItem = -1;
 
-  if (this.currItem < 0
-      || this.currItem > t.length - 2)
-  {
-    this.currItem = -1;
-  }
+  var t = this.target;
 
-  var i = this.currItem + 1;            // start from next possible item
-  while (i != this.currItem             // run through only one time
-         && typeof t[i] == "undefined") 
+  if (t)
   {
-    if (++i > t.length - 1)
+    if (this.currItem < 0
+        || this.currItem > t.length - 2)
     {
-      i = 0;
+      this.currItem = -1;
     }
-  }
 
-  if (typeof t[i] != "undefined")
-  {
-    this.nextItem = i;
-    result = true;
+    var i = this.currItem + 1;            // start from next possible item
+    while (i != this.currItem             // run through only one time
+           && typeof t[i] == "undefined") 
+    {
+      if (++i > t.length - 1)
+      {
+        i = 0;
+      }
+    }
+
+    if (typeof t[i] != "undefined")
+    {
+      this.nextItem = i;
+      result = true;
+    }
   }
   
   return result;
