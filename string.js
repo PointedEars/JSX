@@ -1,47 +1,13 @@
-/** 
- * <title>PointedEars' JSX: String Library</title>
- */
 if (typeof String == "undefined")
 {
   var String = new Object();
 }
-/** @version */ String.version = "1.29.2004031616";
-/**
- * @filename string.js
- * @partof   PointedEars' JavaScript Extensions (JSX)
- *
- * @section Copyright & Disclaimer
- *
- * @author
- *   (C) 2001-2004  Thomas Lahn &lt;string.js@PointedEars.de&gt;
- * @author
- *   Parts Copyright (C) 2003<br>
- *   Dietmar Meier &lt;meier@innoline-systemtechnik.de&gt;<br>
- *   Martin Honnen &lt;Martin.Honnen@gmx.de&gt;
- */
+String.version = "1.29.2004071001";
 String.copyright = "Copyright \xA9 1999-2004";
 String.author    = "Thomas Lahn";
 String.email     = "string.js@PointedEars.de";
 String.path      = "http://pointedears.de.vu/scripts/";
 //String.docURL    = stringPath + "string.htm";
-/**
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License (GPL) for more details.
- *
- * You should have received a copy of the GNU GPL along with this
- * program (COPYING file); if not, go to [1] or write to the Free
- * Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
- * 
- * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
- */
 // Refer string.htm file for general documentation. 
 
 var CH_NBSP = "\xA0";
@@ -62,7 +28,7 @@ function StringException(Msg)
   return false;
 }
 
-function leadingCaps(/* @argument optional string */ s)
+function leadingCaps(s)
 {
   if (!s && this.charAt)
   {
@@ -77,23 +43,29 @@ function leadingCaps(/* @argument optional string */ s)
   return s.charAt(0).toUpperCase() + s.substr(1).toLowerCase();
 }
 
-function strRepeat(
-  /** @argument string|number   */ s,
-  /** @argument optional number */ nMultiplier)
-/**
- * Returns <code>s</code> repeated <code>sMultiplier</code> times.
- * <code>nMultiplier</code> has to be greater than or equal to 0.
- * If <code>nMultiplier</code> is set to 0, the function will
- * return the empty string.
- * 
- * Note that this may be used also as method of the
- * <code>String</code> prototype (if supported), applicable to
- * <code>String</code> objects and literals.  If <code>s</code
- * is not provided, numeric or evaluates to <code>false</code>,
- * the value of the <code>String</code> object is taken instead
- * of it.  If the first argument is then numeric, it is taken for
- * <code>nMultiplier</code> and the latter argument is ignored.
- */
+function leadingZero(s, n)
+{
+   if (this.length != "undefined"
+       && !isNaN(this.length)
+       && typeof s == "undefined")
+   {
+     s = this;
+   }
+
+   if (typeof s != "string")
+   {   
+     s = s.toString();
+   }
+
+   while (s.length < n)
+   {
+     s = "0" + s;
+   }
+
+   return s;
+}
+
+function strRepeat(s, nMultiplier)
 {
   var sResult = "";
 
@@ -117,11 +89,7 @@ function strRepeat(
   return sResult;
 }
 
-function replaceText(
-  /** @argument                  */ sText,
-  /** @argument string           */ sReplaced,
-  /** @argument string           */ sReplacement,
-  /** @argument optional boolean */ bForceLoop)
+function replaceText(sText, sReplaced, sReplacement, bForceLoop)
 {
   var result = "";
   var t;
@@ -172,20 +140,7 @@ function replaceText(
   return result;
 }
 
-function addSlashes(/** @argument optional string */ s)
-/**
- * Adds backslashes to escape " and ' in strings.
- * 
- * @author Copyright (c) 2003
- *   Martin Honnen &lt;Martin.Honnen@gmx.de&gt;,
- *   Thomas Lahn &lt;string.js@PointedEars.de&gt;
- * @argdescr s
- *   String where " and ' should be escaped.  Ignored if
- *   the function is called as a method of a String object.
- * @returns
- *   The replaced string if String.replace(...)
- *   is supported, the original string otherwise.
- */
+function addSlashes(s)
 {
   if (!s && this.replace)
   {
@@ -200,10 +155,7 @@ function addSlashes(/** @argument optional string */ s)
   return s;
 }
 
-function strCount(
-  /** @argument string           */ s,
-  /** @argument string           */ substr,
-  /** @argument optional boolean */ bCaseSensitive)
+function strCount(s, substr, bCaseSensitive)
 {
   var result = 0;
 
@@ -260,27 +212,7 @@ function strCount(
   return -1;
 }
 
-function stripTags(/** @argument optional string */ s)
-/**
- * Strips <code>&lt;tags&gt;</code> from a string.
- * Uses RegExp if supported.
- * 
- * @author
- *   (C) 2001-2003  Thomas Lahn &lt;js@PointedEars.de&gt;,
- *   Advanced RegExp parsing (C) 2003  Dietmar Meier
- *    &lt;meier@innoline-systemtechnik.de&gt;
- * @argdescr s
- *   String where all tags should be stripped from. If not
- *   provided or <code>false</code>, it is assumed that the
- *   function is used as method of the String prototype,
- *   applied to a String object or literal. Note that in
- *   this case the method will not modify the String object
- *   either, but return a second String object.
- * @returns
- *   String where all tags are stripped from.
- * @see
- *   String.replace()
- */
+function stripTags(s, bStripContent, bCaseSensitive, tags, bElements)
 {
   if (!s)
   {
@@ -288,7 +220,7 @@ function stripTags(/** @argument optional string */ s)
   }
   else
   {
-    s = String(s);
+    s = s.toString();
   }
 
   var sUntagged = s;
@@ -296,10 +228,70 @@ function stripTags(/** @argument optional string */ s)
   if (s.match && s.replace)
   {
     // sUntagged = s.replace(/<[^>]*>/g, "");
-    var r1 = /<[^<>]*(<[^<>]*>)*[^<>]*>/g;
-    while (s.match(r1))
-      s = s.replace(r1, "");
-    sUntagged = s;
+    var sRxTags = "", i;
+    if (tags)
+    {
+      if (!tags.constructor || tags.constructor == Array)
+      {
+        if (tags.join)
+        {
+          if (bElements)
+          {
+            for (i = 0, len = tags.length; i < len; i++)
+            {
+              tags[tags.length] = "/" + tags[i];
+            }
+          }
+          
+          sRxTags = tags.join("|");
+        }
+        else if (tags.length)
+        {
+          for (i = 0, len = tags.length; i < len; i++)
+          {
+            sRxTags += tags[i];
+            if (bElements)
+            {
+              sRxTags += "/" + tags[i];
+            }
+            
+            if (i < tags.length - 1)
+            {
+              sRxTags += "|";
+            }
+          }
+        }
+
+        if (sRxTags)
+        {
+          sRxTags = "(" + sRxTags + ")";
+        }
+      }
+      else
+      {
+        sRxTags = tags;
+      }
+    }
+
+    var sRx = "";
+    if (bStripContent)
+    {
+      sRx = "<(" + (sRxTags ? sRxTags : "[^<>]*") + ")(<[^<>]*>)*>.*</\\1>";
+    }
+    else
+    {
+      sRx = "<" + (sRxTags ? sRxTags : "[^<>]*") + "(<[^<>]*>)*[^<>]*>";
+    }
+
+    var rx = new RegExp(sRx, (bCaseSensitive ? "i" : "") + "g");
+    if (rx)
+    {
+      while (s.match(rx))
+      {
+        s = s.replace(rx, "");
+      }
+      sUntagged = s;
+    }
   }
   else
   {
@@ -308,7 +300,7 @@ function stripTags(/** @argument optional string */ s)
     var l = s.length;
     sUntagged = "";
 
-    for (var i = 0; i < l; i++)
+    for (i = 0; i < l; i++)
     {
       a = s.charAt(i);
 
@@ -332,7 +324,7 @@ function stripTags(/** @argument optional string */ s)
   return sUntagged;
 }
 
-function maskMarkup(/** @argument optional string */ s)
+function maskMarkup(s)
 {
   if (!s)
   {
@@ -346,7 +338,7 @@ function maskMarkup(/** @argument optional string */ s)
   return replaceText(replaceText(s, "&", "&amp;"), "<", "&lt;");
 }
 
-function trimLeft(/** @argument optional string */ s)
+function trimLeft(s)
 {
   if (!s && this.charAt)
   {
@@ -372,7 +364,7 @@ function trimLeft(/** @argument optional string */ s)
   return s;
 }
 
-function trimRight(/** @argument optional string */ s)
+function trimRight(s)
 {
   if (!s && this.charAt)
   {
@@ -398,7 +390,7 @@ function trimRight(/** @argument optional string */ s)
   return s;
 }
 
-function trim(/** @argument optional string */ s)
+function trim(s)
 {
   if (!s && this.charAt)
   {
@@ -420,21 +412,12 @@ function trim(/** @argument optional string */ s)
   return s;
 }
 
-function strToArray(/** @argument optional string */ s)
-/**
- * @author
- *   (C) 2003 Thomas Lahn &lt;string.js@PointedEars.de&gt;
- * @argdescr s
- *   Optional string to be split into array elements.  If not
- *   provided or <code>false</code>, it is assumed that the
- *   function is used as method of the String prototype, applied
- *   to a String object or literal.
- * @returns
- *   An array with every character of <code>s</code> an element
- *   of it.
- * @see
- *   String#charAt(), String#split()
- */
+function nl2br(s)
+{
+  return s.replace(/\r\n?|\n/g, "<br>");
+}
+  
+function strToArray(s)
 {
   if (!s && this.charAt)
   {
@@ -466,24 +449,7 @@ function strToArray(/** @argument optional string */ s)
 //   return strToArray(s);
 // }
 
-function strToCodeArray(/** @argument optional string */ s)
-/**
- * @author
- *   (C) 2003 Thomas Lahn &lt;string.js@PointedEars.de&gt;
- * @argdescr s
- *   Optional string to be split into an array where each
- *   element represents the ASCII or Unicode value of a
- *   character (depending on the implementation) of the
- *   string.
- *   If not provided or <code>false</code>, it is assumed
- *   that the function is used as method of the String
- *   prototype, applied to a String object or literal.
- * @returns
- *   An array where every element is the ASCII character
- *   of <code>s</code> an element of it.
- * @see
- *   strToArray(), String#charCodeAt(), String#split()
- */
+function strToCodeArray(s)
 {
   if (!s && this.charCodeAt)
   {
@@ -521,33 +487,7 @@ function strToCodeArray(/** @argument optional string */ s)
 //   return strToCodeArray(s);
 // }
 
-function hashCode(/** @argument optional string */ s)
-/**
- * String.hashCode() as defined in the Sun Java2 1.4 API.
- * The function takes a string as argument.  The ASCII or
- * Unicode value (depending on the implementation) of each
- * character (from right to left) is added to the product
- * of the current sum (starting at 0) multiplied with x,
- * where x = 37 if the string is no longer than 15
- * characters, x = 39 otherwise.  If the string is 16
- * characters long or longer, at the average every eighth
- * character is not included in the sum.
- * 
- * @author
- *   JavaScript implementation
- *   (C) 2003 Thomas Lahn &lt;hashCode.js@PointedEars.de&gt;
- * @argdescr s
- *   Optional string of which the hash code is computed. If
- *   not provided or <code>false</code>, it is assumed that
- *   the function is used as method of the String prototype,
- *   applied to a String object or literal.
- * @returns
- *   The hash code of the string, designed for implementing hash
- *   code access to associative arrays which can be implemented
- *   as objects with named properties in JavaScript 1.x.
- * @see
- *   strCodeToArray(), java2:String#hashCode()
- */
+function hashCode(s)
 {
   if (!s && this.charCodeAt)
   {
@@ -570,8 +510,8 @@ function hashCode(/** @argument optional string */ s)
   else
   {
     // only sample some characters
-    var skip = Math.floor(len / 8);
 
+    var skip = Math.floor(len / 8);
     for (i = len; i > 0; i -= skip, off += skip)
     {
       h = (h * 39) + val[off];
@@ -581,29 +521,140 @@ function hashCode(/** @argument optional string */ s)
   return h;
 }
 
+/*
+int LevenshteinDistance(char s[1..n], char t[1..m])
+    declare int d[0..n,0..m]
+    declare int i, j, cost
+
+    for i := 0 to n
+        d[i,0] := i
+    for j := 0 to m
+        d[0,j] := j
+
+    for i := 1 to n
+        for j := 1 to m
+            if s[i] = t[j] then cost := 0
+                           else cost := 1
+            d[i,j] := minimum(d[i-1,j  ] + 1,    // insertion
+                              d[i,  j-1] + 1,    // deletion
+                              d[i-1,j-1] + cost) // substitution
+
+    return d[n,m]
+*/
+function levenshtein(
+  /** @optional string */ s,
+  /** @optional string */ t)
+{
+  var len = String(s).length;
+  var len2 = String(t).length;
+
+  if (!s)
+  {
+    return (t ? len2 : 0);
+  }
+
+  if (!t)
+  {
+    return (s ? len : 0);
+  }
+  
+  var d = new Array(); // [0..len-1, 0..len2-1]
+  
+  for (var i = 0; i < len; i++)
+  {
+    d[i] = new Array();
+    d[i][0] = i;
+  }
+    
+  for (var j = 0; j < len2; j++)
+  {
+    d[0][j] = j;
+  }
+
+  for (i = 1; i <= len; i++)
+  {
+    for (j = 1; j <= len2; j++)
+    {
+      d[i][j] = Math.min(
+        d[i-1][j]   + 1,                             // insertion
+        d[i][j-1]   + 1,                             // deletion
+        d[i-1][j-1] + !(s.charAt(i) == s.charAt(j))) // substitution
+    }
+  }
+  return d[len - 1][len2 - 1];
+}
+
+function format1k(s, s1kDelim)
+{
+  var result = NaN;
+
+  // to use this method for String objects
+  if (typeof this.constructor != "undefined"
+      && this.constructor == String
+      && !s)
+  {
+    s = this;
+  }
+
+  // to allow for numbers as argument
+  s = s.toString();
+
+  if (!isNaN(s))
+  {
+    if (!s1kDelim)
+    {
+      s1kDelim = ",";
+    }
+
+    var rx = /([\da-f])(\1{3}(,|(\.\1+)?$))/i;
+    while (rx.test(s))
+    {
+      s = s.replace(rx, "$1" + s1kDelim + "$2");
+    }
+
+    result = s;
+  }
+
+  return result;
+}
+
+// imported from types.js
+
+Function.prototype.addPrototypeProperties =
+function function_addPrototypeProperties(/** @arguments */)
+{
+  for (var i = 0, len = arguments.length; i < len; i++)
+  {
+    var o = arguments[i];
+    for (var j in o)
+    {
+      this.prototype[j] = o[j];
+    }
+  }
+}
+
 // If possible, add methods to the String prototype
 
-function strAddToPrototype()
-{
-  var p = String.prototype;
-  if (p)
-  {
-    p.leadingCaps = leadingCaps;
-    p.repeat = strRepeat;
-    p.replaceText = replaceText;
-    p.addSlashes = addSlashes;
-    p.strCount = strCount;
-    p.stripTags = stripTags;
-    p.maskMarkup = maskMarkup;
-    p.trim = trim;
-    p.trimLeft = trimLeft;
-    p.trimRight = trimRight;
-    p.toArray = strToArray;           // TODO: corr. with Array.fromStr
-    p.toCodeArray = strToCodeArray;   // TODO: corr. with Array.codeArrayFromStr
-//  p.fromArray = strFromArray;         // TODO: corr. with Array.toStr
-//  p.fromCodeArray = strFromCodeArray; // TODO: corr. with Array.codeArrayToStr
-    p.hashCode = hashCode;
+String.addPrototypeProperties(
+  {'leadingCaps': leadingCaps,
+   'leadingZero': leadingZero,
+   'repeat'     : strRepeat,
+   'replaceText': replaceText,
+   'addSlashes' : addSlashes,
+   'strCount'   : strCount,
+   'stripTags'  : stripTags,
+   'maskMarkup' : maskMarkup,
+   'trim'       : trim,
+   'trimLeft'   : trimLeft,
+   'trimRight'  : trimRight,
+   'toArray'    : strToArray     /* TODO: corr. with Array.fromStr */,
+   'toCodeArray': strToCodeArray /* TODO: corr. with Array.codeArrayFromStr */,
+// 'fromArray'  : strFromArray   /* TODO: corr. with Array.toStr */,
+// fromCodeArray: strFromCodeArray /* TODO: corr. with Array.codeArrayToStr */,
+   'hashCode'   : hashCode,
+   'format1k'   : format1k
   }
+);
 
 /*
 p = Array.prototype;
@@ -615,5 +666,3 @@ if (p)
   p.codeArrayToStr = codeArrayToStr;   // TODO: corr. with String.fromCodeArray
 }
 */
-}
-strAddToPrototype();
