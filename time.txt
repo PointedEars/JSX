@@ -1,0 +1,86 @@
+ORIGINAL FILENAME:       time.js
+PURPOSE:                 Provides SystemTime JavaScript Class
+SCRIPT LANGUAGE/VERSION: JavaScript 1.2
+FILE VERSION:            1.06.2001.1;
+                         See timeVersion variable definition in script file.
+PART OF:                 PointedEars' JavaScript Extensions (JSX)
+DEPENDS ON:              no file
+TESTED WITH:
+  Microsoft Internet Explorer 5.50, displayed 5.50.4134.0600IC
+
+VERSION HISTORY
+1.08.2003.10  2003-10-09
+Changed CSystemTime to SystemTime
+
+1.06.2001.1   2001-01-11
+Moved general documentation to text file for faster processing.
+
+1.05.2000.10  2000-10-30
+Added fromData(...) method that allows to set props at once.
+
+1.04.2000.10  2000-10-30
+Improved initialization; now integers are stored only
+
+1.03.2000.10  2000-10-28
+Updated toString(...) method with bShowHours argument.
+Added dec...(...) methods and updated documentation.
+Corrected file header.
+
+1.02.2000.10  2000-10-22
+Added dayCount property
+Bugfixed BUG_INC_OVERFLOW
+
+1.01.2000.10  2000-10-22
+Added inc...(...) methods and arguments
+
+1.00.2000.10  2000-10-22
+Introduced script file moved from HTML inline scripts
+
+COPYRIGHT (c) 2000 by PointedEars Software (PES).
+mailto:webmaster@PointedEars.de
+
+TERMS OF USE:
+This code may be used and modified within the limits described below
+for non-commercial purposes only and if the copyright above is also
+mentioned.
+
+HOW TO USE:
+I recommend to utilize the functions of this script in different
+HTML documents when saving the entire file as time.js and appending the
+following section within the <HEAD></HEAD> tags of that documents:
+
+<script src="time.js" type="text/javascript"></script>
+
+The following items are provided by this script:
+
+SystemTime class
+__________________
+
+Properties:  hours, minutes, seconds, sec100, dayCount
+Methods:     decHours(...), decMinutes(...), decSeconds(...), decSec100(...),
+             incHours(...), incMinutes(...), incSeconds(...), incSec100(...), toString()
+
+Description:
+
+The JSX:SystemTime class provides encapsulation for time data independent from the
+JavaScript:Date class (which encapsulates date and time).
+
+The properties except dayCount define the time value stored in a SystemTime instance.
+
+The dayCount property is a Boolean value that defines whether the hours interval should
+be restricted from 0 to 23 (dayCount == true) or counted upwards until the
+upper Integer border (dayCount == false) is reached. Default is (dayCount == false).
+
+Use the dec...(...) methods to decrease and the inc...(...) methods to increase (tick)
+the value stored in the SystemTime in defined intervals
+[dec...(...) useful for a countdown display and inc...(...) for a website clock counter].
+
+Use the fromData(...) method to set all properties at once via the method call.
+
+Use the fromString(...) method to set properties reading a string that contain their values.
+
+Use the toString(...) method to return a string vice-versa that you can assign to the
+innerHTML property or other String properties for the visualization of the stored data.
+
+The fromString(...) and toString(...) methods are complementary
+[ t.fromString(t.toString()) should change nothing ].
