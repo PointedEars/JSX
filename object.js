@@ -1,7 +1,7 @@
 /**
  * <title>Object Library</title>
  */
-/** @version */ Object.version   = "0.1.2004080511";
+/** @version */ Object.version   = "0.1.2004090622";
 /**
  * @file object.js
  * @partof PointedEars' JavaScript Extensions (JSX)
@@ -11,7 +11,7 @@
 Object.copyright = "Copyright \xA9 2004";
 Object.author    = "Thomas Lahn";
 Object.email     = "object.js@PointedEars.de";
-Object.path      = "http://pointedears.de.vu/scripts/"
+Object.path      = "http://pointedears.de/scripts/";
 // Object.docURL = Object.path + "object.htm";
 /**
  * This program is free software; you can redistribute it and/or
@@ -28,14 +28,14 @@ Object.path      = "http://pointedears.de.vu/scripts/"
  * program (COPYING file); if not, go to [1] or write to the Free
  * Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
  * MA 02111-1307, USA.
- * 
+ *
  * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
  */
 /*
- * Refer object.htm file for documentation. 
+ * Refer object.htm file for documentation.
  *
  * This document contains JavaScriptDoc. See
- * http://pointedears.de.vu/scripts/JSDoc/
+ * http://pointedears.de/scripts/JSDoc/
  * for details.
  */
 
@@ -47,7 +47,7 @@ Object.path      = "http://pointedears.de.vu/scripts/"
  *   properties.
  */
 Object.ADD_OVERWRITE = 1;
-  
+
 /**
  * @property number
  *   Used by @{#addProperties()}, @{#clone()}
@@ -55,7 +55,7 @@ Object.ADD_OVERWRITE = 1;
  *   enumerable properties (default).
  */
 Object.COPY_ENUM = 0;
- 
+
 /**
  * @property number
  *   Used by @{#addProperties()}, @{#clone()}
@@ -113,13 +113,14 @@ function addProperties(oSource, iFlags, oOwner)
           iFlags & (Object.COPY_ENUM_DEEP | Object.COPY_INHERIT),
           oSource[i]);
       }
-    } 
+    }
   }
 }
+addProperties.PE = true;
 
 /**
  * Creates a duplicate (clone) of an object.
- * 
+ *
  * @optional number iLevel
  *   Use the Object @{#Object.COPY_ENUM, COPY*}
  *   properties to specify the level of cloning.
@@ -145,11 +146,11 @@ function clone(iLevel, oSource)
   if (!iLevel || (iLevel & Object.COPY_ENUM_DEEP))
   {
     var o2 = oSource.valueOf(), c, i;
-      
+
     // just in case "var i in ..." does not copy the array elements
     if (typeof Array != "undefined" && (c = o2.constructor) && c == Array)
     {
-      for (i = oSource.length; i--; 0)
+      for (i = oSource.length; i--;)
       {
         if (iLevel && typeof oSource[i] == "object")
         {
@@ -161,7 +162,7 @@ function clone(iLevel, oSource)
         }
       }
     }
-      
+
     for (i in oSource)
     {
       if (iLevel && typeof oSource[i] == "object")
@@ -183,24 +184,82 @@ function clone(iLevel, oSource)
   {
     return null;
   }
-} 
+}
+clone.PE = true;
+
+/**
+ * @argument Object o
+ * @return type string
+ *   The name of a non-existing property of o if
+ *   @{Object.hasOwnProperty()} is supported, or
+ *   the name of a property with value `undefined'
+ *   if it is not supported; the empty string
+ *   if there is no such property.
+ * @TODO
+ *   Currently only one-letter property names
+ *   are searched for and supported.
+ */
+function findNewProperty(o)
+{
+  if (!o)
+  {
+    o = this;
+  }
+
+  for (var i = "a".charCodeAt(0); i <= "z".charCodeAt(0); i++)
+  {
+    var s = String.fromCharCode(i);
+    if (!o._hasOwnProperty(s))
+    {
+      return s;
+    }
+  }
+  return "";
+}
+findNewProperty.PE = true;
+
+/**
+ * @optional Object o
+ *   Object which property should be checked for existence.
+ * @argument string sProperty
+ *   Name of the property to check.
+ * @return type boolean
+ *   <code>true</code> if there is such a property;
+ *   <code>false</code> otherwise.
+ */
+function _hasOwnProperty(o, sProperty)
+{
+  if (arguments.length < 2 && o)
+  {
+    sProperty = o;
+    o = this;
+  }
+
+  var hasHasOwnProperty = typeof o.hasOwnProperty == "function";
+  return ((hasHasOwnProperty && o.hasOwnProperty(sProperty))
+          || (!hasHasOwnProperty && typeof o[sProperty] != "undefined"));
+}
+_hasOwnProperty.PE = true;
 
 addProperties(
-  {addProperties: addProperties,
-   clone        : clone},
+  {addProperties  : addProperties,
+   clone          : clone,
+   findNewProperty: findNewProperty,
+   _hasOwnProperty: _hasOwnProperty},
   Object.prototype);
 
 /**
  * Inherits one object from another.
- * 
+ *
  * Pass the `prototype' property of a Function object
  * (a prototype) and assign the return value to the
- * prototype' property of the child to establish
+ * `prototype' property of the child to establish
  * prototype-based inheritance (much like class-based
  * inheritance in Java).  Be sure to call the parent's
  * constructor then within the constructor of the
- * child, using the call() method, else changes in
- * the parent will not affect the child.
+ * child, using the call() method (or calling it as
+ * a method of the inheriting prototype), else changes
+ * in the parent will not affect the child.
  *
  * @optional object o
  *   Object from which to inherit.
@@ -209,81 +268,98 @@ addProperties(
  */
 function inheritFrom(o)
 {
-  function Dummy() {}
+  var Dummy = function() {}
   Dummy.prototype = o;
   return new Dummy();
 }
+inheritFrom.PE = true;
 
 if (typeof eval == "function")
 {
-  Function.prototype.addProperties(
-    {apply:
-      /**
-    	 * Applies a method of another object in the context
-    	 * of a different object (the calling object).
-    	 * 
-    	 * @prototype method
-    	 * @argument object thisArg
-    	 *   Reference to the calling object.
-    	 * @argument Array argArray
-    	 *   Arguments for the object.
-    	 */
-    	function function_apply(thisArg, argArray)
-    	{
-    	  var a = new Array();
-    	  for (var i = 0, len = argArray.length; i < len; i++)
-    	  {
-    	    a[i] = "argArray[" + i +"]";
-    	  }
-    	    
-    	  eval("thisArg(" + a.join(", ") + ")");
-    	},
-     call:
-      /**
-    	 * Calls (executes) a method of another object in the
-    	 * context of a different object (the calling object).
-    	 * 
-    	 * @argument object thisArg
-    	 *   Reference to the calling object.
-    	 * @arguments _ _
-    	 *   Arguments for the object.
-    	 */
-    	function function_call(thisArg)
-    	{
-    	  var a = new Array();
-    	  for (var i = 1, len = arguments.length; i < len; i++)
-    	  {
-    	    a[i] = "arguments[" + i + "]";
-    	  }
-    	  var _this = this;  
-    	  eval("_this(" + a.join(", ") + ")");
-    	}
-    });
+  /**
+   * Applies a method of another object in the context
+   * of a different object (the calling object).
+   *
+   * @prototype method
+   * @argument object thisArg
+   *   Reference to the calling object.
+   * @argument Array argArray
+   *   Arguments for the object.
+   */
+  var function_apply = function function_apply(thisArg, argArray)
+  {
+    var a = new Array();
+    for (var i = 0, len = argArray.length; i < len; i++)
+    {
+      a[i] = "argArray[" + i +"]";
+    }
+
+    var p = thisArg.findNewProperty();
+    if (p && (thisArg[p] = this));
+    {
+      eval("thisArg[p](" + a.join(", ") + ")");
+      delete thisArg[p];
+    }
+  }
+  function_apply.PE = true;
+
+  /**
+   * Calls (executes) a method of another object in the
+   * context of a different object (the calling object).
+   *
+   * @argument object thisArg
+   *   Reference to the calling object.
+   * @arguments _ _
+   *   Arguments for the object.
+   */
+  var function_call = function function_call(thisArg)
+  {
+    var a = new Array();
+    for (var i = 1, len = arguments.length; i < len; i++)
+    {
+      a[i] = "arguments[" + i + "]";
+    }
+
+    var p = thisArg.findNewProperty();
+    if (p && (thisArg[p] = this));
+    {
+      eval("thisArg[p](" + a.join(", ") + ")");
+      delete thisArg[p];
+    }
+  }
+  function_call.PE = true;
+
+  Function.prototype.addProperties({
+    apply: function_apply,
+    call:  function_call
+  });
 }
- 
 
 function Exception(s) {
   this.message = s;
 }
+Exception.PE = true;
 
-Exception.prototype.addProperties(
-  {getMessage:      function() { return this.message; },
-   getStackTrace:   function() { return this.stack; },
-   printStackTrace: function() { alert(this.getStackTrace()); }
+Exception.prototype.addProperties({
+  getMessage:      function() { return this.message; },
+  getStackTrace:   function() { return this.stack; },
+  printStackTrace: function() { alert(this.getStackTrace()); }
 });
 
-function ObjectException(s) {
+function ObjectException(s)
+{
   Exception.call(this);
   this.message = s;
 }
+ObjectException.PE = true;
 ObjectException.prototype = inheritFrom(Exception.prototype);
 
 /**
  * Raises an ObjectException
- * 
+ *
  * @optional string sMsg
  * @returns false
- */ 
+ */
 function objectException(sMsg)
 {
   alert(
@@ -297,6 +373,7 @@ function objectException(sMsg)
       + Object.email
       + ">\n\n"
       + sMsg);
-  
+
   return false;
 }
+objectException.PE = true;
