@@ -3,10 +3,11 @@
  */
 function Types()
 {
-  this.version = "1.29.2004102311";
+  this.version = "1.29.2004121021";
 /**
  * @file types.js
  * @partof PointedEars' JavaScript Extensions (JSX)
+ * @requires object.js
  * @author
  *   (C) 2001-2004  Thomas Lahn &lt;types.js@PointedEars.de&gt;
  */
@@ -151,20 +152,19 @@ function isIterable(o)
  *   (C) 2003, 2004  Thomas Lahn &lt;types.js@PointedEars.de&gt;
  * @optional Object o
  *   Object to be determined an method, i.e. a
- *   <code>Function</code> object assigned as property
- *   of another object.  Not applicable to unknown
- *   properties.  If you require that, use
- *   @link{#isMethodType()} instead.
+ *   <code>Function</code> object assigned as property of
+ *   another object.  May also be a string to be evaluated
+ *   and so is applicable to unknown properties.
  * @return type boolean
  *   <code>true</code> if <code>o</code> is a method,
  *   <code>false</code> otherwise.
  * @see #isMethodType()
  */
-function isMethod(o)
+function isMethod(m)
 {
   var t;
-  return ((t = typeof o) == "function"
-          || (t == "object" && o));
+  (m = eval(m)) && (t = typeof m);
+  return (t == "function" || t == "object");
 }
 
 /**
