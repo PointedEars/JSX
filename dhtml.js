@@ -11,7 +11,7 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2002-2004  Thomas Lahn <dhtml.js@PointedEars.de>,
+ *   (C) 2002-2005 Thomas Lahn <dhtml.js@PointedEars.de>,
  *   Parts (C) 2004  Ulrich Kritzner <droeppez@web.de>
  * 
  * This program is free software; you can redistribute it and/or
@@ -78,9 +78,9 @@
 
 function DHTML()
 {
-  this.version   = "0.9.2004080806";
+  this.version   = "0.9.2005022017";
 // var dhtmlDocURL = dhtmlPath + "dhtml.htm";
-  this.copyright = "Copyright \xA9 2002-2004";
+  this.copyright = "Copyright \xA9 2002-2005";
   this.author    = "Thomas Lahn";
   this.email     = "dhtml.js@PointedEars.de";
   this.path      = "http://pointedears.de/scripts/";
@@ -107,7 +107,7 @@ function DHTML()
   this.isMethodType = function dhtml_isMethodType(s)
   {
     return (s == "function" || s == "object");
-  }
+  };
 
   if (typeof document != "undefined")
   {
@@ -119,21 +119,21 @@ function DHTML()
       {
         // wrapper method required to avoid "invalid op. on prototype" exception
         return document.getElementById(s);
-      }
+      };
     }
     else if ((hasDocumentAll = this.isMethodType(typeof document.all)))
     {
       this.getElemById = function dhtml_getElemById(s)
       {
         return document.all(s);
-      }
+      };
     }
     else
     {
       this.getElemById = function dhtml_getElemById(s)
       {
         return document[s];
-      }
+      };
     }
 
     var hasDocumentLayers = false;
@@ -148,7 +148,7 @@ function DHTML()
           result = result[i];
         }
         return result;
-      }
+      };
     }
     else if (hasDocumentAll)
     {
@@ -160,7 +160,7 @@ function DHTML()
           result = result[i];
         }
         return result;
-      }
+      };
     }
     else if ((hasDocumentLayers = (typeof document.layers == "object")))
     {
@@ -172,14 +172,14 @@ function DHTML()
           result = result[i];
         }
         return result;
-      }
+      };
     }
     else
     {
       this.getElemByName = function dhtml_getElemByName()
       {
         return null;
-      }
+      };
     }
 
     var hasGetElementsByTagName;
@@ -200,7 +200,7 @@ function DHTML()
           result = result[i];
         }
         return result;
-      }
+      };
     }
     else if (hasDocumentAll && this.isMethodType(typeof document.all.tags))
     {
@@ -212,14 +212,14 @@ function DHTML()
           result = result[i];
         }
         return result;
-      }
+      };
     }
     else
     {
       this.getElemByTagName = function dhtml_getElemByTagName()
       {
         return null;
-      }
+      };
     }
 
     if (hasGetElementsByTagName)
@@ -227,28 +227,28 @@ function DHTML()
       this.getElemByIndex = function dhtml_getElemByIndex(i)
       {
         return result = document.getElementsByTagName('*')[i];
-      }
+      };
     }
     else if (hasDocumentAll)
     {
       this.getElemByIndex = function dhtml_getElemByIndex(i)
       {
         return document.all(i);
-      }
+      };
     }
     else if (hasDocumentLayers)
     {
       this.getElemByIndex = function dhtml_getElemByIndex(i)
       {
         return document.layers[i];
-      }
+      };
     }
     else
     {
       this.getElemByIndex = function dhtml_getElemByIndex()
       {
         return null;
-      }
+      };
     }
   }  
 
@@ -260,16 +260,17 @@ function DHTML()
   
     if (coll)
     {
+      var rx = new RegExp(["\\b", s, "\\b"].join(''));
       for (var i = 0, len = coll.length; i < len; i++)
       {
-        if (coll[i].className == s)
+        if (rx.test(coll[i].className))
         {
           result[result.length] = coll[i];
         }
       }
     }
     return result;
-  }
+  };
 
   this.isW3CDOM = this.isMethodType(typeof document.getElementById);
   this.isOpera  = typeof window.opera != "undefined";
@@ -305,7 +306,7 @@ function dhtml_dummyError()
 {
   onerror = null;
   return true;
-}
+};
 
 /**
  * Shows an exception alert and allows for
@@ -1170,6 +1171,62 @@ function disableElementGroup(oElementGroup, index)
 DHTML.prototype.disableElementGroup = disableElementGroup;
 
 /**
+ * Disables or enables form elements by name/ID.
+ * 
+ * @argument  HTMLFormElement oForm
+ *   Reference to the <code>form</code> element object.
+ * @arguments string|HTMLElement
+ *   Names/IDs of the elements or references
+ *   to the element objects to disable/enable.
+ * @optional  boolean bDisable
+ *   If <code>false</code>, elements will be
+ *   enabled, otherwise disabled.
+ */
+function disableElements(oForm)
+{
+  if (oForm)
+  {
+    var bDisable = true, len = arguments.length - 1;
+    if ((bDisable = arguments[arguments.length - 1])
+        && typeof bDisable == "boolean")
+    {
+      len = arguments.length - 2;
+    }
+
+    for (var i = 1; i < len; i++)
+    {
+      var a = arguments[i], o;
+      if (typeof a != "object")
+      {
+        o = oForm.elements[a];
+      }
+      else
+      {
+        o = a;
+      }
+
+      var len2;
+      if (typeof o.disabled != "undefined")
+      {
+        o.disabled = bDisable;
+      }
+      else if (typeof (len2 = o.length) != "undefined")
+      {
+        for (var j = len2; j--; 0)
+        {
+          var o2;
+          if (typeof (o2 = o[j]).disabled != "undefined")
+          {
+            o2.disabled = bDisable;
+          }
+        }
+      }
+    }
+  }
+}
+DHTML.prototype.disableElements = disableElements;
+
+/**
  * Creates an element of the type specified, using the
  * document.createElement method if supported.  This
  * method works with MSIE, too, for it is tried to use a
@@ -1402,7 +1459,7 @@ function loadScript(sURI, sType, sLanguage)
 
       if (typeof oScript.defer != "undefined")
       {
-        oScript.defer= true;
+        oScript.defer = true;
       }
       
       var aHeads;
