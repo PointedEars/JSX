@@ -34,7 +34,7 @@
 
 /**
  * A <code>CSSSelectorList</code> object encapsulates
- * all CSS selectors of linked to from document in a
+ * all CSS selectors linked to from a document in a
  * @{Collection}.
  *
  * @optional Object
@@ -107,7 +107,7 @@ function cssSelectorList_findSimpleSelector(sSelector)
                                      + "\\s*(IDENT|STRING)\\s*)?\\]")
     .replace(/pseudo/g,              ":(IDENT|FUNCTION\\s*IDENT?\\s*\\))")
     .replace(/FUNCTION/g,            "IDENT\\(\\s*expr\\)\\s*")
-    .replace(/\{expr\}/g,            'Term(OperatorTerm)*')
+    .replace(/\{expr\}/g,            'Term(OperatorTerm)*'
     .replace(/\{Operator\}/g,        "(/\\s*|,\\s*|/\\*([^*]|\\*[\\/])*\\*/)")
     .replace(/\{Term\}/g,            ["(unary_operator?",
                                       "(NUMBER%?\\s*|LENGTH\\s*",
@@ -134,7 +134,7 @@ function cssSelectorList_findSimpleSelector(sSelector)
     .replace(/\{nonascii\}/g,        "\\x80-\\xFF")
     .replace(/\{escape\}/g,          "({unicode}|\\\\[ -~\\x80-\\xFF])")
     .replace(/\{unicode\}/g,       "\\\\[0-9a-f]{1,6}(\\r\\n|[ \\t\\r\\n\\f])?")
-    .replace(/\{combinator\}/g,      "(\\+\\s*|\\>\\s*|\\s+)"));
+    .replace(/\{combinator\}/g,      "(\\+\\s*|\\>\\s*|\\s+)");
     
   var r;
   while (this.hasNext())
@@ -193,3 +193,269 @@ function showByClassName(sClassName, bShow)
     }
   }
 }
+
+/**
+ * The <code>Color</code> prototype encapsulates
+ * color data given in RGB format.
+ *
+ * @argument number|string iRed
+ *   Red value or RGB color.  Supported formats for RGB color are:
+ *   <code>rgb(<var>r</var>, <var>g</var>, <var>b</var>)</code>,
+ *   <code>#rgb</code> and <code>#rrggbb</code>.
+ * @optional number iGreen
+ *   Green value.
+ * @optional number iBlue
+ *   Blue value.
+ * @property number red
+ *   Red value.
+ * @property number green
+ *   Green value.
+ * @property number blue
+ *   Blue value.
+ */
+function Color(iRed, iGreen, iBlue)
+{
+  /*
+   * Fixes RGB values, i.e. brings them into
+   * range if they are out of range.
+   * Note: Brightness/contrast are disregarded.
+   */
+  Color.prototype.fix = function color_fix()
+  {
+    if (this.red   <   0) this.red   =   0;
+    if (this.red   > 255) this.red   = 255;
+    if (this.green <   0) this.green =   0;
+    if (this.green > 255) this.green = 255;
+    if (this.blue  <   0) this.blue  =   0;
+    if (this.blue  > 255) this.blue  = 255;
+  }
+
+  /**
+   * Sets the color values from a RGB value.
+   * 
+   * @argument string
+   *   RGB value as supported by @{#Color()}.
+   */
+  Color.prototype.setRGB = function color_setRGB(v)
+  {
+    var m;
+
+    if ((m = new RegExp(
+      '((rgb\\(\\s*(\\d{1,3})\\s*,\\s*(\\d{1,3})\\s*,\\s*(\\d{1,3})\\s*\\))'
+        + '|(#([0-9a-f]{3})([0-9a-f]{3})?))',
+      'i').exec(v)))
+    { 
+      // rgb(...)
+      if (m[2])
+      {
+        this.red   = m[3];
+        this.green = m[4];
+        this.blue  = m[5];
+      }
+      // #xxxxxx
+      else if (m[6])
+      {
+        if (m[8])
+        {
+          if ((m =
+                 /([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i.exec(m[7] + m[8])))
+          {
+            this.red   = parseInt(m[1], 16);
+            this.green = parseInt(m[2], 16);
+            this.blue  = parseInt(m[3], 16);
+          }
+        }
+        // #xxx
+        else
+        {
+          var c;
+          this.red   = parseInt((c = m[7].charAt(0)) + c, 16);
+          this.green = parseInt((c = m[7].charAt(1)) + c, 16);
+          this.blue  = parseInt((c = m[7].charAt(2)) + c, 16);
+        }
+      }
+    }
+
+    this.fix();
+
+    return this;
+  }
+
+  /**
+   * Sets the color values from Red, Green and Blue values or a
+   * RGB value.
+   * 
+   * @argument number|string iRed
+   *   Red value or RGB color.  Supported formats
+   *   for RGB color are the same as for @{#Color()}.
+   * @optional number iGreen
+   *   Green value.
+   * @optional number iBlue
+   *   Blue value.
+   */
+  Color.prototype.set = function color_set(iRed, iGreen, iBlue)
+  {
+    if (typeof iRed != 'undefined')
+    {
+      // rgb(...) or /#xxx(xxx)?/
+      if (typeof iRed == 'string')
+      {
+        this.setRGB(iRed);
+      }
+      else
+      {
+        this.red = iRed;
+        if (typeof iGreen != 'undefined') this.green = iGreen;
+        if (typeof iBlue  != 'undefined') this.blue  = iBlue;
+      }
+    }
+    
+    this.fix();
+
+    return this;
+  }
+  
+  this.set(iRed, iGreen, iBlue);
+}
+
+/**
+ * Returns the monochrome version of a color as an object.
+ */
+Color.prototype.getMono = function color_getMono()
+{
+  var avg = Math.floor(((+this.red) + (+this.green) + (+this.blue)) / 3);
+  return new Color(avg, avg, avg);
+}
+
+/**
+ * Sets the color values from Red, Green and Blue values or
+ * an RGB value and returns a monochrome version of the color
+ * as an object.
+ * 
+ * @argument number|string iRed
+ *   Red value or RGB color.  Supported formats
+ *   for RGB color are the same as for @{#Color()}.
+ * @optional number iGreen
+ *   Green value.
+ * @optional number iBlue
+ *   Blue value.
+ */
+Color.prototype.setMono = function color_setMono(iRed, iGreen, iBlue)
+{
+  if (typeof iRed == 'string')
+  {
+    this.setRGB(iRed);
+  }
+  else
+  {
+    this.red = iRed;
+    if (typeof iGreen != 'undefined') this.green = iGreen;
+    if (typeof iBlue  != 'undefined') this.blue  = iBlue;
+  }
+  
+  var c = this.getMono();
+  this.red   = c.red;
+  this.green = c.green;
+  this.blue  = c.blue;
+
+  return this;
+}
+
+/**
+ * Returns the color as a string
+ * <code>rgb(<var>r</var>,<var>g</var>,<var>b</var>)</code>
+ * representation supported by CSS.
+ */
+Color.prototype.getRGB = function color_getMono()
+{
+  return ['rgb(', this.red, ',', this.green, ',', this.blue, ')'].join('');
+}
+
+/**
+ * Returns the color as a string
+ * <code>{red: <var>r</var>, green: <var>g</var>, blue: <var>b</var>}</code>
+ * representation.
+ */
+Color.prototype.toString = function color_toString()
+{
+  return [
+    '{red: ', this.red, ', green: ', this.green, ', blue: ', this.blue, '}'
+  ].join('');
+}
+
+/**
+ * Changes the current document into a monochrome version of itself.
+ * 
+ * @requires dhtml.js
+ */
+function makeMono()
+{
+  var
+    sl = new CSSSelectorList(),
+    i = sl.iterator(),
+    s,
+    c = new Color(),
+    a = ['backgroundColor', 'borderColor', 'borderTopColor',
+         'borderRightColor', 'borderBottomColor', 'borderLeftColor',
+         'outlineColor', 'color'],
+    j,
+    p;
+    
+  while ((s = i.next()))
+  {
+    for (j = a.length; j--;)
+    {
+      if ((p = s[a[j]]))
+      {
+        s[a[j]] = c.setMono(p).getRGB();
+      }
+    }
+  }
+  
+  for (var es = dhtml.getElemByTagName('*'), i = es && es.length; i--;)
+  {
+    var e = es[i];
+    for (j = a.length; j--;)
+    {
+      if ((p = e.style[a[j]]))
+      {
+        e.style[a[j]] = c.setMono(p).getRGB();
+      }
+    }
+  }
+}
+
+function hex2safe(s)
+{
+  if (s.length > 1)
+  {
+    var matches;
+    if ((matches = /^([0-9a-f])\1([0-9a-f])\2([0-9a-f])\3$/i.exec(s)))
+    {
+      return [matches[1], matches[2], matches[3]].join("");
+    }
+  }
+  return s;
+}
+
+function rgb2hex(s)
+{
+  if (s)
+  {
+    var matches;
+    if ((matches = /(rgb\s*\()?\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)?/i
+                   .exec(s)))
+    {
+      return ("#" + hex2safe([
+                        leadingZero((+matches[2]).toString(16), 2),
+                        leadingZero((+matches[3]).toString(16), 2),
+                        leadingZero((+matches[4]).toString(16), 2)
+                      ].join("")));
+    }
+  }
+  
+  return s;
+}
+
+// alert(rgb2hex('rgb(204,204,204)'));
+
