@@ -30,7 +30,7 @@
  * for details.
  */
 
-var windowVersion   = "1.29.2004033111"; // 1.29.2004.11b6+
+var windowVersion   = "1.29.2005030511"; // 1.29.2004.11b6+
 var windowCopyright = "Copyright \xA9 1999-2004";
 var windowAuthor    = "Thomas Lahn";
 var windowEmail     = "window.js@PointedEars.de";
@@ -81,10 +81,10 @@ function resetStatus()
 }
 
 var sLinkOutMsg_de =
-    "Dieser Link ist offline nicht verfügbar.\n\n"
+    "Dieser Link ist offline nicht verf?gbar.\n\n"
   + "Wenn Sie mit dem Internet verbunden sind, steht Ihnen die Seite online"
-  + " zur Verfügung.\n\n"
-  + "Möchten Sie jetzt eine Verbindung zu dieser Seite herstellen?";
+  + " zur Verf?gung.\n\n"
+  + "M?chten Sie jetzt eine Verbindung zu dieser Seite herstellen?";
     
 var sLinkOutMsg_us =
   "This link is not available offline.\n\n"
@@ -477,3 +477,53 @@ function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter)
  * compatibility with previous versions
  */
 var Enlarge = enlargeImg;
+
+function showFrameNames(w)
+{
+  for (var i = w.frames.length; i--;)
+  {
+    var f = w.frames[i];
+    if (f.frames.length > 0)
+    {
+      showFrameNames(f);
+    }
+    else
+    {
+      if (isMethodType("document.createElement")
+          && isMethodType("document.appendChild")
+          && isMethodType("document.createTextNode"))
+      {
+        var div = document.createElement("div");
+        if (div
+            && typeof div.style != "undefined"
+            && typeof div.style.backgroundColor != "undefined"
+            && typeof div.style.color != "undefined"
+            && typeof div.style.position != "undefined"
+            && typeof div.style.left != "undefined"
+            && typeof div.style.top != "undefined")
+        {
+          div.style.backgroundColor = "yellow";
+          div.style.color = "black";
+          div.style.position = "fixed";
+          if (div.style.position != "fixed")
+          {
+            div.style.position = "absolute";
+          }
+          div.style.left = 0;
+          div.style.top = 0;
+
+          var txt = document.createTextNode(w.name);
+          if (txt)
+          {
+            div.appendChild(txt);
+          }
+          
+          // w.document.body.appendChild(div);
+          alert(w.name);
+        }
+      }
+    }
+  }
+}
+
+// showFrameNames(_window.top);
