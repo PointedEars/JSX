@@ -1,0 +1,390 @@
+ORIGINAL FILENAME:       document.js
+PURPOSE:                 Provides JavaScript routines and objects to create
+                         temporary documents
+SCRIPT LANGUAGE/VERSION: JavaScript 1.1
+FILE VERSION:            1.19.2001.1
+                         (see documentVersion variable definition in script file)
+TESTED WITH:
+  Microsoft Internet Explorer 5.50.4134.0600IC
+  Microsoft Internet Explorer 5.01, "5.00.2919.6307IC"
+  Microsoft Internet Explorer 5.00.2314.1003IC
+
+VERSION HISTORY (current on top)
+1.19.2001.1  2001-01-11  Moved general documentation to text file for faster processing.
+1.18.2000.8  2000-08-22  Improved CHTMLdoc.showProperties() method, now uses for-in-loop
+                         to retrieve available properties dynamically.
+1.17.2000.8  2000-08-13  Improved documentation texts.
+                         Tested script file successfully with IE5.5
+1.16.2000.7  2000-07-24  Added HTMLwriteLinkFavIcon() function and resp. method
+1.15.2000.6  2000-06-10  Improved documentation texts.
+1.14.2000.5  2000-05-24  Changed message box display in CHTMLdoc.showProperties() method
+                         Added tagCount global variable and resp. CHTMLdoc property
+                         Added CHTMLdocCount global variable for instance auto-naming
+1.13.2000.4  2000-04-20  Added HTMLwriteStyle(...) function and resp. method
+1.12.2000.4  2000-04-09  Improved HTMLdocOpen, now uses default argument values
+1.11.2000.4  2000-04-04  Improved HTMLwriteScript, now uses default argument values
+1.10.2000.3  2000-03-31  Usage of global variables for script data like version,
+                         author and contact e-mail address
+1.09.2000.3  2000-03-25  Renamed non-HTML-specific functions
+1.08.2000.3  2000-03-24  Fixed default color and background image properties
+                         of new CHTMLdoc instances
+                         Fixed invalid condition in HTMLdocOpen(...) function
+                         Fixed invalid func. name in HTMLdocShowProperties()
+1.07.2000.3  2000-03-24  Improved HTMLwriteTag, now uses default arg. values
+                         Improved DTD strings with "\"" instead of '"'
+1.06.2000.3  2000-03-23  Fixed some minor issues, renamed from html.js to
+                         document.js
+1.05.2000.3  2000-03-19  Added OOP support for Multiple Document Access (MDA)
+1.05.2000.3  2000-03-17  Added support for Object-Oriented Programming (OOP)
+
+Copyright © 2000-2001 by Thomas Lahn (PES);
+See sAuthorCopyright variable definition in script file.
+
+TERMS OF USE:
+This code may be used and modified within the limits described below
+for non-commercial purposes only and if the copyright above is also
+mentioned.
+
+HOW TO USE:
+I recommend to utilize the functions of this script in different
+HTML documents when saving the entire file as document.js and appending the
+following section within the <HEAD></HEAD> tags of that documents:
+
+<script language="JavaScript1.2" src="document.js" type="text/javascript"></script>
+
+Sometimes it may be necessary to add the tag
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+to the document that uses functions defined herein for the script to work.
+
+All functions to perform HTML write operations defined herein use the
+HTMLdoc variable as target (see below) to create a temporary HTML document.
+
+This script file provides the following functions:
+
+docCheck               Checks whether the document specified by HTMLdoc exists.
+HTMLdocOpen            Opens a new HTML document.
+HTMLdocClose           Closes a new HTML document.
+docWrite               Writes directly into a temporary document.
+docWriteLn             Writes an entire line directly into a temporary document.
+HTMLwriteTag           Writes an HTML tag.
+HTMLwriteMeta          Writes an HTML <META> tag.
+HTMLwriteScript        Writes an HTML <SCRIPT> section.
+HTMLwriteStyle         Writes an HTML <STYLE> section.
+HTMLwriteLinkFavIcon   Writes an HTML <LINK> tag to determine the icon used when the
+                       web page is bookmarked in Internet Explorer Favorites folder.
+HTMLheadOpen           Opens the HTML header.
+HTMLheadClose          Closes the HTML header.
+HTMLbodyOpen           Opens the HTML body.
+HTMLbodyClose          Closes the HTML body.
+
+See the function documentations below for details.
+
+_______________________________________________________________________________
+
+The HTMLdoc variable specifies the document object that is used for
+write operations.
+The default is the document where this script file is included.
+You would surely prefer another frame of the previously defined frameset
+as target. Therefore you can modify the variable's value and add the section
+
+<script language="JavaScript1.1"><!--
+...
+HTMLdoc = parent.frames[2].document;
+...
+//--></script>
+
+in the HTML document file where this script is included. It will cause the
+following function calls of this script to write into the third frame
+of that frameset (frames are counted from 0).
+Do not use the TYPE attribute on the script section because
+M$ Internet Explorer will then ignore the whole script.
+
+_______________________________________________________________________________
+
+function docCheck(bRaiseException)
+
+Returns true if the document object specified by HTMLdoc is available/is valid/
+does exist, otherwise it returns false.
+If you pass true as only argument, the function will raise an ENoDocument
+exception if it will return false.
+No exception will be raised if you pass an invalid argument or
+an invalid number of arguments (silent mode).
+
+Note: All functions defined herein to write HTML content call docCheck
+by default to raise an exception if the document object specified HTMLdoc
+is not available/is invalid/does not exist.
+
+_______________________________________________________________________________
+
+function HTMLdocOpen(sDTD, bReplace)
+
+Replaces the document specified by HTMLdoc with a blank HTML document.
+
+Use the sDTD argument and one of the variables named dtd... defined above
+to specify a registered Document Type Definition (DTD) for the document,
+e. g. the DTD may specify the HTML version of the document's tags use.
+You may also add one of the variables named dtdURL_... to the variables
+named dtdHTML4... to define the tag policy you are using:
+
+<script language="JavaScript1.2" src="document.js" type="text/javascript"></script>
+<script language="JavaScript1.2">
+<!--
+HTMLdoc = parent.document;                    Assign required document object
+HTMLdocOpen( dtdHTML4frm + dtdURL_HTML4frm ); Create document for frameset
+...                                           Other statements
+HTMLdocClose();                               Close the created HTML document
+-->
+</script>
+
+The document created with the example above will contain the following:
+
+<!doctype html public "-W3CDTD HTML 4.0 FramesetEN"
+ "http:www.w3.org/TR/REC-html40/frameset.dtd">
+<html>
+
+Use true for the bReplace argument to specify whether the new document
+should also replace the previous document in the browser's document history.
+
+Note: The function call keeps the new document open for further
+write operations. Recommended to use HTMLdocClose() on the same document after
+completed writing. If you have formerly opened the previous document
+in that frame with document.open() or HTMLdocOpen(), it is recommended that
+you call HTMLdocClose() first for saving system resources (see below).
+
+_______________________________________________________________________________
+
+function HTMLdocClose()
+
+Closes the document specified by HTMLdoc.
+Use HTMLdocClose() if you have formerly opened a new document with
+document.open() or HTMLdocOpen() (see above).
+
+_______________________________________________________________________________
+
+function docWrite(s)
+
+Writes the passed argument into the HTML document.
+Unlike HTMLdoc.write() it checks the document object before using it
+and raises an exception if it is not available.
+
+_______________________________________________________________________________
+
+function docWriteLn(s)
+
+Writes the passed argument into the HTML document including
+Carriage Return character.
+Unlike HTMLdoc.writeln() it checks the document object before using it
+and raises an exception if it is not available.
+
+_______________________________________________________________________________
+
+function HTMLwriteTag(sTag, sAttrib, sContent)
+
+Writes an opening and closing HTML tag into the HTML document.
+Note: Does not write Carriage Return character when finished.
+Unlike HTMLdoc.write() it checks the document object before using it
+and raises an exception if it is not available.
+
+The function requires the following arguments to be passed:
+
+sTag      Name of the tag to be written: Null-string causes exception.
+sAttrib   Tag attributes: Null-string allowed. Combine two or more attributes
+          separated by spaces.
+sContent  Content between the opening and closing tag. If you pass a
+          null-string the function does not write a closing tag.
+
+The variable HTMLtagCount stores the number of HTML tags that has
+been written into the document with HTMLwriteTag().
+
+_______________________________________________________________________________
+
+function HTMLwriteMeta(sName, sHTTPequiv, sContent) {
+
+Appends a <META ...> tag to the HTML document specified by HTMLdoc.
+This type of tag is allowed within the HTML header only.
+
+ARGUMENT    MEANING
+sName       If not a null-string, the argument defines the value of the
+            NAME attribute of the <META> tag.
+sHTTPequiv  If not a null-string, the argument defines the value of the
+            HTTP-EQUIV attribute of the <META> tag.
+sContent    Defines the CONTENT attribute of the <META> tag
+            (null-string allowed).
+
+All described arguments are required for the function call. Otherwise
+an EInvalidArgNum exception is raised.
+
+Note: The function call keeps the document body open for further
+write operations. Recommended to use HTMLheadClose() on the same document
+after completed writing into the header.
+
+The variable HTMLmetaCount stores the number of <META> tags that has been
+written into the document with HTMLwriteMeta() except the
+<META NAME="GENERATOR" ...> tag that is written automatically into the
+document on call of HTMLheadopen().
+Thus the GENERATOR value for the NAME attribute is refused to write into
+the document when calling HTMLwriteMeta. In that case, no exception is raised.
+
+_______________________________________________________________________________
+
+function HTMLwriteLinkFavIcon(sURL)
+
+Writes an HTML <LINK> tag to determine the icon used when the web page is
+bookmarked in Internet Explorer Favorites folder. The icon file (sURL) must be
+of 16x16 pixels in size.
+You can leave the use of this function if you place an icon file of 16x16
+pixels in size named favicon.ico in the root directory of your domain
+(www.your-domain.com/favicon.ico).
+
+_______________________________________________________________________________
+
+function HTMLwriteScript(sLang, sSrc, sType, sContent)
+
+Appends a <SCRIPT ...></SCRIPT> section to the HTML document specified by
+HTMLdoc. This type of tag is allowed within both the HTML header and body.
+
+ARGUMENT    MEANING
+sLang       Defines the language of the SCRIPT section (required).
+sSrc        If not a null-string, the argument defines the included script
+            file for the SCRIPT section (optional).
+sType       If not a null-string, the argument defines the MIME type of the
+            SCRIPT section (optional).
+sContent    If not a null-string, the argument defines the statements that
+            should be added to the script. Passing a null-string will cause
+            the function not to write the remark tags. When sSrc is not a
+            null-string, this argument is ignored.
+
+All described arguments are required for the function call if sSrc is not
+a null-string (therefore only arguments sLang, sSrc and sType required).
+Otherwise an EInvalidArgNum exception is raised.
+
+Note: The function call keeps the document body open for further
+write operations. See HTMLdocClose() for details.
+
+The variable HTMLscriptCount stores the number of script sections that has
+been written into the document with HTMLwriteScript().
+
+_______________________________________________________________________________
+
+function HTMLwriteStyle(sType, sAttrib, sContent)
+
+Appends a <STYLE ...></STYLE> section to the HTML document specified by
+HTMLdoc. This type of tag is allowed within the HTML header only.
+
+ARGUMENT    MEANING
+sType       Defines the type of the STYLE section.
+            Valid values are a null-string or "text/css" for cascading
+            style-sheets (IE and NN) and "text/javascript" for JavaScript
+            style sheets (NN only).
+            Invalid values cause an EInvalidArgument exception.
+sAttrib     If not a null-string, the argument defines the the additional
+            attributes for the STYLE section.
+sContent    The argument defines the definitions and/or statements that
+            should be added to the style sheet. Passing a null-string will
+            raise an EInvalidArgument exception as the style section is
+            not allowed to be empty.
+
+All described arguments are required for the function call.
+Otherwise an EInvalidArgNum exception is raised.
+
+Note: The function call keeps the document body open for further
+write operations. See HTMLdocClose() for details.
+
+The variable HTMLstyleCount stores the number of style sections that has
+been written into the document with HTMLwriteStyle().
+
+_______________________________________________________________________________
+
+function HTMLheadOpen(sTitle)
+
+Appends the beginning of an HTML document header into the document specified by
+HTMLdoc including the title tag.
+
+Use the sTitle argument to pass a string that is used for document title.
+Most browsers display this string in the title bar if the document is not
+displayed within a frameset.
+
+Note: The function call keeps the document header open for further
+write operations. Recommended to use HTMLheadClose() on the same document
+after completed writing into the header.
+
+_______________________________________________________________________________
+
+function HTMLheadClose()
+
+Closes the header of the document specified by HTMLdoc.
+Use HTMLheadClose() if you have formerly opened a document header with
+<head> or HTMLheadOpen() (see above).
+
+Note: The function call keeps the new document open for further
+write operations. See HTMLdocOpen() above for details.
+
+_______________________________________________________________________________
+
+function HTMLbodyOpen() {
+
+Appends the beginning of an HTML document body into the document specified by
+HTMLdoc.
+
+The function uses the clBody... variables for color attributes if their values
+are not null-strings (default).
+
+The function uses the imgBody variable to define the URL of the background
+image of the document if its value is not a null-string (default).
+
+The bBodyBgFixed variable is currently used by M$ Internet Explorer only.
+The default value is false. If true is assigned, and imgBody is also assigned,
+the background image will be in watermark style, meaning that it stands still
+when the document text is scrolled.
+
+Note: The function call keeps the document body open for further
+write operations. Recommended to use HTMLbodyClose() on the same document
+after completed writing into the document's body.
+
+_______________________________________________________________________________
+
+function HTMLbodyClose() {
+
+Closes the body of the document specified by HTMLdoc.
+Use HTMLbodyClose() if you have formerly opened a document body with
+<BODY> or HTMLbodyOpen() (see above).
+
+Note: The function call keeps the new document open for further
+write operations. See HTMLdocOpen() above for details.
+
+_______________________________________________________________________________
+
+Version 1.05.x Extension: Object-Oriented Programming (OOP)
+
+OOP using the CHTMLdoc class allows you to access different temporary
+HTML documents virtually simultaneously.
+You need to create an instance of this class for each temporary document
+using the JavaScript:new keyword as follows:
+
+Document1 = new CHTMLdoc(Target1);
+Document2 = new CHTMLdoc(Target2);
+
+TargetX is to be replaced with the document object you wish to access via
+the new instance.
+Then, after all necessary values have been assigned to the properties of the
+instance, you can activate the respective instance using its activate()
+method. After that, you can use the properties and methods as defined below
+to access the respective document object.
+
+Note that the activate() method is the only "gatekeeper" for HTML write
+operations via OOP. Once an instance is activated, the methods of all CHTMLdoc
+instances and the HTML...() functions themselves will use the properties of
+it as data source. Therefore there is no need to use the CHTMLdoc class and OOP
+instead of the HTML...() functions defined above if you wish to access a
+single document object only.
+The HTMLinstance object represents the currently active CHTMLdoc instance.
+
+If you wish to change the target document of an instance after creation,
+then assign a document object to its target property.
+Note that you need to call the activate() method of an instance every time
+after you have changed its properties to make the changes have effect on
+future method calls.
+_______________________________________________________________________________
+END OF FILE
