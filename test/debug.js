@@ -3,7 +3,7 @@
  */
 function Debug()
 {
-  this.version = "0.99.2004020714";
+  this.version = "0.99.2004031616";
 /**
  * @filename debug.js
  * @requires types.js
@@ -19,7 +19,7 @@ function Debug()
   this.author    = "Thomas Lahn";
   this.email     = "debug.js@PointedEars.de";
   this.path      = "http://pointedears.de.vu/scripts/test/";
-  // this.docURL = this.path + "debug.htm";
+  this.docURL = this.path + "../enhanced.htm";
 }
 var debug = new Debug();
 /**
@@ -67,9 +67,10 @@ function DebugException(/** @argument string */ Msg)
 
 /** @section Features */
 
-function dummyError()
+function /** @type boolean */ dummyError()
 {
-  onerror = null;
+  _global.onerror = null;
+
   return true;
 }
 
@@ -237,7 +238,7 @@ function beautify(/** @argument string */ s)
 
 function uglyfy(/** @argument string */ s)
 {
-  return s.replace(/\s/g, " ").replace
+  return s.replace(/\s/g, " ") // .replace
 }
 
 function Owners(/** @argument optional Array of Object */ aOwners)
@@ -408,11 +409,11 @@ function PropertyArray()
 }
 
 PropertyArray.prototype.push =
-  function /** @type number|Property */ push(
-    /** @argument Property */ oProperty)
-  {
-    return this.items.push(oProperty);
-  }
+function /** @type number|Property */ push(
+  /** @argument Property */ oProperty)
+{
+  return this.items.push(oProperty);
+}
 
 // Specific sort methods
 PropertyArray.prototype.cmpSortByIdAsc =
@@ -420,149 +421,203 @@ PropertyArray.prototype.cmpSortByIdAsc =
 PropertyArray.prototype.cmpSortByIdDesc =
   /** @type Comparator */ new Function("a", "b", "return b.id - a.id;");
 PropertyArray.prototype.sortById =
-  function sortById(iDir)
+function sortById(iDir)
+{
+  if (iDir && iDir < 0)
   {
-    if (iDir && iDir < 0)
-      this.items.sort(this.cmpSortByIdDesc);
-    else
-      this.items.sort(this.cmpSortByIdAsc);
-    this.sortOrder = this.soById;
-    this.sortDir = iDir ? iDir : this.sdAscending;
+    this.items.sort(this.cmpSortByIdDesc);
   }
+  else
+  {
+    this.items.sort(this.cmpSortByIdAsc);
+  }
+  
+  this.sortOrder = this.soById;
+  this.sortDir = iDir ? iDir : this.sdAscending;
+}
+
 PropertyArray.prototype.unsort =
   PropertyArray.prototype.sortById;
   
 PropertyArray.prototype.cmpSortByNameAsc =
-  function /** @type Comparator */ cmpSortByNameAsc(a, b)
+function /** @type Comparator */ cmpSortByNameAsc(a, b)
+{
+  if (a.name < b.name)
   {
-    if (a.name < b.name)
-      return -1;
-    else if (a.name > b.name)
-      return 1;
-    else return 0;
+    return -1;
   }
+  else if (a.name > b.name)
+  {
+    return 1;
+  }
+  
+  return 0;
+}
+
 PropertyArray.prototype.cmpSortByNameDesc =
-  function /** @type Comparator */ cmpSortByNameDesc(a, b)
+function /** @type Comparator */ cmpSortByNameDesc(a, b)
+{
+  if (a.name > b.name)
   {
-    if (a.name > b.name)
-      return -1;
-    else if (a.name < b.name)
-      return 1;
-    else
-      return 0;
+    return -1;
   }
+  else if (a.name < b.name)
+  {
+    return 1;
+  }
+
+  return 0;
+}
+
 PropertyArray.prototype.sortByName =
-  function sortByName(iDir)
+function sortByName(iDir)
+{
+  if (iDir && iDir < 0)
   {
-    if (iDir && iDir < 0)
-      this.items.sort(this.cmpSortByNameDesc);
-    else
-      this.items.sort(this.cmpSortByNameAsc);
-    this.sortOrder = this.soByName;
-    this.sortDir = iDir ? iDir : this.sdAscending;
+    this.items.sort(this.cmpSortByNameDesc);
   }
+  else
+  {
+    this.items.sort(this.cmpSortByNameAsc);
+  }
+  
+  this.sortOrder = this.soByName;
+  this.sortDir = iDir ? iDir : this.sdAscending;
+}
+
 PropertyArray.prototype.cmpSortByTypeAsc =
-  function /** @type Comparator */ cmpSortByTypeAsc(a, b)
+function /** @type Comparator */ cmpSortByTypeAsc(a, b)
+{
+  if (a.type < b.type)
   {
-    if (a.type < b.type)
-      return -1;
-    else if (a.type > b.type)
-      return 1;
-    else
-     return 0;
+    return -1;
   }
+  else if (a.type > b.type)
+  {
+    return 1;
+  }
+
+  return 0;
+}
+
 PropertyArray.prototype.cmpSortByTypeDesc =
-  function /** @type Comparator */ cmpSortByTypeDesc(a, b)
+function /** @type Comparator */ cmpSortByTypeDesc(a, b)
+{
+  if (a.type > b.type)
   {
-    if (a.type > b.type)
-      return -1;
-    else if (a.type < b.type)
-      return 1;
-   else
-     return 0;
+    return -1;
   }
+  else if (a.type < b.type)
+  {
+    return 1;
+  }
+
+  return 0;
+}
+
 PropertyArray.prototype.sortByType =
-  function sortByType(iDir)
+function sortByType(iDir)
+{
+  if (iDir && iDir < 0)
   {
-    if (iDir && iDir < 0)
-      this.items.sort(this.cmpSortByTypeDesc);
-    else
-     this.items.sort(this.cmpSortByTypeAsc);
-    this.sortOrder = this.soByType;
-    this.sortDir = iDir ? iDir : this.sdAscending;
+    this.items.sort(this.cmpSortByTypeDesc);
   }
+  else
+  {
+    this.items.sort(this.cmpSortByTypeAsc);
+  }
+
+  this.sortOrder = this.soByType;
+  this.sortDir = iDir ? iDir : this.sdAscending;
+}
+
 PropertyArray.prototype.cmpSortByValueAsc =
-  function /** @type Comparator */ cmpSortByValueAsc(a, b)
+function /** @type Comparator */ cmpSortByValueAsc(a, b)
+{
+  if (a.value < b.value)
   {
-    if (a.value < b.value)
-      return -1;
-    else if (a.value > b.value)
-      return 1;
-    else
-      return 0;
+    return -1;
   }
+  else if (a.value > b.value)
+  {
+    return 1;
+  }
+
+  return 0;
+}
+
 PropertyArray.prototype.cmpSortByValueDesc =
-  function /** @type Comparator */ cmpSortByValueDesc(a, b)
+function /** @type Comparator */ cmpSortByValueDesc(a, b)
+{
+  if (a.value > b.value)
   {
-    if (a.value > b.value)
-      return -1;
-    else if (a.value < b.value)
-      return 1;
-    else
-      return 0;
+    return -1;
   }
+  else if (a.value < b.value)
+  {
+    return 1;
+  }
+
+  return 0;
+}
 PropertyArray.prototype.sortByValue =
-  function sortByValue(iDir)
+function sortByValue(iDir)
+{
+  if (iDir && iDir < 0)
   {
-    if (iDir && iDir < 0)
-      this.items.sort(this.cmpSortByValueDesc);
-    else
-      this.items.sort(this.cmpSortByValueAsc);
-    this.sortOrder = this.soByValue;
-    this.sortDir = iDir ? iDir : this.sdAscending;
+    this.items.sort(this.cmpSortByValueDesc);
   }
+  else
+  {
+    this.items.sort(this.cmpSortByValueAsc);
+  }
+
+  this.sortOrder = this.soByValue;
+  this.sortDir = iDir ? iDir : this.sdAscending;
+}
+
 PropertyArray.prototype.sortBy =
-  function sortBy(iSortOrder, iSortDir)
+function sortBy(iSortOrder, iSortDir)
+{
+  switch (iSortOrder)
   {
-    switch (iSortOrder)
-    {
-      case this.soNone:
-      case this.soByID:
-        this.sortById(iSortDir);
-        break;
+    case this.soNone:
+    case this.soByID:
+      this.sortById(iSortDir);
+      break;
     
-      case this.soByName:
-        this.sortByName(iSortDir);
-        break;
+    case this.soByName:
+      this.sortByName(iSortDir);
+      break;
 
-      case this.soByType:
-        this.sortByType(iSortDir);
-        break;
+    case this.soByType:
+      this.sortByType(iSortDir);
+      break;
 
-      case this.soByValue:
-        this.sortByValue(iSortDir);
-    }
+    case this.soByValue:
+      this.sortByValue(iSortDir);
   }
+}
 
 PropertyArray.prototype.addProperty =
-  function addProperty(
-    /** @argument string           */ sName,
-    sValue,
-    /** @argument optional number  */ iID,
-    /** @argument optional Object  */ oOwner,
-    /** @argument optional boolean */ bEnumerable)
+function addProperty(
+  /** @argument string           */ sName,
+  sValue,
+  /** @argument optional number  */ iID,
+  /** @argument optional Object  */ oOwner,
+  /** @argument optional boolean */ bEnumerable)
+{
+  // avoid dupes
+  var aObjectProperties =
+    ["constructor", "prototype", "eval", "toSource", "toString",
+     "unwatch", "valueOf", "watch"];
+  if (inArray(sName, aObjectProperties)
+      || typeof this.items[sName] == "undefined")
   {
-    // avoid dupes
-    var aObjectProperties =
-      ["constructor", "prototype", "eval", "toSource", "toString",
-       "unwatch", "valueOf", "watch"];
-    if (inArray(sName, aObjectProperties)
-        || typeof this.items[sName] == "undefined")
-    {
-      this.push(new Property(sName, sValue, iID, oOwner, bEnumerable));
-      this.items[sName] = sValue; 
-    }
+    this.push(new Property(sName, sValue, iID, oOwner, bEnumerable));
+    this.items[sName] = sValue; 
   }
+}
 
 function NonEnumProperties(
   /** @argument RegExp          */ rxPattern,
@@ -926,7 +981,7 @@ function ObjectInfo(
     if (typeof sObject == "string")
     {
       var tc = false;
-      onerror = dummyError;
+      _global.onerror = dummyError;
       eval(
           'try {'
         + '  tc = true;'
@@ -942,7 +997,7 @@ function ObjectInfo(
         + '    }'
         + '  }'
         + '}');
-      onerror = null;
+      _global.onerror = null;
       if (! tc)
         this.target = null;
     }
@@ -1132,16 +1187,18 @@ function ObjectInfo(
           {
             eval(
                 'try {'
-              + '  p = this.target[j.names[k]];'
+              + '  if (typeof this.target[j.names[k]] != "undefined") {'
+              + '    p = this.target[j.names[k]];'
+              + '  }'
               + '} catch (e) {'
               + '  p = null;'
               + '}');
               
-            if ((isMethodType(this.target.hasOwnProperty)
-                && this.target.hasOwnProperty(j.names[k]))
+            if ((isMethodType(typeof this.target.hasOwnProperty)
+                 && this.target.hasOwnProperty(j.names[k]))
                 ||
-                (!isMethodType(this.target.hasOwnProperty) 
-                && typeof p != "undefined"))
+                (!isMethodType(typeof this.target.hasOwnProperty) 
+                 && typeof p != "undefined"))
             {
               this.hasNonEnumProperties = true;
               
@@ -1349,7 +1406,7 @@ function getObjInfo(
             : '')
             + sHeader
             + (bFormatAsHTML && bFormatAsLines
-                ? "<br />\n"
+                ? "<br>\n"
                 : (!bFormatAsHTML
                     ? "\n__________________________________________________\n"
                     : ""))
@@ -1365,7 +1422,7 @@ function getObjInfo(
   var aAttributes = new Array();
   for (var Attribute in aObject)
   {
-    if (!aWhat.test || aWhat.test(Attribute))
+    if (typeof aWhat.test == "undefined" || aWhat.test(Attribute))
       aAttributes[aAttributes.length] = Attribute;
   }
   if (aAttributes.sort) // sort attributes lexically
@@ -1439,7 +1496,9 @@ function getObjInfo(
       sAttr
         += (bFormatAsTable ? '<tr valign="top"><td> ' : '')
              + ((bObject && bFormatAsHTML)
-                 ? ("<a href='javascript:ObjectInspector(\"" + sObject + ")'>")
+                 ?   '<a href="javascript:void(ObjectInspector(\''
+                   + sObject
+                   + '\'))">'
                  : '')
              + sAttrName
              + (bObject && bFormatAsHTML ? '<\/a>': '')
@@ -1467,7 +1526,7 @@ function getObjInfo(
         if (bFormatAsTable)
           sAttr += "<\/code><\/td><\/tr>\n";
         else
-          sAttr += "<br />\n";
+          sAttr += "<br>\n";
       }
       else if (bTextLineStyle)
         sAttr += "; ";
@@ -1486,16 +1545,16 @@ function getObjInfo(
     case "null":
       if (bFormatAsHTML)
         sFooter =
-          '<code><a href="' + objectInfoPathDocURL + '" target="_blank"'
+          '<code><a href="' + debug.docURL + '" target="_blank"'
           + ' title="Show documentation for JSX:objinfo.js."'
-          + '>JSX:objinfo.js<\/a>:<a href="' + objectInfoDocURL + '#getObjInfo"'
+          + '>JSX:objinfo.js<\/a>:<a href="' + debug.docURL + '#getObjInfo"'
           + ' target="_blank"'
-          + ' title="Show documentation for JSX:objinfo.js:getObjInfo(...)"'
-          + '>getObjInfo<\/a>(...)<\/code><br />';
+          + ' title="Show documentation for JSX:debug.js:getObjInfo(...)"'
+          + '>getObjInfo<\/a>(...)<\/code><br>';
       else
         sFooter = "JSX:debug.js:getObjInfo(...)\n";
       sFooter += "Library version " + debug.version;
-      sFooter += (bFormatAsHTML ? "<br />" : "\n");
+      sFooter += (bFormatAsHTML ? "<br>" : "\n");
       sFooter += debug.copyright
         + (bFormatAsHTML ? "&nbsp;&nbsp;" : "  ")
         + debug.author
@@ -1525,7 +1584,7 @@ function getObjInfo(
         + (bFormatAsHTML
             ? (bFormatAsTable
                 ? '<\/td>\n<\/tr>\n'
-                : '<br />')
+                : '<br>')
             : "");
   }
 
@@ -1533,357 +1592,4 @@ function getObjInfo(
     sAttr += '<\/table>';
   
   return sAttr;
-}
-
-var sInspectorVersion = "0.71";
-
-function ObjectInspector(
-  /** @argument string|Object          */ sObject,
-  /** @argument optional string|RegExp */ aWhat,
-  /** @argument optional string        */ sStyle,
-  /** @argument optional string        */ sHeader,
-  /** @argument optional string        */ sFooter,
-  /** @argument optional number        */ iRecursionLevel)
-{
-  var wInspector =
-    window.open(
-      "objinfo.htm",
-      "wndObjectInspector",
-      "scrollbars=yes,resizable=yes");
-  if (wInspector)
-  {
-    wInspector.document.open("text/html");
-    var s =
-      '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"\n'
-        + ' "http://www.w3.org/TR/html4/strict.dtd">\n'
-        + '<html>\n'
-        + '  <head>\n'
-        + '    <meta http-equiv="Content-Type"'
-        + ' content="text/html; charset=ISO-8859-1">\n'
-        + '    <meta name="author" value="'
-        + objectInfoCopyright + ' ' + objectInfoAuthor
-        + ' (' + objectInfoEmail + ')">\n'
-        + '    <title>JavaScript ObjectInspector'
-        + sInspectorVersion + '<\/title>\n'
-        + '    <script type="text/javascript">\n'
-        + '      <!--\n'
-        + '      ' + getObjInfo + '\n'
-        + '      ' + arguments.callee + '\n'
-        + '      //-->\n'
-        + '    <\/script>\n'
-        + '  <\/head>\n'
-        + '  <body>\n'
-        + '    <script type="text/javascript">\n'
-        + '      <!--\n'
-        + '      document.write(getObjInfo('
-        + sObject + ', "' + aWhat + '", "' + sStyle + '"));\n'
-        + '      //-->\n'
-        + '    <\/script>\n'
-        + '  <\/body>\n'
-        + '<\/html>';
-    wInspector.document.write(s);
-    wInspector.document.close();
-  }
-  else
-    DebugException(
-      "Error: Unable to create ObjectInspector window.\n\n"
-      + "Enable popup windows, or try alert(getObjInfo(...))"
-      + " or document.write(getObjInfo(...)) instead."
-    );
-  //  return false;
-}
-
-function ObjectInspector2(/** @argument string|Object */ sObject) {
-  var sMsgClose_en = "Close Window"
-  var sMsgClose_de = "Fenster schlie&szlig;en"
-  var sInspector = "ObjectInspector " + sInspectorVersion;
-  var sMsgClose = sMsgClose_en;
-  var wImage = false;
-  var iWidth = 640, iHeight = 480;
-
-// preset also window position and size in the case the temporary script below fails
-  var sOptions = "toolbar=no,location=no,menubar=no,scrollbars=no,resizable=yes"
-    + ",left=0,top=0,width=" + (iWidth) + ",height=" + (iHeight);
-  var wInspector = window.open( "", null, sOptions );
-  if (wInspector != null) {
-    var dImage = wInspector.document.open("text/html");
-    wInspector.document.write(
-'<html>',
-
-'<head>',
-
-'<meta name="generator" value="JSX:objinfo.js:ObjectInspector(...) © 2001-2002  Thomas Lahn (webmaster@PointedEars.de)">',
-
-'<title>JavaScript ObjectInspector 0.7<\/title>',
-
-'<script language="JavaScript" type="text/javascript"><!--\n',
-
-'window.moveTo(screen.width/2 - 640/2, screen.height/2 - 480/2);\n',
-
-'function radioChkdVal(aForm, sRadioBtnGrpName) {',
-  'for (var i = 0; i < aForm.elements.length; i++) {',
-    'if ((aForm.elements[i].name == sRadioBtnGrpName) && aForm.elements[i].checked) return (aForm.elements[i].value);',
-  '}',
-  'return "";',
-'}\n',
-
-'var CH_NBSP = unescape("%A0");\n',
-
-'function removeOptionsns(aSelect) {',
-  'if(aSelect && (aSelect.tagName) && (aSelect.tagName.toLowerCase() == "select"))',
-    'while(aSelect.options.length > 0) {',
-      'if (document.all)',
-        'aSelect.options.remove(aSelect.options.length - 1);',
-      'else {',
-        'aSelect.options[aSelect.options.length - 1] = null;',
-        'if (! document.all) history.go(0);',
-      '}',
-
-    '}',
-'}\n',
-
-'function addOption(aSelect, sText, iPosition) {',
-  'if(aSelect && (aSelect.tagName) && (aSelect.tagName.toLowerCase() == "select")) {',
-    'var newElement = new Option(sText);',
-    'if (document.all) {',
-      'if(arguments.length > 2)',
-        'aSelect.options.add(newElement, iPosition);',
-      'else\n',
-        'aSelect.options.add(newElement);',
-    '} else {',
-      'aSelect.options[aSelect.options.length] = newElement;',
-      'aSelect.options[aSelect.options.length - 1].value = "";',
-    '}',
-  '}',
-'}\n',
-
-'function inspect(sObject, aWhat) {',
-  'if (sObject.toLowerCase().indexOf("document.all") > -1) {',
-    'alert ("Retrieval of the attributes of document.all canceled. This would have resulted in recursive listing and would have caused your browser to hang.");',
-    'up();',
-    'return false;',
-  '}\n',
-  'var aObject = eval(sObject);',
-  'if(! aObject) {',
-    'alert (sObject + " is not an object.");',
-    'up();',
-    'return false;',
-  '}\n',
-  'var bCondition = false;',
-  'removeOptions(document.forms[0].attr);',
-  'for(var Attribute in aObject) {',
-    'switch (Attribute) {',
-      'case "dataFormatAs":\n',
-      'case "clientInformation":\n',
-      'case "external":\n',
-      'case "navigator": break;\n',
-      'default:\n',
-      'var bCondition = false;',
-      'var bMethod = ( String(aObject[Attribute]).toLowerCase().indexOf("function") > -1 );',
-      'var bProperty = ! bMethod;',
-      'var bObject = ( String(aObject[Attribute]).toLowerCase().indexOf("object") > -1 );',
-      'if(arguments.length > 1) {',
-        'if(aWhat.toLowerCase() == "p")',
-          'bCondition = bProperty;',
-        'else if(aWhat.toLowerCase() == "m")',
-          'bCondition = bMethod;',
-        'else if(aWhat.toLowerCase() == "o")',
-          'bCondition = bObject;',
-        'else\n',
-          'bCondition = true;\n',
-      '} else\n',
-        'bCondition = true;',
-      'if (bCondition) {',
-
-        'var sAttr = "[";',
-        'if (bObject)',
-          'sAttr += "O";',
-        'else if (bProperty)',
-          'sAttr += "P";',
-        'else if (bMethod)',
-          'sAttr += "M";',
-        'else\n',
-          'sAttr += "?";',
-        'sAttr += "]" + CH_NBSP + Attribute;',
-        'addOption(document.forms[0].attr, sItem);',
-
-      '}',
-    '}',
-  '}',
-'}\n',
-
-'function up() {',
-  's = document.forms[0].identifier.value;',
-  'if (s.indexOf(".") > -1) {',
-    'document.forms[0].identifier.value = s.substr(0, s.lastIndexOf("."));',
-    'EditEnter();',
-  '} else\n',
-    'alert("You are on the uppermost level of aggregation.");',
-'}\n',
-
-'function down(sAttrib) {',
-  'if (sAttrib.charAt(1) != "M") {',
-    'document.forms[0].identifier.value += "." + sAttrib.substr(sAttrib.lastIndexOf(CH_NBSP)+1);',
-    'EditEnter();',
-  '}',
-'}\n',
-
-'function EditEnter() {',
-  'document.forms[0].val.value = "";',
-  'inspect(document.forms[0].identifier.value, radioChkdVal(document.forms[0], "attrib"));',
-  'return( false );',
-'}\n',
-
-'function showVal(sAttrib) {',
-  'if (sAttrib.charAt(1) != "M") {',
-    'var attrValue = eval(document.forms[0].identifier.value + "." + sAttrib.substr(sAttrib.lastIndexOf(CH_NBSP)+1));',
-    'var s = ( ( isNaN(attrValue) || (String(attrValue) == "") )',
-        '&& ( String(attrValue).indexOf("object") < 0 ) ) ? "\\"" : "";',
-
-    'document.forms[0].val.value = s + attrValue + s;',
-  '} else\n',
-    'document.forms[0].val.value = "";',
-'}',
-
-'//-->\n<\/script>',
-
-'<style type="text/css"><!--\n',
-
-'.bold { font-weight: bold; }',
-'.fixed { font-family: Lucida Console, Courier New, Courier; }',
-'hr { position: relative; left:-10px; width:100%; }',
-
-'//-->\n<\/style>',
-
-'<\/head>',
-'<body bgcolor="#d8dcd8" text="#000000">',
-'<div style="position:absolute; top:0px; left:0px;">',
-'<div style="background-color:#ffffff; width:101%; text-indent:10px; border-width: 1px; border-style: inset;"><h1>JavaScript ObjectInspector 0.7<\/h1>',
-'<p style="position:relative; top:-10px;">Copyright &copy; 2001  Thomas Lahn (<a href="mailto:webmaster@PointedEars.de">webmaster@PointedEars.de<\/a>)<\/p><\/div>',
-'<div style="position:relative; left:10px;">',
-'<form onSubmit="return EditEnter();">',
-'<p><span class="bold">Object: <\/span><input type="text" size=40 value="', ((arguments.length > 0) ? sObject : 'window'),
-'" name="identifier"> <input type="submit" value="Apply" id="btApply"> <input type="button" value="Up" onClick=\'up();\'><br>',
-'<span class="bold">Attributes to retrieve: <\/span><nobr><input name="attrib" value="" type="radio" checked lang="en-us" dir="ltr" onClick=\'EditEnter();\'>All<\/nobr> <nobr><input name="attrib" value="p" type="radio" lang="en-us" dir="ltr" onClick=\'EditEnter();\'>All&nbsp;[P]roperties<\/nobr> <nobr><input name="attrib" value="o" type="radio" lang="en-us" dir="ltr" onClick=\'EditEnter();\'>Composed&nbsp;[O]bjects<\/nobr> <nobr><input name="attrib" value="m" type="radio" lang="en-us" dir="ltr" onClick=\'EditEnter();\'>[M]ethods<\/nobr><\/p>',
-'<hr size=1 noshade>',
-'<table border=0 cellspacing=5 cellpadding=0 width="100%">',
-'<tr valign="top">',
-  '<td width="50%" class="bold">Attribute:<\/td>',
-  '<td class="bold">Value:<\/td><\/tr>',
-'<tr valign="top">',
-  '<td><select size=13 name="attr" class="fixed" style="width:100%;" onChange=\'showVal(this.options[this.options.selectedIndex].text);\' onDblClick=\'if (this.options.selectedIndex > -1) down(this.options[this.options.selectedIndex].text);\'><\/select><\/td>',
-  '<td><textarea rows=13 cols=40 name="val" class="fixed"><\/textarea><\/td><\/tr>',
-'<\/table>',
-'<hr size=2>',
-'<input type="button" value="Exit" onClick="window.close();">',
-'<\/form>',
-'<script language="JavaScript" type="text/javascript"><!--\n',
-  'EditEnter();',
-'//--><\/script><\/div>',
-'<\/div>',
-'<\/body>',
-'<\/html>');
-    wInspector.document.close();
-    if (wInspector.opener) wInspector.opener.blur();
-    wInspector.focus();
-  }
-  return(false);
-}
-
-function ObjectInspector3() {
-  document.write(
-    '<script src="../tests/debug.js" type="text/javascript"><\/script>',
-    '<script src="../types.js" type="text/javascript"></script>',
-    '<script src="../dhtml.js" type="text/javascript"><\/script>',
-    '<script src="../search.js" type="text/javascript"><\/script>',
-    '<script type="text/javascript" language="JavaScript"><!--',
-    '  var s = new TSearchStr(location.search);',
-    '  var sRoot = "window";',
-    '  if (s.hasValue("object"))',
-    '    sRoot = s.getValue("object");',
-      
-    '  function ExpandCollapse(s, o2) {',
-    '    var o = getElem("id", s);',
-    '    if (o && o.style && (typeof o.style.display != "undefined")) {',
-    '      if (o.style.display == "none") {',
-    '        o.style.display = "";',
-    '        o2.innerHTML = "[-]";',
-    '      } else {',
-    '        o.style.display = "none";',
-    '        o2.innerHTML = "[+]";',
-    '      }',
-    '    }',
-    '    return false;',
-    '  }',
-      
-    '  function writeProps(s) {',
-    '    var o = eval(s);',
-    '    var s2 = s;',
-    '    var iLastDot = s2.lastIndexOf("[");',
-    '    if (iLastDot < 0) iLastDot = s2.lastIndexOf(".");',
-    '    var sParent = s.substring(0, iLastDot);',
-    '    var sLoc = "";',
-    '    if (window.opera) {',
-    '      sLoc = String(location);',
-    '      var iQuery = sLoc.indexOf("?");',
-    '      if (iQuery < 0) iQuery = sLoc.length;',
-    '      sLoc = sLoc.substring(0, iQuery);',
-    '    }',
-    '    if (iLastDot >= 0)',
-    "      s2 = '<a href=\"' + sLoc + '?object=' + sParent + '\">' + sParent + '<\\/a>' + s.substr(iLastDot);",
-    '    document.write("<b>" + s2 + "<\\/b> = " + o + "\\n");',
-    '    var a = new Array();',
-    '    var bShowLoc = true;',
-    '    var bShowDoc = true;',
-    '    var bShowNavi = true;',
-    '    var bShowItems = true;',
-    '    for (var Attr in o) {',
-    '      a[a.length] = Attr;',
-    '      if (Attr == "location") bShowLoc = false;',
-    '      if (Attr == "document") bShowDoc = false;',
-    '      if (Attr == "navigator") bShowNavi = false;',
-    '      if (Attr == "0") bShowItems = false;',
-    '    }',
-    '    if ((s == "window") && bShowLoc) a[a.length] = "location";',
-    '    if ((s == "window") && bShowDoc) a[a.length] = "document";',
-    '    if ((s == "window") && bShowNavi) a[a.length] = "navigator";',
-    '    if (o.length && bShowItems) {',
-    '      for (var i = 0; i < o.length; i++)',
-    '        a[a.length] = i;',
-    '    }',
-    '    if (a.sort) // sort attributes lexically',
-    '      a.sort();',
-    '    for (var i = 0; i < a.length; i++) {',
-    '      var val = replaceText(replaceText(String(o[a[i]]), "<", "&lt;"), ">", "&gt;");',
-    '      var t = typeof o[a[i]];',
-    '      if (t == "boolean")',
-    "        val = '<a href=\"#\" title=\"Click to toggle value\" onclick=\"try {' + s + '.' + a[i] + '=' + !o[a[i]] + '; location.reload() } catch(e) { alert(\'Unable to toggle property value. Maybe there is no setter for this property.\') }; return false\">' + val + '<\\/a>';",
-    '      if (t == "string")',
-    "        val = '\"' + val + '\"';",
-    '      if ((String(o[a[i]]).indexOf("\n") >= 0) || (String(o[a[i]]).length > 72))',
-    "        val = \"<a href='#'\"",
-    '          + " onclick=\"return ExpandCollapse(\'span" + i + "\', this)\"',
-    "          + ' style=\"text-decoration:none\">' + (!window.opera ? '[+]' : '')",
-    "          + '<\\/a> <span ' + (!window.opera ? 'style=\"display:none\" ' : '')",
-    "          + 'id=\"span' + i + '\">' + val + '<\/span>';",
-    '      document.write("  <b>."',
-    "        + (((t == 'object') || ((t == 'function') && window.opera)) && o[a[i]] ? ('<a href=\"' + sLoc + '?object=' + s + '[\'' + a[i] + '\']\">') : '') + a[i] + (((t == 'object') || ((t == 'function') && window.opera)) ? '<\\/a>' : '') + '<\\/b> : '",
-    '        + t + " = " + val + "\\n");',
-    '    }',
-    '  }',
-    '  \/\/-->',
-    '<\/script>',
-    "<h1>PointedEars' ObjectInspector 0.8<\/h1>",
-    '<p style="font-size:small">Copyright &copy; 2003 Thomas Lahn &lt;<a href="mailto:obj-insp@PointedEars.de">obj-insp@PointedEars.de<\/a>&gt;<\/p>',
-    '<hr>',
-    '<form action="">',
-    '  Object: <input name="object" value="\' + sRoot + \'" size="\' + ((sRoot.length > 20) ? sRoot.length : 20) + \'">\');',
-    '  <input type="submit" value="Inspect">',
-    '<\/form>',
-    '<pre><script type="text/javascript">',
-    '  <!--',
-    ' writeProps(sRoot);',
-    '  \/\/-->',
-    '<\/script><\/pre>'
-  );
 }
