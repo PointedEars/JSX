@@ -1,0 +1,382 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+ "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>PointedEars' JavaScript Extensions (JSX): string.js</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1>PointedEars' JavaScript Extensions (JSX)</h1>
+<h2>string.js</h2>
+<pre>
+
+ORIGINAL FILENAME:       <a href="string.js" type="text/javascript"
+  target="_top">string.js</a>
+PURPOSE:                 Provides support for string operations
+SCRIPT LANGUAGE/VERSION: JavaScript 1.1+
+PART OF:                 PointedEars' JavaScript Extensions (JSX)
+FILE VERSION:            1.29.2003.10b5+;
+                         See <var>stringVersion</var> variable definition in script file.
+REQUIRED FOR:            <a href="search.htm"
+  title="View documentation of JSX:search.js">JSX:search.js</a>
+                         <a href="time.htm"
+  title="View documentation of JSX:time.js">JSX:time.js</a>
+    </pre>
+<h3>Contents</h3>
+<ul>
+  <li><a href="#features">Features provided by this script</a></li>
+  <li><a href="#testlist">List of browser tests</a></li>
+  <li><a href="#history">Version history</a></li>
+  <li><a href="#copyright">Copyright &amp; disclaimer</a></li>
+  <li><a href="#def">Expressions used herein</a></li>
+  <li><a href="#details">Detailed description of features</a></li>
+</ul>
+<p align="center" style="font-size: small;">Created with<br>
+<a href="http://quanta.sourceforge.net/" target="_top"><img
+  src="../media/quanta.png" alt="Quanta Plus" width="32" height="32"
+  border="0"></a> <a
+  href="http://www.macromedia.com/software/homesite/" target="_top"><img
+  src="../media/homesite3.gif" alt=" | Macromedia HomeSite | "
+  width="44" height="34" border="0"></a><a
+  href="http://www.macromedia.com/software/dreamweaver/" target="_top"><img
+  src="../media/dreamweaver2.gif" alt="Macromedia Dreamweaver MX"
+  width="44" height="34" border="0"></a></p>
+<p align="center" style="font-size: small;"><a
+  href="http://validator.w3.org/check/referer" target="_top"><img
+  src="../media/valid-html401" alt="This is valid HTML 4.01, "
+  width="88" height="31" border="0"></a> <a
+  href="http://jigsaw.w3.org/css-validator/check/referer" target="_top"><img
+  src="../media/valid-css" alt="valid CSS "
+  style="border: 0; width: 88px; height: 31px"></a> <a
+  href="http://www.anybrowser.org/campaign/" target="_top"><img
+  src="../media/anybrowser.gif"
+  alt="and therefore optimized for ALL browsers!" width="88" height="31"
+  border="0"></a></p>
+<hr>
+<h4><a name="features">Features Provided By This Script</a></h4>
+<dl>
+  <dt><code><a href="#leadingCaps">leadingCaps</a></code></dt>
+  <dd><pre>Replaces the first character by a capital character.</pre></dd>
+  <dt><code><a href="#replaceText">replaceText</a></code></dt>
+  <dd><pre>Replaces text within a string.</pre></dd>
+  <dt><code><a href="#strCount">strCount</a></code></dt>
+  <dd><pre>Returns the number of times that a substring is found in a string.</pre></dd>
+  <dt><code><a href="#stripTags">stripTags</a></code></dt>
+  <dd><pre>Returns a string where all tags are stripped from.</pre></dd>
+  <dt><code><a href="#trim">trim</a></code></dt>
+  <dd><pre>Returns a string where all leading and following spaces are stripped from.</pre></dd>
+  <dt><code><a href="#trimLeft">trimLeft</a></code></dt>
+  <dd><pre>Returns a string where all leading spaces are stripped from.</pre></dd>
+  <dt><code><a href="#trimRight">trimRight</a></code></dt>
+  <dd><pre>Returns a string where all following spaces are stripped from.</pre></dd>
+</dl>
+<h4><a name="testlist">Tested To Work At Least With</a></h4>
+<pre><!--script type="text/javascript">
+document.write(navigator.userAgent + "\n");
+</script-->
+Mozilla 1.5
+  [Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.5) Gecko/20031007]
+Mozilla 1.2b nightly
+  [Mozilla/5.0 (X11; U; Linux i586; en-US; rv:1.2b) Gecko/2002102108]
+Mozilla 1.2b nightly
+  [Mozilla/5.0 (X11; U; Linux i586; en-US; rv:1.2b) Gecko/2002100604]
+Mozilla 1.2a
+  [Mozilla/5.0 (X11; U; Linux i586; en-US; rv:1.2a) Gecko/20020911]
+Netscape 7.0
+  [Mozilla/5.0 (X11; U; Linux i586; en-US; rv:1.0.1) Gecko/20020823
+   Netscape/7.0]
+Mozilla 1.1b
+  [Mozilla/5.0 (X11; U; Linux i586; en-US; rv:1.1b) Gecko/20020722]
+Mozilla 1.0
+  [Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.0) Gecko/20020605]
+Mozilla 1.0 Release Candidate 3
+  [Mozilla/5.0 (Windows; U; Windows NT 5.0; de-AT; rv:1.0rc3) Gecko/20020523]
+Mozilla 1.0 Release Candidate 2
+  [Mozilla/5.0 (Windows; U; Windows NT 5.0; de-AT; rv:1.0rc2) Gecko/20020510]
+Mozilla 1.0 Release Candidate 1 nightly
+  [Mozilla/5.0 (Windows; U; Windows NT 5.0; de-AT; rv:1.0rc1) Gecko/20020417]
+Mozilla 0.9.9
+  [Mozilla/5.0 (Windows; U; Windows NT 5.0; de-AT; rv:0.9.9) Gecko/20020311]
+Mozilla 0.9.8 de-AT
+  [Mozilla/5.0 (Windows; U; Windows NT 5.0; de-AT; rv:0.9.8) Gecko/20020204]
+Mozilla 0.9.4
+  [Mozilla/5.0 (Windows; U; Windows NT 5.0; de-AT; rv:0.9.4) Gecko/20010913]
+Netscape 6.1
+  [Mozilla/5.0 (Windows; U; Windows NT 5.0; de-AT; rv:0.9.2) Gecko/20010726
+  Netscape6/6.1]
+Netscape 6.1
+  [Mozilla/5.0 (X11; U; Linux 2.2.16 i586; de-DE; m18) Gecko/20010131
+  Netscape6/6.01]
+Microsoft Internet Explorer 6.0.2800.1160 (SP-1)
+  [Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0; Q312461)]
+Microsoft Internet Explorer 6.0.2600.0000
+  [Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0; Hotbar 3.0)]
+Microsoft Internet Explorer 5.50.4807.2300IC
+Microsoft Internet Explorer 5.50.4134.0600IC
+Microsoft Internet Explorer 5.01 [5.00.2919.6307IC]
+Microsoft Internet Explorer 5.00.2314.1003IC
+    </pre>
+<h4><a name="history">Version History</a></h4>
+<pre>
+<a href="#first">First version</a>
+
+<a name="last" id="last">1.29.2003.10b5+ (2003-10-22)</a>
+----------------------------
+* Added <code>leadingCaps</code> and <code>strCount</code> functions
+* Functions become methods of the String prototype if supported
+
+1.29.2003.10b4+ (2003-10-20)
+----------------------------
+* Added JavaScriptDoc comments
+* Moved string functions from obsolete enhanced.js to string.js
+  and updated documentation
+
+<a name="last" id="last">1.29.2002.10b3 (2002-10-09)</a>
+----------------------------
+* Updated documentation:
+  - Added link to last version
+  - Added links to definitions
+  - Updated definitions
+  - Updated "null string" term
+  - Unified Version History layout
+
+<a name="v1.29.2002.8b" id="v1.29.2002.8b">1.29.2002.8b   (2002-08-25)</a>
+----------------------------
+* Updated all functions:
+  - changed $ident<code><span class="punct">.</span>arguments</code> to <code>arguments</code> because it is an intrinsic property
+    of the function prototype
+
+<a name="v1.29.2002.7" id="v1.29.2002.7">1.29.2002.7   (2002-07-22)</a>
+---------------------------
+* Updated <code>replaceText</code> function:
+  - Introduced additional <var>bForceLoop</var> argument to prefer
+    for-loop instead of <a href="#regexp">RegExps</a>. Useful when replacement with RegExp<a
+  href="#regexp"></a>s
+    requires too much modification of arguments.
+
+<a name="v1.25.2002.5" id="v1.25.2002.5">1.25.2002.5   (2002-05-10)</a>
+---------------------------
+* Fixed undetected bug in <code>EInvalidArg(...)</code>, simplified <code>EInvalidArg(...)</code>
+  and <code>EInvalidArgNum(...)</code> exceptions
+* Renamed <code>stringException</code> to <code>stringException</code> and simplified code
+* Introduced <var>stringCopypright</var>, <var>stringAuthor</var> and <var>stringEMail</var>
+  global variables to store script-related data for <strong>all</strong> script features,
+  including <code>getObjInfo(...)</code>
+* Documentation update:
+  - Have all code-related identifiers properly formatted
+
+1.24.2002.5   (2002-05-06)
+---------------------------
+* Updated <code>replaceText(...)</code> function:
+  - Fixed the &quot;<var>sText</var> has no properties&quot; bug with undefined attributes
+    tried to retrieve with <code>getObjInfo(...)</code>
+* Documentation update:
+  - Link to jump to the first version listed in history
+  - Updated <code>replaceText(...)</code> description
+  - Use of definition lists
+  - Changed headers
+
+1.23.2002.4   (2002-04-30)
+---------------------------
+* Updated <code>replaceText(...)</code> function, resolving the <code><a
+  href="#regexp">RegExp</a></code> issues:
+  - Replaces all occurrences of a string
+  - Replaces also <code>\</code>
+
+1.22.2002.4   (2002-04-22)
+---------------------------
+* Updated replaceText(...) function:
+  - Support of the more effective <code>String.replace(...)</code> with <code><a
+  href="#regexp">RegExp</a></code> of
+    JavaScript 1.2
+* Documentation update:
+  - Word wrap at 72 characters (applies to documentation standards)
+  - Version History is no longer in columns but separate paragraphs
+* First version under the terms of the GNU GPL, version 2 or later.
+
+1.16.2001.1   (2001-01-11)
+---------------------------
+* Moved general documentation to text file for faster processing
+
+1.14.2000.11  (2000-11-15)
+---------------------------
+* Established string variable named <var>stringVersion</var> to contain
+  library version
+
+1.13.2000.10  (2000-10-17)
+---------------------------
+* Improved inline documentation
+
+1.12.2000.8   (2000-08-13)
+---------------------------
+* Tested script file successfully with IE5.5
+
+1.11.2000.7   (2000-07-03)
+---------------------------
+* Fixed some mysterious bugs with IE 5.01 on string arguments and large
+  HTML documents by assigning those strings to local variables and
+  splitting string assignments (+= Workaround).
+* Modified email subject line to Feedback/JSX/string
+
+1.10.2000.6   (2000-06-10)
+---------------------------
+* Improved inline documentation
+
+1.09.2000.3   (2000-03-27)
+---------------------------
+* Fixed spelling error in <code>EInvalidArg(...)</code> exception
+* Fixed global frame ID evaluation bug
+
+<a name="first" id="first">1.06.2000.3   (2000-03-19)</a>
+---------------------------
+* Fixed <var>sResult</var> variable assignment in <code>trim(...)</code>
+
+<a href="#last">Last version</a>
+    </pre>
+<h4><a name="copyright">Copyright &amp; Disclaimer</a></h4>
+<pre>
+Copyright (c) 1999-2003  Thomas Lahn &lt;<a
+  href="mailto:string.js@PointedEars.de%20%28Thomas%20Lahn%28?subject=Feedback/JSX/string">string.js@PointedEars.de</a>&gt;
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the <a
+  href="http://www.gnu.org/copyleft/gpl.html" target="_top">GNU General Public License</a>
+as published by the <a href="http://www.fsf.org/" target="_top">Free Software Foundation</a>; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program (<a href="COPYING" target="_top">COPYING</a> file); if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+
+HOW TO USE:
+I recommend to utilize the functions of this script in
+different HTML documents when saving the entire file as
+script.js and appending the following section within the
+<span class="tags">&lt;head&gt;...&lt;/head&gt;</span> tags of that documents:
+
+<span class="scr">&lt;script src="string.js" type="text/javascript"&gt;&lt;/script&gt;</span>
+    </pre>
+<h4><a name="def">Expressions Used Herein</a></h4>
+<dl>
+  <dt><pre>null string</pre></dt>
+  <dd><pre>An empty string that contains no characters, i.e. is of length 0 (zero).</pre></dd>
+  <dt><code>(Expression1 | Expression2 | ...)</code></dt>
+  <dd><pre>Exclusive selection of expressions in Backus-Naur Form (BNF). [<a
+    href="http://google.com/search?q=Backus-Naur+Form" target="_top">details</a>]</pre></dd>
+  <dt><code><a name="regexp">RegExp</a></code></dt>
+  <dd><pre>A regular expression encapsulated by the RegExp object. [<a
+    href="http://devedge.netscape.com/library/manuals/2000/javascript/1.5/reference/regexp.html#1193136"
+    target="_top">details</a>]</pre></dd>
+</dl>
+<pre>
+<a name="details">Following the detailed description of the features of this script file.</a>
+_______________________________________________________________________________
+
+<code><a name="leadingCaps"><span class="rswd">function</span> leadingCaps<span
+  class="punct">(</span><var>s</var><span class="punct">)</span></a></code>
+
+Replaces the first character of <var>s</var> by a capital character.
+Returns the new string.
+
+_______________________________________________________________________________
+
+<code><a name="replaceText"><span class="rswd">function</span> replaceText<span
+  class="punct">(</span><var>sText</var>, <var>sReplaced</var>, <var>sReplacement</var><span
+  class="punct">)</span></a></code>
+
+Replaces occurences of <var>sReplaced</var> in the string <var>sText</var> with <var>sReplacement</var>.
+Returns the new string.
+
+Because of the result it returns, <code>replaceText</code> may be nested into other calls
+of itself:
+
+  <code><span class="rswd">var</span> s <span class="punct">=</span> replaceText<span
+  class="punct">(</span>replaceText<span class="punct">(</span><span
+  class="str">&quot;test me&quot;</span><span class="punct">,</span> <span
+  class="str">&quot;test&quot;</span><span class="punct">,</span> <span
+  class="str">&quot;#test#&quot;</span><span class="punct">)</span><span
+  class="punct">,</span> <span class="str">&quot;#&quot;</span><span
+  class="punct">,</span> <span class="str">&quot;$&quot;</span><span
+  class="punct">);</span>
+  <span class="comm">// displays &quot;$test$ me&quot;</span></code>
+
+If supported, <code>replaceText(...)</code> uses <code>String.replace(...)</code> to replace text.
+Therefore, if the method is available, <var>sReplaced</var> may be a regular expression
+matching substrings to be replaced with <var>sReplacement</var>.
+
+If supported, <code>replaceText(...)</code> becomes also a method of the <code>String</code> prototype,
+thus applicable to all <code>String</code> objects and literals where the first argument
+is ignored if <code>undefined</code>, <code class="rswd">null</code>, <code
+  class="rswd">false</code>, a null-string or not a <code>String</code>.
+The above example could then be written as
+
+  <code><span class="rswd">var</span> s <span class="punct">=</span> replaceText<span
+  class="punct">(</span><span class="str">&quot;test me&quot;</span><span
+  class="punct">,</span> <span class="str">&quot;test&quot;</span><span
+  class="punct">,</span> <span class="str">&quot;#test#&quot;</span><span
+  class="punct">).</span>replaceText<span class="punct">(</span><span
+  class="str">""</span><span class="punct">,</span> <span class="str">&quot;#&quot;</span><span
+  class="punct">,</span> <span class="str">&quot;$&quot;</span><span
+  class="punct">);</span>
+  <span class="comm">// displays &quot;$test$ me&quot;</span></code>
+
+_______________________________________________________________________________
+
+<code><a name="stripTags"><span class="rswd">function</span> stripTags<span
+  class="punct">(</span><var>s</var><span class="punct">)</span></a></code>
+
+Returns a string where all tags are stripped from the passed argument string
+(<var>taggedStr</var>). You may use it to analyze the displayed content of an HTML document
+for fulltext search:
+
+  <code><span class="rswd">function</span> foundText<span
+  class="punct">(</span><var>sSub</var><span class="punct">)</span>
+  <span class="punct">{</span>
+    <span class="rswd">return</span> <span class="punct">(</span>stripTags<span
+  class="punct">(</span>document<span class="punct">.</span>body<span
+  class="punct">.</span>innerHTML<span class="punct">).</span>indexOf<span
+  class="punct">(</span><var>sSub</var><span class="punct">)</span> &gt; <span
+  class="num">-1</span><span class="punct">);</span>
+  <span class="punct">}</span>
+
+  <span class="rswd">if</span> <span class="punct">(</span>foundText<span
+  class="punct">(</span><span class="str">"Text"</span><span
+  class="punct">))</span>
+     document.<span class="ident">write</span><span class="punct">(</span><span
+  class="str">'Found "Text" in the document.'</span><span class="punct">);</span></code>
+
+_______________________________________________________________________________
+
+<code><a name="trim"><span class="rswd">function</span> trim<span
+  class="punct">(</span><var>s</var><span class="punct">)</span></a></code>
+
+Returns a copy of <var>s</var> where all leading and following spaces are stripped from.
+Uses <code>trimLeft</code> and <code>trimRight</code> defined above to calculate that resulting string.
+
+_______________________________________________________________________________
+
+<code><a name="trimLeft"><span class="rswd">function</span> trimLeft<span
+  class="punct">(</span><var>s</var><span class="punct">)</span></a></code>
+
+Returns a copy of <var>s</var> where all leading spaces are stripped from.
+
+_______________________________________________________________________________
+
+<code><a name="trimRight"><span class="rswd">function</span> trimRight<span
+  class="punct">(</span><var>s</var><span class="punct">)</span></a></code>
+
+Returns a copy of <var>s</var> where all following spaces are stripped from.
+
+    </pre>
+<hr>
+<p>END OF FILE</p>
+</body>
+</html>
