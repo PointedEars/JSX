@@ -3,7 +3,7 @@
  */
 function Types()
 {
-  this.version = "1.29.200402100";
+  this.version = "1.29.2004102311";
 /**
  * @file types.js
  * @partof PointedEars' JavaScript Extensions (JSX)
@@ -13,7 +13,7 @@ function Types()
   this.copyright = "Copyright \xA9 1999-2004";
   this.author    = "Thomas Lahn";
   this.email     = "types.js@PointedEars.de";
-  this.path      = "http://pointedears.de.vu/scripts/";
+  this.path      = "http://pointedears.de/scripts/";
   this.URI       = this.path + "types.js";
 // var typesDocURL = typesPath + "types.htm";
 }
@@ -40,11 +40,16 @@ var types = new Types();
  * Refer types.htm file for documentation. 
  *
  * This document contains JavaScriptDoc. See
- * http://pointedears.de.vu/scripts/JSDoc/
+ * http://pointedears.de/scripts/JSDoc/
  * for details.
  */
 
-function TypesException(/** @argument optional string */ sMsg)
+/**
+ * @optional string sMsg
+ * @return type boolean
+ *   false
+ */ 
+function TypesException(sMsg)
 {
   alert(
     "types.js "
@@ -60,13 +65,10 @@ function TypesException(/** @argument optional string */ sMsg)
   return false;
 }
 
-function isInstanceOf(
-  /** @argument Object */ a,
-  /** @argument Object */ Prototype)
 /**
  * Implements the instanceof operator of JavaScript 1.5
  * down to JavaScript 1.1 for *one* inheritance level:
- * 
+ * <code>
  *   var o = new Object();
  *   o instanceof Object; // yields `true'
  * 
@@ -78,53 +80,52 @@ function isInstanceOf(
  *   o instanceof Foo;        // yields `true' also
  *   isInstanceOf(o, Object); // yields `false'
  *   isInstanceOf(o, Foo);    // yields `true'
- * 
+ * </code>
+ *
  * @author
  *   (C) 2003  Thomas Lahn &lt;types.js@PointedEars.de&gt;
- * @param a
+ * @argument Object a
  *   Expression to be determined a <var>Prototype</var> object.
- * @param Prototype
+ * @argument Object Prototype
  *   Function object to be determined the prototype of a.
- * @returns
+ * @return type boolean
  *   <code>true</code> if <code>a</code> is an object derived
  *   from <var>Prototype</var>, <code>false</code> otherwise.
- */
+ */ 
+function isInstanceOf(a, Prototype)
 {
   return !!(
     a
     && typeof Prototype != "undefined"
-    && a.constructor
+    && typeof a.constructor != "undefined"
     && a.constructor == Prototype);
 }
-Types.prototype.isInstanceOf = isInstanceOf;
 
-function isArray(/** @argument Object */ a)
 /**
  * @author
  *   (C) 2003  Thomas Lahn &lt;types.js@PointedEars.de&gt;
  * @partof
- *   http://pointedears.de.vu/scripts/types.js
+ *   http://pointedears.de/scripts/types.js
  * @requires
  *   isInstanceOf
- * @param a
+ * @argument Object a
  *   Expression to be determined an array.
- * @returns
+ * @return type boolean
  *   <code>true</code> if <code>a</code> is an object
  *   derived from Array, <code>false</code> otherwise.
  *   Returns also <code>false</code> if the language
  *   version does not support Array objects (JavaScript
  *   before 1.1).
  */
+function isArray(a)
 {
   return isInstanceOf(a, typeof Array != "undefined" ? Array : null);
 }
-Types.prototype.isArray = isArray;
 
-function isIterable(/** @argument Object */ o)
 /**
  * @author
  *   (C) 2003  Thomas Lahn &lt;types.js@PointedEars.de&gt;
- * @param o
+ * @@argument Object o
  *   Object to be determined iterable, i.e. to be determined
  *   whether it provides the <code>length</code> property and
  *   has at least the <code>0<code> (zero) property.  This
@@ -133,71 +134,70 @@ function isIterable(/** @argument Object */ o)
  *   <code>HTMLCollection</code> or
  *   <code>HTMLOptionsCollection</code> interfaces defined in
  *   W3C-DOM Level 2.
- * @returns
+ * @return type boolean
  *   <code>true</code> if <code>o</code> is an iterable object,
  *   <code>false</code> otherwise.
- * @author Copyright (c) 2003 Thomas Lahn
- *   &lt;isIterable.js@PointedEars.de&gt;
  */
+function isIterable(o)
 {
   return !!(
     o
     && typeof o.length != "undefined"
     && typeof o[0] != "undefined");
 }
-Types.prototype.isIterable = isIterable;
 
-function isMethod(/** @argument optional Object */ o)
 /**
  * @author
- *   (C) 2003  Thomas Lahn &lt;types.js@PointedEars.de&gt;
- * @param o
+ *   (C) 2003, 2004  Thomas Lahn &lt;types.js@PointedEars.de&gt;
+ * @optional Object o
  *   Object to be determined an method, i.e. a
  *   <code>Function</code> object assigned as property
  *   of another object.  Not applicable to unknown
  *   properties.  If you require that, use
  *   @link{#isMethodType()} instead.
- * @returns
+ * @return type boolean
  *   <code>true</code> if <code>o</code> is a method,
  *   <code>false</code> otherwise.
  * @see #isMethodType()
  */
+function isMethod(o)
 {
-  return (typeof o == "function" || typeof o == "object");
+  var t;
+  return ((t = typeof o) == "function"
+          || (t == "object" && o));
 }
-Types.prototype.isMethod = isMethod;
 
-function isMethodType(/** @argument optional string */ s)
 /**
  * @author
  *   (C) 2003, 2004  Thomas Lahn &lt;types.js@PointedEars.de&gt;
+ *   Distributed under the GNU GPL v2.
  * @partof
- *   http://pointedears.de.vu/scripts/types.js
- * @param s
+ *   http://pointedears.de/scripts/types.js
+ * @optional string s
  *   String to be determined a method type, i.e. "object"
  *   in IE, "function" otherwise.  The type must have been
  *   retrieved with the `typeof' operator, thus this method
  *   is applicable to unknown properties while
- *   @link{#isMethod()} is not.
- * @returns
+ *   @link{#isMethod()} is not.  Note that this method
+ *   may also return <code>true</code> if the value of
+ *   the <code>typeof</code> operand is <code>null</code>; to
+ *   be sure that the operand is a method reference, you have
+ *   to && (AND)-combine the <code>isMethodType(...)</code>
+ *   expression with the method reference identifier.
+ * @return type boolean
  *   <code>true</code> if <code>s</code> is a method type,
  *   <code>false</code> otherwise.
  * @see #isMethod()
  */
+function isMethodType(s)
 {
   return (s == "function" || s == "object");
 }
-Types.prototype.isMethodType = isMethodType;
 
-if (! isMethodType(typeof Function.prototype.apply)
-    && isMethodType(typeof eval))
-{
-  Function.prototype.apply = function apply()
-  {
-    var a = new Array();
-    for (var i = 0; i < arguments[1].length; i++)
-      a[i] = arguments[1][i];
-      
-    eval(arguments[0]+ "(" + a.join(", ") + ")");
-  }
-}
+Object.prototype.addProperties(
+  {isArray:      isArray,
+   isInstanceOf: isInstanceOf,
+   isIterable:   isIterable,
+   isMethod:     isMethod,
+   isMethodType: isMethodType
+  });
