@@ -7,7 +7,7 @@
  * @section Copyright & Disclaimer
  * 
  * @author
- *   (C) 2000-2004  Thomas Lahn &lt;string.js@PointedEars.de&gt;
+ *   (C) 2000-2005  Thomas Lahn &lt;string.js@PointedEars.de&gt;
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,8 +34,8 @@
  * Refer math.htm file for general documentation.
  */
 
-Math.version   = "1.16.2004060607";
-Math.copyright = "Copyright \xA9 1999-2004";
+Math.version   = "1.16.2005031023";
+Math.copyright = "Copyright \xA9 1999-2005";
 Math.author    = "Thomas Lahn";
 Math.email     = "math.js@PointedEars.de";
 Math.path      = "http://pointedears.de/scripts/";
@@ -53,16 +53,16 @@ function Exception(/** @optional string */ sText)
 
 var msgInvArg =
   {'en': 'Invalid function argument',
-   'de': 'Ungültiges Funktionsargument'};
+   'de': 'Ung?ltiges Funktionsargument'};
 var msgArgMissing =
   {'en': 'Required argument missing',
    'de': 'Erforderliches Argument fehlt'};
 var msgInvOp =
   {'en': 'Invalid operand',
-   'de': 'Ungültiger Operand'};
+   'de': 'Ung?ltiger Operand'};
 var msgOverflow =
   {'en': 'Overflow',
-   'de': 'Überlauf'};
+   'de': '?berlauf'};
 var msgUnderflow =
   {'en': 'Underflow',
    'de': 'Unterlauf'};
@@ -84,7 +84,7 @@ function InvalidArgumentException(sMethodCall, iErrorCode)
 {
   var sSubErrType = msgInvArg;
   
-  switch (nErrorCode)
+  switch (iErrorCode)
   {
     case -1:
       sSubErrType = msgArgMissing;
@@ -119,25 +119,113 @@ function ZeroDivideException()
 /**
  * Specifies a numeric interval, closed by default.
  *
- * @argument number nLeftBorder, @property number leftBorder = 0, 
- *   Specifies the left border of the interval.
+ * @argument Array aSections, @property Array sections = [0, 1]
+ *   Specifies the sections of the interval, starting
+ *   with the left border, continuing with a non-zero
+ *   number of optional intermitting borders and
+ *   ending with the right border.  Note that the
+ *   elements are automatically arranged in numerically
+ *   ascending order.
  * @argument boolean bLeftOpen, @property boolean leftOpen = false
  *   If true, specifies that the interval is open
  *   on the left, meaning that its left border
  *   is not part of the interval.
- * @argument number nRightBorder, @property number rightBorder = 1
- *   Specifies the right border of the interval.
  * @argument boolean bRightOpen, @property boolean rightOpen = false
  *   If true, specifies that the interval is open
  *   on the right, meaning that its right border
  *   is not part of the interval.
  */
-function Interval(nLeftBorder, nRightBorder, bLeftOpen, bRightOpen)
+function Interval(aSections, bLeftOpen, bRightOpen)
 {
-  this.leftBorder  = Number(nLeftBorder)  || 0;
-  this.leftOpen    = Boolean(bLeftOpen)   || false;
-  this.rightBorder = Number(nRightBorder) || 1;
-  this.rightOpen   = Boolean(bRightOpen)  || false;
+  if (isArray(aSections))
+  {
+    aSections.sort(function(a, b) { return a - b; });
+    this.sections    = aSections    || [0, 1];    
+    this.leftOpen    = !!bLeftOpen  || false;
+    this.rightOpen   = !!bRightOpen || false;
+  }
+}
+
+/**
+ * Returns the left border of the interval.
+ */
+Interval.prototype.leftBorder = function interval_leftBorder()
+{
+  return this.sections[0];
+}
+
+/**
+ * Returns the right border of the interval.
+ */
+Interval.prototype.rightBorder = function interval_rightBorder()
+{
+  return this.sections[this.sections.length-1];
+}
+
+/**
+ * @argument number   n
+ * @optional Interval o
+ */
+function getSubIntervalIndex(n, o)
+{
+  var result = null;
+
+  if (!(o instanceof Interval) && this instanceof Interval)
+  {
+    o = this;
+  }
+
+  if (o instanceof Interval)
+  {
+    var
+      start = 0,
+      s = o.sections,
+      end = s.length,
+      max = end,
+      pivot = 0;
+        
+    do
+    {
+      // Use interpolation search [O(log(log n))] for many sections
+      if (max > 10000)
+      {
+        var nS = s[start];
+        
+        pivot = start + Math.floor((end - start) * (n - nS) / (s[end] - nS)); 
+      }
+      // Use binary search [O(log n)] else
+      else
+      {
+        pivot = (start + end) >> 1;
+      }
+  
+      if (start + 1 == end)
+      {
+        if (n - s[start] <= s[end] - n)
+        {
+          result = start;
+        }
+        else
+        {
+          result = end;
+        }
+        break;
+      }
+      else if (n < s[pivot])
+      // continue search left-hand side
+      {
+        end = pivot;
+      }
+      else
+      // continue search right-hand side
+      {
+        start = pivot;
+      }
+    }
+    while (n >= s[start] && n <= s[end]);
+  }
+    
+  return result;
 }
 
 /**
@@ -155,12 +243,14 @@ function isInInterval(n, o)
 
   if (o instanceof Interval)
   {
+    var lo, l, ro, r;
+    
     result =
-      (((o.leftOpen && n > o.leftBorder)
-       || (!o.leftOpen && n >= o.leftBorder))
+      (((lo = o.leftOpen) && n > (l = o.leftBorder()))
+       || (!lo && n >= l))
       &&
-      ((o.rightOpen && n < o.rightBorder)
-       || (!o.rightOpen && n <= o.rightBorder)));
+      (((ro = o.rightOpen) && n < (r = o.rightBorder()))
+       || (!ro && n <= r));
   }
   
   return result;
@@ -564,7 +654,7 @@ Math.rec = rec;
  * evaluated.  If no arguments are provided, returns
  * <code>Number.POSITIVE_INFINITY</code>.
  */
-function minN()
+function min()
 {
   var result = Number.POSITIVE_INFINITY;
   var a, j;
@@ -600,7 +690,7 @@ function minN()
   
   return result;
 }
-Math.minN = minN;
+Math.min = min;
 
 /**
  * @arguments 
@@ -610,7 +700,7 @@ Math.minN = minN;
  * evaluated.  If no arguments are provided, returns
  * <code>Number.NEGATIVE_INFINITY</code>.
  */
-function maxN()
+function max()
 {
   var result = Number.NEGATIVE_INFINITY;
   var a, j;
@@ -646,7 +736,7 @@ function maxN()
   
   return result;
 }
-Math.maxN = maxN;
+Math.max = max;
 
 /**
  * @arguments
@@ -657,7 +747,7 @@ Math.maxN = maxN;
  *   evaluated.  If no arguments are provided, returns
  *   <code>0</code>.
  */
-function avgN()
+function avg()
 {
   var sum = 0;
   var count = 0;
@@ -690,7 +780,7 @@ function avgN()
   
   return (sum / count);
 }
-Math.avgN = avgN;
+Math.avg = avg;
 
 /**
  * @argument number n
@@ -975,7 +1065,7 @@ var dtGrad = 2;
  * Unlike the @link{built-in methods:js#Math}, the following
  * functions accept a second argument to determine if the argument
  * should be handled as radiant (dtRad == 0 [default];
- * x = n*[0..2*Math.PI], degree (dtDeg == 1; x = n*[0..360]°)
+ * x = n*[0..2*Math.PI], degree (dtDeg == 1; x = n*[0..360]?)
  * or gradiant (dtGrad == 2; x = n*[0..300]grd) value.
  */
 
