@@ -1,6 +1,8 @@
 /**
  * <title>PointedEars' CSS Library</title>
+ * @version 0.1.2005031001
  * @partof PointedEars' JavaScript Extensions (JSX)
+ * @requires collection.js
  * 
  * @section Copyright & Disclaimer
  * 
@@ -43,6 +45,8 @@
  */
 function CSSSelectorList(oDocument)
 {
+  Collection.call(this);
+
   this.document = oDocument || document;
   
   /**
@@ -55,13 +59,13 @@ function CSSSelectorList(oDocument)
    */
   CSSSelectorList.prototype.get = function cssSelectorList_get(oDocument)
   {
-    this.clear();
-
     if (oDocument)
     {
       this.document = oDocument;
     }
     
+    this.clear();
+
     var d, oSheets;
     if ((d = this.document) && (oSheets = d.styleSheets))
     {
@@ -71,7 +75,7 @@ function CSSSelectorList(oDocument)
         {
           for (var j = 0; j < oRules.length; j++)
           {
-            this.add(oRules[j].style, oRules[j].selectorText);
+            this.add(oRules[j], oRules[j].selectorText);
           }
         }
       }
@@ -95,27 +99,27 @@ CSSSelectorList.prototype = new Collection();
 CSSSelectorList.prototype.findSimpleSelector =
 function cssSelectorList_findSimpleSelector(sSelector)
 {
-  var rxSimpleSelector = new RegExp(
+  var s =
     "{simple_selector}({combinator}{simple_selector}*)*"
     .replace(
       /\{simple_selector\}/g,
       '(element_name(#|class|attrib|pseudo)*'
       + '|(#|class|attrib|pseudo)+)')
+/*
     .replace(/element_name/g,        "(IDENT|\\*)")
     .replace(/class/g,               "\\.IDENT")
     .replace(/attrib/g,              "\\[\\s*IDENT\\s*([~\\|]="
                                      + "\\s*(IDENT|STRING)\\s*)?\\]")
     .replace(/pseudo/g,              ":(IDENT|FUNCTION\\s*IDENT?\\s*\\))")
     .replace(/FUNCTION/g,            "IDENT\\(\\s*expr\\)\\s*")
-    .replace(/\{expr\}/g,            'Term(OperatorTerm)*'
-    .replace(/\{Operator\}/g,        "(/\\s*|,\\s*|/\\*([^*]|\\*[\\/])*\\*/)")
-    .replace(/\{Term\}/g,            ["(unary_operator?",
+    .replace(/\{expr\}/g,            'Term(OperatorTerm)*')
+    .replace(/\{Operator\}/g,        "(/\\s*|,\\s*|/\\*([^*]|\\*[\\/])*\\/)")
+    .replace(/\{Term\}/g,            ["([+-]?",
                                       "(NUMBER%?\\s*|LENGTH\\s*",
                                       "|ANGLE\\s*|TIME\\s*",
                                       "|FREQ\\s*|IDENT\\(\\s*expr\\)\\s*)",
                                       "|STRING\\s*|IDENT\\s*|URI\\s*|hexcolor)"]
                                       .join(''))
-    .replace(/unary_operator/g,      "(-|\\+)")
     .replace(/ANGLE/g,               'NUMBER(deg|g?rad)')
     .replace(/TIME/g,                'NUMBERm?s')
     .replace(/FREQ/g,                'NUMBERk?Hz')
@@ -127,7 +131,7 @@ function cssSelectorList_findSimpleSelector(sSelector)
     .replace(/hexcolor/g,            '#([0-9a-fA-F]{3}){1,2}')
     .replace(/IDENT/g,               "{nmstart}{nmchar}*\\s*")
     .replace(/\{nmstart\}/g,         '([_a-z{nonascii}]|{escape})')
-    .replace(/\{nmchar\}/g,          '[_a-zA-Z0-9{nonascii}-]|{escape}')
+    .replace(/\{nmchar\}/g,          '([_a-zA-Z0-9{nonascii}-]|{escape})')
     .replace(/\{string1\}/g, "\"([\t !#$%&(-~]|\\{nl}|'|[{nonascii}]|{escape})*\"")
     .replace(/\{string2\}/g, "'([\t !#$%&(-~]|\\{nl}|\"|[{nonascii}]|{escape})*'")
     .replace(/\{nl\}/g,              "(\\n|\\r\\n|\\r|\\f)")
@@ -135,16 +139,17 @@ function cssSelectorList_findSimpleSelector(sSelector)
     .replace(/\{escape\}/g,          "({unicode}|\\\\[ -~\\x80-\\xFF])")
     .replace(/\{unicode\}/g,       "\\\\[0-9a-f]{1,6}(\\r\\n|[ \\t\\r\\n\\f])?")
     .replace(/\{combinator\}/g,      "(\\+\\s*|\\>\\s*|\\s+)");
-    
-  var r;
-  while (this.hasNext())
+*/
+  alert(s);
+  
+  var rxSimpleSelector = new RegExp(s);
+
+  var i = this.iterator();
+  while ((s = i.next()))
   {
-    if ((r = this.next()))
+    if ((new RegExp(sSelector)).test(s.selectorText))
     {
-      if (rxSimpleSelector.test(r.selectorText))
-      {
-        return r;
-      }
+      return s;
     }
   }
 
@@ -163,24 +168,20 @@ function cssSelectorList_findSimpleSelector(sSelector)
  */
 function showByClassName(sClassName, bShow)
 {
-  if (oForm)
+  var selectorList, selector;
+  if (typeof CSSSelectorList != "undefined"
+      && (selectorList = new CSSSelectorList())
+      && (selector =
+            selectorList.findSimpleSelector("\\." + sClassName)))
   {
-    var selectorList, selector;
-    if (typeof CSSSelectorList != "undefined"
-        && (selectorList = new CSSSelectorList())
-        && (selector = selectorList.findSimpleSelector("\\." + sClassName)))
+    selector.display = bShow ? "" : "none";
+    return (selector.display == bShow ? "" : "none");
+  }
+  else
+  {
+    if (typeof dhtml != "undefined"
+        && isMethod("dhtml.getElemByClassName"))
     {
-      selector.display = bShow ? "" : "none";
-    }
-    else
-    {
-      if (typeof dhtml != "undefined"
-          || dhtml.getElemByClassName != "undefined")
-      {
-        alert("Sorry, you must include dhtml.js.");
-        return false;
-      }
-
       var es = dhtml.getElemByClassName(sClassName);
       for (var i = es.length; i--; 0)
       {
@@ -190,6 +191,12 @@ function showByClassName(sClassName, bShow)
           o.display = bShow ? "" : "none";
         }
       }
+      return true;
+    }
+    else
+    {
+      alert("Sorry, you must include dhtml.js.");
+      return false;
     }
   }
 }
@@ -215,7 +222,7 @@ function showByClassName(sClassName, bShow)
  */
 function Color(iRed, iGreen, iBlue)
 {
-  /*
+  /**
    * Fixes RGB values, i.e. brings them into
    * range if they are out of range.
    * Note: Brightness/contrast are disregarded.
@@ -342,18 +349,66 @@ Color.prototype.getMono = function color_getMono()
  */
 Color.prototype.setMono = function color_setMono(iRed, iGreen, iBlue)
 {
-  if (typeof iRed == 'string')
-  {
-    this.setRGB(iRed);
-  }
-  else
-  {
-    this.red = iRed;
-    if (typeof iGreen != 'undefined') this.green = iGreen;
-    if (typeof iBlue  != 'undefined') this.blue  = iBlue;
-  }
+  this.set(iRed, iGreen, iBlue);
   
   var c = this.getMono();
+  this.red   = c.red;
+  this.green = c.green;
+  this.blue  = c.blue;
+
+  return this;
+}
+
+Color.prototype.getWebSafe = function color_getWebSafe()
+{
+  function getNearestSafeValue(v)
+  {
+    if (v >= 0xFF)
+    {
+      return 0xFF;
+    }
+          
+    if (v <= 0)
+    {
+      return 0;
+    }
+
+    for (var a = [0, 0x33, 0x66, 0x99, 0xCC, 0xFF], i = a.length-1;
+         i--;)
+    {
+      if (v >= a[i])
+      {
+        if (v == a[i])
+        {
+          return v;
+        }
+        else
+        {
+          if (v - a[i] < a[i+1] - v)
+          {
+            return a[i];
+          }
+          else
+          {
+            return a[i+1];
+          }
+        }
+      }
+    }
+    return -1;
+  }
+
+  return new Color(
+    getNearestSafeValue(this.red),
+    getNearestSafeValue(this.green),
+    getNearestSafeValue(this.blue));
+}
+
+Color.prototype.setWebSafe = function color_setMono(iRed, iGreen, iBlue)
+{
+  this.set(iRed, iGreen, iBlue);
+  
+  var c = this.getWebSafe();
   this.red   = c.red;
   this.green = c.green;
   this.blue  = c.blue;
@@ -369,6 +424,25 @@ Color.prototype.setMono = function color_setMono(iRed, iGreen, iBlue)
 Color.prototype.getRGB = function color_getMono()
 {
   return ['rgb(', this.red, ',', this.green, ',', this.blue, ')'].join('');
+}
+
+Color.prototype.toHex = function toHex()
+{
+  var
+    r = leadingZero(this.red.toString(16), 2),
+    g = leadingZero(this.green.toString(16), 2),
+    b = leadingZero(this.blue.toString(16), 2),
+    rx = /([0-9a-f])\1([0-9a-f])\2([0-9a-f])\3/i,
+    m;
+     
+  if ((m = rx.exec([r, g, b].join(''))))
+  {
+    r = m[1];
+    g = m[2];
+    b = m[3];
+  }
+    
+  return ['#', r, g, b].join('');
 }
 
 /**
@@ -424,38 +498,3 @@ function makeMono()
     }
   }
 }
-
-function hex2safe(s)
-{
-  if (s.length > 1)
-  {
-    var matches;
-    if ((matches = /^([0-9a-f])\1([0-9a-f])\2([0-9a-f])\3$/i.exec(s)))
-    {
-      return [matches[1], matches[2], matches[3]].join("");
-    }
-  }
-  return s;
-}
-
-function rgb2hex(s)
-{
-  if (s)
-  {
-    var matches;
-    if ((matches = /(rgb\s*\()?\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)?/i
-                   .exec(s)))
-    {
-      return ("#" + hex2safe([
-                        leadingZero((+matches[2]).toString(16), 2),
-                        leadingZero((+matches[3]).toString(16), 2),
-                        leadingZero((+matches[4]).toString(16), 2)
-                      ].join("")));
-    }
-  }
-  
-  return s;
-}
-
-// alert(rgb2hex('rgb(204,204,204)'));
-
