@@ -78,7 +78,7 @@
 
 function DHTML()
 {
-  this.version   = "0.9.2005022017";
+  this.version   = "0.9.2005040219";
 // var dhtmlDocURL = dhtmlPath + "dhtml.htm";
   this.copyright = "Copyright \xA9 2002-2005";
   this.author    = "Thomas Lahn";
@@ -565,6 +565,105 @@ function setCont(sType, sValue, index, sNodeValue)
 }
 DHTML.prototype.setCont = setCont;
 
+/**
+ * Returns the text content of a document node.
+ *
+ * @author
+ *   (C) 2005 Thomas Lahn <dhtml.js@PointedEars.de>
+ * @partof
+ *   http://pointedears.de/scripts/dhtml.js
+ * @argument Node oNode
+ *   Reference to the document node.
+ * @return type string
+ *   The text content of @{(oNode)}.
+ */
+function getTextContent(oNode)
+{
+  var text = "";
+
+  if (oNode)
+  {
+    // W3C DOM Level 3
+    if (typeof oNode.textContent != "undefined")
+    {
+      text = oNode.textContent;
+    }
+
+    // W3C DOM Level 2
+    else if (oNode.childNodes && oNode.childNodes.length) 
+    {
+      for (var i = oNode.childNodes.length; i--;)
+      {
+        var o = oNode.childNodes[i];
+        if (o.nodeType == ((Node && Node.TEXT_NODE) || 3))
+        {
+          text = o.nodeValue + text;
+        }
+        else
+        {
+          text = getTextContent(o) + text;
+        }
+      }
+    }
+
+    // proprietary: IE4+
+    else if (typeof oNode.innerText != "undefined")
+    {
+      text = oNode.innerText;
+    }
+  }
+
+  return text;
+}
+DHTML.prototype.getTextContent = getTextContent;
+
+/**
+ * Sets the text content of a document node.
+ *
+ * @author
+ *   (C) 2005 Thomas Lahn <dhtml.js@PointedEars.de>
+ * @partof
+ *   http://pointedears.de/scripts/dhtml.js
+ * @argument Node oNode
+ *   Reference to the document node.
+ * @return type boolean
+ *   <code>true</code> if successful, <code<false</code> otherwise.
+ */
+function setTextContent(oNode, sContent)
+{
+  var result = false;
+
+  if (oNode)
+  {
+    // W3C DOM Level 3
+    if (typeof oNode.textContent != "undefined")
+    {
+      oNode.textContent = sContent;
+      result = (oNode.textContent == sContent);
+    }
+
+    // W3C DOM Level 2
+    else if (oNode.removeChild && oNode.firstChild) 
+    {
+      while (oNode.firstChild)
+      {
+        oNode.removeChild(oNode.firstChild);
+      }
+ 
+      result = !!oNode.appendChild(document.createTextNode(sContent));
+    }
+
+    // proprietary: IE4+
+    else if (typeof oNode.innerText != "undefined")
+    {
+      oNode.innerText = sContent;
+      result = (oNode.innerText == sContent);
+    }
+  }
+  return result;
+}
+DHTML.prototype.setTextContent = setTextContent;
+  
 /**
  * Retrieves the value of an attribute of an HTMLElement object
  * that matches certain criteria.
