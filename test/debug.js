@@ -1,13 +1,8 @@
 /**
  * <title>Debug Library<title>
- */
-function Debug()
-{
-  this.version = "0.99.2004031616";
-/**
+ *
  * @filename debug.js
- * @requires types.js
- * @requires array.js
+ * @requires types.js array.js
  * @partof   PointedEars' JavaScript Extensions (JSX)
  *
  * @section Copyright & Disclaimer
@@ -15,11 +10,14 @@ function Debug()
  * @author
  *   (C) 2001-2004  Thomas Lahn &lt;debug.js@PointedEars.de&gt;
  */
+function Debug()
+{
+  this.version   = "0.99.2004081602";
   this.copyright = "Copyright \xA9 1999-2004";
   this.author    = "Thomas Lahn";
   this.email     = "debug.js@PointedEars.de";
-  this.path      = "http://pointedears.de.vu/scripts/test/";
-  this.docURL = this.path + "../enhanced.htm";
+  this.path      = "http://pointedears.de/scripts/test/";
+  this.docURL    = this.path + "../enhanced.htm";
 }
 var debug = new Debug();
 /**
@@ -44,16 +42,23 @@ var debug = new Debug();
  * Refer debug.htm file for general documentation. 
  * 
  * This script contains JavaScriptDoc[tm], see
- * http://pointedears.de.vu/scripts/JSDoc/
+ * http://pointedears.de/scripts/JSDoc/
  * for details.
  */
  
 // reference to the global object
 var _global = this;
+var sGlobal = "_global";
+
+// global undefined value (for implementations without it)
+var undefined = _global.undefined;
 
 /** @section Exceptions */
 
-function DebugException(/** @argument string */ Msg)
+/**
+ * @argument string Msg
+ */ 
+function DebugException(Msg)
 {
   alert(
     "debug.js "
@@ -67,61 +72,115 @@ function DebugException(/** @argument string */ Msg)
 
 /** @section Features */
 
-function /** @type boolean */ dummyError()
+/**
+ * @argument string s
+ * @optional boolean bPrintResult = false
+ * @return type number
+ *   The number of milliseconds the evaluation of @{(s)}
+ *   took if @{(bPrintResult)} is <code>false</code>.
+ * @return type string
+ *   A human-readable string to indicate the return
+ *   value if @{(bPrintResult)} is <code>true</code>.
+ */
+function time(s, bPrintResult)
+{
+  var start = new Date();
+  eval(s);
+  var stop = new Date();
+  var diff = -1;
+  if (start && stop)
+  {
+    diff = stop.getTime() - start.getTime();
+    if (bPrintResult)
+    {
+      diff = "Evaluating '" + s + "' took " + diff + " ms.";
+    }
+  }
+  return diff;
+}
+  
+/**
+ * @return type boolean
+ *   Always <code>true</code>
+ */ 
+function dummyError()
 {
   _global.onerror = null;
 
   return true;
 }
 
-function /** @type string */ getError(/** @argument Error */ e)
+/**
+ * @argument Error e
+ * @return type string
+ */ 
+function getError(e)
 {
   var sError = e;
 
-  if (e.name)
+  if (typeof e.name != "undefined")
+  {
     sError += "\nName: " + e.name;
-  if (e.number)
+  }
+  
+  if (typeof e.number != "undefined")
+  {
     sError += "\nCode: " + e.number;
-  if (e.message)
+  }
+  
+  if (typeof e.message != "undefined")
+  {
     sError += "\nMessage: " + e.message;
-  if (e.description)
+  }
+  
+  if (typeof e.description != "undefined")
+  {
     sError += "\nDescription: " + e.description;
-  if (e.fileName)
+  }
+  
+  if (typeof e.fileName != "undefined")
+  {
     sError += "\nFilename: " + e.fileName;
+  }
 
-  onerror = dummyError;
-  eval(
-      'try {'
-    + '  if (e.lineNumber)'
-    + '    sError += "\\nLine: " + e.lineNumber;'
-    + '} catch (e2) {'
-    + '  sError += "\\nLine: " + e2;'
-    + '}');
-  onerror = null;
+  _global.onerror = dummyError;
+  eval(new Array(
+      'try {',
+      '  if (e.lineNumber) {',
+      '    sError += "\\nLine: " + e.lineNumber;',
+      '  }',
+      '} catch (e2) {',
+      '  sError += "\\nLine: " + e2;',
+      '}').join("\n"));
+  _global.onerror = null;
         
-  if (e.stack)
+  if (typeof e.stack != "undefined")
+  {
     sError += "\nStack:\n" + e.stack;
+  }
 
   return sError;
 }
 
-function alertValue(/** @arguments */)
 /**
+ * @arguments _ _
  * @requires types.js#isIterable()
  */
+function alertValue()
 {
   var sResult = "";
   var a;
   var j;
-  for (var i = 0; i < alertValue.arguments.length; i++)
+  for (var i = 0; i < arguments.length; i++)
   {
     sResult += "[" + i + "] => ";
-    a = alertValue.arguments[i];
+    a = arguments[i];
 
     if (isIterable(a))
     {
       sResult += "[";
       for (j = 0; j < a.length; j++)
+      {
         sResult +=
           "["
             + j + "] => "
@@ -129,39 +188,39 @@ function alertValue(/** @arguments */)
             + a[j]
             + (typeof a[j] == "string" ? '"' : '')
             + (j < a.length - 1 ? ", " : "");
+      }
       sResult += "]";
     }
     else
+    {
       sResult +=
           (typeof arguments[i] == "string" ? '"' : '')
           + arguments[i] 
           + (typeof arguments[i] == "string" ? '"' : '')
           + "\n";
+    }
   }
   alert(sResult);
 }
 
-function bracketsToDots(/** @argument string */ s)
 /**
- * @argument s
+ * @argument string s
  *   String of the form "root['branch']['leaf']['...']..." or
  *   "root[branch][leaf][...]..." to be converted.  Required.
- * @returns
+ * @return type string
  *   A string of the form `root.branch.leaf...' converted from
  *   <code>s</code>.
  */
+function bracketsToDots(s)
 {
   return s.replace(/\[/g, '.').replace(/[\]\']/g, '');
 }
 
-function dotsToBrackets(
-  /** @argument string           */ s,
-  /** @argument optional boolean */ bStringsOnly)
 /**
- * @param s
+ * @argument string s
  *   String of the form `root.branch.leaf' to be converted.
  *   Required.
- * @param bStringsOnly
+ * @optional boolean bStringsOnly
  *   Specifies if all parts of the tree should be converted
  *   or not.  Optional.
  *   If not provided or <code>false</code>, all parts are
@@ -169,10 +228,11 @@ function dotsToBrackets(
  *   that are required to (because JavaScript identifiers must
  *   start with a character in <code>[A-Za-z_$]</code>, though
  *   array indizes may be numeric.)
- * @returns
+ * @return type string
  *   A string of the form "root['branch']['leaf']" converted
  *   from <code>s</code>.
  */
+function dotsToBrackets(s, bStringsOnly)
 {
   var a = s.split(".");
   s = a[0];
@@ -180,13 +240,19 @@ function dotsToBrackets(
   for (var i = 1; i < a.length; i++)
   {
     if (!bStringsOnly)
+    {
       s += "['" + a[i] + "']";
+    }
     else
     {
       if (isNaN(a[i]))
+      {
         s += "." + a[i];
+      }
       else
+      {
         s += "[" + a[i] + "]";
+      }
     }
   }
   
@@ -212,20 +278,29 @@ javascript:
       void (window.innerWidth=parseInt('%s'.split(' ')[0]);
     }
     else
+    {
       resizeToHelp();
+    }
   
     if (a[1] && !isNaN(a[1]))
     {
       void (window.innerHeight=parseInt(a[0]));
     }
     else
+    {
       resizeToHelp();
+    }
   }
   else
+  {
     resizeToHelp();
+  }
  
  */
-function beautify(/** @argument string */ s)
+/**
+ * @argument string
+ */
+function beautify(s)
 {
   return s
     .replace(/(\s*\{\s*)/g, "\n$1\n  ")
@@ -236,32 +311,29 @@ function beautify(/** @argument string */ s)
 
 //alert(beautify('javascript:function resizeToHelp() { alert("Usage: resizeTo clientWidth [clientHeight]"); } if ("%s".length > 0) { var a = "%s".split(" "); if (a[0] && !isNaN(a[0])) { void (window.innerWidth=parseInt(a[0])); if (a[1] && !isNaN(a[1])) { void (window.innerHeight=parseInt(a[1])); } else resizeToHelp(); } else resizeToHelp(); } else resizeToHelp();'));
 
-function uglyfy(/** @argument string */ s)
+/**
+ * @argument string
+ */ 
+function uglyfy(s)
 {
   return s.replace(/\s/g, " ") // .replace
 }
 
-function Owners(/** @argument optional Array of Object */ aOwners)
 /**
  * Stores references to objects in an array
  * to be used for the Property constructor.
- * 
- * @param aOwners
+ *
+ * @argument optional [Object...] aOwners
  *   Array of the owner references to store.  The
  *   default is an array with <code>null</code> as
  *   sole element.
+ * @property Array items
  */
+function Owners(aOwners)
 {
-  /** @property Array */ this.items = aOwners || new Array(null);
+  this.items = aOwners || new Array(null);
 }
 
-function Property(
-  /** @argument string        */ sName,
-  sValue,
-  /** @optional number        */ iID,
-  /** @optional Owners|Object */ aoOwners,
-  /** @optional boolean       */ bNonEnum,
-  /** @optional boolean       */ bCalledFromObjectInfo)
 /**
  * Retrieves type of the object or property specified by the
  * string <code>sName</code> and its value <code>sValue</code>
@@ -300,24 +372,27 @@ function Property(
  * <code>aoOwners</code> is an Owners object or not, the
  * <code>@link{isInstanceOf(...)}</code> method is required.
  *
- * @param sName
+ * @argument string sName
  *   Name of the property.  Required.
- * @param sValue
+ * @argument - sValue
  *   Value of the property.  Required.
- * @param iID
+ * @optional number iID
  *   (Unique) ID of the property.  Required.
- * @param aoOwners
+ * @optional Owners|Object aoOwners
  *   Reference to an Owners object storing references to the
  *   owner (object) of the property and its owners, where the
  *   last element references the direct owner.  Allows also
  *   for a reference to a non-Owners object to specify only
  *   the direct owner.  Optional.
- * @param bNonEnum
+ * @optional boolean bNonEnum
  *   <code>true</code> specifies that the property is
  *   non-enumerable.  Optional.  The default <code>false</code>
  *   determines the property to be enumerable.
- * @see types#isArray(), array#inArray()
+ * @optional boolean bCalledFromObjectInfo
+ * @see
+ *   types#isArray(), array#inArray()
  */
+function Property(sName, sValue, iID, aoOwners, bNonEnum, bCalledFromObjectInfo)
 {
   this.id = iID;
   this.name = sName;
@@ -331,70 +406,85 @@ function Property(
 
   var oOwner = null;
   if (isInstanceOf(aoOwners, Owners))
+  {
     this.owner = aoOwners.items[aoOwners.items.length - 1];
+  }
   else
+  {
     this.owner = aoOwners;
+  }
 
-  onerror = dummyError;
+  _global.onerror = dummyError;
 
-  eval(
-      'try { // for IE \n'
-    + '  if (this.owner && this.owner[sName]) \n'
-    + '  { \n'
-    + '    onerror = dummyError; \n'
-    + '    if (isInstanceOf(this.owner, Owners)) { \n'
-    + '      this.referencesOwners = \n'
-    + '        inArray(this.owner[sName], aoOwners.items); \n'
-    + '    } else {'
-    + '      this.referencesOwner = (this.owner[sName] == this.owner); \n'
-    + '    } \n'
+  eval(new Array(
+      'try { // for IE',
+      '  if (typeof this.owner != "undefined"',
+      '      && typeof this.owner[sName] != "undefined")',
+      '  {',
+      '    _global.onerror = dummyError;',
+      '    if (isInstanceOf(this.owner, Owners)) {',
+      '      this.referencesOwners =',
+      '        inArray(this.owner[sName], aoOwners.items);',
+      '    } else {',
+      '      this.referencesOwner = (this.owner[sName] == this.owner);',
+      '    }',
 /*
-    + '  if (!bCalledFromObjectInfo) \n'
-    + '  { \n'
-    + '    var propertyInfo = new ObjectInfo(this.owner[sName], sName, false, true); \n'
-    + '    this.hasProperties = propertyInfo.hasProperties; \n'
-    + '  } \n'   
+      '  if (!bCalledFromObjectInfo)',
+      '  {',
+      '    var propertyInfo = new ObjectInfo(this.owner[sName], sName, false, true);',
+      '    this.hasProperties = propertyInfo.hasProperties;',
+      '  }',
 */
-    + '    try { // for IE \n'
-    + '      if (!(sName == "toString" // for IE6 SP-1 \n'
-    + '            || (this.owner == location && \n'
-    + '                inArray(sName, ["assign", "reload", "replace"])))) \n'
-    + '      { \n'
-    + '        for (var p in this.owner[sName]) { \n'
-    + '          this.propertyCount++; \n'
-    + '        } \n'
-    + '      } \n'
-    + '    } catch (e) { \n'
-
-/*
-    + '    alert(sName + "\n" \n'
-    + '      + "for (var p in this.owner[sName])\n\n" \n'
-    + '      + getError(e)); \n'
-*/
-
-    + '      try { // for IE \n'
-    + '        this.propertyCount = this.owner[sName].length; \n'
-    + '      } catch (e) { \n'
+      '    try { // for IE',
+      '      if (!(sName == "toString" // for IE6 SP-1',
+      '            || (this.owner == location &&',
+      '                inArray(sName, ["assign", "reload", "replace"]))))',
+      '      {',
+      '        for (var p in this.owner[sName]) {',
+      '          this.propertyCount++;',
+      '        }',
+      '      }',
+      '    } catch (e) {',
 
 /*
-    + '      alert(sName + "\n" \n'
-    + '        + "for (var j = 0; i < this.owner[sName].length; j++)" \n'
-    + '        + getError(e)); \n'
+      '    alert(sName + "\n"',
+      '      + "for (var p in this.owner[sName])\n\n"',
+      '      + getError(e));',
 */
 
-    + '      } \n'
-    + '    } \n'
-    + '  } \n'
-    + '} catch (e) { \n'
-    + '}');
+      '      try { // for IE',
+      '        this.propertyCount = this.owner[sName].length;',
+      '      } catch (e) {',
 
-  onerror = null;
+/*
+      '      alert(sName + "\n"',
+      '        + "for (var j = 0; i < this.owner[sName].length; j++)"',
+      '        + getError(e));',
+*/
+
+      '      }',
+      '    }',
+      '  }',
+      '} catch (e) {',
+      '}').join("\n"));
+
+  _global.onerror = null;
 
   this.hasProperties = (this.propertyCount > 0);
 }
 
-function PropertyArray()
+/**
+ * @optional Array a
+ */
+function PropertyArray(a)
 {
+/**
+ * Note that the <code>properties</code> extended
+ * <code>Array</code> object defines properties for
+ * both sort order and sort direction which can be
+ * recognized by their identifier's prefix.  These
+ * are:
+ */
   this.soNone       = -1; // default
   this.soByID       = this.soNone;
   this.soByName     = 0;
@@ -403,25 +493,72 @@ function PropertyArray()
   this.sdNone       = 0;
   this.sdAscending  = 1;
   this.sdDescending = -1;
+  /**
+   * The current sort order and direction is stored in the
+   * `sortOrder' and `sortDir' properties of the `properties'
+   * extended Array object.
+   * 
+   * For the sort direction constants are the negative opposite
+   * of each other, you may toggle the sort direction easily:
+   *
+   *   var p = bar.properties;
+   *   p.sortBy(p.sortOrder, -p.sortDir);
+   *  
+   * If `sortDir' was `0' (zero) before and therefore the
+   * properties were unsorted (i.e. sorted by ID), the array
+   * will then be sorted ascending by the current criteria.
+   */
   this.sortOrder    = this.soNone;
   this.sortDir      = this.sdNone;
-  this.items        = new Array();
+  this.items        = a || new Array();
+  this.length       =
+    (typeof this.items.length == "number"
+      ? this.items.length
+      : 0);
 }
 
+/**
+ * Adds the property to the property array.
+ *
+ * @type number|Property oProperty
+ * @argument Property
+ */ 
 PropertyArray.prototype.push =
-function /** @type number|Property */ push(
-  /** @argument Property */ oProperty)
+function propertyArray_push(oProperty)
 {
   return this.items.push(oProperty);
 }
 
+/**
+ * With a reference to an ObjectInfo object having a valid
+ * `target' reference, you may sort the property array by
+ * properties of the Property prototype:
+ *     
+ *   if (bar && bar.properties)
+ *   {
+ *     bar.properties.unsort();
+ *     bar.properties.sortById(...);
+ *     bar.properties.sortByName(...);
+ *     bar.properties.sortByType(...);
+ *     bar.properties.sortByValue(...);
+ *   }
+ *
+ * Except for the unsort() method, each specific sort method
+ * takes an optional argument, specifying the sort direction
+ * (ascending or descending.)  If the argument is left out,
+ * the properties are sorted in ascending direction by the
+ * selected criteria.  unsort() sorts the properties as if
+ * they were retrieved with a `for (property in object)' loop
+ * and is therefore identical to sortById() or
+ * sortById(sdAscending).
+ */
 // Specific sort methods
 PropertyArray.prototype.cmpSortByIdAsc =
   /** @type Comparator */ new Function("a", "b", "return a.id - b.id;");
 PropertyArray.prototype.cmpSortByIdDesc =
   /** @type Comparator */ new Function("a", "b", "return b.id - a.id;");
 PropertyArray.prototype.sortById =
-function sortById(iDir)
+function propertyArray_sortById(iDir)
 {
   if (iDir && iDir < 0)
   {
@@ -440,37 +577,43 @@ PropertyArray.prototype.unsort =
   PropertyArray.prototype.sortById;
   
 PropertyArray.prototype.cmpSortByNameAsc =
-function /** @type Comparator */ cmpSortByNameAsc(a, b)
+function /** @type Comparator */ propertyArray_cmpSortByNameAsc(a, b)
 {
-  if (a.name < b.name)
+  if (a && b)
   {
-    return -1;
-  }
-  else if (a.name > b.name)
-  {
-    return 1;
+    if (a.name < b.name)
+    {
+      return -1;
+    }
+    else if (a.name > b.name)
+    {
+      return 1;
+    }
   }
   
   return 0;
 }
 
 PropertyArray.prototype.cmpSortByNameDesc =
-function /** @type Comparator */ cmpSortByNameDesc(a, b)
+function /** @type Comparator */ propertyArray_cmpSortByNameDesc(a, b)
 {
-  if (a.name > b.name)
+  if (a && b)
   {
-    return -1;
-  }
-  else if (a.name < b.name)
-  {
-    return 1;
+    if (a.name > b.name)
+    {
+      return -1;
+    }
+    else if (a.name < b.name)
+    {
+      return 1;
+    }
   }
 
   return 0;
 }
 
 PropertyArray.prototype.sortByName =
-function sortByName(iDir)
+function propertyArray_sortByName(iDir)
 {
   if (iDir && iDir < 0)
   {
@@ -486,37 +629,43 @@ function sortByName(iDir)
 }
 
 PropertyArray.prototype.cmpSortByTypeAsc =
-function /** @type Comparator */ cmpSortByTypeAsc(a, b)
+function /** @type Comparator */ propertyArray_cmpSortByTypeAsc(a, b)
 {
-  if (a.type < b.type)
+  if (a && b)
   {
-    return -1;
-  }
-  else if (a.type > b.type)
-  {
-    return 1;
+    if (a.type < b.type)
+    {
+      return -1;
+    }
+    else if (a.type > b.type)
+    {
+      return 1;
+    }
   }
 
   return 0;
 }
 
 PropertyArray.prototype.cmpSortByTypeDesc =
-function /** @type Comparator */ cmpSortByTypeDesc(a, b)
+function /** @type Comparator */ propertyArray_cmpSortByTypeDesc(a, b)
 {
-  if (a.type > b.type)
+  if (a && b)
   {
-    return -1;
-  }
-  else if (a.type < b.type)
-  {
-    return 1;
+    if (a.type > b.type)
+    {
+      return -1;
+    }
+    else if (a.type < b.type)
+    {
+      return 1;
+    }
   }
 
   return 0;
 }
 
 PropertyArray.prototype.sortByType =
-function sortByType(iDir)
+function propertyArray_sortByType(iDir)
 {
   if (iDir && iDir < 0)
   {
@@ -531,37 +680,45 @@ function sortByType(iDir)
   this.sortDir = iDir ? iDir : this.sdAscending;
 }
 
+/** @type Comparator */ 
 PropertyArray.prototype.cmpSortByValueAsc =
-function /** @type Comparator */ cmpSortByValueAsc(a, b)
+function propertyArray_cmpSortByValueAsc(a, b)
 {
-  if (a.value < b.value)
+  if (a && b)
   {
-    return -1;
-  }
-  else if (a.value > b.value)
-  {
-    return 1;
+    if (a.value < b.value)
+    {
+      return -1;
+    }
+    else if (a.value > b.value)
+    {
+      return 1;
+    }
   }
 
   return 0;
 }
 
+/** @type Comparator */ 
 PropertyArray.prototype.cmpSortByValueDesc =
-function /** @type Comparator */ cmpSortByValueDesc(a, b)
+function propertyArray_cmpSortByValueDesc(a, b)
 {
-  if (a.value > b.value)
+  if (a && b)
   {
-    return -1;
-  }
-  else if (a.value < b.value)
-  {
-    return 1;
+    if (a.value > b.value)
+    {
+      return -1;
+    }
+    else if (a.value < b.value)
+    {
+      return 1;
+    }
   }
 
   return 0;
 }
 PropertyArray.prototype.sortByValue =
-function sortByValue(iDir)
+function propertyArray_sortByValue(iDir)
 {
   if (iDir && iDir < 0)
   {
@@ -576,8 +733,29 @@ function sortByValue(iDir)
   this.sortDir = iDir ? iDir : this.sdAscending;
 }
 
+/**
+ * `properties' also defines a generic method for sorting
+ * the array, sortBy(...), which calls the other specific
+ * sort methods.  This method takes up to two optional
+ * arguments, the first defining the sort criteria, the
+ * second the sort direction.  You are recommended to use
+ * the sort order and direction constants for arguments:
+ * 
+ *   var p = bar.properties;
+ *   p.sortBy(p.soByName, p.sdDescending);
+ *
+ * If the second argument is not provided, `sdAscending' is
+ * assumed.  Leaving the first argument out or providing an
+ * invalid value causes no error, but the array not to be
+ * re-sorted.
+ *
+ * @optional number iSortOrder
+ *   Sort order.
+ * @optional number iSortDir
+ *   Sort direction.
+ */
 PropertyArray.prototype.sortBy =
-function sortBy(iSortOrder, iSortDir)
+function propertyArray_sortBy(iSortOrder, iSortDir)
 {
   switch (iSortOrder)
   {
@@ -599,42 +777,61 @@ function sortBy(iSortOrder, iSortDir)
   }
 }
 
+/**
+ * @argument string sName
+ * @argument _ sValue
+ * @optional number iID
+ * @optional Object oOwner
+ * @optional boolean bNonEnum
+ * @optional boolean bCalledFromProperty
+ */
 PropertyArray.prototype.addProperty =
-function addProperty(
-  /** @argument string           */ sName,
-  sValue,
-  /** @argument optional number  */ iID,
-  /** @argument optional Object  */ oOwner,
-  /** @argument optional boolean */ bEnumerable)
+function propertyArray_addProperty(sName, sValue, iID, oOwner, bNonEnum,
+  bCalledFromProperty)
 {
   // avoid dupes
-  var aObjectProperties =
-    ["constructor", "prototype", "eval", "toSource", "toString",
-     "unwatch", "valueOf", "watch"];
-  if (inArray(sName, aObjectProperties)
-      || typeof this.items[sName] == "undefined")
+  if ((isMethodType(typeof this.items.hasOwnProperty)
+      // IE does not allow reference shortcut here!
+      && this.items.hasOwnProperty != null
+      && !this.items.hasOwnProperty(sName)) 
+         || (!isMethodType(typeof this.items.hasOwnProperty)
+             && typeof this.items[sName] == "undefined"))
   {
-    this.push(new Property(sName, sValue, iID, oOwner, bEnumerable));
-    this.items[sName] = sValue; 
+    this.items[this.items.length] =
+      new Property(
+        sName,
+        sValue,
+        iID,
+        oOwner,
+        bNonEnum,
+        bCalledFromProperty); // avoid infinite recursion
+
+    // BUGFIX: Don't overwrite numeric properties
+    var bMethod = isMethodType(this.items.hasOwnProperty);
+    if ((bMethod && !this.items.hasOwnProperty(sName))
+        || (!bMethod && typeof this.items[sName] == "undefined"))
+    {
+      this.items[sName] = sValue; 
+    }
+
+    this.length = this.items.length;
   }
 }
 
-function NonEnumProperties(
-  /** @argument RegExp          */ rxPattern,
-  /** @argument Array of string */ asPropertyNames,
-  /** @optional string          */ sType,
-  /** @optional Object          */ fConstructor)
+/**
+ * @argument RegExp rxPattern
+ * @argument [string] asPropertyNames
+ * @optional string sType
+ * @optional Object fConstructor
+ */
+function NonEnumProperties(rxPattern, asPropertyNames, sType, fConstructor)
 {
-  this.pattern      = rxPattern       || /./;
+  this.pattern      = rxPattern       || new RegExp("."); 
   this.names        = asPropertyNames || new Array();
   this.type         = sType           || "";
   this.fConstructor = fConstructor    || null;
 }
 
-function ObjectInfo(
-  /** @argument string|Object    */ sObject,
-  /** @argument optional string  */ sName,
-  /** @argument optional boolean */ bCalledFromProperty)
 /**
  * Retrieves all properties of an object and stores them
  * in the `properties' array property.  That array can be
@@ -687,24 +884,22 @@ function ObjectInfo(
  *     alert("anyOtherObject references myObject.");
  * </code>
  *
- * @param sObject
+ * @argument string|Object sObject
  *   Reference to an object or property, or string to be evaluated
  *   to an object or a property. Required.
  *   (TODO: Throws NotAnObjectException if not provided or cannot
  *   be evaluated.)
- * @param sName
+ * @optional string sName
  *   Name of the object/property. Optional.
  *   If this argument is not provided, the value of the
  *   <code>name</code> property depends on <code>sObject</code>.
  *   If the latter is a reference, the default is `_odo', otherwise
  *   the default is the value of <code>sObject</code>.
+ * @optional boolean bCalledFromProperty
+ * @method ObjectInfo
  */
+function ObjectInfo(sObject, sName, bCalledFromProperty)
 {
-  /** @method ObjectInfo */ this.forObject =
-  function forObject(
-    /** @argument string|Object    */ sObject,
-    /** @argument optional string  */ sName,
-    /** @argument optional boolean */ bCalledFromProperty)
   /**
    * Once you have a reference to an <code>ObjectInfo</code>
    * object, you may use this method to access another object's
@@ -739,270 +934,55 @@ function ObjectInfo(
    *   }
    * </code>
    * 
-   * @param sObject See contract of @link{this()}
-   * @param sName   See contract of @link{this()}
+   * @argument string|Object sObject
+   *   See contract of @link{this()}
+   * @optional string sName
+   *   See contract of @link{this()}
+   * @optional boolean bCalledFromProperty
+   * @property string name
+   * @property PropertyArray properties
+   * @property object target
+   * @property string type
    */
+  this.forObject =
+  function forObject(sObject, sName, bCalledFromProperty)
   {
-    /** @property string */ this.name =
+    this.name =
       (typeof sObject == "string"
         ? sObject
         : (sName ? sName : "_odo"));
                   
-    /*
-     * TODO: Inherit Array prototype functionality
-     * (`Foobar.prototype = new Array' does not work)
-     */
-    this.properties = new Array();
-
-    /**
-     * Note that the <code>properties</code> extended
-     * <code>Array</code> object defines properties for
-     * both sort order and sort direction which can be
-     * recognized by their identifier's prefix.  These
-     * are:
-     */
-    this.properties.soNone    = -1; // default
-    this.properties.soByID    = this.properties.soNone;
-    this.properties.soByName  = 0;
-    this.properties.soByType  = 1;
-    this.properties.soByValue = 2;
-
-    this.properties.sdNone       = 0;
-    this.properties.sdAscending  = 1;
-    this.properties.sdDescending = -1;
-
-    /**
-     * The current sort order and direction is stored in the
-     * `sortOrder' and `sortDir' properties of the `properties'
-     * extended Array object.
-     * 
-     * For the sort direction constants are the negative opposite
-     * of each other, you may toggle the sort direction easily:
-     *
-     *   var p = bar.properties;
-     *   p.sortBy(p.sortOrder, -p.sortDir);
-     *  
-     * If `sortDir' was `0' (zero) before and therefore the
-     * properties were unsorted (i.e. sorted by ID), the array
-     * will then be sorted ascending by the current criteria.
-     */
-    this.properties.sortOrder = this.properties.soNone;
-    this.properties.sortDir = this.properties.sdNone;
-
-    /**
-     * With a reference to an ObjectInfo object having a valid
-     * `target' reference, you may sort the property array by
-     * properties of the Property prototype:
-     *     
-     *   if (bar && bar.properties)
-     *   {
-     *     bar.properties.unsort();
-     *     bar.properties.sortById(...);
-     *     bar.properties.sortByName(...);
-     *     bar.properties.sortByType(...);
-     *     bar.properties.sortByValue(...);
-     *   }
-     *
-     * Except for the unsort() method, each specific sort method
-     * takes an optional argument, specifying the sort direction
-     * (ascending or descending.)  If the argument is left out,
-     * the properties are sorted in ascending direction by the
-     * selected criteria.  unsort() sorts the properties as if
-     * they were retrieved with a `for (property in object)' loop
-     * and is therefore identical to sortById() or
-     * sortById(sdAscending).
-     */
-    // Specific sort methods
-    this.properties.cmpSortByIdAsc =
-      new Function("a", "b", "return a.id - b.id;");
-    this.properties.cmpSortByIdDesc =
-      new Function("a", "b", "return b.id - a.id;");
-    this.properties.sortById = function sortById(iDir)
-    {
-      if (iDir && iDir < 0)
-        this.sort(this.cmpSortByIdDesc);
-      else
-        this.sort(this.cmpSortByIdAsc);
-      this.sortOrder = this.soById;
-      this.sortDir = iDir ? iDir : this.sdAscending;
-    }
-    this.properties.unsort = new Function("this.sortById();");
- 
-    this.properties.cmpSortByNameAsc = function cmpSortByNameAsc(a, b)
-    {
-      if (a.name < b.name)
-        return -1;
-      else if (a.name > b.name)
-        return 1;
-      else return 0;
-    }
-    this.properties.cmpSortByNameDesc = function cmpSortByNameDesc(a, b)
-    {
-      if (a.name > b.name)
-        return -1;
-      else if (a.name < b.name)
-        return 1;
-      else
-        return 0;
-    }
-    this.properties.sortByName = function sortByName(iDir)
-    {
-      if (iDir && iDir < 0)
-        this.sort(this.cmpSortByNameDesc);
-      else
-        this.sort(this.cmpSortByNameAsc);
-      this.sortOrder = this.soByName;
-      this.sortDir = iDir ? iDir : this.sdAscending;
-    }
-
-    this.properties.cmpSortByTypeAsc = function cmpSortByTypeAsc(a, b)
-    {
-      if (a.type < b.type)
-        return -1;
-      else if (a.type > b.type)
-        return 1;
-      else
-        return 0;
-    }
-    this.properties.cmpSortByTypeDesc = function cmpSortByTypeDesc(a, b)
-    {
-      if (a.type > b.type)
-        return -1;
-      else if (a.type < b.type)
-        return 1;
-      else
-        return 0;
-    }
-    this.properties.sortByType = function sortByType(iDir)
-    {
-      if (iDir && iDir < 0)
-        this.sort(this.cmpSortByTypeDesc);
-      else
-        this.sort(this.cmpSortByTypeAsc);
-      this.sortOrder = this.soByType;
-      this.sortDir = iDir ? iDir : this.sdAscending;
-    }
-
-    this.properties.cmpSortByValueAsc = function cmpSortByValueAsc(a, b)
-    {
-      if (a.value < b.value)
-        return -1;
-      else if (a.value > b.value)
-        return 1;
-      else
-        return 0;
-    }
-    this.properties.cmpSortByValueDesc = function cmpSortByValueDesc(a, b)
-    {
-      if (a.value > b.value)
-        return -1;
-      else if (a.value < b.value)
-        return 1;
-      else
-        return 0;
-    }
-    this.properties.sortByValue = function sortByValue(iDir)
-    {
-      if (iDir && iDir < 0)
-        this.sort(this.cmpSortByValueDesc);
-      else
-        this.sort(this.cmpSortByValueAsc);
-      this.sortOrder = this.soByValue;
-      this.sortDir = iDir ? iDir : this.sdAscending;
-    }
-
-    /**
-     * `properties' also defines a generic method for sorting
-     * the array, sortBy(...), which calls the other specific
-     * sort methods.  This method takes up to two optional
-     * arguments, the first defining the sort criteria, the
-     * second the sort direction.  You are recommended to use
-     * the sort order and direction constants for arguments:
-     * 
-     *   var p = bar.properties;
-     *   p.sortBy(p.soByName, p.sdDescending);
-     *
-     * If the second argument is not provided, `sdAscending' is
-     * assumed.  Leaving the first argument out or providing an
-     * invalid value causes no error, but the array not to be
-     * re-sorted.
-     *
-     * @param iSortOrder Sort order. Optional.
-     * @param iSortDir   Sort direction. Optional.
-     */
-    this.properties.sortBy = function sortBy(iSortOrder, iSortDir)
-    {
-      switch (iSortOrder)
-      {
-        case this.soNone:
-        case this.soByID:
-          this.sortById(iSortDir);
-          break;
-
-        case this.soByName:
-          this.sortByName(iSortDir);
-          break;
-
-        case this.soByType:
-          this.sortByType(iSortDir);
-          break;
-
-        case this.soByValue:
-          this.sortByValue(iSortDir);
-      }
-    }
-
-    this.properties.items = new Object();
-    this.properties.addProperty = function addProperty(
-      /** @argument string  */ sName,
-      sValue,
-      /** @optional number  */ iID,
-      /** @optional Object  */ oOwner,
-      /** @optional boolean */ bNonEnum)
-    {
-      // avoid dupes
-      if ((isMethodType(typeof this.items.hasOwnProperty)
-              && !this.items.hasOwnProperty(sName))
-          || (!isMethodType(typeof this.items.hasOwnProperty)
-              && typeof this.items[sName] == "undefined"))
-      {
-        this[this.length] =
-          new Property(
-            sName,
-            sValue,
-            iID,
-            oOwner,
-            bNonEnum,
-            bCalledFromProperty); // avoid infinite recursion
-        this.items[sName] = sValue; 
-      }
-    }
+    this.properties = new PropertyArray();
 
     if (typeof sObject == "string")
     {
       var tc = false;
       _global.onerror = dummyError;
-      eval(
-          'try {'
-        + '  tc = true;'
-        + '  this.target = eval(dotsToBrackets(sObject, true));'
-        + '} catch (e) {'
-        + '  try {'
-        + '    this.target = eval(dotsToBrackets(sObject));'
-        + '  } catch (e) {'
-        + '    try {'
-        + '      this.target = _global["' + sObject + '"];'
-        + '    } catch (e) {'
-        + '      this.target = null;'
-        + '    }'
-        + '  }'
-        + '}');
+      eval(new Array(
+          'try {',
+          '  tc = true;',
+          '  this.target = eval(dotsToBrackets(sObject, true));',
+          '} catch (e) {',
+          '  try {',
+          '    this.target = eval(dotsToBrackets(sObject));',
+          '  } catch (e) {',
+          '    try {',
+          '      this.target = _global["' + sObject + '"];',
+          '    } catch (e) {',
+          '      this.target = null;',
+          '    }',
+          '  }',
+          '}').join("\n"));
       _global.onerror = null;
       if (! tc)
+      {
         this.target = null;
+      }
     }
     else
+    {
       this.target = sObject;
+    }
 
     if (this.target)
     {
@@ -1015,23 +995,24 @@ function ObjectInfo(
         // Fixes problem with document.config (Mozilla 1.5b)
         ti = "";
         t = null;
-        onerror = dummyError;
-        eval(
-            'try {'
-          + '  ti = this.target[i];'
-          + '  t = this.target;'
-          + '} catch (e) {'
-          + '  ti = null;'
-          + '  t = null;'
-          + '}');
-        onerror = null;
+        _global.onerror = dummyError;
+        eval(new Array(
+            'try {',
+            '  ti = this.target[i];',
+            '  t = this.target;',
+            '} catch (e) {',
+            '  ti = null;',
+            '  t = null;',
+            '}').join("\n"));
+        _global.onerror = null;
           
         // avoid dupes
         this.properties.addProperty(
           i,                      // name
           ti,                     // value
           this.properties.length, // ID
-          t);                     // owner reference
+          t,                      // owner reference
+          bCalledFromProperty);   // avoid infinity recursion
       }
       
       // Retrieve non-enumerable properties by guessing them
@@ -1047,7 +1028,7 @@ function ObjectInfo(
       var aNonEnumProperties = 
         [
          new NonEnumProperties(
-           /^\w/, // any object
+           new RegExp("^\\w"), // any object
            ["NaN", "Infinity", "__proto__", "eval", "prototype", "toSource",
             "unwatch", "watch", "undefined", "constructor", "toString",
             "toLocaleString", "valueOf", "hasOwnProperty", "isPrototypeOf",
@@ -1056,8 +1037,8 @@ function ObjectInfo(
            'object',
            Object),
          new NonEnumProperties(
-           /_global/, // global object
-           ["NaN", "Infinity", "undefined",
+           new RegExp(sGlobal), // global object
+           ["NaN", "Infinity", "length", "undefined",
             "parseInt", "parseFloat", "isNaN", "isFinite",
             "decodeURI", "decodeURIComponent", "encodeURI",
             "encodeURIComponent",
@@ -1065,15 +1046,16 @@ function ObjectInfo(
             "Number", "Date", "RegExp", "Error", "EvalError",
             "RangeError", "ReferenceError", "SyntaxError",
             "TypeError", "URIError",
-            "Math"]),
+            "Math",
+            "Components"]),
          new NonEnumProperties(
-           /^Array(\.prototype)?$/,
+           new RegExp("(^|\\.)Array(\\.prototype)?$"),
            ["index", "input", "length", "concat", "join", "pop", "push",
             "reverse", "shift", "slice", "splice", "sort", "unshift"],
            '',
            typeof Array != "undefined" ? Array : null),
          new NonEnumProperties(
-           /^Date(\.prototype)?$/,
+           new RegExp("(^|\\.)Date(\\.prototype)?$"),
            ["getDate", "getDay", "getFullYear", "getHours", "getMilliseconds",
             "getMinutes", "getMonth", "getSeconds", "getTime",
             "getTimezoneOffset", "getUTCDate", "getUTCDay", "getUTCFullYear",
@@ -1090,56 +1072,60 @@ function ObjectInfo(
            '',
            typeof Date != "undefined" ? Date : null),
          new NonEnumProperties(
-           /^Function(\.prototype)?$/,
+           new RegExp("(^|\\.)Function(\\.prototype)?$"),
            ["arguments", "arguments.callee", "arguments.caller",
             "arguments.length", "arity", "length", "apply", "call"],
            'function',
            typeof Function != "undefined" ? Function : null),
          new NonEnumProperties(
-           /^Math$/,
+           new RegExp("(^|\\.)Math$"),
            ["E", "LN2", "LN10", "LOG2E", "LOG10E", "PI", "SQRT1_2", "SQRT2",
             "abs", "acos", "asin", "atan", "atan2", "ceil", "cos", "exp",
             "floor", "log", "max", "min", "pow", "random", "round", "sin",
             "sqrt", "tan"]),
          new NonEnumProperties(
-           /^Number(\.prototype)?$/,
+           new RegExp("(^|\\.)Number(\\.prototype)?$"),
            ["MAX_VALUE", "MIN_VALUE", "NaN", "NEGATIVE_INFINITY",
             "POSITIVE_INFINITY", "toExponential", "toFixed", "toPrecision"],
            'number',
            typeof Number != "undefined" ? Number : null),
          new NonEnumProperties(
-           /^RegExp(\.prototype)?$/,
+           new RegExp("(^|\\.)RegExp(\\.prototype)?$"),
            ["global", "ignoreCase", "lastIndex", "multiline",
             "source", "exec", "test"],
            '',
            typeof RegExp != "undefined" ? RegExp : null),
          new NonEnumProperties(
-           /^String(\.prototype)?$/,
+           new RegExp("(^|\\.)String(\\.prototype)?$"),
            aStringProperties,
            'string',
            typeof String != "undefined" ? String : null),
          new NonEnumProperties(
-           /Error(\.prototype)?$/,
+           new RegExp("Error(\\.prototype)?$"),
            ["message", "name"]),
          new NonEnumProperties(
-           /^Packages(\.prototype)?$/,
+           new RegExp("(^|\\.)Packages(\\.prototype)?$"),
            ["className", "java", "netscape", "sun"]),
          new NonEnumProperties(
-           /(^|\.)location$/i,
+           new RegExp("(^|\\.)location$", "i"),
            ["assign", "hash", "host", "hostname", "href", "pathname",
             "port", "protocol", "reload", "replace", "search"]
             .concat(aStringProperties)),
          new NonEnumProperties(
-           /\.screen$/,
+           new RegExp("(^|\\.)history$"),
+           ['current', 'length', 'next', 'previous',
+            'back', 'forward', 'go']),
+         new NonEnumProperties(
+           new RegExp("(^|\\.)screen$"),
            ["availHeight", "availLeft", "availTop", "availWidth", "colorDepth",
            "height", "left", "pixelDepth", "top", "width"]),
          // LiveConnect -- Java System Library classes as of version 1.4.2_03
          new NonEnumProperties(
-           /^java$/,
+           new RegExp("(^|\\.)java$"),
            ["awt", "beans", "io", "lang", "math", "net", "nio", "rmi",
             "security", "sql", "text", "util"]),
          new NonEnumProperties(
-           /^java\.awt$/,
+           new RegExp("(^|\\.)java\\.awt$"),
            ["color", "datatransfer", "dnd", "event", "font", "geom", "im",
             "image", "peer", "print",
             "ActiveEvent", "Adjustable", "AlphaComposite", "AttributeValue",
@@ -1147,73 +1133,68 @@ function ObjectInfo(
             "AWTKeyStroke", "AWTPermission", "BasicStroke", "BorderLayout",
             "Frame"]),
          new NonEnumProperties(
-           /^java\.lang$/,
+           new RegExp("(^|\\.)java\\.lang$"),
            ["System"]),
          new NonEnumProperties(
-           /^StyleSheet(\.prototype)?$/,
+           new RegExp("^StyleSheet(\\.prototype)?$"),
            ["type", "disabled", "ownerNode", "parentStyleSheet", "href",
             "title", "media"],
            '',
            typeof StyleSheet != "undefined" ? StyleSheet : null),
          new NonEnumProperties(
-           /^StyleSheetList(\.prototype)?$/,
+           new RegExp("(^|\\.)StyleSheetList(\\.prototype)?$"),
            ["length", "item"],
            '',
            typeof StyleSheetList != "undefined" ? StyleSheetList : null),
          new NonEnumProperties(
-           /^LinkStyle(\.prototype)?$/,
+           new RegExp("(^|\\.)LinkStyle(\\.prototype)?$"),
            ["sheet"],
            '',
            typeof LinkStyle != "undefined" ? LinkStyle : null),
          new NonEnumProperties(
-           /^DocumentStyle(\.prototype)?$/,
+           new RegExp("(^|\\.)DocumentStyle(\\.prototype)?$"),
            ["styleSheets"],
            '',
            typeof DocumentStyle != "undefined" ? DocumentStyle : null)
        ];
           
-      var j;
-      var k;
-      var p;
-      for (i = 0; i < aNonEnumProperties.length; i++)
+      for (i = aNonEnumProperties.length; i--; 0)
       {
-        j = aNonEnumProperties[i];
+        var j = aNonEnumProperties[i];
         if (j.pattern.test(this.name)
             || typeof this.target == j.type
             || (typeof this.target.constructor != "undefined"
                 && this.target.constructor == j.fConstructor))
         {
-          for (k = 0; k < j.names.length; k++)
+          for (var k = j.names.length; k--; 0)
           {
-            eval(
-                'try {'
-              + '  if (typeof this.target[j.names[k]] != "undefined") {'
-              + '    p = this.target[j.names[k]];'
-              + '  }'
-              + '} catch (e) {'
-              + '  p = null;'
-              + '}');
-              
-            if ((isMethodType(typeof this.target.hasOwnProperty)
-                 && this.target.hasOwnProperty(j.names[k]))
-                ||
-                (!isMethodType(typeof this.target.hasOwnProperty) 
-                 && typeof p != "undefined"))
+            var p = undefined;
+            eval(new Array(
+                'try {',
+                '  if (typeof this.target[j.names[k]] != "undefined") {',
+                '    p = this.target[j.names[k]];',
+                '  }',
+                '} catch (e) {',
+                '}').join("\n"));
+                       
+            var bMethod = isMethodType(typeof this.target.hasOwnProperty);
+            if ((bMethod && this.target.hasOwnProperty(j.names[k]))
+                || (!bMethod && typeof p != "undefined"))
             {
               this.hasNonEnumProperties = true;
               
               ti = "";
               t = null;
-              onerror = dummyError;
-              eval(
-                  'try {'
-                + '  ti = p;'
-                + '  t = this.target;'
-                + '} catch (e) {'
-                + '  ti = null;'
-                + '  t = null;'
-                + '}');
-              onerror = null;
+              _global.onerror = dummyError;
+              eval(new Array(
+                  'try {',
+                  '  ti = p;',
+                  '  t = this.target;',
+                  '} catch (e) {',
+                  '  ti = null;',
+                  '  t = null;',
+                  '}').join("\n"));
+              _global.onerror = null;
 
               // avoid dupes
               this.properties.addProperty(
@@ -1226,7 +1207,6 @@ function ObjectInfo(
           }
         } 
       }
-        
       this.hasProperties = (this.properties.length > 0);
 
       return this;
@@ -1239,32 +1219,55 @@ function ObjectInfo(
       return null;
     }
   }
-    
-  this.getProperties = function getProperties(rxName, sType, bInvert, aValue)
-  {
-    if (!sType)
-      sType = "";
-    if (typeof rxName != "object" || !rxName.test)
-      rxName = new RegExp(rxName);
-    if (!rxName.test)
-      rxName = null;
 
-    var a = new Array();
+  /**
+   * @optional RegExp  rxName  = .*
+   * @optional string  rxType  = //
+   * @optional boolean bInvert = false
+   * @optional _       aValue  = undefined
+   * @return type PropertyArray
+   *   An array with the data of all properties that
+   *   match the passed conditions as elements.
+   */    
+  this.getProperties = function getProperties(rxName, rxType, bInvert, aValue)
+  {
+    if (typeof rxType == "string")
+    {
+      rxType = new RegExp(rxType, "i");
+    }
+    
+    if (typeof rxName != "object" || !rxName.test)
+    {
+      rxName = new RegExp(rxName);
+    }
+    
+    if (!rxName.test)
+    {
+      rxName = null;
+    }
+
+    var a = new PropertyArray();
       
     var p, b;
-    for (var i = 0; i < this.properties.length; i++)
+    for (var i = 0, len = this.properties.length; i < len; i++)
     {
-      p = this.properties[i];
+      p = this.properties.items[i];
       
-      b =
-        ((rxName && rxName.test(p.name) || true)
-          && (sType != "" && sType.toLowerCase() == p.type.toLowerCase()
-            || true)
-          && (arguments.length >= 4 && aValue == p.value || true));
+      b = ((rxName && rxName.test(p.name)) || !rxName)
+          && ((rxType && rxType.test(p.type.toLowerCase()))
+              || !rxType)
+          && ((arguments.length >= 4 && aValue == p.value)
+              || arguments.length < 4);
+
       if (bInvert)
+      {
         b = !b;
+      }
+      
       if (b)
-        a[a.length] = p;
+      {
+        a.addProperty(p.name, p.value, p.id, p.owner, !p.enumerable);
+      }
     }
     
     return a;
@@ -1273,28 +1276,28 @@ function ObjectInfo(
   this.toString = function toString()
   {
     var s = "";
-    onerror = dummyError;
-    eval(
-        'try {'
-      + '  for (var i = 0; i < this.properties.length; i++) {'
-      + '    var p = this.properties[i];'
-      + '    s +='
-      + '        "[" + p.id + "] "'
-      + '      + p.name'
-      + '      + " : " + p.type'
-      + '      + " = "'
-      + '      + (p.type == "string" ? "\\"" : "")'
-      + '      + p.value'
-      + '      + (p.type == "string" ? "\\"" : "")'
-      + '      + "\\n";'
-      + '  }'
-      + '} catch (e) {'
-      + '  s = e;'
-      + '}');
-    onerror = null;
+    _global.onerror = dummyError;
+    eval(new Array(
+        'try {',
+        '  for (var i = 0; i < this.properties.length; i++) {',
+        '    var p = this.properties[i];',
+        '    s += new Array(',
+        '        "[" + p.id + "] ",',
+        '        p.name,',
+        '        " : " + p.type,',
+        '        " = ",',
+        '        (p.type == "string" ? "\\"" : ""),',
+        '        p.value,',
+        '        (p.type == "string" ? "\\"" : ""),',
+        '        "\\n").join("");',
+        '  }',
+        '} catch (e) {',
+        '  s = e;',
+        '}').join("\n"));
+    _global.onerror = null;
+
     return s;
   }
-
   this.forObject(sObject, sName, bCalledFromProperty);
 }
 
@@ -1302,15 +1305,17 @@ var sDefaultInspectorPath = debug.path + "ObjectInspector/obj-insp.html";
 var sNoObj = "[Not an object]";
 var CH_NBSP = unescape("%A0");
 
-function getObjInfo(
-  /** @argument string|Object          */ sObject,
-  /** @argument optional string|RegExp */ aWhat,
-  /** @argument optional string        */ sStyle,
-  /** @argument optional string        */ sHeader,
-  /** @argument optional string        */ sFooter,
-  /** @argument optional string        */ sInspectorPath)
+/**
+ * @argument string|Object sObject
+ * @optional string|RegExp aWhat
+ * @optional string sStyle
+ * @optional string sHeader
+ * @optional string sFooter
+ * @optional string sInspectorPath
+ */
+function getObjInfo(sObject, aWhat, sStyle, sHeader, sFooter, sInspectorPath)
 {
-  var aObject, tc;
+  var o, tc;
   
   // alert("1: " + sObject + "[" + typeof sObject + "]");
   if (sObject)
@@ -1319,36 +1324,36 @@ function getObjInfo(
     if (typeof sObject == "string")
     {
       tc = false;
-      onerror = dummyError;
-      eval(
-          'try {'
-        + '  tc = true;'
-        + '  try {'
-        + '    var aObject = eval(sObject);'
+      _global.onerror = dummyError;
+      eval(new Array(
+          'try {',
+          '  tc = true;',
+          '  try {',
+          '    var o = eval(sObject);',
           // alert("3: " + sObject + "[" + typeof sObject + "]");
-        + '  } catch (e) {'
-        + '    sObject = "_global." + sObject;'
+          '  } catch (e) {',
+          '    sObject = "_global." + sObject;',
           // alert("4: " + sObject + "[" + typeof sObject + "]");
-        + '    try {'
-        + '      var aObject = eval(sObject);' // TODO
+          '    try {',
+          '      var o = eval(sObject);', // TODO
             // alert("5: " + sObject + "[" + typeof sObject + "]");
-        + '    } catch (e) {'
+          '    } catch (e) {',
             // alert("6: " + "[Not an object]");
-        + '      return (sNoObj);'
-        + '    }'
-        + '  }'
-        + '}');
-      onerror = null;
+          '      return (sNoObj);',
+          '    }',
+          '  }',
+        + '}').join("\n"));
+      _global.onerror = null;
       if (! tc)  
       {
-        aObject = eval(sObject);
+        o = eval(sObject);
         // alert("7: " + "[Not an object]");
       }
     }
     else
     {
-      aObject = sObject;
-      // alert("8: " + aObject);
+      o = sObject;
+      // alert("8: " + o);
     }
   }
   else
@@ -1356,8 +1361,11 @@ function getObjInfo(
     // alert("9: " + "[Not an object]");
     return (sNoObj);
   }
+
   if (!aWhat)
+  {
     aWhat = ""; // v1.29.2002.10b3 bugfix
+  }
   var bShowProps =
     (aWhat && (!aWhat.test && aWhat.toUpperCase().indexOf("P") > -1));
   var bShowMethods =
@@ -1368,170 +1376,228 @@ function getObjInfo(
   var bFormatAsLines = (sStyle && (sStyle.toUpperCase().indexOf("H") > -1));
   var bFormatAsTable = (sStyle && (sStyle.toUpperCase().indexOf("T") > -1));
   var bShowType = (sStyle && (sStyle.toUpperCase().indexOf("S") > -1));
+  var bShowConstructor = (sStyle && (sStyle.toUpperCase().indexOf("C") > -1));
   var bFormatAsHTML = (bFormatAsLines || bFormatAsTable);
 
   if (sHeader && (sHeader == "-"))
+  {
     sHeader = "";
+  }
   else if (!sHeader || (sHeader == ""))
   {
     sHeader = "";
     if (bShowObjects || bShowProps || bShowMethods)
     {
       if (bShowProps)
+      {
         sHeader = "Properties";
+      }
       else if (bShowObjects)
+      {
         sHeader = "Composed Objects";
+      }
+      
       if (bShowMethods)
       {
         if (bShowObjects || bShowProps)
+        {
           sHeader += " and ";
+        }
         sHeader += "Methods";
       }
     }
     else
+    {
       sHeader = "Attributes";
+    }
+      
     sHeader += " of "
       + (bFormatAsHTML ? '<code>': '')
       + sObject
-      + (aWhat.test ? ' matching '+String(aWhat) : '')
+      + (typeof aWhat.test != "undefined"
+          ? ' matching ' + String(aWhat)
+          : '')
       + (bFormatAsHTML ? '<\/code>': '');
   }
-  var sAttr =
+  var sProp =
     (bFormatAsTable
       ? '<table border="1" cellpadding="5" cellspacing="0">\n'
       : '')
     + (sHeader != ""
-        ? (bFormatAsTable
-            ? '<tr><th align="left" colspan="' + (bShowType ? 3 : 2) + '">'
-            : '')
-            + sHeader
-            + (bFormatAsHTML && bFormatAsLines
-                ? "<br>\n"
-                : (!bFormatAsHTML
-                    ? "\n__________________________________________________\n"
-                    : ""))
-            + (bFormatAsTable
-                ? ('<\/th><\/tr>\n<tr><th align="left">Name<\/th> '
-                    + (bShowType
-                        ? '<th align="left">Type<\/th>'
-                        : '')
-                     + '<th align="left">Value<\/th><\/tr>\n')
-                : '')
-        : "");
+      ? (bFormatAsTable
+        ? '<tr><th align="left" colspan="'
+        + (2 + +(bShowType) + +(bShowConstructor)) + '">'
+      : '')
+        + sHeader
+        + (bFormatAsHTML && bFormatAsLines
+          ? "<br>\n"
+          : (!bFormatAsHTML
+            ? "\n__________________________________________________\n"
+            : ""))
+        + (bFormatAsTable
+          ? ('<\/th><\/tr>\n<tr><th align="left">Name<\/th> '
+              + (bShowType
+                  ? '<th align="left">Type<\/th>'
+                  : '')
+              + (bShowConstructor
+                  ? '<th align="left">Constructor<\/th>'
+                  : '')
+               + '<th align="left">Value<\/th><\/tr>\n')
+          : '')
+      : "");
   var bCondition = false;
-  var aAttributes = new Array();
-  for (var Attribute in aObject)
+  var aProperties = new Array();
+  var t;
+  
+  for (var property in o)
   {
-    if (typeof aWhat.test == "undefined" || aWhat.test(Attribute))
-      aAttributes[aAttributes.length] = Attribute;
+    if ((aWhat.constructor == RegExp
+        && ((t = typeof aWhat.test) == "function" || t == "object")
+        && aWhat.test(property)) || true)
+    {
+      aProperties[aProperties.length] = property;
+    }
   }
-  if (aAttributes.sort) // sort attributes lexically
-    aAttributes.sort();
+
+  // sort properties lexically
+  if ((t = typeof aProperties.sort) == "function" || t == "object") 
+  {
+    aProperties.sort();
+  }
   
   var isError;
-  var attrValue;
+  var propValue;
   var bMethod;
   var bProperty;
-  var attrType;
+  var propType;
   var bObject;
   var s;
-  var attrName;
-  var sAttrName;
-  for (var i = 0; i < aAttributes.length; i++)
+  var propName;
+  var sPropName;
+  for (var i = 0; i < aProperties.length; i++)
   {
     bCondition = false;
     isError = false;
 
     tc = false;
-    onerror = dummyError;
-    eval(
-        'try {'
-      + '  tc = true;'
-      + '  if (aObject[aAttributes[i]])'
-      + '    attrValue = aObject[aAttributes[i]];'
-      + '  else'
-      + '    attrValue = eval("aObject." + aAttributes[i]);'
-      + '  bMethod ='
-      + '    (typeof attrValue == "function" || typeof attrValue == "object");'
-      + '} catch (e) {'
-      + '  attrValue = "[" + e + "]";'
-      + '  bMethod = false;'
-      + '  isError = true;'
-      + '}');
-    onerror = null;
+    _global.onerror = dummyError;
+    eval(new Array(
+        'try {',
+        '  tc = true;',
+        '  if (o[aProperties[i]])',
+        '    propValue = o[aProperties[i]];',
+        '  else',
+        '    propValue = eval("o." + aProperties[i]);',
+        '  bMethod =',
+        '    ((t = typeof propValue) == "function" || t == "object");',
+        '} catch (e) {',
+        '  propValue = "[" + e + "]";',
+        '  bMethod = false;',
+        '  isError = true;',
+        '}').join("\n"));
+    _global.onerror = null;
     if (! tc)
     {
-      if (aObject[aAttributes[i]])
-        attrValue = aObject[aAttributes[i]];
+      if (o[aProperties[i]])
+      {
+        propValue = o[aProperties[i]];
+      }
       else
-        attrValue = eval("aObject." + aAttributes[i]);
-      bMethod = (String(attrValue).toLowerCase().indexOf("function ") > -1);
+      {
+        propValue = eval("o." + aProperties[i]);
+      }
+      bMethod = (String(propValue).toLowerCase().indexOf("function ") > -1);
     }
     
     bProperty = !bMethod;
-    attrType = typeof attrValue;
-    bObject = (attrType == "object");
+    propType = typeof propValue;
+    var propConstructor =
+      (typeof propValue != "undefined"
+       && propValue != null
+       && propValue.constructor != "undefined")
+      ? propValue.constructor.toString().replace(/function\s+/, "")
+        .replace(/\s*\((.|[\r\n])*/, "")
+      : "";
+    bObject = (propType == "object");
     if (aWhat && (aWhat != "") && (!aWhat.test))
+    {
       bCondition =
         (bProperty && bShowProps)
           || (bMethod && bShowMethods)
           || (bObject && bShowObjects);
+    }
     else
+    {
       bCondition = true;
+    }
+    
     if (bCondition)
     {
       s =
-        ((isNaN(attrValue) || String(attrValue) == "") && !bObject && !isError)
-          ? '"'
-          : '';
+        ((isNaN(propValue) || String(propValue) == "") && !bObject && !isError)
+        ? '"'
+        : '';
 
-      attrName = String(aAttributes[i]);
-      sAttrName = attrName;
+      propName = String(aProperties[i]);
+      sPropName = propName;
       if (bFormatAsHTML)
       {
-        sAttrName = "<code><b>" + attrName + "<\/b><\/code>";
-        attrValue =
-          replaceText(replaceText(String(attrValue), "<", "&lt;"), ">", "&gt;");
+        sPropName = "<code><b>" + propName + "<\/b><\/code>";
+        propValue =
+          replaceText(replaceText(String(propValue), "<", "&lt;"), ">", "&gt;");
       }
-      sAttr
+      sProp
         += (bFormatAsTable ? '<tr valign="top"><td> ' : '')
              + ((bObject && bFormatAsHTML)
-                 ?   '<a href="javascript:void(ObjectInspector(\''
-                   + sObject
-                   + '\'))">'
-                 : '')
-             + sAttrName
+               ?   '<a href="javascript:void(ObjectInspector(\''
+                 + sObject
+                 + '\'))">'
+               : '')
+             + sPropName
              + (bObject && bFormatAsHTML ? '<\/a>': '')
              + (bFormatAsTable ? '<\/td>': "")
              + (bShowType
-                 ? (bFormatAsTable
-                     ? ('<td><code>'+attrType + '<\/code><\/td>')
-                     : (CH_NBSP + ":" + CH_NBSP + attrType))
-                 : "")
+               ? bFormatAsTable
+                 ? '<td><code>'+propType + '<\/code><\/td>'
+                 : CH_NBSP + ":" + CH_NBSP + propType
+               : "")
+             + (bShowConstructor
+               ? (bFormatAsTable
+                 ? '<td><code>'+propConstructor + '<\/code><\/td>'
+                 : "[" + propConstructor + "]")
+               : "")
              + (bFormatAsTable
-                 ? '<\/td><td><code>'
-                 : (CH_NBSP + "=" + CH_NBSP))
+               ? '<td><code>'
+               : CH_NBSP + "=" + CH_NBSP)
              + s
-             + attrValue
+             + propValue
              + s;
-// ("<a href='javascript:ObjectInspector(\'' + sObject + '[\"' + attrName + '\"]\'', \'' + aWhat + '\', \'' + sStyle +'\');"'
+// ("<a href='javascript:ObjectInspector(\'' + sObject + '[\"' + propName + '\"]\'', \'' + aWhat + '\', \'' + sStyle +'\');"'
 //   + ' !onclick="window.open(\''
 //   + (sInspectorPath ? escape(sInspectorPath) : sDefaultInspectorPath)
-//   + '?obj='  + escape(sObject) + "." + escape(attrName)
+//   + '?obj='  + escape(sObject) + "." + escape(propName)
 //   + '&what=' + escape(aWhat)
 //   + '&style=' + escape(sStyle)
 //   + '\', \'wndObjectInspector\', \'scrollbars=yes,resizable=yes\'); return false;"'
       if (bFormatAsHTML)
       {
         if (bFormatAsTable)
-          sAttr += "<\/code><\/td><\/tr>\n";
+        {
+          sProp += "<\/code><\/td><\/tr>\n";
+        }
         else
-          sAttr += "<br>\n";
+        {
+          sProp += "<br>\n";
+        }
       }
       else if (bTextLineStyle)
-        sAttr += "; ";
+      {
+        sProp += "; ";
+      }
       else
-        sAttr += "\n";
+      {
+        sProp += "\n";
+      }
     }
   }
 
@@ -1540,10 +1606,12 @@ function getObjInfo(
     case "-":
       sFooter = "";
       break;
+
     case "undefined":
     case "":
     case "null":
       if (bFormatAsHTML)
+      {
         sFooter =
           '<code><a href="' + debug.docURL + '" target="_blank"'
           + ' title="Show documentation for JSX:objinfo.js."'
@@ -1551,8 +1619,11 @@ function getObjInfo(
           + ' target="_blank"'
           + ' title="Show documentation for JSX:debug.js:getObjInfo(...)"'
           + '>getObjInfo<\/a>(...)<\/code><br>';
+      }
       else
+      {
         sFooter = "JSX:debug.js:getObjInfo(...)\n";
+      }
       sFooter += "Library version " + debug.version;
       sFooter += (bFormatAsHTML ? "<br>" : "\n");
       sFooter += debug.copyright
@@ -1574,22 +1645,25 @@ function getObjInfo(
 
   if (sFooter != "")
   {
-    sAttr
+    sProp
       += (bFormatAsHTML
-           ? (bFormatAsTable
-               ? '<tr>\n<td colspan="'+ (bShowType ? 3 : 2) + '">'
-               : '')
-           : "\n__________________________________________________\n")
-        + sFooter
-        + (bFormatAsHTML
-            ? (bFormatAsTable
-                ? '<\/td>\n<\/tr>\n'
-                : '<br>')
-            : "");
+         ? bFormatAsTable
+           ? '<tr>\n<td colspan="'+ (2 + +(bShowType) + +(bShowConstructor))
+             + '">'
+           : ''
+         : "\n__________________________________________________\n")
+       + sFooter
+       + (bFormatAsHTML
+         ? bFormatAsTable
+           ? '<\/td>\n<\/tr>\n'
+           : '<br>'
+         : "");
   }
 
   if (bFormatAsTable)
-    sAttr += '<\/table>';
+  {
+    sProp += '<\/table>';
+  }
   
-  return sAttr;
+  return sProp;
 }
