@@ -1,0 +1,6 @@
+Weil ich die Auswertung des search strings öfter brauche, habe ich mir
+einen Prototyp gebaut, welche die Daten im Suchstring über ein Array
+kapselt. Das ist aber IMHO zu umfangreich für diese GABELNs. 
+Deshalb kannst Du es selbst basteln oder Dir unter
+http://pointedears.de/scripts/search.js downloaden. Die kurze
+Dokumentation dazu findest Du in tsearch.txt im gleichen Verzeichnis.
