@@ -78,7 +78,7 @@
 
 function DHTML()
 {
-  this.version   = "0.8.2004071003";
+  this.version   = "0.9.2004080806";
 // var dhtmlDocURL = dhtmlPath + "dhtml.htm";
   this.copyright = "Copyright \xA9 2002-2004";
   this.author    = "Thomas Lahn";
@@ -115,7 +115,7 @@ function DHTML()
 
     if (this.isMethodType(typeof document.getElementById))
     {
-      this.getElemById = function(s)
+      this.getElemById = function dhtml_getElemById(s)
       {
         // wrapper method required to avoid "invalid op. on prototype" exception
         return document.getElementById(s);
@@ -123,14 +123,14 @@ function DHTML()
     }
     else if ((hasDocumentAll = this.isMethodType(typeof document.all)))
     {
-      this.getElemById = function(s)
+      this.getElemById = function dhtml_getElemById(s)
       {
         return document.all(s);
       }
     }
     else
     {
-      this.getElemById = function(s)
+      this.getElemById = function dhtml_getElemById(s)
       {
         return document[s];
       }
@@ -152,7 +152,7 @@ function DHTML()
     }
     else if (hasDocumentAll)
     {
-      this.getElemByName = function(s, i)
+      this.getElemByName = function dhtml_getElemByName(s, i)
       {
         var result = document.all(s);
         if (result && !isNaN(i) && i > -1)
@@ -164,7 +164,7 @@ function DHTML()
     }
     else if ((hasDocumentLayers = (typeof document.layers == "object")))
     {
-      this.getElemByName = function(s, i)
+      this.getElemByName = function dhtml_getElemByName(s, i)
       {
         var result = document.layers[s];
         if (result && !isNaN(i) && i > -1)
@@ -176,7 +176,7 @@ function DHTML()
     }
     else
     {
-      this.getElemByName = function()
+      this.getElemByName = function dhtml_getElemByName()
       {
         return null;
       }
@@ -187,7 +187,7 @@ function DHTML()
     if ((hasGetElementsByTagName =
           this.isMethodType(typeof document.getElementsByTagName)))
     {
-      this.getElemByTagName = function(s, i)
+      this.getElemByTagName = function dhtml_getElemByTagName(s, i)
       {
         if (!s)
         {
@@ -204,7 +204,7 @@ function DHTML()
     }
     else if (hasDocumentAll && this.isMethodType(typeof document.all.tags))
     {
-      this.getElemByTagName = function(s, i)
+      this.getElemByTagName = function dhtml_getElemByTagName(s, i)
       {
         var result = document.all.tags(s);
         if (result && !isNaN(i) && i > -1)
@@ -216,7 +216,7 @@ function DHTML()
     }
     else
     {
-      this.getElemByTagName = function()
+      this.getElemByTagName = function dhtml_getElemByTagName()
       {
         return null;
       }
@@ -224,35 +224,35 @@ function DHTML()
 
     if (hasGetElementsByTagName)
     {
-      this.getElemByIndex = function(i)
+      this.getElemByIndex = function dhtml_getElemByIndex(i)
       {
         return result = document.getElementsByTagName('*')[i];
       }
     }
     else if (hasDocumentAll)
     {
-      this.getElemByIndex = function(i)
+      this.getElemByIndex = function dhtml_getElemByIndex(i)
       {
         return document.all(i);
       }
     }
     else if (hasDocumentLayers)
     {
-      this.getElemByIndex = function(i)
+      this.getElemByIndex = function dhtml_getElemByIndex(i)
       {
         return document.layers[i];
       }
     }
     else
     {
-      this.getElemByIndex = function()
+      this.getElemByIndex = function dhtml_getElemByIndex()
       {
         return null;
       }
     }
   }  
 
-  this.getElemByClassName = function(s)
+  this.getElemByClassName = function dhtml_getElemByClassName(s)
   {
     var
       coll = this.getElemByTagName(),
@@ -370,14 +370,14 @@ function DHTMLException(sMsg)
  *   Optional. Numeric index of an element of the selected
  *   collection. For IDs must be unique throughout a document,
  *   this argument is ignored if <code>sType</code> is "id".
- * @returns
+ * @return type object
  *   A reference to an object if <code>sType</code> is "id", or
  *   if it is "name" or "tagname" and <code>index</code> is
  *   specified; otherwise a collection of objects matching the
  *   specified criteria; <code>null</code> if no matching object
  *   exists.
  */
-function /** @type object */ getElem(sType, sValue, index)
+function getElem(sType, sValue, index)
 {
   function invalidType()
   {
