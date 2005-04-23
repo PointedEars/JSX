@@ -8,12 +8,12 @@
  * @section Copyright & Disclaimer
  * 
  * @author
- *   (C) 2001-2004  Thomas Lahn &lt;debug.js@PointedEars.de&gt;
+ *   (C) 2001-2005  Thomas Lahn &lt;debug.js@PointedEars.de&gt;
  */
 function Debug()
 {
-  this.version   = "0.99.2004081602";
-  this.copyright = "Copyright \xA9 1999-2004";
+  this.version   = "0.99.2005042323";
+  this.copyright = "Copyright \xA9 1999-2005";
   this.author    = "Thomas Lahn";
   this.email     = "debug.js@PointedEars.de";
   this.path      = "http://pointedears.de/scripts/test/";
@@ -74,28 +74,70 @@ function DebugException(Msg)
 
 /**
  * @argument string s
+ *   Expression to be evaluated.
  * @optional boolean bPrintResult = false
+ *   If <code>true</code>, the method returns a printable
+ *   result.
+ * @optional number loops = 1
+ *   Specifies the number of times the expression should
+ *   be evaluated.  If greater than 1, the method also
+ *   returns the minimum, maximum and average of the
+ *   evaluation time.
  * @return type number
  *   The number of milliseconds the evaluation of @{(s)}
  *   took if @{(bPrintResult)} is <code>false</code>.
+ * @return type Array
+ *   An array containing the number of milliseconds
+ *   the evaluation of @{(s)} took if @{(bPrintResult)}
+ *   is <code>false</code>.
  * @return type string
- *   A human-readable string to indicate the return
- *   value if @{(bPrintResult)} is <code>true</code>.
+ *   A human-readable string to indicate the test
+ *   result if @{(bPrintResult)} is <code>true</code>.
  */
-function time(s, bPrintResult)
+function time(s, bPrintResult, loops)
 {
-  var start = new Date();
-  eval(s);
-  var stop = new Date();
-  var diff = -1;
-  if (start && stop)
+  var stats = [];
+  if (!loops || loops < 1)
   {
-    diff = stop.getTime() - start.getTime();
-    if (bPrintResult)
+    loops = 1;
+  }
+  
+  for (var i = loops; i--;)
+  {
+    var start = new Date();
+    eval(s);
+    var stop = new Date();
+    var diff = -1;
+    if (start && stop)
+    {
+      diff = stop.getTime() - start.getTime();
+      stats[stats.length] = diff;
+    }
+  }
+
+  if (bPrintResult)
+  {
+    if (loops > 1)
+    {
+      diff = "Evaluating\n\n" + s + "\n\n" + loops + " times took"
+        + " min. " + Math.min(stats) + " ms,"
+        + " max.\t" + Math.max(stats) + " ms,"
+        + " avg.\t" + Math.avg(stats) + " ms.\n"
+        + "Stats (ms): " + stats.join("; ");
+    }
+    else
     {
       diff = "Evaluating '" + s + "' took " + diff + " ms.";
     }
   }
+  else
+  {
+    if (loops > 1)
+    {
+      diff = stats;
+    }
+  }
+
   return diff;
 }
   
