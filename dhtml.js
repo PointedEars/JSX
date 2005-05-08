@@ -78,7 +78,7 @@
 
 function DHTML()
 {
-  this.version   = "0.9.2005040219";
+  this.version   = "0.9.2005050817";
 // var dhtmlDocURL = dhtmlPath + "dhtml.htm";
   this.copyright = "Copyright \xA9 2002-2005";
   this.author    = "Thomas Lahn";
@@ -822,35 +822,24 @@ function setStyleProperty(sType, sValue, index, sPropertyName, propValue)
 {
   var o = getElem(sType, sValue, index);
   
-  if ((dhtml.isW3CDOM || dhtml.isIE4DOM) && o)
+  if (o)
   {
-    o.setAttribute(sAttrName, attrValue, 0);
-    return true;
-  }
-  else if (dhtml.isNS4DOM)
-  {
-    o = getElem(sType, sValue)
-    if (o)
+    if (typeof o.style != "undefined")
     {
-      var o2 = getElem(sType, sValue)[index];
-      if (typeof o2 == "oect")
+      if (typeof o.style[sPropertyName] != "undefined")
       {
-        if (typeof o2.style != "undefined")
-        {
-          o2.style[sPropertyName] = propValue;
-          return (o2.style[sPropertyName] == propValue);
-        }
+        o.style[sPropertyName] = propValue;
       }
-      else
-      {
-        if (typeof o.style != "undefined")
-        {
-          o.style[sPropertyName] = propValue;
-          return (o.style[sPropertyName] == propValue);
-        }
-      }
+      return (o.style[sPropertyName] == propValue);
     }
-    return true;
+    else
+    {
+      if (typeof o[sPropertyName] != "undefined")
+      {
+        o[sPropertyName] = propValue;
+      }
+      return (o[sPropertyName] == propValue);
+    }
   }
   else
   {
