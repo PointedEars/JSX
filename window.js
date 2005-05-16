@@ -3,7 +3,7 @@
  * @file window.js
  * @partof PointedEars' JavaScript Extensions (JSX)
  * @author
- *   (C) 2001-2004  Thomas Lahn &lt;window.js@PointedEars.de&gt;
+ *   (C) 2001-2005  Thomas Lahn &lt;window.js@PointedEars.de&gt;
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licnse
@@ -30,7 +30,7 @@
  * for details.
  */
 
-var windowVersion   = "1.29.2005030511"; // 1.29.2004.11b6+
+var windowVersion   = "1.29.2005051620"; // 1.29.2004.11b6+
 var windowCopyright = "Copyright \xA9 1999-2004";
 var windowAuthor    = "Thomas Lahn";
 var windowEmail     = "window.js@PointedEars.de";
@@ -215,29 +215,14 @@ function LoadFrame(sURL, targetFrame)
     return EInvalidArgNum("LoadFrame", 2);
   }
 
-  if (isNaN(targetFrame))
+  if (parent.frames[targetFrame])
   {
-    if (parent.eval(targetFrame))
-    {
-      parent.eval(targetFrame).location.href = sURL;
-      return sURL;
-    }
-    else
-    {
-      return targetFrame;
-    }
+    parent.frames[targetFrame].location.href = sURL;
+    return sURL;
   }
   else
   {
-    if (parent.frames[targetFrame])
-    {
-      parent.frames[targetFrame].location.href = sURL;
-      return sURL;
-    }
-    else
-    {
-      return targetFrame;
-    }
+    return targetFrame;
   }
 }
 
@@ -282,7 +267,7 @@ function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter)
   var argnum = ident.arguments.length;
   var wImage = false;
 
-  if (sImageURL.charAt(0) != "/")
+  if (!/^\//.test(sImageURL) || sImageURL.charAt(0) != "/")
   {
     /*
      * Version 1.17.2002.2 bugfix:
@@ -318,14 +303,14 @@ function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter)
       + ",left="
       + String(
         parseInt(
-          screen.width / 2
+          (screen.availWidth || screen.width) / 2
             - (argnum > 2 && !isNaN(iWidth)
                  ? iWidth / 2
                  : 0)))
       + ",top="
       + String(
         parseInt(
-          screen.height / 2
+          (screen.availHeight || screen.height) / 2
             - (argnum > 3 && !isNaN(iHeight)
                ? iHeight / 2
                : 0)));
