@@ -34,7 +34,7 @@
  * Refer math.htm file for general documentation.
  */
 
-Math.version   = "1.16.2005031023";
+Math.version   = "1.16.2005052117";
 Math.copyright = "Copyright \xA9 1999-2005";
 Math.author    = "Thomas Lahn";
 Math.email     = "math.js@PointedEars.de";
@@ -657,7 +657,7 @@ Math.rec = rec;
 function min()
 {
   var result = Number.POSITIVE_INFINITY;
-  var a, j;
+  var a, j, min_el;
     
   for (var i = 0; i < arguments.length; i++)
   {
@@ -666,9 +666,9 @@ function min()
     {
       for (j = 0; j < a.length; j++)
       {
-        if (a[j] < result)
+        if ((min_el = min(a[j])) < result)
         {
-          result = a[j];
+          result = min_el;
         }
       }
     }
@@ -676,9 +676,9 @@ function min()
     {
       for (j in a)
       {
-        if (a[j] < result)
+        if ((min_el = min(a[j])) < result)
         {
-          result = a[j];
+          result = min_el;
         }
       }
     }
@@ -703,7 +703,7 @@ Math.min = min;
 function max()
 {
   var result = Number.NEGATIVE_INFINITY;
-  var a, j;
+  var a, j, max_el;
     
   for (var i = 0; i < arguments.length; i++)
   {
@@ -712,9 +712,9 @@ function max()
     {
       for (j = 0; j < a.length; j++)
       {
-        if (a[j] > result)
+        if ((max_el = max(a[j])) > result)
         {
-          result = a[j];
+          result = max_el;
         }
       }
     }
@@ -722,9 +722,9 @@ function max()
     {
       for (j in a)
       {
-        if (a[j] > result)
+        if ((max_el = max(a[j])) > result)
         {
-          result = a[j];
+          result = max_el;
         }
       }
     }
@@ -760,7 +760,7 @@ function avg()
       for (j = 0; j < a.length; j++)
       {
         count++;
-        sum += a[j];
+        sum += avg(a[j]);
       }
     }
     else if (typeof a == "object")
@@ -768,7 +768,7 @@ function avg()
       for (j in a)
       {
         count++;
-        sum += a[j];
+        sum += avg(a[j]);
       }
     }
     else
