@@ -5,7 +5,7 @@ if (typeof String == "undefined")
 {
   var String = new Object();
 }
-/** @version */ String.version = "1.29.2004112115";
+/** @version */ String.version = "1.29.2005052123";
 /**
  * @filename string.js
  * @partof   PointedEars' JavaScript Extensions (JSX)
@@ -14,13 +14,13 @@ if (typeof String == "undefined")
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2001-2004  Thomas Lahn &lt;string.js@PointedEars.de&gt;
+ *   (C) 2001-2005  Thomas Lahn &lt;string.js@PointedEars.de&gt;
  * @author
  *   Parts Copyright (C) 2003<br>
  *   Dietmar Meier &lt;meier@innoline-systemtechnik.de&gt;<br>
  *   Martin Honnen &lt;Martin.Honnen@gmx.de&gt;
  */
-String.copyright = "Copyright \xA9 1999-2004";
+String.copyright = "Copyright \xA9 1999-2005";
 String.author    = "Thomas Lahn";
 String.email     = "string.js@PointedEars.de";
 String.path      = "http://pointedears.de/scripts/";
@@ -38,8 +38,8 @@ String.path      = "http://pointedears.de/scripts/";
  *
  * You should have received a copy of the GNU GPL along with this
  * program (COPYING file); if not, go to [1] or write to the Free
- * Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
+ * Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA  02110-1301, USA.
  * 
  * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
  */
@@ -92,90 +92,104 @@ function addSlashes(s)
   return s;
 }
 
-Number.prototype.addProperties(
-  {toFixed:
-    function(iPrecision)
+// Had to abandon addProperties since Konqueror's engine does not support
+// Object literals 
+
+if (typeof Number.prototype.toFixed == "undefined")
+{
+  Number.prototype.toFixed = function number_toFixed(iPrecision)
+  {
+    var
+      result = this.toString(),
+      dotPos = -1,
+      decLen = 0;
+  
+    if ((dotPos = result.lastIndexOf(".")) > -1)
     {
-      var
-        result = this.toString(),
-        dotPos = -1,
-        decLen = 0;
-        
-      if ((dotPos = result.lastIndexOf(".")) > -1)
-      {
-        decLen = result.length - dotPos - 1;
-      }
-      
-      if (decLen <= iPrecision)
-      {
-        result = pad(result, iPrecision, '0', true, decLen);
-      }
-      else
-      {
-        var m = Math.pow(10, iPrecision);
-        result = Math.round(result * m) / m;
-      }
-      return result;
-    },
-   toUnsigned:
-    /**
-     * A practical implementation of the abstract
-     * ToUint32 function as of ECMAScript 3
+      decLen = result.length - dotPos - 1;
+    }
+    
+    if (decLen <= iPrecision)
+    {
+      result = pad(result, iPrecision, '0', true, decLen);
+    }
+    else
+    {
+      var m = Math.pow(10, iPrecision);
+      result = Math.round(result * m) / m;
+    }
+    return result;
+  }
+}
+
+if (typeof Number.prototype.toUnsigned == "undefined")
+{
+  Number.prototype.toUnsigned =
+  function number_toUnsigned(iMax)
+  {
+    var n = this;
+
+    /*
+     * 1. Call ToNumber on the input argument.
+     * (skipped since n is already a Number value)
+     *
+     * 2. If Result(1) is NaN, +0, -0, +Infinity, or -Infinity, return +0.
      */
-    function(iMax)
+    var i;
+    if (!isNaN(n) || (i = abs(n)) == 0 || i == Infinity)
     {
-      var n = this;
-      
-      /*
-       * 1. Call ToNumber on the input argument.
-       * (skipped since n is already a Number value)
-       *
-       * 2. If Result(1) is NaN, +0, -0, +Infinity, or -Infinity, return +0.
-       */
-      var i;
-      if (!isNaN(n) || (i = abs(n)) == 0 || i == Infinity)
-      {
-        return 0;
-      }
-      
-      // 3. Compute sign(Result(1)) * floor(abs(Result(1))).
-      /* The mathematical function sign(x) yields 1 if
-       * x is positive and -1 if x is negative. [...]
-       */
-      n = (n < 0 ? -1 : 1) * floor(i);
-       
-      /*
-       * 4. Compute Result(3) modulo 2^iMax; that is, a finite integer value
-       * k of Number type with positive sign and less than 2^iMax in magnitude
-       * such the mathematical difference of Result(3) and k is mathematically
-       * an integer multiple of 2^iMax.  The default for iMax is 32.
-       * 
-       * 5. Return Result(4).
-       */
-      return n % Math.pow(2, iMax || 32);
-/*
+      return 0;
+    }
+
+    // 3. Compute sign(Result(1)) * floor(abs(Result(1))).
+    /* The mathematical function sign(x) yields 1 if
+     * x is positive and -1 if x is negative. [...]
+     */
+    n = (n < 0 ? -1 : 1) * floor(i);
+ 
+    /*
+     * 4. Compute Result(3) modulo 2^iMax; that is, a finite integer value
+     * k of Number type with positive sign and less than 2^iMax in magnitude
+     * such the mathematical difference of Result(3) and k is mathematically
+     * an integer multiple of 2^iMax.  The default for iMax is 32.
+     * 
+     * 5. Return Result(4).
+     */
+    return n % Math.pow(2, iMax || 32);
+    /*
       if (n < 0)
       {
         n += (iMax || this.MAX_VALUE)/2;
       }
-*/
-    }
-   },
-  Object.COPY_INHERIT | Object.ADD_OVERWRITE);
+    */
+  }
+}
+
 
 /**
  * Returns a string of values according to a format string.
  * 
- * This is an approach to implement <code>printf</code>(3) in an
- * ECMAScript compliant implementation out of its man page
- * documentation.  The syntax is identical to that of the printf()
- * C function, but this method does not *print* out any characters
- * (so you may want to use it along with <code>window.alert()</code>,
- * <code>document.write()</code> and similar DOM features, or in
- * concatenations as if you would use <code>sprintf</code>(3).)
+ * This is the begin of an approach to implement <code>printf</code>(3)
+ * in an ECMAScript compliant implementation out of its man page documentation.
+ * The syntax is intended to be compatible to that of the printf() C function
+ * finally, but this method will not *print* out anything characters by itself
+ * (so you probably want to use its return value along with
+ * <code>window.alert()</code>, <code>document.write()</code> and similar DOM
+ * features, or in concatenations as if you would use <code>sprintf</code>(3).)
+ * 
+ * Currently supported <code>printf</code>(3) features are:
+ * - replacing tags in a format string with a value given as argument: `%d'
+ * - padding that value with zeroes or (non-breaking) spaces on the left,
+ *   watching for negative values: `%42d', `% 42d' and `%042d'
+ * - padding that value with (non-breaking) spaces on the right: `%-42d'
+ * - using arguments to specify the field width: `%*d', `%*7$d'
+ * - specifying positive precision (round after point): `%.2d'
+ *
+ * Additional features supported by this method are:
+ * - specifying negative precision (round before point): `%.-2d'
  * 
  * @author
- *   (C) 2004  Thomas Lahn <string.js@PointedEars.de>
+ *   (C) 2004, 2005  Thomas Lahn <string.js@PointedEars.de>
  *   Distributed under the GNU GPLv2.
  * @partof
  *   http://pointedears.de/scripts/string.js
@@ -186,7 +200,7 @@ Number.prototype.addProperties(
  */
 function format(sFormat)
 {
-  arguments.skip = new Array();
+  arguments.skip = [];
   for (var i = 1, len = arguments.length; i < len; i++)
   {
     var a = arguments[i];
@@ -197,43 +211,44 @@ function format(sFormat)
     {
       var result, rxSearch;
       if ((result =
-            (rxSearch = new RegExp(
-               ["%([#0+'I -]*)",
-                "((\\d+)|\\*((\\d+)\\$)?)?",
-                "(\\.((\\d+)|\\*((\\d+)\\$)?))?",
-                "(hh?|ll?|[Lqjzt])?",
-                "([diouxXeEfFgGaAcsCSpn%])"].join("")))
+            (rxSearch = new RegExp([
+                "%([#0+' _-]*)",                         // flags
+                "([1-9]*\\d+|(\\*((\\d+)\\$)?))?",       // field width
+                "(\\.([+-]?\\d+|(\\*((\\d+)\\$)?))?)?",  // precision
+                "[a-zA-Z]"                               // conversion
+              ].join("")))
             .exec(sFormat)))
       {
-        // flag characters
-        var flags          = result[1];
-        
-        // field width, not null if given as number or with a following argument
-        var hasFieldWidth  = result[2];
-        
-        // field width if given as an unsigned integer
-        var fieldWidth     = result[3];
+        var
+          // flag characters
+          flags = result[1],
+          fieldWidth = result[2],
 
-        /*
-         * index of the argument to specify the field width;
-         * undefined if the field width was given as an unsigned
-         * integer or it will be specified by the next argument
-         */
-        var iFieldWidthArg = result[5]; 
+          /*
+           * undefined if the field width was given as an unsigned
+           * integer
+           */
+          argFieldWidth = result[3],
+
+          /*
+           * index of the argument to specify the field width;
+           * undefined if the field width was given as an unsigned
+           * integer
+           */
+          uFieldWidthArg = result[5],
            
-        // precision, not null if given as number or with a following argument
-        var hasPrecision   = result[7];
-        
-        // precision if given as an unsigned integer
-        var iPrecision     = result[8];
-        
-        /*
-         * index of the argument to specify the precision;
-         * undefined if the precision was given as an unsigned
-         * integer or it will be specified by the next argument
-         */
-        var iPrecArg       = result[10]; 
-    
+          precision = result[7],
+          argPrecision = result[8],
+
+          /*
+           * index of the argument to specify the precision;
+           * undefined if the precision was given as an unsigned
+           * integer or it will be specified by the next argument
+           */
+          uPrecisionArg = result[10],
+          srcArgIdx;
+
+/*    
         // length modifier
         var lenModifier    = result[11];
         
@@ -266,8 +281,7 @@ function format(sFormat)
             }
           }
         }
-  
-/*
+
         var precisionArg;
         if (/[diouxaef]/i.test(convSpecifier))
         {
@@ -319,7 +333,56 @@ function format(sFormat)
             }
           }
         }
+
 */
+
+        if (precision)
+        {
+          if (argPrecision)
+          {
+            srcArgIdx = uPrecisionArg || (i + 1);
+            precision = arguments[srcArgIdx];
+            arguments.skip[srcArgIdx] = true;
+          }
+
+          if (precision > 0)
+          { 
+            a = Number(a).toFixed(precision);
+          }
+          else if (precision < 0)
+          {
+            var pot = Math.pow(10, -precision);
+            a = Math.round((a - (a % 1)) / pot) * pot;
+          }
+        }
+
+        if (fieldWidth)
+        {
+          if (argFieldWidth)
+          {
+            srcArgIdx = uFieldWidthArg || (i + 1);
+            fieldWidth = arguments[srcArgIdx];
+            arguments.skip[srcArgIdx] = true;
+          }
+
+          if (fieldWidth > 0)
+          { 
+            var sPad = CH_NBSP;
+            if (flags && /0/.test(flags))
+            {
+              sPad = "0";
+            }
+
+            if (/-/.test(flags))
+            {
+              a = pad(a, fieldWidth, CH_NBSP, true);
+            }
+            else
+            {
+              a = pad(a, fieldWidth, sPad).replace(/^(0+)([+-])/, "$2$1");
+            }
+          }
+        }
                 
         sFormat = sFormat.replace(rxSearch, a);
       }
@@ -639,6 +702,70 @@ function nl2br(s)
 }
 
 /**
+ * @optional string s
+ *   Input string.  If omitted and the calling object
+ *   is a String object, it is used instead.
+ * @optional number n = 1
+ *   Length of the resulting string.  The default is 1,
+ *   i.e. if the input string is empty, "0" is returned
+ *   if @{(c)} is <code>'0'</code>.
+ * @optional string c = CH_NBSP
+ *   Character string to use for padding.  The default
+ *   is one non-breaking space.
+ * @optional boolean bRight = false
+ *   If <code>true</code>, @{(s)} is padded on the right,
+ *   otherwise on the left.
+ * @optional number iStart
+ *   Assume that @{(s)} is @{(iStart)} characters long.
+ * @return type string
+ *   The padded input string so that its length is @{(n)}.
+ */ 
+function pad(s, n, c, bRight, iStart)
+{
+   var constr;
+   if ((constr = this.constructor) && constr == String && typeof s != "string")
+   {
+     s = this;
+   }
+   
+   if (!n)
+   {
+     n = '1';
+   }
+   
+   if (!c)
+   {
+     c = CH_NBSP;
+   }
+
+   if (typeof s != "string")
+   {   
+     s = s.toString();
+   }
+
+   if (typeof iStart == "undefined")
+   {
+     iStart = s.length;
+   }
+   
+   while (iStart < n)
+   {
+     if (bRight)
+     {
+       s += c;
+     }
+     else
+     {
+       s = c + s;
+     }
+
+     iStart++;
+   }
+
+   return s;
+}
+
+/**
  * @argument - sText
  * @argument string sReplaced
  * @argument string sReplacement
@@ -702,88 +829,6 @@ function replaceText(sText, sReplaced, sReplacement, bForceLoop)
   }
 
   return result;
-}
-
-/**
- * @optional string s
- *   Input string.  If omitted and the calling object
- *   is a String object, it is used instead.
- * @optional number n = 1
- *   Length of the resulting string.  The default is 1,
- *   i.e. if the input string is empty, "0" is returned
- *   if @{(c)} is <code>'0'</code>.
- * @optional string c = '0'
- *   Character to use for padding.  The default is '0'.
- * @optional boolean bRight = false
- *   If <code>true</code>, @{(s)} is padded on the right,
- *   otherwise on the left.
- * @optional number iStart
- *   Assume that @{(s)} is @{(iStart)} characters long.
- * @return type string
- *   The padded input string so that its length is @{(n)}.
- */ 
-function pad(s, n, c, bRight, iStart)
-{
-   var constr;
-   if ((constr = this.constructor) && constr == String && typeof s != "string")
-   {
-     s = this;
-   }
-   
-   if (!n)
-   {
-     n = '1';
-   }
-   
-   if (!c)
-   {
-     c = '0';
-   }
-
-   if (typeof s != "string")
-   {   
-     s = s.toString();
-   }
-
-   if (typeof iStart == "undefined")
-   {
-     iStart = s.length;
-   }
-   
-   while (iStart < n)
-   {
-     if (bRight)
-     {
-       s += c;
-     }
-     else
-     {
-       s = c + s;
-     }
-
-     iStart++;
-   }
-
-   return s;
-}
-
-function rgb2HexCode(s)
-{
-  var a = s.split(/\s*,\s*/);
-  if (a)
-  {
-    for (var i = a.length; i--;)
-    {
-      a[i] = a[i].replace(/(rgb|[()]|\s+)/g, "");
-    }
-  
-    return ("#"
-      + leadingZero(Number(a[0]).toString(16), 2)
-      + leadingZero(Number(a[1]).toString(16), 2)
-      + leadingZero(Number(a[2]).toString(16), 2));
-  }
-  
-  return s;
 }
 
 /**
@@ -1268,6 +1313,7 @@ String.prototype.addProperties(
   {'leadingCaps': leadingCaps,
    'leadingZero': leadingZero,
    'repeat'     : strRepeat,
+   'pad'        : pad,
    'replaceText': replaceText,
    'addSlashes' : addSlashes,
    'strCount'   : strCount,
