@@ -1,6 +1,6 @@
 /**
  * <title>PointedEars' CSS Library</title>
- * @version 0.1.2005031001
+ * @version 0.1.2005052800
  * @partof PointedEars' JavaScript Extensions (JSX)
  * @requires collection.js
  * 
@@ -26,13 +26,27 @@
  * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
  */
 /*
- * Refer css.htm file for a printable
- * documentation. 
- *
- * This document contains JavaScriptDoc. See
- * http://pointedears.de/scripts/JSdoc/
- * for details.
+ * The original source file
+ * _css.js/0.1/2005-03-10-01/css.js
+ * contains a complete documentation written in JSdoc, see
+ * <http://pointedears.de/scripts/JSdoc/> for details.
+ * 
+ * Since JSdoc is not yet ready for production purposes to
+ * generate a HTML documentation from these comments and
+ * including them in the production version means about 50%
+ * of code overhead, most of the JSdoc comments have been
+ * stripped from this file.
  */
+
+var CSSversion = "0.1.2005052800";
+if (typeof CSS != "undefined")
+{
+  var CSS = {version: CSSversion};
+}
+else
+{
+  CSS.version = CSSversion;
+}
 
 /**
  * A <code>CSSSelectorList</code> object encapsulates
@@ -65,7 +79,7 @@ function CSSSelectorList(oDocument)
     }
     
     this.clear();
-
+    
     var d, oSheets;
     if ((d = this.document) && (oSheets = d.styleSheets))
     {
@@ -81,7 +95,7 @@ function CSSSelectorList(oDocument)
       }
       return true;
     }
-
+    
     return false;
   };
   
@@ -139,11 +153,11 @@ function cssSelectorList_findSimpleSelector(sSelector)
     .replace(/\{escape\}/g,          "({unicode}|\\\\[ -~\\x80-\\xFF])")
     .replace(/\{unicode\}/g,       "\\\\[0-9a-f]{1,6}(\\r\\n|[ \\t\\r\\n\\f])?")
     .replace(/\{combinator\}/g,      "(\\+\\s*|\\>\\s*|\\s+)");
-*/
+*/    
   alert(s);
   
   var rxSimpleSelector = new RegExp(s);
-
+    
   var i = this.iterator();
   while ((s = i.next()))
   {
@@ -152,7 +166,7 @@ function cssSelectorList_findSimpleSelector(sSelector)
       return s;
     }
   }
-
+  
   return null;
 }
 
@@ -183,6 +197,7 @@ function showByClassName(sClassName, bShow)
         && isMethod("dhtml.getElemByClassName"))
     {
       var es = dhtml.getElemByClassName(sClassName);
+
       for (var i = es.length; i--; 0)
       {
         var o = es[i];
@@ -466,7 +481,7 @@ function makeMono()
 {
   var
     sl = new CSSSelectorList(),
-    i = sl.iterator(),
+    oIt = sl.iterator(),
     s,
     c = new Color(),
     a = ['backgroundColor', 'borderColor', 'borderTopColor',
@@ -475,7 +490,7 @@ function makeMono()
     j,
     p;
     
-  while ((s = i.next()))
+  while ((s = oIt.next()))
   {
     for (j = a.length; j--;)
     {
