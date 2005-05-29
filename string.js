@@ -5,7 +5,7 @@ if (typeof String == "undefined")
 {
   var String = new Object();
 }
-/** @version */ String.version = "1.29.2005052123";
+/** @version */ String.version = "1.29.2005052903";
 /**
  * @filename string.js
  * @partof   PointedEars' JavaScript Extensions (JSX)
@@ -184,6 +184,7 @@ if (typeof Number.prototype.toUnsigned == "undefined")
  * - padding that value with (non-breaking) spaces on the right: `%-42d'
  * - using arguments to specify the field width: `%*d', `%*7$d'
  * - specifying positive precision (round after point): `%.2d'
+ * - replacing `%%' with `%' without using an argument's value
  *
  * Additional features supported by this method are:
  * - specifying negative precision (round before point): `%.-2d'
@@ -193,9 +194,9 @@ if (typeof Number.prototype.toUnsigned == "undefined")
  *   Distributed under the GNU GPLv2.
  * @partof
  *   http://pointedears.de/scripts/string.js
- * @argument string sFormat
- * @arguments _ values
- * @return type string
+ * @param sFormat: string 
+ * @param values: _
+ * @return string
  *   The formatted string.
  */
 function format(sFormat)
@@ -215,7 +216,7 @@ function format(sFormat)
                 "%([#0+' _-]*)",                         // flags
                 "([1-9]*\\d+|(\\*((\\d+)\\$)?))?",       // field width
                 "(\\.([+-]?\\d+|(\\*((\\d+)\\$)?))?)?",  // precision
-                "[a-zA-Z]"                               // conversion
+                "([%diouxXeEfFgGaA])"                    // conversion
               ].join("")))
             .exec(sFormat)))
       {
@@ -248,13 +249,21 @@ function format(sFormat)
           uPrecisionArg = result[10],
           srcArgIdx;
 
-/*    
+/*
         // length modifier
         var lenModifier    = result[11];
-        
+ */      
         // conversion specifier
-        var convSpecifier  = result[12];
+        var convSpecifier  = result[11];
   
+        if (convSpecifier == "%")
+        {
+          a = "%";
+          i--;
+        }
+        else
+        {
+/*
         if (/[diouxXeEfFgGaA]/.test(convSpecifier))
         {
           if (typeof a != "number")
@@ -336,50 +345,51 @@ function format(sFormat)
 
 */
 
-        if (precision)
-        {
-          if (argPrecision)
+          if (precision)
           {
-            srcArgIdx = uPrecisionArg || (i + 1);
-            precision = arguments[srcArgIdx];
-            arguments.skip[srcArgIdx] = true;
-          }
-
-          if (precision > 0)
-          { 
-            a = Number(a).toFixed(precision);
-          }
-          else if (precision < 0)
-          {
-            var pot = Math.pow(10, -precision);
-            a = Math.round((a - (a % 1)) / pot) * pot;
-          }
-        }
-
-        if (fieldWidth)
-        {
-          if (argFieldWidth)
-          {
-            srcArgIdx = uFieldWidthArg || (i + 1);
-            fieldWidth = arguments[srcArgIdx];
-            arguments.skip[srcArgIdx] = true;
-          }
-
-          if (fieldWidth > 0)
-          { 
-            var sPad = CH_NBSP;
-            if (flags && /0/.test(flags))
+            if (argPrecision)
             {
-              sPad = "0";
+              srcArgIdx = uPrecisionArg || (i + 1);
+              precision = arguments[srcArgIdx];
+              arguments.skip[srcArgIdx] = true;
             }
 
-            if (/-/.test(flags))
-            {
-              a = pad(a, fieldWidth, CH_NBSP, true);
+            if (precision > 0)
+            { 
+              a = Number(a).toFixed(precision);
             }
-            else
+            else if (precision < 0)
             {
-              a = pad(a, fieldWidth, sPad).replace(/^(0+)([+-])/, "$2$1");
+              var pot = Math.pow(10, -precision);
+              a = Math.round((a - (a % 1)) / pot) * pot;
+            }
+          }
+
+          if (fieldWidth)
+          {
+            if (argFieldWidth)
+            {
+              srcArgIdx = uFieldWidthArg || (i + 1);
+              fieldWidth = arguments[srcArgIdx];
+              arguments.skip[srcArgIdx] = true;
+            }
+
+            if (fieldWidth > 0)
+            { 
+              var sPad = CH_NBSP;
+              if (flags && /0/.test(flags))
+              {
+                sPad = "0";
+              }
+
+              if (/-/.test(flags))
+              {
+                a = pad(a, fieldWidth, CH_NBSP, true);
+              }
+              else
+              {
+                a = pad(a, fieldWidth, sPad).replace(/^(0+)([+-])/, "$2$1");
+              }
             }
           }
         }
@@ -702,23 +712,23 @@ function nl2br(s)
 }
 
 /**
- * @optional string s
+ * @param s : optional string 
  *   Input string.  If omitted and the calling object
  *   is a String object, it is used instead.
- * @optional number n = 1
+ * @param n : optional number = 1
  *   Length of the resulting string.  The default is 1,
  *   i.e. if the input string is empty, "0" is returned
- *   if @{(c)} is <code>'0'</code>.
- * @optional string c = CH_NBSP
+ *   if c is <code>'0'</code>.
+ * @param c : optional string = CH_NBSP
  *   Character string to use for padding.  The default
  *   is one non-breaking space.
- * @optional boolean bRight = false
- *   If <code>true</code>, @{(s)} is padded on the right,
+ * @param bRight : optional boolean = false
+ *   If <code>true</code>, s is padded on the right,
  *   otherwise on the left.
- * @optional number iStart
- *   Assume that @{(s)} is @{(iStart)} characters long.
- * @return type string
- *   The padded input string so that its length is @{(n)}.
+ * @param iStart : optional number
+ *   Assume that s is iStart characters long.
+ * @return string
+ *   The padded input string so that its length is n.
  */ 
 function pad(s, n, c, bRight, iStart)
 {
