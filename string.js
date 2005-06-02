@@ -5,7 +5,7 @@ if (typeof String == "undefined")
 {
   var String = new Object();
 }
-/** @version */ String.version = "1.29.2005052903";
+/** @version */ String.version = "1.29.2005060219";
 /**
  * @filename string.js
  * @partof   PointedEars' JavaScript Extensions (JSX)
@@ -216,7 +216,7 @@ function format(sFormat)
                 "%([#0+' _-]*)",                         // flags
                 "([1-9]*\\d+|(\\*((\\d+)\\$)?))?",       // field width
                 "(\\.([+-]?\\d+|(\\*((\\d+)\\$)?))?)?",  // precision
-                "([%diouxXeEfFgGaA])"                    // conversion
+                "([%diouxXeEfFgGaAcsCSpn])"              // conversion
               ].join("")))
             .exec(sFormat)))
       {
