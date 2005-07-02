@@ -12,12 +12,12 @@
  */
 function Debug()
 {
-  this.version   = "0.99.2005042323";
+  this.version   = "0.99.2005070211";
   this.copyright = "Copyright \xA9 1999-2005";
   this.author    = "Thomas Lahn";
   this.email     = "debug.js@PointedEars.de";
   this.path      = "http://pointedears.de/scripts/test/";
-  this.docURL    = this.path + "../enhanced.htm";
+  this.docURL    = this.path + "../debug.htm";
 }
 var debug = new Debug();
 /**
@@ -38,14 +38,7 @@ var debug = new Debug();
  * 
  * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
  */
-/* 
- * Refer debug.htm file for general documentation. 
- * 
- * This script contains JavaScriptDoc[tm], see
- * http://pointedears.de/scripts/JSDoc/
- * for details.
- */
- 
+
 // reference to the global object
 var _global = this;
 var sGlobal = "_global";
@@ -73,74 +66,117 @@ function DebugException(Msg)
 /** @section Features */
 
 /**
- * @argument string s
- *   Expression to be evaluated.
- * @optional boolean bPrintResult = false
- *   If <code>true</code>, the method returns a printable
- *   result.
- * @optional number loops = 1
- *   Specifies the number of times the expression should
- *   be evaluated.  If greater than 1, the method also
- *   returns the minimum, maximum and average of the
- *   evaluation time.
- * @return type number
- *   The number of milliseconds the evaluation of @{(s)}
- *   took if @{(bPrintResult)} is <code>false</code>.
- * @return type Array
- *   An array containing the number of milliseconds
- *   the evaluation of @{(s)} took if @{(bPrintResult)}
- *   is <code>false</code>.
- * @return type string
- *   A human-readable string to indicate the test
- *   result if @{(bPrintResult)} is <code>true</code>.
+ * Returns evaluation statistics.
+ * 
+ * @param expr : string|Array
+ *   Expression or array of expressions to be evaluated.
+ * @param bPrintResult : optional boolean = false 
+ *   If <code>true</code>, the method returns a printable result.
+ * @param loops : optional number = 1 
+ *   Specifies the number of times the expression should be evaluated.
+ * @param repeats : optional number = 1
+ *   Specifies the number of times the evaluation loop(s) of the expression
+ *   should be repeated.  If greater than 1, the method also returns the
+ *   minimum, maximum and average of the evaluation time.
+ * @return Array|string
+ *   An array containing the number of milliseconds the evaluation of the
+ *   expression(s) took if bPrintResult is <code>false</code>;
+ *   a human-readable table string to indicate the test results otherwise.
+ * @requires types#isArray()
  */
-function time(s, bPrintResult, loops)
+function time(expr, bPrintResult, loops, repeats)
 {
-  var stats = [];
+  if (!isArray(expr))
+  {
+    expr = [expr];
+  }
+
   if (!loops || loops < 1)
   {
     loops = 1;
   }
-  
-  for (var i = loops; i--;)
+
+  if (!repeats || repeats < 1)
   {
-    var start = new Date();
-    eval(s);
-    var stop = new Date();
-    var diff = -1;
-    if (start && stop)
+    repeats = 1;
+  }
+
+  var
+    result = ["Expressions:\n\n"],
+    stats = [];
+
+  for (var i = 0, cnt = expr.length; i < cnt; i++)  // loop through expressions
+  {
+    var cur_expr = expr[i];
+    if (bPrintResult)
     {
-      diff = stop.getTime() - start.getTime();
-      stats[stats.length] = diff;
+      result.push("[", i + 1, "] ", cur_expr, "\n");
+    }
+    var repeat_stats = stats[i] = []; // reset stats for this expression
+    for (var j = 0; j < repeats; j++)  // repeat loops
+    {
+      repeat_stats[j] = -1; // reset stats for this repeat
+      var eval_loop_start = new Date();
+      for (var k = 0; k < loops; k++)  // repeat evaluation
+      {
+        onerror = dummyError;
+        eval(["try {", expr[i], "} catch (e) {}"].join(""));
+        dummyError();
+      }
+      var eval_loop_stop = new Date();
+      repeat_stats[j] = eval_loop_stop.getTime() - eval_loop_start.getTime();
     }
   }
 
   if (bPrintResult)
   {
-    if (loops > 1)
+    result.push(
+      "\nEvaluation Results (ms):\n\n\\",
+      pad("n|", cnt.toString().length - 1));
+    
+    var col_width = Math.max(repeats, stats).toString().length + 1;
+    
+    for (j = 0; j < repeats; j++)
     {
-      diff = "Evaluating\n\n" + s + "\n\n" + loops + " times took"
-        + " min. " + Math.min(stats) + " ms,"
-        + " max.\t" + Math.max(stats) + " ms,"
-        + " avg.\t" + Math.avg(stats) + " ms.\n"
-        + "Stats (ms): " + stats.join("; ");
+      result.push(format("%*2$d", j + 1, col_width));
     }
-    else
+  
+    result.push(
+      format("\xA0%*4$s\xA0%*4$s\xA0%*4$s\n", "min", "max", "avg", col_width),
+      format("%*2$d\\|", "e", expr_width),
+      strRepeat("_", col_width * repeats),
+      "\n");
+
+    var expr_width = (cnt + 1).toString().length;
+  
+    for (i = 0; i < cnt; i++)  // loop through expressions
     {
-      diff = "Evaluating '" + s + "' took " + diff + " ms.";
+      result.push(format("%*2$d|", i + 1, expr_width < 2 ? 2 : expr_width));
+
+      for (j = 0; j < repeats; j++)
+      {
+        result.push(format("%*2$d", stats[i][j], col_width));
+      }
+
+      result.push(
+        format(
+          "\xA0%*4$s\xA0%*4$s\xA0%*4$s\n",
+          Math.min(stats[i]),
+          Math.max(stats[i]),
+          Math.avg(stats[i]).toFixed(1),
+          col_width));
     }
+    
+    result = result.join("");
   }
   else
   {
-    if (loops > 1)
-    {
-      diff = stats;
-    }
+    result = stats;
   }
-
-  return diff;
-}
   
+  return result;
+}
+
 /**
  * @return type boolean
  *   Always <code>true</code>
@@ -205,44 +241,59 @@ function getError(e)
 }
 
 /**
- * @arguments _ _
- * @requires types.js#isIterable()
+ * Returns the type of a reference and, if possible, of its object properties
+ * (nested only one level deep), and optionally displays that in an alert()
+ * box.
+ * 
+ * @param a
+ *   Value to be displayed along with its type.  If a string or an array of
+ *   strings and bDontEval is not provided or false, each string is evaluated
+ *   using eval() and that value is used.
+ * @param bAlert : boolean
+ *   If <code>true</code>, uses alert() to display the value(s).
+ * @param bDontEval : boolean
+ *   If <code>true</code>, does not evaluate arguments but uses their value.
+ * @requires types#isArray()
  */
-function alertValue()
+function alertValue(a, bAlert, bDontEval)
 {
-  var sResult = "";
-  var a;
-  var j;
-  for (var i = 0; i < arguments.length; i++)
+  if (!isArray(a))
   {
-    sResult += "[" + i + "] => ";
-    a = arguments[i];
-
-    if (isIterable(a))
-    {
-      sResult += "[";
-      for (j = 0; j < a.length; j++)
-      {
-        sResult +=
-          "["
-            + j + "] => "
-            + (typeof a[j] == "string" ? '"' : '')
-            + a[j]
-            + (typeof a[j] == "string" ? '"' : '')
-            + (j < a.length - 1 ? ", " : "");
-      }
-      sResult += "]";
-    }
-    else
-    {
-      sResult +=
-          (typeof arguments[i] == "string" ? '"' : '')
-          + arguments[i] 
-          + (typeof arguments[i] == "string" ? '"' : '')
-          + "\n";
-    }
+    a = [a];
   }
-  alert(sResult);
+
+  for (var as = [], i = 0, len = a.length; i < len; i++)
+  {
+    var
+      o = !bDontEval ? eval(a[i]) : a[i],
+      t = typeof o,
+      delim = (t == "string" ? '"' : ''),
+      s = [delim, a[i], delim, " : ", t, " = ", delim, o, delim].join("");
+
+    if (t == "object" || t == "function")
+    {
+      for (var j in o)
+      {
+        t = typeof o[j];
+        delim = (t == "string" ? '"' : '');
+        s += [
+          "\n", a[i], '["', j, '"] : ', t, " = ",
+          delim + o[j], delim
+        ].join("");
+      }
+    }
+
+    as.push(s);
+  }
+
+  var result = as.join("\n");
+
+  if (bAlert)
+  {
+    alert(result);
+  }
+  
+  return result;
 }
 
 /**
@@ -385,14 +436,14 @@ function Owners(aOwners)
  * <code>aoOwners</code>.
  * 
  * If you provide the latter, the constructor function will
- * utilize <code>@link{array#inArray()}</code>, trying to
- * determine if the object/property references one of owners
+ * utilize <code>inArray()</code>, trying to determine if the
+ * object/property references one of owners
  * (<code>referencesOwners</code>; <code>false</code> if
  * <code>aoOwners</code> is not provided) and how many properties
  * the object/property has itself (<code>hasProperties</code>;
  * <code>false</code> if <code>aoOwners</code> is not
  * provided or if detection fails.)  TODO: This is now
- * achieved through creating a new @link{#ObjectInfo} object
+ * achieved through creating a new <code>ObjectInfo</code> object
  * from either <code>aoOwners[aoOwners.length-1][sName]</code>
  * or <code>aoOwners[sName]</code>.  In order to avoid
  * infinite recursion when the Property(...) constructor is
@@ -412,25 +463,25 @@ function Owners(aOwners)
  * for <code>aoOwners</code> beside of an Owners object to
  * specify that owner object.  To determine if
  * <code>aoOwners</code> is an Owners object or not, the
- * <code>@link{isInstanceOf(...)}</code> method is required.
+ * <code>isInstanceOf()</code> method is required.
  *
- * @argument string sName
- *   Name of the property.  Required.
- * @argument - sValue
- *   Value of the property.  Required.
- * @optional number iID
- *   (Unique) ID of the property.  Required.
- * @optional Owners|Object aoOwners
+ * @param sName: string 
+ *   Name of the property.
+ * @param sValue
+ *   Value of the property.
+ * @param iID: optional number
+ *   (Unique) ID of the property.
+ * @param aoOwners: optional Owners|Object 
  *   Reference to an Owners object storing references to the
  *   owner (object) of the property and its owners, where the
  *   last element references the direct owner.  Allows also
  *   for a reference to a non-Owners object to specify only
- *   the direct owner.  Optional.
- * @optional boolean bNonEnum
+ *   the direct owner.
+ * @param bNonEnum: optional boolean 
  *   <code>true</code> specifies that the property is
  *   non-enumerable.  Optional.  The default <code>false</code>
  *   determines the property to be enumerable.
- * @optional boolean bCalledFromObjectInfo
+ * @param bCalledFromObjectInfo: optional boolean 
  * @see
  *   types#isArray(), array#inArray()
  */
@@ -516,7 +567,7 @@ function Property(sName, sValue, iID, aoOwners, bNonEnum, bCalledFromObjectInfo)
 }
 
 /**
- * @optional Array a
+ * @param a: optional Array
  */
 function PropertyArray(a)
 {
@@ -926,19 +977,18 @@ function NonEnumProperties(rxPattern, asPropertyNames, sType, fConstructor)
  *     alert("anyOtherObject references myObject.");
  * </code>
  *
- * @argument string|Object sObject
+ * @param sObject: string|Object 
  *   Reference to an object or property, or string to be evaluated
- *   to an object or a property. Required.
+ *   to an object or a property.
  *   (TODO: Throws NotAnObjectException if not provided or cannot
  *   be evaluated.)
- * @optional string sName
- *   Name of the object/property. Optional.
+ * @param sName: optional string 
+ *   Name of the object/property.
  *   If this argument is not provided, the value of the
  *   <code>name</code> property depends on <code>sObject</code>.
  *   If the latter is a reference, the default is `_odo', otherwise
  *   the default is the value of <code>sObject</code>.
- * @optional boolean bCalledFromProperty
- * @method ObjectInfo
+ * @param bCalledFromProperty: optional boolean
  */
 function ObjectInfo(sObject, sName, bCalledFromProperty)
 {
@@ -976,15 +1026,15 @@ function ObjectInfo(sObject, sName, bCalledFromProperty)
    *   }
    * </code>
    * 
-   * @argument string|Object sObject
-   *   See contract of @link{this()}
-   * @optional string sName
-   *   See contract of @link{this()}
-   * @optional boolean bCalledFromProperty
-   * @property string name
-   * @property PropertyArray properties
-   * @property object target
-   * @property string type
+   * @param sObject: string|Object 
+   *   See contract of this()
+   * @param sName: optional string 
+   *   See contract of this()
+   * @param bCalledFromProperty: optional boolean 
+   * @property name: string 
+   * @property properties: PropertyArray 
+   * @property target: object 
+   * @property type: string 
    */
   this.forObject =
   function forObject(sObject, sName, bCalledFromProperty)
