@@ -5,7 +5,7 @@ if (typeof String == "undefined")
 {
   var String = new Object();
 }
-/** @version */ String.version = "1.29.2005060219";
+/** @version */ String.version = "1.29.1.2006031822";
 /**
  * @filename string.js
  * @partof   PointedEars' JavaScript Extensions (JSX)
@@ -14,13 +14,13 @@ if (typeof String == "undefined")
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2001-2005  Thomas Lahn &lt;string.js@PointedEars.de&gt;
+ *   (C) 2001-2006  Thomas Lahn &lt;string.js@PointedEars.de&gt;
  * @author
  *   Parts Copyright (C) 2003<br>
  *   Dietmar Meier &lt;meier@innoline-systemtechnik.de&gt;<br>
  *   Martin Honnen &lt;Martin.Honnen@gmx.de&gt;
  */
-String.copyright = "Copyright \xA9 1999-2005";
+String.copyright = "Copyright \xA9 1999-2006";
 String.author    = "Thomas Lahn";
 String.email     = "string.js@PointedEars.de";
 String.path      = "http://pointedears.de/scripts/";
@@ -86,14 +86,33 @@ function addSlashes(s)
 
   if (s.replace)
   {
-    s = s.replace(/(["'])/g, "\\$1");
+    s = s.replace(/["']/g, "\\$&");
   }
 
   return s;
 }
 
+/**
+ * Tries hard to escape a string according to the query component
+ * specification in RFC3986.
+ * 
+ * @param s: string
+ * @return type string
+ *   <code>s</code> escaped, or unescaped if escaping through
+ *   <code>encodeURIComponent()</code> or <code>escape()</code>
+ *   is not possible.
+ */
+function esc(s)
+{
+  return (isMethodType(typeof encodeURIComponent)
+          ? encodeURIComponent(s)
+          : (isMethodType(typeof escape)
+             ? escape(s)
+             : s));
+}
+
 // Had to abandon addProperties since Konqueror's engine does not support
-// Object literals 
+// Object literals
 
 if (typeof Number.prototype.toFixed == "undefined")
 {
@@ -148,10 +167,11 @@ if (typeof Number.prototype.toUnsigned == "undefined")
     n = (n < 0 ? -1 : 1) * floor(i);
  
     /*
-     * 4. Compute Result(3) modulo 2^iMax; that is, a finite integer value
-     * k of Number type with positive sign and less than 2^iMax in magnitude
-     * such the mathematical difference of Result(3) and k is mathematically
-     * an integer multiple of 2^iMax.  The default for iMax is 32.
+     * 4. Compute Result(3) modulo 2^iMax; that is, a finite integer
+     * value k of Number type with positive sign and less than 2^iMax
+     * in magnitude such the mathematical difference of Result(3) and
+     * k is mathematically an integer multiple of 2^iMax.  The default
+     * for iMax is 32.
      * 
      * 5. Return Result(4).
      */
@@ -165,17 +185,17 @@ if (typeof Number.prototype.toUnsigned == "undefined")
   }
 }
 
-
 /**
  * Returns a string of values according to a format string.
  * 
  * This is the begin of an approach to implement <code>printf</code>(3)
- * in an ECMAScript compliant implementation out of its man page documentation.
- * The syntax is intended to be compatible to that of the printf() C function
- * finally, but this method will not *print* out anything characters by itself
- * (so you probably want to use its return value along with
- * <code>window.alert()</code>, <code>document.write()</code> and similar DOM
- * features, or in concatenations as if you would use <code>sprintf</code>(3).)
+ * in an ECMAScript compliant implementation out of its man page
+ * documentation.  The syntax is intended to be compatible to that of
+ * the printf() C function finally, but this method will not *print*
+ * out anything characters by itself (so you probably want to use its
+ * return value along with <code>window.alert()</code>,
+ * <code>document.write()</code> and similar DOM features, or in
+ * concatenations as if you would use <code>sprintf</code>(3).)
  * 
  * Currently supported <code>printf</code>(3) features are:
  * - replacing tags in a format string with a value given as argument: `%d'
@@ -188,14 +208,22 @@ if (typeof Number.prototype.toUnsigned == "undefined")
  *
  * Additional features supported by this method are:
  * - specifying negative precision (round before point): `%.-2d'
+ * - If `%,42s' is used and the argument refers to an Array instead of
+ *   a String, it is expanded to a character string consisting of the
+ *   string representations of the elements of the array delimited with
+ *   `,', each of them having the format specification (here: field
+ *   width=42) applied to it.  If `,' is missing, the delimiter is the
+ *   empty string, meaning that Arrays of strings (or characters) can
+ *   be easily output.
  * 
+ * @version 0.0.4.2005112603 (milestone 4) 
  * @author
  *   (C) 2004, 2005  Thomas Lahn <string.js@PointedEars.de>
  *   Distributed under the GNU GPLv2.
  * @partof
  *   http://pointedears.de/scripts/string.js
- * @param sFormat: string 
- * @param values: _
+ * @param sFormat : string 
+ * @param values : _
  * @return string
  *   The formatted string.
  */
@@ -205,20 +233,27 @@ function format(sFormat)
   for (var i = 1, len = arguments.length; i < len; i++)
   {
     var a = arguments[i];
-    // skip tagged arguments; this allows for using following
-    // arguments for precision without using them for expansion
-    // again
+
+    /*
+     * skip tagged arguments; this allows for using following arguments
+     * for precision without using them for expansion again
+     */
     if (!arguments.skip[i])
     {
-      var result, rxSearch;
-      if ((result =
-            (rxSearch = new RegExp([
-                "%([#0+' _-]*)",                         // flags
-                "([1-9]*\\d+|(\\*((\\d+)\\$)?))?",       // field width
-                "(\\.([+-]?\\d+|(\\*((\\d+)\\$)?))?)?",  // precision
-                "([%diouxXeEfFgGaAcsCSpn])"              // conversion
-              ].join("")))
-            .exec(sFormat)))
+      // compile only once
+      if (!format.rxSearch)
+      {
+        format.rxSearch = new RegExp([
+          "%([#0+' _-]*)",                         // flags
+          "([1-9]*\\d+|(\\*((\\d+)\\$)?))?",       // field width
+          "(\\.([+-]?\\d+|(\\*((\\d+)\\$)?))?)?",  // precision
+          "([ ,]+)?",                              // member delimiter
+          "([%diouxXeEfFgGaAcsCSpn])"              // conversion
+        ].join(""));
+      }
+      
+      var result;
+      if ((result = (format.rxSearch.exec(sFormat))))
       {
         var
           // flag characters
@@ -253,148 +288,126 @@ function format(sFormat)
         // length modifier
         var lenModifier    = result[11];
  */      
+        // member delimiter
+        var memberDelim = result[11];
+
         // conversion specifier
-        var convSpecifier  = result[11];
+        var
+          convSpecifier  = result[12],
+          aArgMembers = new Array();
   
         if (convSpecifier == "%")
         {
-          a = "%";
+          aArgMembers = [convSpecifier];
           i--;
         }
         else
         {
-/*
-        if (/[diouxXeEfFgGaA]/.test(convSpecifier))
-        {
-          if (typeof a != "number")
-          {
-            a = Number(a);
-          }
+          var
+            memberLen = 1,
+            arg = a;
 
-          if (/[diouxX]/.test(convSpecifier))
+          if (arg.constructor == Array)
           {
-            if (/[ouxX]/.test(convSpecifier))
-            {
-              switch (convSpecifier)
-              {
-                case "o": a = a.toString(8); break;
-                case "u": a = a.toUnsigned(); break;
-                case "x":
-                case "X": a = a.toUnsigned().toString(16); break;
-              }
-            }
-
-            if (!hasPrecision)
-            {
-              iPrecision = 1;
-            }
-          }
-        }
-
-        var precisionArg;
-        if (/[diouxaef]/i.test(convSpecifier))
-        {
-
-          if (hasPrecision)
-          {
-            if (typeof iPrecision != "undefined")
-            {
-              // precision was given as an unsigned integer
-              a = a.toFixed(iPrecision);
-            }
-            else
-            {
-              /*
-               * use the value of a non-zero indexed argument
-               * for precision or the value of the next argument;
-               * skip either argument for further expansion
-               *
-              precisionArg = iPrecArg || i + 1;
-              a = a.toFixed(arguments[precisionArg]);
-              arguments.skip[precisionArg] = true;
-            }
-          }
-        }
-        else if (/s/i.test(convSpecifier))
-        {
-          if (typeof a != "string")
-          {
-            a = a.toString();
+            memberLen = arg.length;
           }
           
-          if (hasPrecision)
+          
+          for (var j = 0; j < memberLen; j++)
           {
-            if (typeof iPrecision != "undefined")
+            if (arg.constructor == Array)
             {
-              // precision was given as an unsigned integer
-              a = a.substring(0, iPrecision);
-            }
-            else
-            {
-              /*
-               * use the value of a non-zero indexed argument
-               * for precision or the value of the next argument;
-               * skip either argument for further expansion
-               *
-              precisionArg = iPrecArg || i + 1;
-              a = a.substring(0, arguments[precisionArg]);
-              arguments.skip[precisionArg] = true;
-            }
-          }
-        }
-
-*/
-
-          if (precision)
-          {
-            if (argPrecision)
-            {
-              srcArgIdx = uPrecisionArg || (i + 1);
-              precision = arguments[srcArgIdx];
-              arguments.skip[srcArgIdx] = true;
+              a = arg[j];
             }
 
-            if (precision > 0)
-            { 
-              a = Number(a).toFixed(precision);
-            }
-            else if (precision < 0)
+            if (/[diouxXeEfFgGaA]/.test(convSpecifier))
             {
-              var pot = Math.pow(10, -precision);
-              a = Math.round((a - (a % 1)) / pot) * pot;
-            }
-          }
-
-          if (fieldWidth)
-          {
-            if (argFieldWidth)
-            {
-              srcArgIdx = uFieldWidthArg || (i + 1);
-              fieldWidth = arguments[srcArgIdx];
-              arguments.skip[srcArgIdx] = true;
-            }
-
-            if (fieldWidth > 0)
-            { 
-              var sPad = CH_NBSP;
-              if (flags && /0/.test(flags))
+              if (typeof a != "number")
               {
-                sPad = "0";
+                a = Number(a);
               }
 
-              if (/-/.test(flags))
+              if (/[ouxX]/.test(convSpecifier))
               {
-                a = pad(a, fieldWidth, CH_NBSP, true);
-              }
-              else
-              {
-                a = pad(a, fieldWidth, sPad).replace(/^(0+)([+-])/, "$2$1");
+                switch (convSpecifier)
+                {
+                  case "o": a = a.toString(8); break;
+                  case "u": a = a.toUnsigned(); break;
+                  case "x":
+                  case "X": a = a.toUnsigned().toString(16); break;
+                  default:
+                    var sError = 'Invalid conversion specifier';
+                    _global.onerror = function()
+                    {
+                      alert('format: ' + sError);
+                      _global.onerror = null;
+                      return true;
+                    }
+                    eval("throw new {message: sError};");
+                    _global.onerror = null;
+                }
               }
             }
-          }
-        }
+
+            if (precision
+                || (typeof precision == "number" && precision == 0))
+            {
+              if (argPrecision)
+              { // precision is specified by another argument
+                srcArgIdx = uPrecisionArg || (i + 1);
+                precision = arguments[srcArgIdx];
                 
-        sFormat = sFormat.replace(rxSearch, a);
+                // mark argument as not to be expanded
+                arguments.skip[srcArgIdx] = true;
+              }
+
+              if (precision >= 0)
+              { 
+                a = Number(a).toFixed(precision);
+              }
+              else // if (precision < 0)
+              {
+                var pot = Math.pow(10, -precision);
+                a = Math.round((a - (a % 1)) / pot) * pot;
+              }
+            }
+
+            if (fieldWidth)
+            {
+              if (argFieldWidth)
+              { // field width is specified by another argument
+                srcArgIdx = uFieldWidthArg || (i + 1);
+                fieldWidth = arguments[srcArgIdx];
+                arguments.skip[srcArgIdx] = true;
+              }
+
+              if (fieldWidth > 0)
+              { 
+                var sPad = CH_NBSP;
+                if (flags && /0/.test(flags))
+                {
+                  sPad = "0";
+                }
+
+                if (/-/.test(flags))
+                {
+                  a = pad(a, fieldWidth, CH_NBSP, true);
+                }
+                else
+                { // pad value, put sign in front
+                  a = pad(a, fieldWidth, sPad)
+                      .replace(/^(0+)([+-])/, "$2$1");
+                }
+              }
+            }
+
+            aArgMembers.push(a);
+          }
+        }
+        
+        sFormat = sFormat.replace(
+          format.rxSearch,
+          aArgMembers.join(memberDelim));
       }
     }
   }
@@ -495,7 +508,7 @@ function hashCode(s)
   var len = s.length;
   var val = strToCodeArray(s);
   var i;
-	
+  
   if (len < 16)
   {
     for (i = len; i > 0; i--)
@@ -733,7 +746,8 @@ function nl2br(s)
 function pad(s, n, c, bRight, iStart)
 {
    var constr;
-   if ((constr = this.constructor) && constr == String && typeof s != "string")
+   if ((constr = this.constructor) && constr == String
+       && typeof s != "string")
    {
      s = this;
    }
@@ -867,7 +881,7 @@ function strCount(s, substr, bCaseSensitive)
     s = s.toLowerCase();
   }
 
-  if (window.RegExp)
+  if (isMethodType(typeof RegExp))
   {
     var rxSub = new RegExp(substr, "g" + (!bCaseSensitive ? "i" : ""));
 
@@ -1119,7 +1133,7 @@ function strToArray(s)
   }
 
   var a = null;
-		
+    
   if (s.split)
   {
     a = s.split("");
@@ -1332,10 +1346,19 @@ String.prototype.addProperties(
    'trim'       : trim,
    'trimLeft'   : trimLeft,
    'trimRight'  : trimRight,
-   'toArray'    : strToArray     /* TODO: corr. with Array.fromStr */,
-   'toCodeArray': strToCodeArray /* TODO: corr. with Array.codeArrayFromStr */,
-// 'fromArray'  : strFromArray   /* TODO: corr. with Array.toStr */,
-// fromCodeArray: strFromCodeArray /* TODO: corr. with Array.codeArrayToStr */,
+
+   // TODO: corr. with Array.fromStr
+   'toArray'    : strToArray,
+
+   // TODO: corr. with Array.codeArrayFromStr
+   'toCodeArray': strToCodeArray,
+
+   // TODO: corr. with Array.toStr
+// 'fromArray'  : strFromArray,
+
+   // TODO: corr. with Array.codeArrayToStr
+// fromCodeArray: strFromCodeArray,
+
    'hashCode'   : hashCode,
    'format1k'   : format1k});
 
@@ -1343,9 +1366,16 @@ String.prototype.addProperties(
 p = Array.prototype;
 if (p)
 {
-  p.fromStr = arrayFromStr;              // TODO: corr. with String.toArray
-  p.codeArrayFromStr = codeArrayFromStr; // TODO: corr. with String.toCodeArray
-  p.toStr = arrayToStr;                  // TODO: corr. with String.fromArray
-  p.codeArrayToStr = codeArrayToStr;   // TODO: corr. with String.fromCodeArray
+  // TODO: corr. with String.toArray
+  p.fromStr = arrayFromStr;
+
+  // TODO: corr. with String.toCodeArray
+  p.codeArrayFromStr = codeArrayFromStr;
+   
+  // TODO: corr. with String.fromArray
+  p.toStr = arrayToStr;
+  
+  // TODO: corr. with String.fromCodeArray
+  p.codeArrayToStr = codeArrayToStr;
 }
 */
