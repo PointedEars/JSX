@@ -1,10 +1,11 @@
 /**
  * <title>PointedEars' Collection Library</title>
  * @partof PointedEars' JavaScript Extensions (JSX)
+ * @requires object.js
  * 
  * @section Copyright & Disclaimer
  * 
- * @author (C) 2002-2005  Thomas Lahn &lt;collection.js@PointedEars.de&gt;
+ * @author (C) 2002-2006  Thomas Lahn &lt;collection.js@PointedEars.de&gt;
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,6 +24,12 @@
  * 
  * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
  */
+/*
+ * This document contains JavaScriptDoc. See
+ * http://pointedears.de/scripts/JSdoc/
+ * for details.
+ */
+
 /** 
  * @section Abstract
  * 
@@ -42,25 +49,17 @@
  * You could compare this behavior to an associative array
  * in PHP, only that ECMAScript has no built-in concept of
  * associative arrays.
- */
-/*
- * Refer collection.htm file for a printable
- * documentation. 
- *
- * This document contains JavaScriptDoc. See
- * http://pointedears.de/scripts/JSdoc/
- * for details.
- */
-
-function Collection(/** @optional Object */ o)
-{
-  this.version   = "0.1.2005021522";
-/**
- * @partof
- *   PointedEars JavaScript Extensions (JSX)
  * 
+ * @constructor
+ * @optional :Object
  */
-  this.copyright = "Copyright \xA9 2002-2005";
+function Collection(o)
+{
+  this.version   = "0.1.2006032518";
+  /**
+   * @partof PointedEars JavaScript Extensions (JSX)
+   */
+  this.copyright = "Copyright \xA9 2002-2006";
   this.author    = "Thomas Lahn";
   this.email     = "collection.js@PointedEars.de";
   this.path      = "http://pointedears.de/scripts/";
@@ -68,42 +67,43 @@ function Collection(/** @optional Object */ o)
 //  this.docURI    = this.path + "collection.htm";
   this.allowExceptionMsg = true;
 
-  Collection.prototype.addItems =
-  function collection_addItems(
-    /** @optional Object */ o)
-  {
-    var result = null;
-  
-    for (var i in o)
-    {
-      if (typeof o[i] != "undefined") // omit deleted items
-      {
-        this.items[i] = new CollectionItem(o[i]);
-        if (isNaN(i)) // if the property name is not numeric
-        {
-          this.items[this.items.length] = this.items[i];
-        }
-
-        result = this.items[i];
-      }
-    }
-    
-    return result;
-  };
-  
-  Collection.prototype.set =
-  function collection_set(
-    /** @optional Object */ o)
-  { 
-    this.items = new Array(); // no real array, but Array.length is useful
-    return this.addItems(o);
-  };
 
   this.set(o);
 }
 
-Collection.prototype.add =
-function collection_add(val, name)
+/**
+ * @optional :Object
+ */ 
+Collection.prototype.addItems = function collection_addItems(o)
+{
+  var result = null;
+
+  for (var i in o)
+  {
+    if (typeof o[i] != "undefined") // omit deleted items
+    {
+      this.items[i] = new CollectionItem(o[i]);
+      if (isNaN(i)) // if the property name is not numeric
+      {
+        this.items[this.items.length] = this.items[i];
+      }
+      result = this.items[i];
+    }
+  }
+  
+  return result;
+};
+
+/**
+ * @optional :Object
+ */
+Collection.prototype.set = function collection_set(o)
+{ 
+  this.items = new Array(); // no real array, but Array.length is useful
+  return this.addItems(o);
+};
+
+Collection.prototype.add = function collection_add(val, name)
 {
   var index = this.items.length;
   this.items[index] = new CollectionItem(val);
@@ -114,33 +114,26 @@ function collection_add(val, name)
   }
 
   return this.items[index];
-}
+};
 
-Collection.prototype.clear =
-function collection_clear()
+Collection.prototype.clear = function collection_clear()
 {
   this.items = new Array();
   return !this.items;
-}
+};
 
-Collection.prototype.iterator =
-function collection_iterator()
+Collection.prototype.iterator = function collection_iterator()
 {
   return new Iterator(this.items);
-}
+};
 
-/**
- * A ValueCollection is a collection
- * which can additionally hold a value.
- *
- * @property value
- */ 
 function ValueCollection(o, val)
 {
   Collection.call(o);
   this.value = val;
 }
 ValueCollection.prototype = inheritFrom(Collection.prototype);
+ValueCollection.prototype.constructor = ValueCollection;
 
 function CollectionItem(val)
 {
@@ -157,12 +150,11 @@ function Iterator(o)
 }
 
 // prototype methods
-Iterator.prototype.prev =
-function iterator_prev()
+Iterator.prototype.prev = function iterator_prev()
 {
   var result = result; // undefined
   var t = this.target;
-  
+
   if (t)
   {
     if (this.prevItem > -1) // no need to search if already found by hasPrev()
@@ -172,8 +164,7 @@ function iterator_prev()
     }
     else if (typeof t.length != "undefined")
     {  
-      if (this.currItem < 1
-          || this.currItem > t.length - 1)
+      if (this.currItem < 1 || this.currItem > t.length - 1)
       {
         this.currItem = t.length;
       }
@@ -199,14 +190,13 @@ function iterator_prev()
   }
   
   return result;
-}
+};
 
-Iterator.prototype.next =
-function iterator_next()
+Iterator.prototype.next = function iterator_next()
 {
   var result = result; // undefined
-
   var t = this.target;
+
   if (t)
   {
     if (this.nextItem > -1) // no need to search if already found by hasNext()
@@ -243,14 +233,12 @@ function iterator_next()
   }
   
   return result;
-}
+};
 
-Iterator.prototype.hasPrev = 
-function /** @type boolean */ iterator_hasPrev()
+Iterator.prototype.hasPrev = function iterator_hasPrev()
 {
   var result = false;
   this.prevItem = -1;
-
   var t = this.target;
 
   if (t)
@@ -279,14 +267,12 @@ function /** @type boolean */ iterator_hasPrev()
   }
   
   return result;
-}
+};
 
-Iterator.prototype.hasNext = 
-function /** @type boolean */ iterator_hasNext()
+Iterator.prototype.hasNext = function iterator_hasNext()
 {
   var result = false;
   this.nextItem = -1;
-
   var t = this.target;
 
   if (t)
@@ -315,17 +301,9 @@ function /** @type boolean */ iterator_hasNext()
   }
   
   return result;
-}
+};
 
-Iterator.prototype.remove =
-function iterator_remove()
-/**
- * Removes the current item and moves on to the next item,
- * if there is any.
- * 
- * @returns
- *   The next item, <code>undefined</code> if there is none.
- */
+Iterator.prototype.remove = function iterator_remove()
 {
   var undef = undef;
   delete this.target[this.currItem];
@@ -337,4 +315,4 @@ function iterator_remove()
   {
     return undef;
   }
-}
+};
