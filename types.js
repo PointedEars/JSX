@@ -3,7 +3,7 @@
  */
 function Types()
 {
-  this.version = "1.29.2.2006033004";
+  this.version = "1.29.3.2006041619";
 /**
  * @file types.js
  * @partof PointedEars' JavaScript Extensions (JSX)
@@ -338,7 +338,7 @@ function isMethodType(s)
 
 if (typeof Object != "undefined"
     && typeof Object.prototype != "undefined"
-    && isMethod(Object.prototype.addProperties))
+    && isMethodType(typeof Object.prototype.addProperties))
 {
   Object.prototype.addProperties(
     {isArray:      isArray,
