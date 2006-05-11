@@ -1,14 +1,14 @@
 /**
  * <title>Object Library</title>
  */
-/** @version */ Object.version   = "0.1.2004090622";
+/** @version */ Object.version   = "0.1.2.2006051120";
 /**
  * @file object.js
  * @partof PointedEars' JavaScript Extensions (JSX)
  * @author
- *   (C) 2004  Thomas Lahn &lt;object.js@PointedEars.de&gt;
+ *   (C) 2004-2006  Thomas Lahn &lt;object.js@PointedEars.de&gt;
  */
-Object.copyright = "Copyright \xA9 2004";
+Object.copyright = "Copyright \xA9 2004-2006";
 Object.author    = "Thomas Lahn";
 Object.email     = "object.js@PointedEars.de";
 Object.path      = "http://pointedears.de/scripts/";
@@ -101,22 +101,18 @@ function addProperties(oSource, iFlags, oOwner)
     oOwner = this;
   }
 
-  if (typeof oOwner == "object")
+  for (var i in oSource)
   {
-    for (var i in oSource)
+    if (typeof oOwner[i] == "undefined"
+        || (iFlags & Object.ADD_OVERWRITE))
     {
-      if (typeof oOwner[i] == "undefined"
-          || typeof iFlags == "undefined"
-          || (iFlags & Object.ADD_OVERWRITE))
-      {
-        oOwner[i] = clone(
-          iFlags & (Object.COPY_ENUM_DEEP | Object.COPY_INHERIT),
-          oSource[i]);
-      }
+      oOwner[i] = clone(
+        iFlags & (Object.COPY_ENUM_DEEP | Object.COPY_INHERIT),
+        oSource[i]);
+      oOwner[i].userDefined = true;
     }
   }
 }
-addProperties.PE = true;
 
 /**
  * Creates a duplicate (clone) of an object.
@@ -145,6 +141,7 @@ function clone(iLevel, oSource)
 
   if (!iLevel || (iLevel & Object.COPY_ENUM_DEEP))
   {
+    // TODO: For objects, valueOf() only copies the object reference
     var o2 = oSource.valueOf(), c, i;
 
     // just in case "var i in ..." does not copy the array elements
@@ -178,14 +175,15 @@ function clone(iLevel, oSource)
   }
   else if (iLevel & Object.COPY_INHERIT)
   {
-    return inheritFrom(oSource);
+    var Dummy = function() {};
+    Dummy.prototype = object;
+    return new Dummy();
   }
   else
   {
     return null;
   }
 }
-clone.PE = true;
 
 /**
  * @argument Object o
@@ -216,7 +214,6 @@ function findNewProperty(o)
   }
   return "";
 }
-findNewProperty.PE = true;
 
 /**
  * @optional Object o
@@ -235,110 +232,144 @@ function _hasOwnProperty(o, sProperty)
     o = this;
   }
 
-  var hasHasOwnProperty = typeof o.hasOwnProperty == "function";
+  // see debug.js
+  // printfire(o);
+  // printfire(sProperty);
+  var hasHasOwnProperty = (typeof o.hasOwnProperty == "function");
+
+  // BUG: "Unhandled exception on WrappedNative prototype object" in
+  // Firefox 1.5.0.1, cannot be handled with try..catch
+  // 
+  // Stack trace
+  // ------------
+  // o.hasOwnProperty(sProperty)
+  // object.js:_hasOwnProperty
+  // debug.js:1347
+  // objinsp.js:showProperties
   return ((hasHasOwnProperty && o.hasOwnProperty(sProperty))
           || (!hasHasOwnProperty && typeof o[sProperty] != "undefined"));
 }
-_hasOwnProperty.PE = true;
 
-addProperties(
-  {addProperties  : addProperties,
-   clone          : clone,
-   findNewProperty: findNewProperty,
-   _hasOwnProperty: _hasOwnProperty},
+addProperties({
+    addProperties  : addProperties,
+    clone          : clone,
+    findNewProperty: findNewProperty,
+    _hasOwnProperty: _hasOwnProperty
+  },
   Object.prototype);
 
 /**
  * Inherits one object from another.
  *
- * Pass the `prototype' property of a Function object
- * (a prototype) and assign the return value to the
- * `prototype' property of the child to establish
- * prototype-based inheritance (much like class-based
- * inheritance in Java).  Be sure to call the parent's
- * constructor then within the constructor of the
- * child, using the call() method (or calling it as
- * a method of the inheriting prototype), else changes
- * in the parent will not affect the child.
- *
  * @optional object o
  *   Object from which to inherit.
  * @return type object
- *   The child object.
+ *   Reference to the child object.
  */
 function inheritFrom(o)
 {
-  var Dummy = function() {}
+  var Dummy = function() {};
   Dummy.prototype = o;
   return new Dummy();
 }
-inheritFrom.PE = true;
 
-if (typeof eval == "function")
+if (/^\s*(function|object)\s*$/.test(typeof eval) && eval)
 {
-  /**
-   * Applies a method of another object in the context
-   * of a different object (the calling object).
-   *
-   * @prototype method
-   * @argument object thisArg
-   *   Reference to the calling object.
-   * @argument Array argArray
-   *   Arguments for the object.
-   */
-  var function_apply = function function_apply(thisArg, argArray)
-  {
-    var a = new Array();
-    for (var i = 0, len = argArray.length; i < len; i++)
-    {
-      a[i] = "argArray[" + i +"]";
-    }
-
-    var p = thisArg.findNewProperty();
-    if (p && (thisArg[p] = this));
-    {
-      eval("thisArg[p](" + a.join(", ") + ")");
-      delete thisArg[p];
-    }
-  }
-  function_apply.PE = true;
-
-  /**
-   * Calls (executes) a method of another object in the
-   * context of a different object (the calling object).
-   *
-   * @argument object thisArg
-   *   Reference to the calling object.
-   * @arguments _ _
-   *   Arguments for the object.
-   */
-  var function_call = function function_call(thisArg)
-  {
-    var a = new Array();
-    for (var i = 1, len = arguments.length; i < len; i++)
-    {
-      a[i] = "arguments[" + i + "]";
-    }
-
-    var p = thisArg.findNewProperty();
-    if (p && (thisArg[p] = this));
-    {
-      eval("thisArg[p](" + a.join(", ") + ")");
-      delete thisArg[p];
-    }
-  }
-  function_call.PE = true;
+  // KJS 3.5.1 does not support named FunctionExpressions within Object
+  // literals if the literal is an AssignmentExpression (right-hand side
+  // of an assignment or a passed function argument).
 
   Function.prototype.addProperties({
-    apply: function_apply,
-    call:  function_call
+    /**
+     * Applies a method of another object in the context
+     * of a different object (the calling object).
+     *
+     * @prototype method
+     * @argument object thisArg
+     *   Reference to the calling object.
+     * @argument Array argArray
+     *   Arguments for the object.
+     */
+    apply: function(thisArg, argArray)
+    {
+      var a = new Array();
+      for (var i = 0, len = argArray.length; i < len; i++)
+      {
+        a[i] = "argArray[" + i +"]";
+      }
+  
+      var p = thisArg.findNewProperty();
+      if (p && (thisArg[p] = this));
+      {
+        eval("thisArg[p](" + a.join(", ") + ")");
+        delete thisArg[p];
+      }
+    },
+
+    /**
+     * Calls (executes) a method of another object in the
+     * context of a different object (the calling object).
+     *
+     * @argument object thisArg
+     *   Reference to the calling object.
+     * @arguments _ _
+     *   Arguments for the object.
+     */
+    call: function(thisArg)
+    {
+      var a = new Array();
+      for (var i = 1, len = arguments.length; i < len; i++)
+      {
+        a[i] = "arguments[" + i + "]";
+      }
+  
+      var p = thisArg.findNewProperty();
+      if (p && (thisArg[p] = this));
+      {
+        eval("thisArg[p](" + a.join(", ") + ")");
+        delete thisArg[p];
+      }
+    }
   });
 }
 
-function Exception(s) {
-  this.message = s;
+Function.prototype.addProperties({
+    /**
+     * Includes the prototype object of another object
+     * in the prototype chain of objects created through
+     * the current Function object.
+     * 
+     * Used with constructors to establish prototype-based
+     * inheritance (much like class-based inheritance in Java).
+     * Be sure to call the parent's constructor then within
+     * the constructor of the child, using the call() method
+     * (or calling it as a method of the inheriting prototype),
+     * else changes in the parent will not affect the child.
+     * 
+     * @param constructor: Function
+     *   Constructor from which prototype object should be
+     *   inherited.
+     */
+    extend: function(constructor)
+    {
+      function Dummy() {};
+      Dummy.prototype = constructor;
+      this.prototype = new Dummy();
+      this.prototype.constructor = this;
+      this.userDefined = true;
+    }
+  });
+
+/**
+ * @extends Error
+ */
+function Exception(s)
+{
+  (typeof Error != "undefined")
+    ? Error.call(s)
+    : (this.message = s);
 }
-Exception.PE = true;
+Exception.extend(typeof Error != "undefined" ? Error.prototype : null);
 
 Exception.prototype.addProperties({
   getMessage:      function() { return this.message; },
@@ -346,13 +377,14 @@ Exception.prototype.addProperties({
   printStackTrace: function() { alert(this.getStackTrace()); }
 });
 
+/**
+ * @extends Exception
+ */
 function ObjectException(s)
 {
-  Exception.call(this);
-  this.message = s;
+  Exception.call(this, s);
 }
-ObjectException.PE = true;
-ObjectException.prototype = inheritFrom(Exception.prototype);
+ObjectException.extend(Exception);
 
 /**
  * Raises an ObjectException
@@ -376,4 +408,4 @@ function objectException(sMsg)
 
   return false;
 }
-objectException.PE = true;
+objectException.userDefined = true;
