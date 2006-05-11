@@ -10,16 +10,13 @@
  * @author
  *   (C) 2001-2006  Thomas Lahn &lt;debug.js@PointedEars.de&gt;
  */
-function Debug()
-{
-  this.version   = /** @version */ "0.99.6.2006041415";
-  this.copyright = "Copyright \xA9 1999-2006";
-  this.author    = "Thomas Lahn";
-  this.email     = "debug.js@PointedEars.de";
-  this.path      = "http://pointedears.de/scripts/test/";
-  this.docURL    = this.path + "../debug.htm";
-}
-var debug = new Debug();
+var debug = new Object();
+debug.version   = /** @version */ "0.99.8.2006051120";
+debug.copyright = "Copyright \xA9 1999-2006";
+debug.author    = "Thomas Lahn";
+debug.email     = "debug.js@PointedEars.de";
+debug.path      = "http://pointedears.de/scripts/test/";
+debug.docURL    = debug.path + "../debug.htm";
 /**
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licnse
@@ -39,7 +36,7 @@ var debug = new Debug();
  * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
  */
 
-// reference to the global object
+// reference to the Global Object
 var sGlobal = "_global";
 this[sGlobal] = this;
 
@@ -245,8 +242,14 @@ function printfire()
     var ev = document.createEvent("Events");
     if (ev)
     {
-      ev.initEvent("printfire", false, true);
-      dispatchEvent(ev);
+      setErrorHandler();
+      eval(new Array(
+        'try {',
+        '  ev.initEvent("printfire", false, true);',
+        '  dispatchEvent(ev);',
+        '} catch (e) {}'
+      ).join(""));
+      clearErrorHandler();
     }
   }
 }
@@ -1058,6 +1061,7 @@ function ObjectInfo(sObject, sName, bCalledFromProperty)
   this.forObject(sObject, sName, bCalledFromProperty);
 }
 
+
 /**
  * Once you have a reference to an <code>ObjectInfo</code>
  * object, you may use this method to access another object's
@@ -1102,102 +1106,33 @@ function ObjectInfo(sObject, sName, bCalledFromProperty)
  * @property target: object 
  * @property type: string 
  */
-ObjectInfo.prototype.forObject =
-function objectInfo_forObject(sObject, sName, bCalledFromProperty)
-{
-  this.name =
-    (typeof sObject == "string"
-      ? sObject
-      : (sName ? sName : "_odo"));
-                
-  this.properties = new PropertyArray();
+ObjectInfo.prototype.aStringProperties = [
+  "length", "anchor", "big", "blink", "bold", "charAt", "charCodeAt",
+  "concat", "fixed", "fontcolor", "fontsize", "fromCharCode",
+  "indexOf", "italics", "localeCompare", "lastIndexOf", "link",
+  "match", "replace", "search", "slice", "small", "split", "strike",
+  "sub", "substr", "substring", "sup", "toLowerCase",
+  "toLocaleLowerCase", "toUpperCase", "toLocaleUpperCase"
+];
 
-  if (typeof sObject == "string")
-  {
-    var tc = false;
-    setErrorHandler();
-    eval(new Array(
-        'try {',
-        '  tc = true;',
-        '  this.target = eval(dotsToBrackets(sObject, true));',
-        '} catch (e) {',
-        '  try {',
-        '    this.target = eval(dotsToBrackets(sObject));',
-        '  } catch (e) {',
-        '    try {',
-        '      this.target = _global["' + sObject + '"];',
-        '    } catch (e) {',
-        '      this.target = null;',
-        '    }',
-        '  }',
-        '}').join("\n"));
-    _global.onerror = null;
-    if (! tc)
-    {
-      this.target = null;
-    }
-  }
-  else
-  {
-    this.target = sObject;
-  }
-
-  if (this.target)
-  {
-    this.type = typeof this.target;
-    var ti, t, i;
-
-    // Retrieve enumerable properties
-    for (i in this.target)
-    {
-      // Fixes problem with document.config (Mozilla 1.5b)
-      ti = "";
-      t = null;
-      setErrorHandler();
-      eval(new Array(
-          'try {',
-          '  ti = this.target[i];',
-          '  t = this.target;',
-          '} catch (e) {',
-          '  ti = null;',
-          '  t = null;',
-          '}').join("\n"));
-      clearErrorHandler();
-        
-      // avoid dupes
-      this.properties.addProperty(
-        i,                      // name
-        ti,                     // value
-        this.properties.length, // ID
-        t,                      // owner reference
-        bCalledFromProperty);   // avoid infinity recursion
-    }
-      
-    // Retrieve non-enumerable properties by guessing them
-    /** @property boolean */ this.hasNonEnumProperties = false;
-
-    var aStringProperties =
-         ["length", "anchor", "big", "blink", "bold", "charAt", "charCodeAt",
-          "concat", "fixed", "fontcolor", "fontsize", "fromCharCode",
-          "indexOf", "italics", "localeCompare", "lastIndexOf", "link",
-          "match", "replace", "search", "slice", "small", "split", "strike",
-          "sub", "substr", "substring", "sup", "toLowerCase",
-          "toLocaleLowerCase", "toUpperCase", "toLocaleUpperCase"];
-    var aNonEnumProperties = 
-      [
-       new NonEnumProperties(
-         new RegExp("^\\w"), // any object
-         ["NaN", "Infinity", "__proto__", "eval", "prototype", "toSource",
+ObjectInfo.prototype.addProperties({
+    aNonEnumProperties: [
+      new NonEnumProperties(
+        new RegExp("^\\w"), // any object
+        [
+          "NaN", "Infinity", "__proto__", "eval", "prototype", "toSource",
           "unwatch", "watch", "undefined", "constructor", "toString",
           "toLocaleString", "valueOf", "hasOwnProperty", "isPrototypeOf",
           "propertyIsEnumerable",
           "__defineGetter__", "__defineSetter__",
-          "all"],
-         'object',
-         Object),
-       new NonEnumProperties(
-         new RegExp(sGlobal), // global object
-         ["NaN", "Infinity", "length", "undefined",
+          "all"
+        ],
+        'object',
+        Object),
+      new NonEnumProperties(
+        new RegExp(sGlobal), // global object
+        [
+          "NaN", "Infinity", "length", "undefined",
           "parseInt", "parseFloat", "isNaN", "isFinite",
           "decodeURI", "decodeURIComponent", "encodeURI",
           "encodeURIComponent",
@@ -1206,18 +1141,22 @@ function objectInfo_forObject(sObject, sName, bCalledFromProperty)
           "RangeError", "ReferenceError", "SyntaxError",
           "TypeError", "URIError",
           "Math",
-          "Components", "sidebar"]),
-       new NonEnumProperties(
-         new RegExp("(^|\\.)Array(\\.prototype)?$"),
-         ["every", "filter", "forEach", "index", "indexOf", "input",
+          "Components", "sidebar"
+        ]),
+      new NonEnumProperties(
+        new RegExp("(^|\\.)Array(\\.prototype)?$"),
+        [
+          "every", "filter", "forEach", "index", "indexOf", "input",
           "lastIndexOf", "length", "map", "concat", "join", "pop",
           "push", "reverse", "shift", "slice", "splice", "some",
-          "sort", "unshift"],
-         '',
-         typeof Array != "undefined" ? Array : null),
-       new NonEnumProperties(
-         new RegExp("(^|\\.)Date(\\.prototype)?$"),
-         ["getDate", "getDay", "getFullYear", "getHours", "getMilliseconds",
+          "sort", "unshift"
+        ],
+        '',
+        typeof Array != "undefined" ? Array : null),
+      new NonEnumProperties(
+        new RegExp("(^|\\.)Date(\\.prototype)?$"),
+        [
+          "getDate", "getDay", "getFullYear", "getHours", "getMilliseconds",
           "getMinutes", "getMonth", "getSeconds", "getTime",
           "getTimezoneOffset", "getUTCDate", "getUTCDay", "getUTCFullYear",
           "getUTCHours", "getUTCMilliseconds", "getUTCMinutes",
@@ -1229,235 +1168,326 @@ function objectInfo_forObject(sObject, sName, bCalledFromProperty)
           "setUTCSeconds", "setYear",
           "toDateString", "toGMTString", "toLocaleString", "toTimeString",
           "toLocaleString", "toLocaleDateString", "toLocaleTimeString",
-          "toUTCString", "UTC"],
-         '',
-         typeof Date != "undefined" ? Date : null),
-       new NonEnumProperties(
-         new RegExp("(^|\\.)Function(\\.prototype)?$"),
-         ["arguments", "arguments.callee", "arguments.caller",
-          "arguments.length", "arity", "length", "apply", "call"],
-         'function',
-         typeof Function != "undefined" ? Function : null),
-       new NonEnumProperties(
-         new RegExp("(^|\\.)Math$"),
-         ["E", "LN2", "LN10", "LOG2E", "LOG10E", "PI", "SQRT1_2", "SQRT2",
-          "abs", "acos", "asin", "atan", "atan2", "ceil", "cos", "exp",
-          "floor", "log", "max", "min", "pow", "random", "round", "sin",
-          "sqrt", "tan"]),
-       new NonEnumProperties(
-         new RegExp("(^|\\.)Number(\\.prototype)?$"),
-         ["MAX_VALUE", "MIN_VALUE", "NaN", "NEGATIVE_INFINITY",
-          "POSITIVE_INFINITY", "toExponential", "toFixed", "toPrecision"],
-         'number',
-         typeof Number != "undefined" ? Number : null),
-       new NonEnumProperties(
-         new RegExp("(^|\\.)RegExp(\\.prototype)?$"),
-         ["global", "ignoreCase", "lastIndex", "multiline",
-          "source", "exec", "test"],
-         '',
-         typeof RegExp != "undefined" ? RegExp : null),
-       new NonEnumProperties(
-           new RegExp("(^|\\.)String(\\.prototype)?$"),
-       aStringProperties,
-         'string',
-         typeof String != "undefined" ? String : null),
-       new NonEnumProperties(
-         new RegExp("Error(\\.prototype)?$"),
-         ["message", "name"]),
-       new NonEnumProperties(
-         new RegExp("(^|\\.)Packages(\\.prototype)?$"),
-         ["className", "java", "netscape", "sun"]),
-       new NonEnumProperties(
-         new RegExp("(^|\\.)location$", "i"),
-         ["assign", "hash", "host", "hostname", "href", "pathname",
-          "port", "protocol", "reload", "replace", "search"]
-          .concat(aStringProperties)),
-       new NonEnumProperties(
-         new RegExp("(^|\\.)history$"),
-         ['current', 'length', 'next', 'previous',
-          'back', 'forward', 'go']),
-         new NonEnumProperties(
-         new RegExp("(^|\\.)screen$"),
-         ["availHeight", "availLeft", "availTop", "availWidth", "colorDepth",
-         "height", "left", "pixelDepth", "top", "width"]),
-       // LiveConnect -- Java System Library classes as of version 1.4.2_03
-       new NonEnumProperties(
-         new RegExp("(^|\\.)java$"),
-           ["awt", "beans", "io", "lang", "math", "net", "nio", "rmi",
-            "security", "sql", "text", "util"]),
-       new NonEnumProperties(
-         new RegExp("(^|\\.)java\\.awt$"),
-         ["color", "datatransfer", "dnd", "event", "font", "geom", "im",
+          "toUTCString", "UTC"
+        ],
+        '',
+        typeof Date != "undefined" ? Date : null),
+      new NonEnumProperties(
+        new RegExp("(^|\\.)Function(\\.prototype)?$"),
+        [
+          "arguments", "arguments.callee", "arguments.caller",
+          "arguments.length", "arity", "length", "apply", "call"
+        ],
+        'function',
+        typeof Function != "undefined" ? Function : null),
+      new NonEnumProperties(
+        new RegExp("(^|\\.)Math$"),
+        ["E", "LN2", "LN10", "LOG2E", "LOG10E", "PI", "SQRT1_2", "SQRT2",
+         "abs", "acos", "asin", "atan", "atan2", "ceil", "cos", "exp",
+         "floor", "log", "max", "min", "pow", "random", "round", "sin",
+         "sqrt", "tan"]),
+      new NonEnumProperties(
+        new RegExp("(^|\\.)Number(\\.prototype)?$"),
+        ["MAX_VALUE", "MIN_VALUE", "NaN", "NEGATIVE_INFINITY",
+         "POSITIVE_INFINITY", "toExponential", "toFixed", "toPrecision"],
+        'number',
+        typeof Number != "undefined" ? Number : null),
+      new NonEnumProperties(
+        new RegExp("(^|\\.)RegExp(\\.prototype)?$"),
+        [
+          "global", "ignoreCase", "lastIndex", "multiline",
+          "source", "exec", "test"
+        ],
+        '',
+        typeof RegExp != "undefined" ? RegExp : null),
+      new NonEnumProperties(
+        new RegExp("(^|\\.)String(\\.prototype)?$"),
+        ObjectInfo.prototype.aStringProperties,
+        'string',
+        typeof String != "undefined" ? String : null),
+      new NonEnumProperties(
+        new RegExp("Error(\\.prototype)?$"),
+        ["message", "name"]),
+      new NonEnumProperties(
+        new RegExp("(^|\\.)Packages(\\.prototype)?$"),
+        ["className", "java", "netscape", "sun"]),
+      new NonEnumProperties(
+        new RegExp("(^|\\.)location$", "i"),
+        [
+          "assign", "hash", "host", "hostname", "href", "pathname",
+          "port", "protocol", "reload", "replace", "search"
+        ].concat(ObjectInfo.prototype.aStringProperties)),
+      new NonEnumProperties(
+        new RegExp("(^|\\.)history$"),
+        [
+          'current', 'length', 'next', 'previous',
+          'back', 'forward', 'go'
+        ]),
+      new NonEnumProperties(
+        new RegExp("(^|\\.)screen$"),
+        [
+          "availHeight", "availLeft", "availTop", "availWidth", "colorDepth",
+          "height", "left", "pixelDepth", "top", "width"
+        ]),
+      // LiveConnect -- Java System Library classes as of version 1.4.2_03
+      new NonEnumProperties(
+        new RegExp("(^|\\.)java$"),
+        [
+          "awt", "beans", "io", "lang", "math", "net", "nio", "rmi",
+          "security", "sql", "text", "util"
+        ]),
+      new NonEnumProperties(
+        new RegExp("(^|\\.)java\\.awt$"),
+        [
+          "color", "datatransfer", "dnd", "event", "font", "geom", "im",
           "image", "peer", "print",
           "ActiveEvent", "Adjustable", "AlphaComposite", "AttributeValue",
           "AWTError", "AWTEvent", "AWTEventMulticaster", "AWTException",
           "AWTKeyStroke", "AWTPermission", "BasicStroke", "BorderLayout",
-          "Frame"]),
-       new NonEnumProperties(
-         new RegExp("(^|\\.)java\\.lang$"),
-         ["System"]),
-       new NonEnumProperties(
-         new RegExp("^StyleSheet(\\.prototype)?$"),
-         ["type", "disabled", "ownerNode", "parentStyleSheet", "href",
-          "title", "media"],
-         '',
-         typeof StyleSheet != "undefined" ? StyleSheet : null),
-       new NonEnumProperties(
-         new RegExp("(^|\\.)StyleSheetList(\\.prototype)?$"),
-         ["length", "item"],
-         '',
-         typeof StyleSheetList != "undefined" ? StyleSheetList : null),
-       new NonEnumProperties(
-         new RegExp("(^|\\.)LinkStyle(\\.prototype)?$"),
-         ["sheet"],
-         '',
-         typeof LinkStyle != "undefined" ? LinkStyle : null),
-       new NonEnumProperties(
-         new RegExp("(^|\\.)DocumentStyle(\\.prototype)?$"),
-         ["styleSheets"],
-         '',
-         typeof DocumentStyle != "undefined" ? DocumentStyle : null)
-     ];
-          
-    for (i = aNonEnumProperties.length; i--; 0)
+          "Frame"
+        ]),
+      new NonEnumProperties(
+        new RegExp("(^|\\.)java\\.lang$"),
+        ["System"]),
+      new NonEnumProperties(
+        new RegExp("^StyleSheet(\\.prototype)?$"),
+        [
+          "type", "disabled", "ownerNode", "parentStyleSheet", "href",
+          "title", "media"
+        ],
+        '',
+        typeof StyleSheet != "undefined" ? StyleSheet : null),
+      new NonEnumProperties(
+        new RegExp("(^|\\.)StyleSheetList(\\.prototype)?$"),
+        ["length", "item"],
+        '',
+        typeof StyleSheetList != "undefined" ? StyleSheetList : null),
+      new NonEnumProperties(
+        new RegExp("(^|\\.)LinkStyle(\\.prototype)?$"),
+        ["sheet"],
+        '',
+        typeof LinkStyle != "undefined" ? LinkStyle : null),
+      new NonEnumProperties(
+        new RegExp("(^|\\.)DocumentStyle(\\.prototype)?$"),
+        ["styleSheets"],
+        '',
+        typeof DocumentStyle != "undefined" ? DocumentStyle : null)
+    ],
+
+    forObject: function(sObject, sName, bCalledFromProperty)
     {
-      var j = aNonEnumProperties[i];
-      if (j.pattern.test(this.name)
-          || typeof this.target == j.type
-          || (typeof this.target.constructor != "undefined"
-              && this.target.constructor == j.fConstructor))
+      this.name =
+        (typeof sObject == "string"
+          ? sObject
+          : (sName ? sName : "_odo"));
+      
+      this.properties = new PropertyArray();
+    
+      if (typeof sObject == "string")
       {
-        for (var k = j.names.length; k--; 0)
-        {
-          var p = undefined;
-          eval(new Array(
+        var tc = false;
+        setErrorHandler();
+        eval(new Array(
             'try {',
-            '  if (typeof this.target[j.names[k]] != "undefined") {',
-            '    p = this.target[j.names[k]];',
-            '  }',
+            '  tc = true;',
+            '  this.target = eval(dotsToBrackets(sObject, true));',
             '} catch (e) {',
+            '  try {',
+            '    this.target = eval(dotsToBrackets(sObject));',
+            '  } catch (e) {',
+            '    try {',
+            '      this.target = _global["' + sObject + '"];',
+            '    } catch (e) {',
+            '      this.target = null;',
+            '    }',
+            '  }',
             '}').join("\n"));
-                       
-          // see object.js
-          if (this.target._hasOwnProperty(j.names[k]))
-          {
-            this.hasNonEnumProperties = true;
-            
-            ti = "";
-            t = null;
-            setErrorHandler();
-            eval(new Array(
+        _global.onerror = null;
+        if (! tc)
+        {
+          this.target = null;
+        }
+      }
+      else
+      {
+        this.target = sObject;
+      }
+    
+      if (this.target)
+      {
+        this.type = typeof this.target;
+        var ti, t, i;
+    
+        // Retrieve enumerable properties
+        for (i in this.target)
+        {
+          // Fixes problem with document.config (Mozilla 1.5b)
+          ti = "";
+          t = null;
+          setErrorHandler();
+          eval(new Array(
               'try {',
-              '  ti = p;',
+              '  ti = this.target[i];',
               '  t = this.target;',
               '} catch (e) {',
               '  ti = null;',
               '  t = null;',
               '}').join("\n"));
-            clearErrorHandler();
-
-            // avoid dupes
-            this.properties.addProperty(
-              j.names[k],             // name
-              ti,                     // value
-              this.properties.length, // ID
-              t,                      // owner reference
-              true);                  // is non-enumerable
-          }
+          clearErrorHandler();
+            
+          // avoid dupes
+          this.properties.addProperty(
+            i,                      // name
+            ti,                     // value
+            this.properties.length, // ID
+            t,                      // owner reference
+            bCalledFromProperty);   // avoid infinity recursion
         }
-      } 
-    }
-    this.hasProperties = (this.properties.length > 0);
-
-    return this;
-  }
-  else
-  {
-    this.type = "undefined";
-    this.hasProperties = false;
-
-    return null;
-  }
-}
-
-/**
- * @param rxName : optional RegExp = .*
- * @param rxType : optional string = //
- * @param bInvert : optional boolean = false
- * @param aValue : optional _ = undefined
- * @return type PropertyArray
- *   An array with the data of all properties that
- *   match the passed conditions as elements.
- */    
-ObjectInfo.prototype.getProperties =
-function objectInfo_getProperties(rxName, rxType, bInvert, aValue)
-{
-  if (typeof rxType == "string")
-  {
-    rxType = new RegExp(rxType, "i");
-  }
-  
-  if (typeof rxName != "object" || !rxName.test)
-  {
-    rxName = new RegExp(rxName);
-  }
-  
-  if (!rxName.test)
-  {
-    rxName = null;
-  }
-
-  var a = new PropertyArray();
+          
+        // Retrieve non-enumerable properties by guessing them
+        /** @property boolean */ this.hasNonEnumProperties = false;
     
-  for (var i = 0, len = this.properties.length; i < len; i++)
-  {
-    var p = this.properties.items[i];
+              
+        for (i = this.aNonEnumProperties.length; i--; 0)
+        {
+          var j = this.aNonEnumProperties[i];
+          if (j.pattern.test(this.name)
+              || typeof this.target == j.type
+              || (typeof this.target.constructor != "undefined"
+                  && this.target.constructor == j.fConstructor))
+          {
+            for (var k = j.names.length; k--; 0)
+            {
+              var p = undefined;
+              eval(new Array(
+                'try {',
+                '  if (typeof this.target[j.names[k]] != "undefined") {',
+                '    p = this.target[j.names[k]];',
+                '  }',
+                '} catch (e) {',
+                '}').join("\n"));
+                           
+              // see object.js
+              if (typeof this.target._hasOwnProperty == "function"
+                  && this.target._hasOwnProperty(j.names[k]))
+              {
+                this.hasNonEnumProperties = true;
+                
+                ti = "";
+                t = null;
+                setErrorHandler();
+                eval(new Array(
+                  'try {',
+                  '  ti = p;',
+                  '  t = this.target;',
+                  '} catch (e) {',
+                  '  ti = null;',
+                  '  t = null;',
+                  '}').join("\n"));
+                clearErrorHandler();
     
-    var b = ((rxName && rxName.test(p.name)) || !rxName)
-             && ((rxType && rxType.test(p.type.toLowerCase()))
-                 || !rxType)
-             && ((arguments.length >= 4 && aValue == p.value)
-                 || arguments.length < 4);
+                // avoid dupes
+                this.properties.addProperty(
+                  j.names[k],             // name
+                  ti,                     // value
+                  this.properties.length, // ID
+                  t,                      // owner reference
+                  true);                  // is non-enumerable
+              }
+            }
+          } 
+        }
+        this.hasProperties = (this.properties.length > 0);
+    
+        return this;
+      }
+      else
+      {
+        this.type = "undefined";
+        this.hasProperties = false;
+    
+        return null;
+      }
+    },
 
-    if (bInvert)
+    /**
+     * @param rxName : optional RegExp = .*
+     * @param rxType : optional string = //
+     * @param bInvert : optional boolean = false
+     * @param aValue : optional _ = undefined
+     * @return type PropertyArray
+     *   An array with the data of all properties that
+     *   match the passed conditions as elements.
+     */    
+    getProperties: function(rxName, rxType, bInvert, aValue)
     {
-      b = !b;
-    }
+      if (typeof rxType == "string")
+      {
+        rxType = new RegExp(rxType, "i");
+      }
+      
+      if (typeof rxName != "object" || !rxName.test)
+      {
+        rxName = new RegExp(rxName);
+      }
+      
+      if (!rxName.test)
+      {
+        rxName = null;
+      }
     
-    if (b)
+      var a = new PropertyArray();
+        
+      for (var i = 0, len = this.properties.length; i < len; i++)
+      {
+        var p = this.properties.items[i];
+        
+        var b = ((rxName && rxName.test(p.name)) || !rxName)
+                 && ((rxType && rxType.test(p.type.toLowerCase()))
+                     || !rxType)
+                 && ((arguments.length >= 4 && aValue == p.value)
+                     || arguments.length < 4);
+    
+        if (bInvert)
+        {
+          b = !b;
+        }
+        
+        if (b)
+        {
+          a.addProperty(p.name, p.value, p.id, p.owner, !p.enumerable);
+        }
+      }
+      
+      return a;
+    },
+
+    toString: function()
     {
-      a.addProperty(p.name, p.value, p.id, p.owner, !p.enumerable);
+      var s = "";
+      setErrorHandler();
+      eval(new Array(
+          'try {',
+          '  for (var i = 0; i < this.properties.length; i++) {',
+          '    var p = this.properties[i];',
+          '    s += new Array(',
+          '        "[" + p.id + "] ",',
+          '        p.name,',
+          '        " : " + p.type,',
+          '        " = ",',
+          '        (p.type == "string" ? "\\"" : ""),',
+          '        p.value,',
+          '        (p.type == "string" ? "\\"" : ""),',
+          '        "\\n").join("");',
+          '  }',
+          '} catch (e) {',
+          '  s = e;',
+          '}').join("\n"));
+      clearErrorHandler();
+    
+      return s;
     }
-  }
-  
-  return a;
-}
-
-ObjectInfo.prototype.toString = function objectInfo_toString()
-{
-  var s = "";
-  setErrorHandler();
-  eval(new Array(
-      'try {',
-      '  for (var i = 0; i < this.properties.length; i++) {',
-      '    var p = this.properties[i];',
-      '    s += new Array(',
-      '        "[" + p.id + "] ",',
-      '        p.name,',
-      '        " : " + p.type,',
-      '        " = ",',
-      '        (p.type == "string" ? "\\"" : ""),',
-      '        p.value,',
-      '        (p.type == "string" ? "\\"" : ""),',
-      '        "\\n").join("");',
-      '  }',
-      '} catch (e) {',
-      '  s = e;',
-      '}').join("\n"));
-  clearErrorHandler();
-
-  return s;
-}
+  });
 
 var sDefaultInspectorPath = debug.path + "ObjectInspector/obj-insp.html";
 var sNoObj = "[Not an object]";
