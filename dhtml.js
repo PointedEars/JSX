@@ -2,6 +2,7 @@
  * <title>PointedEars' DHTML Library</title>
  * @partof
  *   PointedEars JavaScript Extensions (JSX)
+ * @requires types.js
  * @source Based upon
  *   @link{
  *     selfhtml#dhtml/beispiele/dhtml_bibliothek.htm,
@@ -11,8 +12,11 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2002-2005 Thomas Lahn <dhtml.js@PointedEars.de>,
- *   Parts (C) 2004  Ulrich Kritzner <droeppez@web.de>
+ *   (C) 2002-2006 Thomas Lahn <dhtml.js@PointedEars.de>,
+ *       2001      SELFHTML e.V. <stefan.muenz@selfhtml.org> et al.,
+ *       2004      Ulrich Kritzner <droeppez@web.de> (loadScript),
+ *       2005      MozillaZine Knowledge Base contributors (DOM XPath):
+ *                 Eric H. Jung <grimholtz@yahoo.com> et al.
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -67,7 +71,6 @@
  *   has a defined return value.
  */
 /*
- *
  * Refer dhtml.htm file for a printable
  * documentation. 
  *
@@ -78,9 +81,9 @@
 
 function DHTML()
 {
-  this.version   = "0.9.2005050817";
+  this.version   = "0.9.2006051616";
 // var dhtmlDocURL = dhtmlPath + "dhtml.htm";
-  this.copyright = "Copyright \xA9 2002-2005";
+  this.copyright = "Copyright \xA9 2002-2006";
   this.author    = "Thomas Lahn";
   this.email     = "dhtml.js@PointedEars.de";
   this.path      = "http://pointedears.de/scripts/";
@@ -88,32 +91,11 @@ function DHTML()
 //  this.docURI    = this.path + "dhtml.htm";
   this.allowExceptionMsg = true;
 
-  /**
-   * @author
-   *   (C) 2003, 2004  Thomas Lahn &lt;types.js@PointedEars.de&gt;
-   * @partof
-   *   http://pointedears.de/scripts/types.js
-   * @optional string s
-   *   String to be determined a method type, i.e. "object"
-   *   in IE, "function" otherwise.  The type must have been
-   *   retrieved with the `typeof' operator, thus this method
-   *   is applicable to unknown properties while
-   *   @link{#isMethod()} is not.
-   * @return type boolean
-   *   <code>true</code> if <code>s</code> is a method type,
-   *   <code>false</code> otherwise.
-   * @see isMethod()
-   */
-  this.isMethodType = function dhtml_isMethodType(s)
-  {
-    return (s == "function" || s == "object");
-  };
-
   if (typeof document != "undefined")
   {
     var hasDocumentAll = false;
 
-    if (this.isMethodType(typeof document.getElementById))
+    if (this.isMethod(document.getElementById))
     {
       this.getElemById = function dhtml_getElemById(s)
       {
@@ -121,7 +103,8 @@ function DHTML()
         return document.getElementById(s);
       };
     }
-    else if ((hasDocumentAll = this.isMethodType(typeof document.all)))
+    else if ((hasDocumentAll = this.isMethodType(typeof document.all))
+             && document.all)
     {
       this.getElemById = function dhtml_getElemById(s)
       {
@@ -138,8 +121,9 @@ function DHTML()
 
     var hasDocumentLayers = false;
   
-    if (this.isMethodType(typeof document.getElementsByName))
+    if (this.isMethod(document.getElementsByName))
     {
+      // W3C DOM Level 2 HTML
       this.getElemByName = function(s, i)
       {
         var result = document.getElementsByName(s);
@@ -152,6 +136,7 @@ function DHTML()
     }
     else if (hasDocumentAll)
     {
+      // IE4 DOM
       this.getElemByName = function dhtml_getElemByName(s, i)
       {
         var result = document.all(s);
@@ -164,6 +149,7 @@ function DHTML()
     }
     else if ((hasDocumentLayers = (typeof document.layers == "object")))
     {
+      // NN4 DOM
       this.getElemByName = function dhtml_getElemByName(s, i)
       {
         var result = document.layers[s];
@@ -183,10 +169,40 @@ function DHTML()
     }
 
     var hasGetElementsByTagName;
-    
-    if ((hasGetElementsByTagName =
-          this.isMethodType(typeof document.getElementsByTagName)))
+
+    if (this.isMethodType(typeof document.evaluate)
+        && document.evaluate)
     {
+      // W3C DOM Level 3 XPath
+      this.getElemByTagName = function dhtml_getElemByTagName(s, i)
+      {
+        if (!s)
+        {
+          s = '*';
+        }
+
+        var result = document.evaluate('//' + s, document, null, 0, null);
+        if (result)
+        {
+          var found = [], res;
+          while ((res = result.iterateNext()))
+          {
+            found.push(res);
+          }
+            
+          if (!isNaN(i) && i > -1)
+          {
+            result = found[i];
+          }
+        }
+
+        return result;
+      };
+    }
+    else if ((hasGetElementsByTagName =
+                this.isMethod(document.getElementsByTagName)))
+    {
+      // W3C DOM Level 2 Core
       this.getElemByTagName = function dhtml_getElemByTagName(s, i)
       {
         if (!s)
@@ -199,10 +215,12 @@ function DHTML()
         {
           result = result[i];
         }
+
         return result;
       };
     }
-    else if (hasDocumentAll && this.isMethodType(typeof document.all.tags))
+    else if (hasDocumentAll && this.isMethodType(typeof document.all.tags)
+             && document.all.tags)
     {
       this.getElemByTagName = function dhtml_getElemByTagName(s, i)
       {
@@ -226,7 +244,7 @@ function DHTML()
     {
       this.getElemByIndex = function dhtml_getElemByIndex(i)
       {
-        return result = document.getElementsByTagName('*')[i];
+        return (result = document.getElementsByTagName('*')[i]);
       };
     }
     else if (hasDocumentAll)
@@ -269,10 +287,11 @@ function DHTML()
         }
       }
     }
+
     return result;
   };
 
-  this.isW3CDOM = this.isMethodType(typeof document.getElementById);
+  this.isW3CDOM = this.isMethod(document.getElementById);
   this.isOpera  = typeof window.opera != "undefined";
   this.isNS4DOM =
     (typeof window.netscape != "undefined"
@@ -294,25 +313,18 @@ function DHTML()
     || (this.isIE4DOM && this.IE4DOM)
     || (this.isNS4DOM && this.NS4DOM);
 }
-var dhtml = new DHTML();
 
-/**
- * General error capturing function
- *
- * @return type boolean
- */ 
-DHTML.prototype.dummyError =
-function dhtml_dummyError()
-{
-  onerror = null;
-  return true;
-};
+// imports from types.js, for backwards compatibility only
+DHTML.prototype.isMethod = isMethod;
+DHTML.prototype.isMethodType = isMethodType;
+
+var dhtml = new DHTML();
 
 /**
  * Shows an exception alert and allows for
  * displaying a stack trace.
  *
- * @optional string sMsg = ""
+ * @param sMsg : optional string = ""
  *   Error message to be displayed.
  * @return type boolean
  */
@@ -325,7 +337,7 @@ function DHTMLException(sMsg)
   }
   dhtml.allowExceptionMsg = false;
   
-  onerror = dhtml.dummyError;
+  setErrorHandler();
   eval(
       'try {'
     + '  delete bar;'
@@ -333,7 +345,7 @@ function DHTMLException(sMsg)
     + '} catch (e) {'
     + '  var stackTrace = e.stack || "";'
     + '}');
-  dhtml.dummyError();
+  clearErrorHandler();
   
   alert(
     "dhtml.js "
@@ -361,13 +373,13 @@ function DHTMLException(sMsg)
  *   (C) 2003, 2004  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @argument string sType
+ * @param sType : string
  *   Defines the type of <code>sValue</code>. Valid values are
  *   "id", "name", "tagname", "index" and "classname". The
  *   argument is case-insensitive.
- * @optional string sValue
+ * @param sValue : optional string
  *   Case-sensitive ID, name or tag name of object (collection).
- * @optional number index
+ * @param index : optional number
  *   Optional. Numeric index of an element of the selected
  *   collection. For IDs must be unique throughout a document,
  *   this argument is ignored if <code>sType</code> is "id".
@@ -388,17 +400,14 @@ function getElem(sType, sValue, index)
       + ' (case-insensitive).');
   }
 
-  if (!sType
-      || typeof sType != "string"
-      || !sType.toLowerCase)
+  if (!sType || typeof sType != "string" || !sType.toLowerCase)
   {
     DHTMLException(
         "getElem: Invalid type: " + sType + "\n"
       + "Must be String.");
   }
 
-  if (!sValue
-      || typeof sValue != "string")
+  if (!sValue || typeof sValue != "string")
   {
     DHTMLException(
         "getElem: Invalid value: " + sValue + "\n"
@@ -438,33 +447,24 @@ function getElem(sType, sValue, index)
 DHTML.prototype.getElem = getElem;
 
 /**
- * Retrieves the content of an HTMLElement object that matches
- * certain criteria.
+ * Retrieves the content of an HTMLElement object.
  * 
  * @author
- *   (C) 2003, 2004  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   (C) 2003-2005  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @argument string sType
- *   Defines the type of <code>sValue</code>. Valid values are
- *   "id", "name" and "tagname". The argument is case-insensitive.
- * @argument string sValue
- *   Case-sensitive ID, name or tag name of object (collection).
- * @optional number index
- *   Optional. Numeric index of an element of the selected
- *   collection. For IDs must be unique throughout a document,
- *   this argument is ignored if <code>sType</code> is "id".
- * @optional boolean bHTML
+ * @param o : HTMLElement
+ *   Element which content is to be retrieved.
+ * @param bHTML : optional boolean
+ *   If <code>true</code>, returns the HTML content instead of
+ *   the text content in case the latter cannot be retrieved.
  * @return type string
- *  A string with the content of the object if <code>sType</code>
- *  is "id", or if it is "name" or "tagname" and
- *  <code>index</code> is specified; a null-string if no matching
- *  object exists or if the DOM does not provide retrieval of the
- *  object's content.
+ *  A string with the content of the element; a null-string if
+ *  no such element object exists or if the DOM does not provide
+ *  retrieval of the element's content.
  */
-function getCont(sType, sValue, index, bHTML)
+function getCont(o, bHTML)
 {
-  var o = getElem(sType, sValue, index);
   var sResult = "";
 
   if (o)
@@ -474,7 +474,7 @@ function getCont(sType, sValue, index, bHTML)
     {
       if (typeof o.firstChild.nodeType != "undefined"
           && o.firstChild.nodeType ==
-            /* W3C-DOM 2 o.firstChild.TEXT_NODE constant n/a in IE and O7 */
+            /* W3C-DOM 2 o.firstChild.TEXT_NODE constant is N/A in IE and O7 */
             ((typeof o.firstChild.TEXT_NODE != "undefined"
               && o.firstChild.TEXT_NODE)
              || 3))
@@ -502,66 +502,56 @@ function getCont(sType, sValue, index, bHTML)
 DHTML.prototype.getCont = getCont;
 
 /**
- * Specifies the content of an HTMLElement object that matches
- * certain criteria.
+ * Specifies the content of an HTMLElement object.
  *
  * @author
- *   (C) 2003  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   (C) 2003-2005  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @argument string sType
- *   Defines the type of <code>sValue</code>. Valid values are
- *   "id", "name" and "tagname". The argument is case-insensitive.
- * @argument string sValue
- *   Case-sensitive ID, name or tag name of object (collection).
- * @optional number index
- *   Optional. Numeric index of an element of the selected
- *   collection. For IDs must be unique throughout a document,
- *   this argument is ignored if <code>sType</code> is "id".
- * @argument string sNodeValue
+ * @param o : HTMLElement
+ *   Element which content is to be changed.
+ * @param sNodeValue : string
  *   New content of the element.
  * @returns
  *   <code>true</code> if successful, <code>false</code>
  *   otherwise.
  */
-function setCont(sType, sValue, index, sNodeValue)
+function setCont(o, sNodeValue)
 {
-  var o = getElem(sType, sValue, index);
-
-  if (dhtml.isW3CDOM && o)
+  if (o)
   {
-    if (typeof o.firstChild != "undefined")
+    if (dhtml.isW3CDOM)
     {
-      o.firstChild.nodeValue = sNodeValue;
+      if (typeof o.firstChild != "undefined")
+      {
+        o.firstChild.nodeValue = sNodeValue;
+      }
+      else if (typeof o.nodeValue != "undefined")
+      {
+        o.nodeValue = sNodeValue;
+      }
+  
+      return true;   
     }
-    else if (typeof o.nodeValue != "undefined")
+    else if (dhtml.isIE4DOM)
     {
-      o.nodeValue = sNodeValue;
+      o.innerText = sNodeValue;
+      return true;
     }
+    else if (dhtml.isNS4DOM
+             && o.document
+             && o.document.open
+             && o.document.write
+             && o.document.close)
+    {
+      o.document.open();
+      o.document.write(sNodeValue);
+      o.document.close();
+      return true;
+    }
+  }
 
-    return true;   
-  }
-  else if (dhtml.isIE4DOM && o)
-  {
-    o.innerText = sNodeValue;
-    return true;
-  }
-  else if (dhtml.isNS4DOM
-           && o
-           && o.document
-           && o.document.open
-           && o.document.write
-           && o.document.close)
-  {
-    o.document.open();
-    o.document.write(sNodeValue);
-    o.document.close();
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+  return false;
 }
 DHTML.prototype.setCont = setCont;
 
@@ -572,7 +562,7 @@ DHTML.prototype.setCont = setCont;
  *   (C) 2005 Thomas Lahn <dhtml.js@PointedEars.de>
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @argument Node oNode
+ * @param oNode : Node
  *   Reference to the document node.
  * @return type string
  *   The text content of @{(oNode)}.
@@ -624,7 +614,7 @@ DHTML.prototype.getTextContent = getTextContent;
  *   (C) 2005 Thomas Lahn <dhtml.js@PointedEars.de>
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @argument Node oNode
+ * @param oNode : Node
  *   Reference to the document node.
  * @return type boolean
  *   <code>true</code> if successful, <code<false</code> otherwise.
@@ -672,19 +662,19 @@ DHTML.prototype.setTextContent = setTextContent;
  *   (C) 2003  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @argument string sType
+ * @param sType : string
  *   Defines the type of <code>sValue</code>. Valid
  *   values are "id", "name" and "tagname". The argument is
  *   case-insensitive.
- * @argument string sValue
+ * @param sValue : string
  *   Case-sensitive ID, name or tag name of object
  *   (collection).
- * @optional number index
+ * @param index : optional number
  *   Optional. Numeric index of an element of the
  *   selected collection. For IDs must be unique throughout a
  *   document, this argument is ignored if <code>sType</code>
  *   is "id".
- * @argument string sAttrName
+ * @param sAttrName : string
  *   Name of the attribute from which the value
  *   should be retrieved.
  * @return
@@ -724,147 +714,279 @@ function getAttr(sType, sValue, index, sAttrName)
 DHTML.prototype.getAttr = getAttr;
 
 /**
- * Sets the value of an attribute of an HTMLElement object
- * that matches certain criteria.
+ * Sets the value of an attribute of an HTMLElement object.
  * 
  * @author
- *   (C) 2003  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   (C) 2003, 2006  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @argument string sType
- *   Defines the type of <code>sValue</code>.  Valid
- *   values are "id", "name" and "tagname".  The argument
- *   is case-insensitive.
- * @argument string sValue
- *   Case-sensitive ID, name or tag name of object
- *   (collection).
- * @optional number index
- *   Optional. Numeric index of an element of the
- *   selected collection. For IDs must be unique throughout a
- *   document, this argument is ignored if <code>sType</code>
- *   is "id".
- * @argument string sAttrName
- *   Name of the attribute of which the value should be set.
- * @argument _ attrValue
- *   Value of the attribute to be set.
+ * @param sAttrName: string
+ *   Name of the attribute for which the value should be set.
+ *   Attribute names for which an ECMAScript language binding
+ *   is defined in W3C DOM Level 2 HTML, are automatically
+ *   mapped to the corresponding element object property.
+ *   All attribute names are automatically mapped to their
+ *   camelCased equivalent.
+ * 
+ *   Semicolon-separated style property declarations (in
+ *   form of colon-separated name-value pairs each) of a
+ *   <code>style</code> attribute value are mapped to the
+ *   corresponding properties of the object referenced by
+ *   the <code>style</code> property of the element object.
+ *   Declarations are evaluated from left to right, where
+ *   property values complement or replace the previously
+ *   defined ones.
+ * @param attrValue
+ *   Value of the attribute to be set.  The value is
+ *   converted to number if it can be interpreted as such.
  * @returns
- *   The value of of the object if <code>sType</code> is "id",
- *   or if it is "name" or "tagname" and <code>index</code> is
- *   specified;
+ *   The value of the attribute of the element object;
  *   a null-string if no matching object exists or if the DOM
  *   does not provide retrieval of the attribute's values.
  */
-function setAttr(sType, sValue, index, sAttrName, attrValue)
+function setAttr(o, sAttrName, attrValue)
 {
-  var o = getElem(sType, sValue, index);
+  var result = "";
   
-  if ((dhtml.isW3CDOM || dhtml.isIE4DOM) && o)
+  if (o && sAttrName)
   {
-    o.setAttribute(sAttrName, attrValue, 0);
-    return true;
-  }
-  else if (dhtml.isNS4DOM)
-  {
-    o = getElem(sType, sValue)
-    if (o)
+    var attrMap = {
+      alink: "aLink",
+      accesskey: "accessKey",
+      bgcolor: "bgColor",
+      cellpadding: "cellPadding",
+      cellspacing: "cellSpacing",
+      "char": "ch",
+      charoff: "chOff",
+      "class": "className",
+      codebase: "codeBase",
+      codetype: "codeType",
+      datetime: "dateTime",
+      frameborder: "frameBorder",
+      htmlfor: "htmlFor",
+      ismap: "isMap",
+      longdesc: "longDesc",
+      maxlength: "maxLength",
+      marginheight: "marginHeight",
+      marginwidth: "marginWidth",
+      nohref: "noHref",
+      noresize: "noResize",
+      noshade: "noShade",
+      nowrap: "noWrap",
+      readonly: "readOnly",
+      rowspan: "rowSpan",
+      tabindex: "tabIndex",
+      usemap: "useMap",
+      valuetype: "valueType",
+      vlink: "vLink"
+    };
+  
+    // camel-case specific attribute names
+    if (typeof attrMap[sAttrName] != "undefined")
     {
-      var o2 = getElem(sType, sValue)[index];
-      if (typeof o2 == "oect")
+      sAttrName = attrMap[sAttrName];
+    }
+    
+    var
+      hyphenatedToCamelCase = function(s)
       {
-        o2[sAttrName] = attrValue;
+        return s.replace(
+          /-([a-z])/g,
+          function(match, p1, offset, input)
+          {
+            return p1.toUpperCase();
+          })
+      },
+    
+      strToValue = function(s)
+      {
+        s = s.replace(/^["']|["']$/g, "");
+        return isNaN(s) ? s : +s;
+      };
+    
+    // camel-case hyphenated attribute names
+    sAttrName = hyphenatedToCamelCase(sAttrName);
+    
+    if (typeof attrValue != "undefined")
+    {
+      attrValue = strToValue(attrValue);
+      if (sAttrName == "style" && typeof attrValue == "string")
+      {
+        var styleProps = attrValue.split(/\s*;\s*/);
+        for (var j = 0, len = styleProps.length; j < len; j++)
+        {
+          var
+            stylePair = styleProps[j].split(/\s*:\s*/),
+            stylePropName =
+              hyphenatedToCamelCase(stylePair[0].toLowerCase());
+          
+          dhtml.setStyleProperty(o, stylePropName,
+            strToValue(stylePair[1]));
+          result = dhtml.getStyleProperty(o, stylePropName);
+        }
       }
       else
       {
-        o[sAttrName] = attrValue;
+        result = o[sAttrName] = attrValue;
       }
     }
-    return true;
+    else if (!(o[sAttrName] = true))
+    {
+      result = o[sAttrName] = sAttrName;
+    }
   }
-  else
-  {
-    return false;
-  }
+  
+  return result;
 }
 DHTML.prototype.setAttr = setAttr;
 
 /**
- * Sets the value of a style property of an HTMLElement object
- * that matches certain criteria.
+ * Retrieves the value of a style property of an HTMLElement object.
  * 
  * @author
- *   (C) 2003  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   (C) 2005  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @argument string sType
- *   Defines the type of <code>sValue</code>.  Valid
- *   values are "id", "name" and "tagname".  The argument
- *   is case-insensitive.
- * @argument string sValue
- *   Case-sensitive ID, name or tag name of object
- *   (collection).
- * @optional number index
- *   Optional. Numeric index of an element of the
- *   selected collection. For IDs must be unique throughout a
- *   document, this argument is ignored if <code>sType</code>
- *   is "id".
- * @argument string sPropertyName
- *   Name of the style property of which the value should be set.
- * @argument _ propValue
- *   Value of the style property to be set.
- * @returns
- *   The value of of the object if <code>sType</code> is "id",
- *   or if it is "name" or "tagname" and <code>index</code> is
- *   specified;
- *   a null-string if no matching object exists or if the DOM
- *   does not provide retrieval of the attribute's values.
+ * @argument o : HTMLElement
+ *   Reference to the element object which style is to be modified.
+ * @argument sPropertyName : string
+ *   Name of the style property of which the value should be retrieved.
+ *   If "display", and there is no
+ *   <code>style[<var>sPropertyName</var>]</code> property,
+ *   "visibility" is used instead (fallback for the NN4 DOM).
+ * @return
+ *   <code>null</code> if no matching object exists or if the
+ *   DOM does not provide for retrieval of the property value.
  */
-function setStyleProperty(sType, sValue, index, sPropertyName, propValue)
+function getStyleProperty(o, sPropertyName)
 {
-  var o = getElem(sType, sValue, index);
-  
+  if (o)
+  {
+    if (typeof o.style != "undefined"
+        && typeof o.style[sPropertyName] != "undefined")
+    {
+      return o.style[sPropertyName];
+    }
+    else
+    {
+      if (sPropertyName == "display") sPropertyName = "visibility";
+      
+      if (typeof o[sPropertyName] != "undefined")
+      {
+        return o[sPropertyName];
+      }
+    }
+  }
+
+  return null;
+}
+DHTML.prototype.getStyleProperty = getStyleProperty;
+
+/**
+ * Determines whether an HTMLElement object has a style property or not.
+ * 
+ * @author
+ *   (C) 2006  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ * @partof
+ *   http://pointedears.de/scripts/dhtml.js
+ * @argument o : HTMLElement
+ *   Reference to the element object which style property is to be retrieved.
+ * @argument sPropertyName : string
+ *   Name of the style property which is to be checked.
+ *   If "display", and there is no
+ *   <code>style[<var>sPropertyName</var>]</code> property,
+ *   "visibility" is used instead (fallback for the NN4 DOM).
+ * @return
+ *   <code>false</code> if no matching object exists or if the
+ *   DOM does not provide for retrieval of the property value;
+ *   <code>true</code> otherwise.
+ */
+function hasStyleProperty(o, sPropertyName)
+{
+  return (getStyleProperty(o, sPropertyName) == null);
+}
+DHTML.prototype.hasStyleProperty = hasStyleProperty;
+
+/**
+ * Sets the value of a style property of an HTMLElement object.
+ * 
+ * @author
+ *   (C) 2003-2006  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ * @partof
+ *   http://pointedears.de/scripts/dhtml.js
+ * @argument o: HTMLElement
+ *   Reference to the element object which style is to be modified.
+ * @argument sPropertyName: string
+ *   Name of the style property of which the value should be set.
+ *   If "display", there is no <code>style[<var>sPropertyName</var>]</code>
+ *   property, and <code>altValue</code> was provided, "visibility" is used
+ *   instead (fallback for the NN4 DOM).
+ * @argument propValue
+ *   Value of the style property to be set.
+ * @argument altValue: optional _
+ *   Alternative value to be set if the the style property is a property of
+ *   the object itself instead of its `style' property.  Fallback for the
+ *   NN4 DOM.
+ * @return
+ *   <code>false</code> if no such object exists or if the
+ *   DOM does not provide for setting the property value.
+ * @type boolean
+ */
+function setStyleProperty(o, sPropertyName, propValue, altValue)
+{
   if (o)
   {
     if (typeof o.style != "undefined")
     {
       if (typeof o.style[sPropertyName] != "undefined")
       {
+        // NOTE: Shortcut evaluation changed behavior
         o.style[sPropertyName] = propValue;
+        return (String(o.style[sPropertyName]).toLowerCase()
+          == String(propValue).toLowerCase());
       }
-      return (o.style[sPropertyName] == propValue);
     }
     else
     {
+      if (sPropertyName == "display" && altValue)
+      {
+        sPropertyName = "visibility";
+      }
+      
       if (typeof o[sPropertyName] != "undefined")
       {
-        o[sPropertyName] = propValue;
+        var newValue = (altValue || propValue);
+        o[sPropertyName] = newValue;
+        return (String(o[sPropertyName]).toLowerCase()
+          == String(newValue).toLowerCase());
       }
-      return (o[sPropertyName] == propValue);
     }
   }
-  else
-  {
-    return false;
-  }
+
+  return false;
 }
 DHTML.prototype.setStyleProperty = setStyleProperty;
 
 /**
- * Allows or prevents rendering of the a DOM object.
+ * Retrieves the rendering state or (dis)allows rendering of a DOM object.
  *
  * @author
- *   (C) 2004  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   (C) 2004-2006  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @argument HTMLElement o
+ * @argument o: HTMLElement
  *   Reference to the DOM object to be rendered or not.
- * @argument boolean bShow
+ * @argument bRender: boolean
  *   Renders the object referenced by <code>o</code> if
  *   <code>true</code>, does not render it if <code>false</code>.
  *   Note that not to render an element is different from
- *   hiding it as the space it would take up is then not
+ *   hiding it, as the space it would take up is then no
  *   longer reserved.
+ *   
+ *   If this argument is omitted, the current property value is returned.
  * @return type boolean
- *   <code>true</code> if successful,
+ *   When retrieving: <code>true</code> if visible, <code>false</code>
+ *   otherwise; when setting: <code>true</code> if successful,
  *   <code>false</code> otherwise.
  * @see
  *   visibility()
@@ -875,16 +997,15 @@ function display(o, bShow)
 
   if (o)
   {
-    if (typeof o.style != "undefined"
-        && typeof o.style.display != "undefined")
+    if (arguments.length > 1)
     {
-      o.style.display = bShow ? "" : "none";
-      result = (o.style.display == bShow ? "" : "none");
+      result = setStyleProperty(o, "display",
+        bShow ? ""     : "none",
+        bShow ? "show" : "hide");
     }
-    else if (typeof o.visibility != "undefined")
+    else
     {
-      o.visibility = bShow ? "show" : "hide";
-      result = (o.visibility == bShow ? "show" : "hide");
+      result = /^(\s*|show)$/.test(getStyleProperty(o, "display"));
     }
   }
   
@@ -893,48 +1014,51 @@ function display(o, bShow)
 DHTML.prototype.display = display;
 
 /**
- * Shows or hides a DOM object.
+ * Retrieves or sets the visibility of a DOM object.
  *
  * @author
- *   (C) 2004  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   (C) 2004-2006  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @argument HTMLElement o
+ * @argument o : HTMLElement
  *   Reference to the DOM object to be either shown or hidden.
- * @argument boolean bShow
- *   Shows the object referenced by <code>o</code> if
- *   <code>true</code>, hides it if <code>false</code>.
- *   Note that hiding an element is is different from
- *   not rendering it as the space it takes up is
- *   still reserved.
- * @returns
- *   <code>true</code> if successful,
+ * @argument bVisible: optional boolean
+ *   Shows the object referenced by <code>o</code> if <code>true</code>,
+ *   hides it if <code>false</code>.  Note that hiding an element is
+ *   different from not rendering it, as the space it takes up is still
+ *   reserved.
+ *   
+ *   If this argument is omitted, the current property value is returned.
+ * @return
+ *   When retrieving: <code>true</code> if visible, <code>false</code>
+ *   otherwise; when setting: <code>true</code> if successful,
  *   <code>false</code> otherwise.
- * @see
- *   display()
+ * @type boolean
+ * @see #display()
  */
-function visibility(o, bVisible)
+function visible(o, bVisible)
 {
   var result;
 
   if (o)
   {
-    if (typeof o.style != "undefined"
-        && typeof o.style.visibility != "undefined")
+    if (arguments.length > 1)
     {
-      o.style.visibility = bVisible ? "visible" : "hidden";
-      result = (o.style.visibility == bVisible ? "visible" : "hidden");
+      result = setStyleProperty(o, "visibility",
+        bVisible ? "visible" : "hidden",
+        bVisible ? "show" : "hide");
     }
-    else if (typeof o.visibility != "undefined")
+    else
     {
-      o.visibility = bVisible ? "show" : "hide";
-      result = (o.visibility == bShow ? "show" : "hide");
+      result = /^(visible|show)$/.test(getStyleProperty(o, "visibility"));
     }
   }
   
   return result;
 }
-DHTML.prototype.visibility = visibility;
+var visibility = visible;
+DHTML.prototype.visibility = visible;
+DHTML.prototype.visible = visible;
 
 /**
  * Sets the value property of an HTMLInput element,
@@ -944,12 +1068,12 @@ DHTML.prototype.visibility = visibility;
  *   (C) 2004  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @argument HTMLInputElement oInput
+ * @param oInput : HTMLInputElement
  *   Required.  Reference to an HTMLInputElement object.
- * @argument string sValue
+ * @param sValue : string
  *   New value of the "value" property of the
  *   HTMLInputElement object.
- * @optional boolean bSetTitle = false
+ * @param bSetTitle : optional boolean = false
  *   Specifies if the "title" property should be set to
  *   the same value as the "value" property.  The default
  *   is <code>false</code>.
@@ -977,20 +1101,14 @@ function setValue(oInput, sValue, bSetTitle)
     }
     return (oInput.value == sValue);
   }
-  else
-  {
-    return false;
-  }
+
+  return false;
 }
 DHTML.prototype.setValue = setValue;
 
-var
-  colMouseout = "#000000",
-  colMouseover = "#ffffff";
-
 /**
  * @argument number|string imgID
- * @optional number state
+ * @param state : optional number
  * @return type boolean
  */
 function hoverImg(imgID, state)
@@ -1002,26 +1120,13 @@ function hoverImg(imgID, state)
     img = document.images[imgID];
   }
 
-  if (img)
-  {
-    col = "";
-    switch (state)
-    {
-      case 0:
-        col = colMouseout;
-        break;
-
-      default:
-        col = colMouseover;
-    }
-    if (col != "")
-    {
-      img.style.borderColor = col;
-    }
-  }
-
-  return true;
+  return setStyleProperty(
+    img,
+    "borderColor",
+    (state == 0 ? hoverImg.clMouseout : hoverImg.clMouseover));
 }
+hoverImg.clMouseout = "#000",
+hoverImg.clMouseover = "#fff";
 DHTML.prototype.hoverImg = hoverImg;
 
 /**
@@ -1031,10 +1136,10 @@ DHTML.prototype.hoverImg = hoverImg;
  *   Copyright (C) 2004  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @argument HTMLFormElement oForm
+ * @param oForm : HTMLFormElement
  *   Required. Reference to an HTMLFormElement object to contain
  *   the radio button group.
- * @argument string sGroup
+ * @param sGroup : string
  *   Name of the radio button group from which the
  *   checked radio button should be retrieved.
  * @return type object
@@ -1075,9 +1180,9 @@ DHTML.prototype.getCheckedRadio = getCheckedRadio;
  *   (C) 2003  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @argument HTMLSelectElement oSelect
+ * @param oSelect : HTMLSelectElement
  *   Reference to a HTMLSelectElement object.
- * @argument boolean bAllowReload
+ * @param bAllowReload : boolean
  *   If <code>true</code>, reloads the document.
  * @return type boolean
  *   <code>true</code> if successful, <code>false</code>
@@ -1124,14 +1229,14 @@ DHTML.prototype.removeOptions = removeOptions;
  *   (C) 2003  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @argument HTMLSelectElement oSelect
+ * @param oSelect : HTMLSelectElement
  *   Required reference to an HTMLSelectElement object.
- * @argument string sText
+ * @param sText : string
  *   Required text of the new HTMLOptionElement object.
- * @optional number iPosition
+ * @param iPosition : optional number
  *   Optional. If supported, inserts the new option there;
  *   otherwise the option is appended as last item.
- * @optional string sValue
+ * @param sValue : optional string
  *   Optional value of the new HTMLOptionElement object.
  * @return type object
  *   A reference to the new option if successful,
@@ -1192,10 +1297,10 @@ DHTML.prototype.addOption = addOption;
  *   (C) 2003  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @argument HTMLFormElement oForm
+ * @param oForm : HTMLFormElement
  *   Reference to the <code>HTMLFormElement</code> object
  *   which contains the <code>HTMLInputElement</code> object.
- * @argument _ aName
+ * @param aName : _
  *   Name of the radio button, i.e. the value of the
  *   <code>name</code> attribute of the respective
  *   <code>input</code> (X)HTML element or the value
@@ -1203,7 +1308,7 @@ DHTML.prototype.addOption = addOption;
  *   <code>HTMLInputElement</code> object.  Use an expression
  *   that is evaluated to <code>false</code> for the argument
  *   to be ignored.
- * @argument string sValue
+ * @param sValue : string
  *   Value of the radio button, i.e. the value of the
  *   <code>value</code> attribute of the respective
  *   <code>input</code> (X)HTML element or the value
@@ -1316,24 +1421,20 @@ DHTML.prototype.disableElements = disableElements;
 
 /**
  * Creates an element of the type specified, using the
- * document.createElement method if supported.  This
- * method works with MSIE, too, for it is tried to use a
- * start tag with the tag name specified as the argument
- * of document.createElement() if the tag name alone does
- * not work.
+ * <code>document.createElement()</code> method if supported.
+ * This method works with MSIE, too, for if JScript is used,
+ * it is tried to use the start tag as is instead of passing
+ * only the element type, and adding properties later.
  * 
  * @author
- *   (C) 2004  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   (C) 2004, 2006  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @argument string sTagName
- *   Tag name of the element to be created.  You may use a
- *   start tag here as well, but note that even if you do
- *   not lose compatibility to other UAs than MSIE 4+,
- *   attributes are not set.  (Subsequent versions will
- *   possibly include an attribute parser to assign
- *   attribute values to the respective DOM object properties
- *   if creation is successful.)
+ * @param sTag : string
+ *   Start tag or element type of the element to be created.
+ *   Passing a start tag even works if the UA is not MSIE,
+ *   as attributes and values given are parsed from left to
+ *   right into the corresponding element object properties.
  * @return type object
  *   A reference to a new <code>Element</code> object with the
  *   <code>nodeName</code> property set to <code>sTagName</code>,
@@ -1345,24 +1446,34 @@ DHTML.prototype.disableElements = disableElements;
  *   @link{msdn#workshop/author/dhtml/reference/methods/createelement.asp}
  *   http://pointedears.de/scripts/JSdoc/
  */
-function createElement(sTagName)
+function createElement(sTag)
 {
   var o = null;
 
-  if (sTagName
+  if (sTag
       && typeof document != "undefined"
-      && dhtml.isMethodType(typeof document.createElement))
+      && dhtml.isMethod(document.createElement))
   {
-    // remove 
-    
-  
-    sTagName = sTagName.replace(/<?([^ >]+).*>?/, "$1");
-
-    o = document.createElement(sTagName);
+    /*@cc_on @*/
+    /*@if (@_jscript)
+      o = document.createElement(sTag);
+    @end @*/
     
     if (!o)
     {
-      o = document.createElement("<" + sTagName + ">");
+      var aTagComponents = sTag.replace(/^<?\s*|\s*>?$/g, "")
+        .replace(/\s+/, " ").replace(/ = /g, "=").split(" ");
+      o = document.createElement(aTagComponents[0]);
+      if (o)
+      {
+        aTagComponents.shift();
+        var attrs = aTagComponents.join(" ");
+        var m;
+        while ((m = /([^\s=]+)\s*(=\s*(\S+)\s*)?/g.exec(attrs)))
+        {
+          setAttr(o, m[1].toLowerCase(), m[3]);
+        }
+      }
     }
   }
 
@@ -1410,32 +1521,60 @@ function getParent(o)
 }
 DHTML.prototype.getParent = getParent;
 
+function getAbsPos(o)
+{
+  var result = new Object();
+  result.x = result.y = 0;
+  result.toString = function()
+  {
+    return "{x: " + this.x + ", y: " + this.y + "}";
+  };
+  
+  if (o.offsetParent)
+  {
+    while (o.offsetParent)
+    {
+      result.x += o.offsetLeft;
+      result.y += o.offsetTop;
+      o = o.offsetParent;
+    }
+  }
+  else if (typeof o.x != "undefined"
+           && typeof o.y != "undefined")
+  {
+    result.x += o.x;
+    result.y += o.y;
+  }
+  
+  return result;
+}
+
 /**
- * Registers an event-handling function (event listener) for a
- * DOM object as event target.  The following methods are used
- * (in order of preference):
+ * Adds an event-handling function (event listener) for a
+ * DOM object as event target.  The following methods are
+ * used (in order of preference):
  *
  * - addEventListener(...) method (W3C-DOM Level 2)
  * - attachEvent(...) method (proprietary to MSIE 5+)
  * - Assignment to event-handling property (MSIE 4+ and others)
  * 
  * @author
- *   (C) 2004  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   (C) 2004-2006  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @argument DOMObject o
+ * @param o : DOMObject
  *   Reference to the DOM object.
- * @argument string sEvent
+ * @param sEvent : string
  *   Required string to be used as event identifier.
  *   If the addEventListener(...) method is not available,
  *   `on' is used as its prefix to reference the respective
  *   proprietary event-handling property.
- * @argument Function fListener
+ * @param fListener : Function
  *   Reference to the Function object that provides
  *   event-handling code.  Use <code>null</code> to
  *   remove the event handler if, and only if, the
  *   proprietary event-handling property is available.
- * @optional boolean bUseCapture
+ * @param bUseCapture : optional boolean
  *   Optional. If <code>true</code>, the argument indicates that
  *   the user wishes to initiate capture.  Corresponds to the
  *   third parameter of the addEventListener(...) method, is
@@ -1453,33 +1592,35 @@ DHTML.prototype.getParent = getParent;
  *   msdn#workshop/author/dhtml/reference/methods/attachevent.asp,
  *   http://pointedears.de/scripts/JSdoc/
  */
-function registerEvent(o, sEvent, fListener, bUseCapture)
+function _addEventListener(o, sEvent, fListener, bUseCapture)
 {
-  var result;
+  var result = false;
 
-  if (o)
+  if (o && sEvent && isMethodType(typeof fListener) && fListener)
   {
-    if (dhtml.isMethodType(typeof o.addEventListener)
-        && dhtml.isMethodType(typeof fListener))
+    if (isMethod(o.addEventListener))
     {
       o.addEventListener(sEvent, fListener, !!bUseCapture);
       result = true;
     }
-    else if (dhtml.isMethodType(typeof o.attachEvent)
-             && dhtml.isMethodType(typeof fListener))
-    {
-      result = o.attachEvent("on" + sEvent, fListener);
-    }
     else
     {
-      o["on" + sEvent] = fListener;
-      result = (o["on" + sEvent] == fListener);
+      if (isMethodType(typeof o.attachEvent) && o.attachEvent)
+      {
+        result = o.attachEvent("on" + sEvent, fListener);
+      }
+
+      if (!result)
+      {
+        o["on" + sEvent] = fListener;
+        result = (o["on" + sEvent] == fListener);
+      }
     }
   }
-  
+
   return result;
 }
-DHTML.prototype.registerEvent = registerEvent;
+DHTML.prototype.addEventListener = _addEventListener;
 
 /**
  * Appends a JavaScript include to the <code>head</code> element
@@ -1497,19 +1638,20 @@ DHTML.prototype.registerEvent = registerEvent;
  * @version
  *   0.2.2004053003
  * @author
- *   (C) 2004  Ulrich Kritzner &lt;droeppez@web.de&gt;
- *   Parts (C) 2004  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   (C) 2004-2006  Thomas Lahn <dhtml.js@PointedEars.de>,
+ *       2004       Ulrich Kritzner <droeppez@web.de>
+ * 
  * @partof
  *   http://PointedEars.de/scripts/dhtml.js
  * @requires
  *   types.js#isMethodType()
- * @argument string sURI
+ * @param sURI : string
  *   URI of the script resource to be loaded.
- * @optional string sType = "text/javascript"
+ * @param sType : optional string = "text/javascript"
  *   MIME type of the script to be loaded.  Used as value of the
  *   <code>type</code> attribute, the default is (still proprietary,
  *   but commonly used) "text/javascript".
- * @optional string sLanguage
+ * @param sLanguage : optional string
  *   Value of the <code>language</code> attribute (deprecated in
  *   HTML 4.01 and XHTML 1.0, absent from XHTML 1.1 and later
  *   versions) to specify the version of the script language.
@@ -1519,7 +1661,7 @@ function loadScript(sURI, sType, sLanguage)
 {
   var result = false;
   
-  if (dhtml.isMethodType(typeof document.createElement))
+  if (dhtml.isMethod(document.createElement))
   {
     var oScript;
     if ((oScript = document.createElement("script")))
@@ -1551,7 +1693,7 @@ function loadScript(sURI, sType, sLanguage)
       }
       
       var aHeads;
-      if (dhtml.isMethodType(typeof document.getElementsByTagName))
+      if (dhtml.isMethod(document.getElementsByTagName))
       {
         aHeads = document.getElementsByTagName("head");
       }
@@ -1562,14 +1704,15 @@ function loadScript(sURI, sType, sLanguage)
       
       if (aHeads && typeof aHeads[0] != "undefined")
       {
-        if (dhtml.isMethodType(typeof aHeads[0].appendChild))
+        if (dhtml.isMethod(typeof aHeads[0].appendChild))
         {
           aHeads[0].appendChild(oScript);
           result = (
             typeof aHeads[0].lastChild != "undefined"
             && aHeads[0].lastChild == oScript);
         }
-        else if (dhtml.isMethodType(typeof aHeads[0].insertAdjacentElement))
+        else if (dhtml.isMethodType(typeof aHeads[0].insertAdjacentElement)
+                 && aHeads[0].insertAdjacentElement)
         {
           aHeads[0].insertAdjacentElement("beforeEnd", oScript);
           result = true;
@@ -1581,7 +1724,6 @@ function loadScript(sURI, sType, sLanguage)
   return result;
 }
 DHTML.prototype.loadScript = loadScript;
-
 
 /**
  * Retrieves descendant focusable elements in order of their
@@ -1599,7 +1741,7 @@ DHTML.prototype.loadScript = loadScript;
  *   descendant elements.  If omitted or evaluated to
  *   <code>false</code>, it is tried to use the calling object.
  * @return type Collection
- *   A reference to an @link{#Collection} object containing
+ *   A reference to a @link{#Collection} object containing
  *   the descendant elements of @link{(o)} or the calling
  *   @link{dom2-core#Document}/@link{dom2-core#Element} object in
  *   "tabindex" order: Elements with "tabindex" > 0 come first,
@@ -1626,7 +1768,7 @@ function getElementsByTabIndex(o)
     o = this;
   }
 
-  if (o && dhtml.isMethodType(typeof o.getElementsByTagName))
+  if (o && dhtml.isMethod(typeof o.getElementsByTagName))
   {
     var es = o.getElementsByTagName("*");
 
