@@ -35,27 +35,29 @@
  * 
  * A collection in ECMAScript and its implementations is an
  * object which has indexed elements like an Array object.
- * Unlike an Array object, it also has named elements, where
- * those named elements refer to the same data as the indexed
- * elements do.  Each element receives a numeric index in order
- * of assignment/addition, and if it is given, a name, too.
- * Both indexes and names become properties of the collection
- * and are thus accessible via the standard property accessor
- * syntax: `object["property"]' and, if property is an identifier,
- * `object.property'.  By internal references it is ensured that
- * an operation on an element is performed on both the indexed
- * element and its named counterpart, and vice-versa.
+ * Unlike an Array object, it also has named elements which
+ * refer to the same data as the indexed elements do.  Each
+ * element receives a numeric index in order of assignment/
+ * addition, and if it is given, a name, too.  Both indexes
+ * and names become properties of the collection and are
+ * thus accessible via the standard property accessor syntax:
+ * `object["property"]' and, if property is an identifier,
+ * `object.property'.  By internal references it is ensured
+ * that an operation on an element is performed on both the
+ * indexed element and its named counterpart, and vice-versa.
  * 
  * You could compare this behavior to an associative array
  * in PHP, only that ECMAScript has no built-in concept of
  * associative arrays.
- * 
+ */
+/**
+ * @param o: optional Object
+ *   reference used to fill the collection.
  * @constructor
- * @optional :Object
  */
 function Collection(o)
 {
-  this.version   = "0.1.2006032518";
+  this.version   = "0.1.2006073010";
   /**
    * @partof PointedEars JavaScript Extensions (JSX)
    */
@@ -67,12 +69,12 @@ function Collection(o)
 //  this.docURI    = this.path + "collection.htm";
   this.allowExceptionMsg = true;
 
-
   this.set(o);
 }
 
 /**
- * @optional :Object
+ * @param o: optional Object
+ *   reference used to append to the collection.
  */ 
 Collection.prototype.addItems = function collection_addItems(o)
 {
@@ -80,13 +82,17 @@ Collection.prototype.addItems = function collection_addItems(o)
 
   for (var i in o)
   {
-    if (typeof o[i] != "undefined") // omit deleted items
+    // omit deleted items
+    if (typeof o[i] != "undefined")
     {
       this.items[i] = new CollectionItem(o[i]);
-      if (isNaN(i)) // if the property name is not numeric
+
+      // if the property name is not numeric
+      if (isNaN(i))
       {
         this.items[this.items.length] = this.items[i];
       }
+
       result = this.items[i];
     }
   }
@@ -95,14 +101,24 @@ Collection.prototype.addItems = function collection_addItems(o)
 };
 
 /**
- * @optional :Object
+ * @argument o: optional Object
+ *   reference used to fill the {@link Collection}.
  */
 Collection.prototype.set = function collection_set(o)
 { 
-  this.items = new Array(); // no real array, but Array.length is useful
+  // no real array, but Array.prototype.length is useful
+  this.items = new Array(); 
+  
   return this.addItems(o);
 };
 
+/**
+ * Adds an item to a {@link Collection}.
+ * 
+ * @argument val 
+ * @argument name: optional string 
+ *   Reference to an object used to fill the collection.
+ */
 Collection.prototype.add = function collection_add(val, name)
 {
   var index = this.items.length;
@@ -116,12 +132,22 @@ Collection.prototype.add = function collection_add(val, name)
   return this.items[index];
 };
 
+/**
+ * Removes all items from the {@link Collection}.
+ * 
+ * @type Array
+ */
 Collection.prototype.clear = function collection_clear()
 {
   this.items = new Array();
   return !this.items;
 };
 
+/**
+ * Returns a reference to a new {@link Iterator} for the {@link Collection}.
+ * 
+ * @type Iterator
+ */
 Collection.prototype.iterator = function collection_iterator()
 {
   return new Iterator(this.items);
@@ -132,8 +158,7 @@ function ValueCollection(o, val)
   Collection.call(o);
   this.value = val;
 }
-ValueCollection.prototype = inheritFrom(Collection.prototype);
-ValueCollection.prototype.constructor = ValueCollection;
+ValueCollection.extend(Collection);
 
 function CollectionItem(val)
 {
@@ -152,12 +177,13 @@ function Iterator(o)
 // prototype methods
 Iterator.prototype.prev = function iterator_prev()
 {
-  var result = result; // undefined
+  var result = result;  // undefined
   var t = this.target;
 
   if (t)
   {
-    if (this.prevItem > -1) // no need to search if already found by hasPrev()
+    // no need to search if already found by hasPrev()
+    if (this.prevItem > -1)
     {
       this.currItem = this.prevItem;
       result = t[this.currItem];
@@ -169,9 +195,11 @@ Iterator.prototype.prev = function iterator_prev()
         this.currItem = t.length;
       }
       
-      var i = this.currItem - 1;            // start from next possible item
-      while (i != this.currItem             // run through only one time
-             && typeof t[i] == "undefined") 
+      // start from next possible item
+      var i = this.currItem - 1;            
+
+      // run through only one time
+      while (i != this.currItem && typeof t[i] == "undefined") 
       {
         if (--i < 0)
         {
@@ -194,12 +222,16 @@ Iterator.prototype.prev = function iterator_prev()
 
 Iterator.prototype.next = function iterator_next()
 {
-  var result = result; // undefined
-  var t = this.target;
+
+  var
+    // undefined
+    result = result,
+    t = this.target;
 
   if (t)
   {
-    if (this.nextItem > -1) // no need to search if already found by hasNext()
+    // no need to search if already found by hasNext()
+    if (this.nextItem > -1)
     {
       this.currItem = this.nextItem;
       result = t[this.currItem];
@@ -212,9 +244,11 @@ Iterator.prototype.next = function iterator_next()
         this.currItem = -1;
       }
     
-      var i = this.currItem + 1;            // start from next possible item
-      while (i != this.currItem             // run through only one time
-             && typeof t[i] == "undefined") 
+      // start from next possible item
+      var i = this.currItem + 1;
+      
+      // run through only one time
+      while (i != this.currItem && typeof t[i] == "undefined") 
       {
         if (++i > t.length - 1)
         {
@@ -249,9 +283,11 @@ Iterator.prototype.hasPrev = function iterator_hasPrev()
       this.currItem = t.length;
     }
 
-    var i = this.currItem - 1;            // start from next possible item
-    while (i != this.currItem             // run through only one time
-           && typeof t[i] == "undefined") 
+    // start from next possible item
+    var i = this.currItem - 1;
+          
+    // run through only one time
+    while (i != this.currItem && typeof t[i] == "undefined") 
     {
       if (--i < 0)
       {
@@ -283,9 +319,11 @@ Iterator.prototype.hasNext = function iterator_hasNext()
       this.currItem = -1;
     }
 
-    var i = this.currItem + 1;            // start from next possible item
-    while (i != this.currItem             // run through only one time
-           && typeof t[i] == "undefined") 
+    // start from next possible item
+    var i = this.currItem + 1;
+    
+    // run through only one time
+    while (i != this.currItem && typeof t[i] == "undefined") 
     {
       if (++i > t.length - 1)
       {
