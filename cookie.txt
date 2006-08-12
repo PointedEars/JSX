@@ -1,0 +1,53 @@
+ORIGINAL FILENAME:       ccookies.js
+PURPOSE:                 CCookie Data Access Class Library
+SCRIPT LANGUAGE/VERSION: JavaScript 1.0
+FILE VERSION:            1.02.2001.1
+PART OF:                 PointedEars' JavaScript Extensions (JSX)
+DEPENDS ON:              no file
+TESTED WITH:
+  Microsoft Internet Explorer 5.50, displayed 5.50.4134.0600IC
+
+VERSION HISTORY
+1.02.2001.1   2001-01-11  Moved general documentation to text file for faster processing.
+1.01.2000.8   2000-08-24  Improved code for initialization and property view
+1.00.2000.8   2000-08-13  Introduced CCookie class
+
+COPYRIGHT (c) 2000 by PointedEars Software (PES).
+mailto:webmaster@PointedEars.de
+
+TERMS OF USE:
+This code may be used and modified within the limits described below
+for non-commercial purposes only and if the copyright above is also
+mentioned.
+
+HOW TO USE:
+I recommend to utilize the functions of this script in different
+HTML documents when saving the entire file as script.js and appending the
+following section within the <HEAD></HEAD> tags of that documents:
+
+<script language="JavaScript1.1" src="cookies.js" type="text/javascript">
+</script>
+
+The following items are provided by this script:
+
+CCookie class
+--------------
+
+Properties:	name, value, expires, domain, path, secure
+Methods:	LoadData(sData), toString(), aboutMe(showMsg)
+
+Description:
+
+The CCookie class provides encapsulation for a cookie's properties.
+Pass a cookie data string as retrieved from document.cookie (sData) to
+the LoadData method to convert the cookie's data into object properties.
+Use the toString() method to convert the data vice-versa and return a string
+that you can assign to document.cookie.
+The aboutMe(...) method either retrieves a string where all properties
+are divided by a CR character (showMsg == false), and property name and
+value are divided by an equal sign (=), or displays that string in a
+common message box (showMsg == true).
+aboutMe(true) also displays the version of the library containing the
+CCookie class you are using. You can also retrieve the library version
+without a message box when reading the CCookieVersion variable
+as defined in the script file.
