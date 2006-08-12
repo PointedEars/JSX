@@ -1,0 +1,136 @@
+ORIGINAL FILENAME:       csearch.js
+PURPOSE:                 CSearchStr Data Access Class Library
+SCRIPT LANGUAGE/VERSION: JavaScript 1.0
+FILE VERSION:            1.00.2001.10
+PART OF:                 PointedEars' JavaScript Extensions (JSX)
+DEPENDS ON:              enhanced.js
+TESTED WITH:
+  Microsoft Internet Explorer 6.0.2600.0000
+
+VERSION HISTORY
+1.00.2000.8   2000-08-13  Introduced CSearchString class
+
+COPYRIGHT (c) 2000 by PointedEars Software (PES).
+mailto:webmaster@PointedEars.de
+
+TERMS OF USE:
+This code may be used and modified within the limits described below
+for non-commercial purposes only and if the copyright above is also
+mentioned.
+
+HOW TO USE:
+I recommend to utilize the functions of this script in different
+HTML documents when saving the entire file as script.js and appending the
+following section within the <HEAD></HEAD> tags of that documents:
+
+<script language="JavaScript1.1" src="cookies.js" type="text/javascript">
+</script>
+
+The following items are provided by this script:
+
+CSearchStr class
+-----------------
+
+Built-in properties:
+	
+	text	The full search string without the leading "?" and
+			"%26" entities converted to "&".
+			If no search string is provided
+	length	Length of the text property's value
+	values	Array of the values defined in the search string.
+			Each value is a pair of name and value defined as a Value object
+			(see above).
+
+Constructor arguments:
+	
+	s		Original search string. Required.
+			(If not provided, the object will have no properties and methods.)
+
+
+Description:
+
+The CSearchStr class provides encapsulation for a search string's properties,
+which is the part of a URL following the question mark ("?") character.
+This string may contain a number of pairs of required names and optional values,
+separated by an equal character ("="), and each name/value pair separated from
+the other by an ampersand character ("&"):
+
+name1=value1&name2=&name3&name4=value4...
+
+Usage:
+
+Provide a string with a structure described above as constructor argument of the
+CSearchStr class. This will convert the string to an array with names and values
+as the properties of each item of this array where undefined values are assigned
+as null-strings:
+
+    s = new CSearchStr(window.location.search);
+
+Then you can use the object's methods to access to its properties easily:
+
+Use the isName(...) method to determine whether a name has been provided
+with the string or not:
+
+    if (! s.isName("url"))
+        alert("Required name 'url' missing!");
+
+Use the hasValue(...) method to determine whether a name has a value different
+from the null-string (""):
+
+    if (s.hasValue("test"))
+        document.write("This is only a test");
+
+Use the getValue(...) method to retrieve the value of a provided name:
+
+    if (s.hasValue("url"))
+        frames[0].location.href = s.getValue("url");
+
+Via these methods, names are accessed case-insensitive by default.
+If you need case-sensitivity, add "true" as second argument to the
+method calls:
+
+    if (s.hasValue("URL", true))
+        frames[0].location.href = s.getValue("URL", true);
+
+        
+ The initial value of the CSearchStrVersion variable shows the version of the
+library containing the CSearchString class you are using. This can be displayed,
+e.g. if you use the window.alert(...) method with that variable as argument.
+
+
+FAQ (Frequently Asked Questions)
+--------------------------------- 
+
+Q: When I include the CSearchStr class library into my HTML/script, in Netscape/Mozilla
+   I get an "Alert" message saying a necessary "file "[filename]" cannot be found".
+   [filename] has the form of [pathname]"/%3Cnoscript%3E%3CFRAMESET%20rows=".
+   But I have not specified such a filename in my documents/scripts.
+
+   Instead, Internet Explorer shows either no alert message or one containing the
+   following text:
+
+   "Line:   "[number]
+   "Column: "[number]
+   "Error:  Object expected"
+   "Code:   0"
+   "URL:    "[fully qualified path of the HTML document]
+
+   Then when I click the "OK" button of this alert message it shows
+   "Error 404: File not found" (or anything similar) in the browser window,
+   with the Address Bar containing a URL that has the form of
+   [pathname]"/<noscript><FRAMESET%20rows=".
+   
+
+   What have I done wrong?
+
+A: This occurs if the JSX:enhanced.js script has not been included before
+   including the library and you try to use CSearchStr for a dynamic frameset.
+   CSearchStr now depends on JSX:enhanced.js because the latter contains the
+   replaceText(...) function that is called by the constructor of CSearchStr
+   to replace HTML entities like &nbsp; with the respective ASCII characters
+   (here: unescape("%A0")).
+   (you'll see that in the Netscape/Mozilla JavaScript Console under the "Task" menu,
+   "Tools" submenu.)
+   Include JSX:enhanced.js in the correct order as described above and the problem
+   should not occur again.
+   This is a known issue and I am working on a cross-platform bugfix.
