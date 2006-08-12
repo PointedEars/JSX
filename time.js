@@ -8,8 +8,16 @@
  * @deprecated requires enhancd2.js
  */
 /*
- * This document contains JavaScriptDoc.
- * See http://PointedEars.de/scripts/JSDoc/ for details.
+ * The original source file
+ * _time.js/1.09/2003-10/time.js
+ * contains a complete documentation written in JSdoc, see
+ * <http://pointedears.de/scripts/JSdoc/> for details.
+ * 
+ * Since JSdoc is not yet ready for production purposes to
+ * generate a HTML documentation from these comments and
+ * including them in the production version means about 25%
+ * of code overhead, most of the JSdoc comments have been
+ * stripped from this file.
  */
 
 var timeVersion = "1.09.2003.10";
@@ -21,8 +29,7 @@ var timeSeparator = ":";
 
 // Method definitions
 
-function /** @type number */ SystemTime_decHours(
-  /** @param optional number */ iUnits)
+function SystemTime_decHours(iUnits)
 {
   (SystemTime_decHours.arguments.length > 0
     ? this.hours -= iUnits
@@ -35,8 +42,7 @@ function /** @type number */ SystemTime_decHours(
    return this.hours;
 }
 
-function /** @type number */ SystemTime_decMinutes(
-  /** @param optional number */ iUnits)
+function SystemTime_decMinutes(iUnits)
 {
   (SystemTime_decMinutes.arguments.length > 0
     ? this.minutes -= iUnits
@@ -51,8 +57,7 @@ function /** @type number */ SystemTime_decMinutes(
   return this.minutes;
 }
 
-function /** @type number */ SystemTime_decSeconds(
-  /** @param optional number */ iUnits)
+function SystemTime_decSeconds(iUnits)
 {
   (SystemTime_decSeconds.arguments.length > 0
     ? this.seconds -= iUnits
@@ -67,8 +72,7 @@ function /** @type number */ SystemTime_decSeconds(
   return this.seconds;
 }
 
-function /** @type number */ SystemTime_decSec100(
-  /** @param optional number */ iUnits)
+function SystemTime_decSec100(iUnits)
 {
   (SystemTime_decSec100.arguments.length > 0
     ? this.sec100 -= iUnits
@@ -83,8 +87,7 @@ function /** @type number */ SystemTime_decSec100(
   return this.sec100;
 }
 
-function /** @type number */ SystemTime_incHours(
-  /** @param optional number */ iUnits)
+function SystemTime_incHours(iUnits)
 {
   (SystemTime_incHours.arguments.length > 0
     ? this.hours += iUnits
@@ -97,8 +100,7 @@ function /** @type number */ SystemTime_incHours(
   return this.hours;
 }
 
-function /** @type number */ SystemTime_incMinutes(
-  /** @param optional number */ iUnits)
+function SystemTime_incMinutes(iUnits)
 {
   (SystemTime_incMinutes.arguments.length > 0
     ? this.minutes += iUnits
@@ -113,8 +115,7 @@ function /** @type number */ SystemTime_incMinutes(
   return this.minutes;
 }
 
-function /** @type number */ SystemTime_incSeconds(
-  /** @param optional number */ iUnits)
+function SystemTime_incSeconds(iUnits)
 {
   (SystemTime_incSeconds.arguments.length > 0
     ? this.seconds += iUnits
@@ -129,8 +130,7 @@ function /** @type number */ SystemTime_incSeconds(
   return this.seconds;
 }
 
-function /** @type number */ SystemTime_incSec100(
-  /** @param optional number */ iUnits)
+function SystemTime_incSec100(iUnits)
 {
   (SystemTime_incSec100.arguments.length > 0
     ? this.sec100 += iUnits
@@ -145,16 +145,7 @@ function /** @type number */ SystemTime_incSec100(
   return this.sec100;
 }
 
-function /** @type boolean */ SystemTime_fromData(
-  /** @param number           */ iHours,
-  /** @param optional number  */ iMinutes,
-  /** @param optional number  */ iSeconds,
-  /** @param optional number  */ iSec100,
-  /** @param optional boolean */ bDayCount)
-/**
- * @returns <code>false</code> on missing arguments,
- * <code>true</code> otherwise.
- */
+function SystemTime_fromData(iHours, iMinutes, iSeconds, iSec100, bDayCount)
 {
   var argnum = SystemTime_fromString.arguments.length;
 
@@ -181,7 +172,7 @@ function /** @type boolean */ SystemTime_fromData(
     return false;
 }
 
-function /** @type SystemTime */ SystemTime_fromString(/** @param string */ s)
+function SystemTime_fromString(s)
 {
   var timeSep = s.split(timeSeparator);
 
@@ -199,10 +190,7 @@ function /** @type SystemTime */ SystemTime_fromString(/** @param string */ s)
   return this;
 }
 
-function /** @type string */ SystemTime_toString(
-  /** @param boolean          */ bShowHours,
-  /** @param optional boolean */ bShowSeconds,
-  /** @param optional boolean */ bShowSec100)
+function SystemTime_toString(bShowHours, bShowSeconds, bShowSec100)
 {
   var sSec100 = String(this.sec100);
   while (sSec100.length < 3)
@@ -238,59 +226,51 @@ function /** @type string */ SystemTime_toString(
 
 // Prototype definition
 
-function /** @type constructor */ SystemTime(
-  /** @param optional number  */ iHours,
-  /** @param optional number  */ iMinutes,
-  /** @param optional number  */ iSeconds,
-  /** @param optional number  */ iSec100,
-  /** @param optional boolean */ bDayCount)
+function SystemTime(iHours, iMinutes, iSeconds, iSec100, bDayCount)
 {
   var argnum = SystemTime.arguments.length;
 
-  /** @property number */ this.hours =
+  this.hours =
     (argnum > 0
       ? Number(iHours)
       : 0);
-  /** @property number */ this.minutes =
+  this.minutes =
     (argnum > 1
       ? Number(iMinutes)
       : 0);
-  /** @property number */ this.seconds =
+  this.seconds =
     (argnum > 2
       ? Number(iSeconds)
       : 0);
-  /** @property number */ this.sec100 =
+  this.sec100 =
     (argnum > 3
       ? Number(iSec100)
       : 0);
-  /** @property boolean */ this.dayCount =
+  this.dayCount =
     (argnum > 4
       ? bDayCount
       : false);
 
-  /** @method */ this.decHours = SystemTime_decHours;
-  /** @method */ this.decMinutes = SystemTime_decMinutes;
-  /** @method */ this.decSeconds = SystemTime_decSeconds;
-  /** @method */ this.decSec100 = SystemTime_decSec100;
-  /** @method */ this.incHours = SystemTime_incHours;
-  /** @method */ this.incMinutes = SystemTime_incMinutes;
-  /** @method */ this.incSeconds = SystemTime_incSeconds;
-  /** @method */ this.incSec100 = SystemTime_incSec100;
-  /** @method */ this.fromData = SystemTime_fromData;
-  /** @method */ this.fromString = SystemTime_fromString;
-  /** @method */ this.toString = SystemTime_toString;
+  this.decHours = SystemTime_decHours;
+  this.decMinutes = SystemTime_decMinutes;
+  this.decSeconds = SystemTime_decSeconds;
+  this.decSec100 = SystemTime_decSec100;
+  this.incHours = SystemTime_incHours;
+  this.incMinutes = SystemTime_incMinutes;
+  this.incSeconds = SystemTime_incSeconds;
+  this.incSec100 = SystemTime_incSec100;
+  this.fromData = SystemTime_fromData;
+  this.fromString = SystemTime_fromString;
+  this.toString = SystemTime_toString;
 }
 
-function TZdescr(
-  /** @param number */ iGMToffsetMins,
-  /** @param string */ sDescr)
+function TZdescr(iGMToffsetMins, sDescr)
 {
-  /** @property number */ this.iGMToffsetMins = iGMToffsetMins || 0;
-  /** @property string */ this.sDescr = sDescr || "";
+  this.iGMToffsetMins = iGMToffsetMins || 0;
+  this.sDescr = sDescr || "";
 }
 
-function /** @type string */ DateNames_getTZdescr(
-  /** @param number */ iGMToffsetMins)
+function DateNames_getTZdescr(iGMToffsetMins)
 {
   for (var i = 0; i < this.aTZdescr.length; i++)
     if (this.aTZdescr[i].iGMToffsetMins == iGMToffsetMins)
@@ -300,166 +280,36 @@ function /** @type string */ DateNames_getTZdescr(
 }
 
 function DateNames(
-  /** @param optional Array of string  */ aaShortWeekdayNames,
-  /** @param optional Array of string  */ aaMedWeekdayNames,
-  /** @param optional Array of string  */ aaLongWeekdayNames,
-  /** @param optional Array of string  */ aaShortMonthNames,
-  /** @param optional Array of string  */ aaMedMonthNames,
-  /** @param optional Array of string  */ aaLongMonthNames,
-  /** @param optional Array of TZdescr */ aaTZdescr)
-/**
- * JSX:enhancd2.js:DateNames(...)
- *
- * Prototype for weekday and month names
- * Pass arrays containing the respective strings as
- * arguments to set properties on creation of object.
- */
+  aaShortWeekdayNames,
+  aaMedWeekdayNames,
+  aaLongWeekdayNames,
+  aaShortMonthNames,
+  aaMedMonthNames,
+  aaLongMonthNames,
+  aaTZdescr)
 {
   var iArgNum = DateNames.arguments.length;
-  /** @property Array of string */ this.aShortWeekdayNames =
+  this.aShortWeekdayNames =
     aaShortWeekdayNames || new Array(7);
-  /** @property Array of string */ this.aMedWeekdayNames =
+  this.aMedWeekdayNames =
     aaMedWeekdayNames || new Array(7);
-  /** @property Array of string */ this.aLongWeekdayNames =
+  this.aLongWeekdayNames =
     aaLongWeekdayNames || new Array(7);
-  /** @property Array of string */ this.aShortMonthNames =
+  this.aShortMonthNames =
     aaShortMonthNames || new Array(12);
-  /** @property Array of string */ this.aMedMonthNames =
+  this.aMedMonthNames =
     aaMedMonthNames || new Array(12);
-  /** @property Array of string */ this.aLongMonthNames =
+  this.aLongMonthNames =
     aaLongMonthNames || new Array(12);
-  /** @property Array of TZdescr */ this.aTZdescr =
+  this.aTZdescr =
     aaTZdescr || new Array();
-  /** @method */ this.getTZdescr = DateNames_getTZdescr;
+  this.getTZdescr = DateNames_getTZdescr;
 }
 
 var cDateLblOpen = "_"; // A unique date label begins with this
 var cDateLblClose = "_"; // A unique date label ends with this
 
-function getDateFmt(
-  /** @param Date */ dDate,
-  /** @param optional string */ sFormat,
-  /** @param optional DateNames */ oDateNames)
-/**
- * JSX:enhancd2.js:getDateFmt(...)
- *
- * Returns the dDate value as a formatted string as specified with
- * sFormat.
- *
- * @param dDate Date value to be formatted as string.
- * @param sFormat Use the following format labels enclosed in the
- * characters defined above with the cDateLbl... global variables:
- *
- * <table>
- *   <tr valign="top">
- *     <td>CC</td>
- *     <td>Century (19 if not supported by script engine).</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>yyyy</td>
- *     <td>Year with century. Please note that if Date.getFullYear(...)
- *        is not available, century is set to 19 (02 becomes 1902).
- *        yyyy is equal to CCyy.</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>yy</td>
- *     <td>Year without century</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>MMMM</td>
- *     <td>Long name of month</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>MMM</td>
- *     <td>Medium name of month</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>MM</td>
- *     <td>Short name of month</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>0M</td>
- *     <td>Two-digit month number (preceded by "0" if smaller than 10)</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>M</td>
- *     <td>Month number</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>dddd</td>
- *     <td>Long name of weekday</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>ddd</td>
- *     <td>Medium name of weekday</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>dd</td>
- *     <td>Short name of weekday</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>0d</td>
- *     <td>Two-digit day number (preceded by "0" if smaller than 10)</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>d</td>
- *     <td>Day number</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>hh</td>
- *     <td>Two-digit hours (preceded by "0" if smaller than 10)</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>h</td>
- *     <td>Hours</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>mm</td>
- *     <td>Two-digit minutes (preceded by "0" if smaller than 10)</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>m</td>
- *     <td>Minutes</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>ss</td>
- *     <td>Two-digit seconds</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>s</td>
- *     <td>Seconds</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>SS</td>
- *     <td>Three-digit milliseconds (with leading zeroes)</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>S</td>
- *     <td>Milliseconds (if supported by script engine, otherwise "0").</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>TTTTT</td>
- *     <td>Timezone description. oDateNames.aTimeZones required.</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>TTTT</td>
- *     <td>Timezone offset to GMT in hh:mm (with leading zero).</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>TTT</td>
- *     <td>Timezone offset to GMT in h:mm.</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>TT</td>
- *     <td>Timezone offset to GMT as two-digit minutes (with leading zero)</td>
- *   </tr>
- *   <tr valign="top">
- *     <td>T</td>
- *     <td>Timezone offset to GMT in minutes.</td>
- *   </tr>
- * </table>
- * @param oDateNames Labels of weekdays, months and timezones.
- */
+function getDateFmt(dDate, sFormat, oDateNames)
 {
   var iArgNum = getDateFmt.arguments.length;
   if (iArgNum < 1)
@@ -625,21 +475,7 @@ var oDateNames_de =
       new TZdescr(60, "MEZ"),
       new TZdescr(120, "MESZ/OEZ")));
 
-function isValidDate(
-  /** @argument number */ iYear,
-  /** @argument number */ iMonth,
-  /** @argument number */ iDate)
-/**
- * @author Copyright (c) 2003 Thomas Lahn &lt;time.js@PointedEars.de&gt;
- * @partof http://pointedears.de/scripts/time.js
- * @argdescr iYear  Years since 1900. With only JavaScript 1.2
- *                  supported, years before 1970 are not allowed.
- * @argdescr iMonth Month: 0 (January) to 11 (December)
- * @argdescr iDate  Day of month: 1 to 31
- * @returns         <code>true</code> if the date is valid,
- *                  <code>false</code> otherwise.
- * @see             Date()
- */
+function isValidDate(iYear, iMonth, iDate)
 {
   var
     d = new Date(iYear, iMonth, iDate), // create new Date object
