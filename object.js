@@ -1,7 +1,7 @@
 /**
  * <title>Object Library</title>
  */
-/** @version */ Object.version   = "0.1.2.2006051120";
+/** @version */ Object.version   = "0.1.3.2006100822";
 /**
  * @file object.js
  * @partof PointedEars' JavaScript Extensions (JSX)
@@ -90,7 +90,7 @@ Object.COPY_INHERIT = 4;
  */
 function addProperties(oSource, iFlags, oOwner)
 {
-  if (typeof iFlags == "object")
+  if (/\b(object|function)\b/i.test(typeof iFlags))
   {
     oOwner = iFlags;
     iFlags = 0;
@@ -197,21 +197,38 @@ function clone(iLevel, oSource)
  *   Currently only one-letter property names
  *   are searched for and supported.
  */
-function findNewProperty(o)
+function findNewProperty(o, iLength)
 {
   if (!o)
   {
     o = this;
   }
 
-  for (var i = "a".charCodeAt(0); i <= "z".charCodeAt(0); i++)
+  if (arguments.length < 2)
   {
-    var s = String.fromCharCode(i);
-    if (!o._hasOwnProperty(s))
-    {
-      return s;
-    }
+    iLength = 256;
   }
+  else
+  {
+    iLength = parseInt(iLength, 10);
+  }
+
+  var s = "";
+  
+  while (s.length < iLength)
+  {
+    for (var i = "a".charCodeAt(0); i <= "z".charCodeAt(0); i++)
+    {
+      var c = String.fromCharCode(i);
+      if (!o._hasOwnProperty(s + c))
+      {
+        return s + c;
+      }
+    }
+
+    s += c;
+  }
+  
   return "";
 }
 
@@ -238,7 +255,7 @@ function _hasOwnProperty(o, sProperty)
   var hasHasOwnProperty = (typeof o.hasOwnProperty == "function");
 
   // BUG: "Unhandled exception on WrappedNative prototype object" in
-  // Firefox 1.5.0.1, cannot be handled with try..catch
+  // Firefox 1.5.0.1 and 2.0.0.7, cannot be handled with try..catch
   // 
   // Stack trace
   // ------------
@@ -246,10 +263,13 @@ function _hasOwnProperty(o, sProperty)
   // object.js:_hasOwnProperty
   // debug.js:1347
   // objinsp.js:showProperties
+  
   return ((hasHasOwnProperty && o.hasOwnProperty(sProperty))
           || (!hasHasOwnProperty && typeof o[sProperty] != "undefined"));
 }
 
+// Disabled until ECMAScript allows to hide properties from iteration
+/*
 addProperties({
     addProperties  : addProperties,
     clone          : clone,
@@ -257,6 +277,7 @@ addProperties({
     _hasOwnProperty: _hasOwnProperty
   },
   Object.prototype);
+*/
 
 /**
  * Inherits one object from another.
@@ -268,7 +289,7 @@ addProperties({
  */
 function inheritFrom(o)
 {
-  var Dummy = function() {};
+  function Dummy() {};
   Dummy.prototype = o;
   return new Dummy();
 }
@@ -279,87 +300,87 @@ if (/^\s*(function|object)\s*$/.test(typeof eval) && eval)
   // literals if the literal is an AssignmentExpression (right-hand side
   // of an assignment or a passed function argument).
 
-  Function.prototype.addProperties({
-    /**
-     * Applies a method of another object in the context
-     * of a different object (the calling object).
-     *
-     * @prototype method
-     * @argument object thisArg
-     *   Reference to the calling object.
-     * @argument Array argArray
-     *   Arguments for the object.
-     */
-    apply: function(thisArg, argArray)
+  addProperties(
     {
-      var a = new Array();
-      for (var i = 0, len = argArray.length; i < len; i++)
+      /**
+       * Applies a method of another object in the context
+       * of a different object (the calling object).
+       *
+       * @prototype method
+       * @argument object thisArg
+       *   Reference to the calling object.
+       * @argument Array argArray
+       *   Arguments for the object.
+       */
+      apply: function(thisArg, argArray)
       {
-        a[i] = "argArray[" + i +"]";
-      }
+        var a = new Array();
+        for (var i = 0, len = argArray.length; i < len; i++)
+        {
+          a[i] = "argArray[" + i +"]";
+        }
+    
+        var p = thisArg.findNewProperty();
+        if (p && (thisArg[p] = this));
+        {
+          eval("thisArg[p](" + a.join(", ") + ")");
+          delete thisArg[p];
+        }
+      },
   
-      var p = thisArg.findNewProperty();
-      if (p && (thisArg[p] = this));
+      /**
+       * Calls (executes) a method of another object in the
+       * context of a different object (the calling object).
+       *
+       * @argument object thisArg
+       *   Reference to the calling object.
+       * @arguments _ _
+       *   Arguments for the object.
+       */
+      call: function(thisArg)
       {
-        eval("thisArg[p](" + a.join(", ") + ")");
-        delete thisArg[p];
+        var a = new Array();
+        for (var i = 1, len = arguments.length; i < len; i++)
+        {
+          a[i] = "arguments[" + i + "]";
+        }
+    
+        var p = thisArg.findNewProperty();
+        if (p && (thisArg[p] = this));
+        {
+          eval("thisArg[p](" + a.join(", ") + ")");
+          delete thisArg[p];
+        }
       }
     },
-
-    /**
-     * Calls (executes) a method of another object in the
-     * context of a different object (the calling object).
-     *
-     * @argument object thisArg
-     *   Reference to the calling object.
-     * @arguments _ _
-     *   Arguments for the object.
-     */
-    call: function(thisArg)
-    {
-      var a = new Array();
-      for (var i = 1, len = arguments.length; i < len; i++)
-      {
-        a[i] = "arguments[" + i + "]";
-      }
-  
-      var p = thisArg.findNewProperty();
-      if (p && (thisArg[p] = this));
-      {
-        eval("thisArg[p](" + a.join(", ") + ")");
-        delete thisArg[p];
-      }
-    }
-  });
+    Function.prototype);
 }
 
-Function.prototype.addProperties({
-    /**
-     * Includes the prototype object of another object
-     * in the prototype chain of objects created through
-     * the current Function object.
-     * 
-     * Used with constructors to establish prototype-based
-     * inheritance (much like class-based inheritance in Java).
-     * Be sure to call the parent's constructor then within
-     * the constructor of the child, using the call() method
-     * (or calling it as a method of the inheriting prototype),
-     * else changes in the parent will not affect the child.
-     * 
-     * @param constructor: Function
-     *   Constructor from which prototype object should be
-     *   inherited.
-     */
-    extend: function(constructor)
-    {
-      function Dummy() {};
-      Dummy.prototype = constructor;
-      this.prototype = new Dummy();
-      this.prototype.constructor = this;
-      this.userDefined = true;
-    }
-  });
-
+/**
+ * Includes the prototype object of another object
+ * in the prototype chain of objects created through
+ * the current Function object.
+ * 
+ * Used with constructors to establish prototype-based
+ * inheritance (much like class-based inheritance in Java).
+ * Be sure to call the parent's constructor then within
+ * the constructor of the child, using the call() method
+ * (or calling it as a method of the inheriting prototype),
+ * else changes in the parent will not affect the child.
+ * 
+ * @param Constructor: Function
+ *   Constructor from which prototype object should be
+ *   inherited.
+ */
+Function.prototype.extend = function function_extend(Constructor)
+{
+  function Dummy() {};
+  Dummy.prototype = Constructor;
+  this.prototype = new Dummy();
+  this.prototype.constructor = this;
+  this.userDefined = true;
+};
+  
 /**
  * @extends Error
  */
@@ -371,11 +392,12 @@ function Exception(s)
 }
 Exception.extend(typeof Error != "undefined" ? Error.prototype : null);
 
-Exception.prototype.addProperties({
-  getMessage:      function() { return this.message; },
-  getStackTrace:   function() { return this.stack; },
-  printStackTrace: function() { alert(this.getStackTrace()); }
-});
+addProperties({
+    getMessage:      function() { return this.message; },
+    getStackTrace:   function() { return this.stack; },
+    printStackTrace: function() { alert(this.getStackTrace()); }
+  },
+  Exception.prototype);
 
 /**
  * @extends Exception
