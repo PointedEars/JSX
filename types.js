@@ -3,7 +3,7 @@
  */
 function Types()
 {
-  this.version = "1.29.3.2006041619";
+  this.version = "1.29.5.2006100900";
 /**
  * @file types.js
  * @partof PointedEars' JavaScript Extensions (JSX)
@@ -18,6 +18,7 @@ function Types()
   this.URI       = this.path + "types.js";
 // var typesDocURL = typesPath + "types.htm";
 }
+
 var types = new Types();
 /**
  * This program is free software; you can redistribute it and/or
@@ -38,16 +39,9 @@ var types = new Types();
  * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
  */
 /*
- * The original source file
- * _types.js/1.29/2004-10-23-11/types.js
- * contains a complete documentation written in JSdoc, see
- * <http://pointedears.de/scripts/JSdoc/> for details.
- * 
- * Since JSdoc is not yet ready for production purposes to
- * generate a HTML documentation from these comments and
- * including them in the production version means about 50%
- * of code overhead, most of the JSdoc comments have been
- * stripped from this file.
+ * This script file contains JSdoc[tm] comments
+ * to create an API documentation of it from them, see
+ * <http://PointedEars.de/scripts/JSdoc/> for details.
  */
 
 /**
@@ -69,6 +63,16 @@ function TypesException(sMsg)
       + ">\n\n"
       + sMsg);
   return false;
+}
+
+function isDefined(a)
+{
+  return (typeof a != "undefined");
+}
+
+function isUndefined(a)
+{
+  return (typeof a == "undefined");
 }
 
 /**
@@ -101,8 +105,7 @@ function TypesException(sMsg)
 function isInstanceOf(a, Prototype)
 {
   return !!(
-    a
-    && typeof Prototype != "undefined"
+    a && Prototype
     && typeof a.constructor != "undefined"
     && a.constructor == Prototype);
 }
@@ -131,15 +134,16 @@ function isArray(a)
 /**
  * @author
  *   (C) 2003  Thomas Lahn &lt;types.js@PointedEars.de&gt;
- * @@argument Object o
+ * @argument Object o
  *   Object to be determined iterable, i.e. to be determined
  *   whether it provides the <code>length</code> property and
  *   has at least the <code>0<code> (zero) property.  This
- *   applies for <code>Array</code> objects with elements as
- *   well as, e.g., for DOM objects implementing one of the
+ *   applies for non-empty <code>Array</code> objects with
+ *   at least a first non-undefined element as well as, e.g.,
+ *   for DOM objects implementing one of the
  *   <code>HTMLCollection</code> or
  *   <code>HTMLOptionsCollection</code> interfaces defined in
- *   W3C-DOM Level 2.
+ *   the W3C DOM Level 2 Specification.
  * @return type boolean
  *   <code>true</code> if <code>o</code> is an iterable object,
  *   <code>false</code> otherwise.
@@ -162,7 +166,7 @@ function isIterable(o)
  */
 function bracketsToDots(s)
 {
-  return s.replace(/\[/g, '.').replace(/[\]\']/g, '');
+  return s.replace(/\['?/g, '.').replace(/'?\]/g, '');
 }
 
 /**
@@ -210,9 +214,16 @@ function dotsToBrackets(s, bStringsOnly)
 }
 
 /**
+ * Sets the handler for the proprietary <code>error</code> event.
+ * 
+ * NOTE: This method has previously been provided by {@link debug.js};
+ * optimizations in code reuse moved it here.
+ * 
  * @type boolean
  * @return <code>true</code> if the error handler could be assigned
- *   successfully, <code>false</code> otherwise.
+ *   successfully, <code>false</code> otherwise.  Note that one reason
+ *   for failure is that this event handler is no longer supported
+ *   by the UA's DOM due to efforts towards adherence to Web standards.
  */ 
 function setErrorHandler(fHandler)
 {
@@ -230,6 +241,11 @@ function setErrorHandler(fHandler)
 }
 
 /**
+ * Clears the handler for the proprietary <code>error</code> event.
+ * 
+ * NOTE: This method has previously been provided by {@link debug.js};
+ * optimizations in code reuse moved it here.
+ * 
  * @type boolean
  * @return Always <code>true</code>
  */ 
@@ -260,47 +276,14 @@ function clearErrorHandler()
  */
 function isMethod()
 {
-  var result = false;
-
   for (var i = 0, len = arguments.length; i < len; i++)
   {
     var arg = arguments[i];
 
-    // "object.property.property"
-    if (typeof arg == "string")
-    {
-      arg = bracketsToDots(arg).split(".");
-      // from object to object.property
-      for (var j = 0, len2 = arg.length - 1, obj = null; j < len2; j++)
-      {
-        setErrorHandler();
-        if (!obj)
-        {
-          obj = eval(arg[i]);
-        }
-        else
-        {
-          obj = obj[arg[i]];
-        }
-        clearErrorHandler();
+    if (typeof arg == "string") arg = eval(arg);
 
-        if (!obj) return false;
-      }
-
-      // if there is no "object."
-      if (!obj)
-      {
-        arg = eval(arg[i]);
-      }
-      else
-      {
-        arg = arg[arg[i]];
-      }
-    }
-
-    // if the .property is not a method
-    var t;
-    if (!arg || (t = typeof arg) != "function" || t != "object")
+    // if the property is not a method
+    if (!(/\b(function|object)\b/i.test(typeof arg) && arg))
     {
       return false;
     }
@@ -309,6 +292,48 @@ function isMethod()
   return true;
 }
 
+function isMethod2()
+{
+  for (var i = 0, len = arguments.length; i < len; i++)
+  {
+    var arg = arguments[i];
+
+    if (typeof arg == "string")
+    {
+    	setErrorHandler();
+    	arg = eval(arg);
+    	clearErrorHandler();
+    }
+    else if (arg.constructor == Array)
+    {
+    	setErrorHandler();
+      var o = (typeof arg[0] == "string")
+        ? eval(arg[0])
+        : arg[0];
+      clearErrorHandler();
+      
+      if (o && arg.length > 1)
+      {    	
+        setErrorHandler();
+        if (typeof o[arg[1]] == "string")
+          arg = eval(o[arg[1]]);
+        clearErrorHandler();
+      }
+      else
+      {
+      	arg = 0;
+      }
+    }
+
+    // if the property is not a method
+    if (!(/\b(function|object)\b/i.test(typeof arg) && arg))
+    {
+      return false;
+    }
+  }
+  
+  return true;
+}
 /**
  * @author
  *   (C) 2003, 2004  Thomas Lahn &lt;types.js@PointedEars.de&gt;
@@ -333,18 +358,5 @@ function isMethod()
  */
 function isMethodType(s)
 {
-  return (s == "function" || s == "object");
-}
-
-if (typeof Object != "undefined"
-    && typeof Object.prototype != "undefined"
-    && isMethodType(typeof Object.prototype.addProperties))
-{
-  Object.prototype.addProperties(
-    {isArray:      isArray,
-     isInstanceOf: isInstanceOf,
-     isIterable:   isIterable,
-     isMethod:     isMethod,
-     isMethodType: isMethodType
-    });
+  return /\b(function|object)\b/i.test(s);
 }
