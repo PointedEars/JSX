@@ -37,8 +37,8 @@ if (typeof Array == "undefined")
 {
   var Array = new Object();
 }
-Array.version   = "0.1.2004040613";
-Array.copyright = "Copyright \xA9 2004";
+Array.version   = "0.1.2007040519";
+Array.copyright = "Copyright \xA9 2004-2007";
 Array.author    = "Thomas Lahn";
 Array.email     = "array.js@PointedEars.de";
 Array.path      = "http://pointedears.de/scripts/"
@@ -104,8 +104,7 @@ function array_chunk(a, iSize)
     {
       if (arrays[index].length == iSize)
       {
-        index++;
-        arrays[index] = new Array();
+        arrays[++index] = new Array();
       }
       
       array_push(arrays[index], a[i]);
@@ -201,61 +200,87 @@ function array_fill(a, iStart, iNumber, value)
  *   http://pointedears.de/scripts/array.js
  * @requires
  *   types#isArray()
- * @optional Array a
- *   Array which should be filtered.  Is used instead of the
- *   @{jsref#Array} object the function is applied to.
  * @argument Function fCallback
  *   A function accepting a single argument that returns
  *   a value to be interpreted either as <code>true</code>
  *   or <code>false</code>.  If it returns <code>true</code>
  *   for the element of @{(a)}, that element is
  *   included in the resulting array, otherwise it is not.
+ * @optional Array a
+ *   Array which should be filtered.  Is used instead of the
+ *   @{jsref#Array} object the function is applied to.
  * @return type Array
  */
-function array_filter(a, fCallback)
+function array_filter(fCallback, a)
 {
-  if (!isArray(a) && isArray(this))
+  if (a)
   {
-    a = this;
-  }
-
-  if (!isArray(a))
-  {
-    a = new Array();
-  }
-  
-  var result = new Array();
-  
-  for (var i = iStart; i < iStart + iNumber; i++)
-  {
-    if (fCallback(a[i]))
+    // support for old-style calls
+    if (typeof a == "function")
     {
-      result = array_push(result, a[i]);
+      if (isArray(fCallback))
+      {
+        var tmp = a;
+        fCallback = a;
+        a = tmp;
+      }
+      else
+      {
+        eval('throw new TypeError();');
+      }        
+    }
+    else
+    {
+      // intentionally generic
+      a = this;      
     }
   }
-  
-  return result;
-}
 
+  var len = this.length;
+  
+  if (typeof fCallback != "function")
+  {
+    eval('throw new TypeError();');
+  }  
+
+  var res = new Array();
+
+  for (var i = 0; i < len; i++)
+  {
+    if (i in this)
+    {
+      // mozilla.org: in case fCallback mutates `this'(?)
+      var val = this[i];
+      
+      if (fCallback.call(a, val, i, this))
+      {
+        res.push(val);
+      }
+    }
+  }
+
+  return res;
+}
+  
 /**
  * Removes the last element from an array and returns that
  * element.  This method changes the length of the array, if
  * applied directly to an array object.
-
+ *
  * @author
  *   (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/array.js
  * @requires
  *   types#isArray()
- * @param a
+ * @param a: optional Array
  *   Array from which the last element should be removed.  Is used
  *   instead of the @{jsref#Array} object the function is
  *   applied to.
  * @returns
  *   The element removed from the array changed array.
  */
-function array_pop(/** @optional Array */ a)
+function array_pop(a)
 {
   if (!isArray(a) && isArray(this))
   {
@@ -711,13 +736,46 @@ function array_toUpperCase(a, bConvertNonStrings)
   return array_changeCase(a, true, bConvertNonStrings);
 }
 
-Array.prototype.addProperties(
-  {contains:    inArray,
-   chunk:       array_chunk,
-   changeCase:  array_changeCase,
-   countValues: array_countValues,
-   pop:         array_fill,
-   push:        array_push,
-   reverse:     array_fill,
-   search:      array_search,
-   toUpperCase: array_toUpperCase});
+Array.prototype.addProperties({
+  contains:    inArray,
+  chunk:       array_chunk,
+  changeCase:  array_changeCase,
+  countValues: array_countValues,
+  fill:        array_fill,
+  pop:         array_pop,
+  push:        array_push,
+  reverse:     array_reverse,
+  search:      array_search,
+  toUpperCase: array_toUpperCase,
+  
+  // JavaScript 1.6 (1.5 in Gecko 1.8b2 and later) emulation   
+  every: function(callback, thisObject) {
+    if (arguments.length < 2)
+    {
+      thisObject = this;
+    }
+    
+    for (var i = 0, len = thisObject.length; i < len; i++)
+    {
+      if (!thisObject.callback())
+      {
+        return false;
+      };
+    }
+
+    return true;
+  },
+  
+  filter: array_filter,
+     
+  iterate: function() {
+    var a = new Array();
+    
+    for (var i = 0, len = this.length; i < len; i++)
+    {
+      a.push(this[i]);
+    }
+    
+    return a;
+  }
+ });
