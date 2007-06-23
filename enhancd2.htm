@@ -1,0 +1,339 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+ "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>PointedEars' JavaScript Extensions (JSX): enhancd2.js</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1>PointedEars' JavaScript Extensions (JSX)</h1>
+<h2>enhancd2.js</h2>
+<pre>
+
+ORIGINAL FILENAME:       enhancd2.js
+PURPOSE:                 Provides level-2 enhanced web site features
+SCRIPT LANGUAGE/VERSION: JavaScript 1.2
+FILE VERSION:            1.18.2002.2;
+                         See enhanced2Version variable intialization in
+                         script file.
+PART OF:                 PointedEars' JavaScript Extensions (JSX)
+DEPENDS ON:              <a href="enhanced.htm"
+  title="View documentation of JSX:enhanced.js">JSX:enhanced.js</a>, v1.08.2000.3 or later</pre>
+
+<h3>Contents</h3>
+<ul>
+  <li><a href="#features">Features provided by this script</a></li>
+  <li><a href="#testlist">List of browser tests</a></li>
+  <li><a href="#history">Version history</a></li>
+  <li><a href="#copyright">Copyright &amp; disclaimer</a></li>
+  <li><a href="#details">Detailed description of features</a></li>
+</ul>
+
+<pre>
+<a name="features">FEATURES PROVIDED BY THIS SCRIPT:</a>
+
+linkOutWin  Questions the user before following an online link and
+            if confirmed, displays the result in a new window.
+            Calls and returns enhanced.js:linkOut(...).
+enlargeImg  Opens a dependent browser child window with an
+            enlarged image. (Previously addressed by Enlarge(...)
+            function, see version history info above.)
+maximize    Maximizes the width and height of the browser window.
+playSound   Plays a sound file (experimental)
+
+
+<a name="testlist">TESTED TO WORK AT LEAST WITH:</a>
+
+  Mozilla 1.0 Release Candidate 2
+    [Mozilla/5.0 (Windows; U; Windows NT 5.0; de-AT; rv:1.0rc2)
+     Gecko/20020510]
+  Mozilla 1.0 Release Candidate 1 nightly
+    [Mozilla/5.0 (Windows; U; Windows NT 5.0; de-AT; rv:1.0rc1)
+     Gecko/20020417]
+  Mozilla 0.9.9
+    [Mozilla/5.0 (Windows; U; Windows NT 5.0; de-AT; rv:0.9.9)
+     Gecko/20020311]
+  Mozilla 0.9.8 de-AT
+    "Mozilla/5.0 (Windows; U; Windows NT 5.0; de-AT; rv:0.9.8)
+     Gecko/20020204"
+  Mozilla 0.9.6 de-AT
+    "Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:0.9.6)
+     Gecko/20011120"
+  Netscape 6.2.1
+    "Mozilla/5.0 (Windows; U; Windows NT 5.0; de-DE; rv:0.9.4)
+     Gecko/20011128 Netscape6/6.2.1"
+  Opera 6.0 [de]
+    "Mozilla/4.0 (compatible; MSIE 5.0; Windows 2000) Opera 6.0 [de]"
+  Microsoft Internet Explorer 6.00.2600.0000 (SP-2)
+    "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0; Q312461;
+     Hotbar 3.0)"
+  Microsoft Internet Explorer 5.50, displayed 5.50.4134.0600IC
+  Microsoft Internet Explorer 5.01, displayed 5.00.2919.6307IC
+  Microsoft Internet Explorer 5.00, displayed 5.00.2314.1003IC
+  Netscape Navigator 4.74
+
+
+<a name="history">VERSION HISTORY:</a>
+
+1.20.2002.4 (2002-04-22)
+-------------------------
+First version under the terms of the GNU GPL, version 2 or later.
+
+1.18.2002.2 (2002-02-28)
+-------------------------
+- Updated hoverImg(...) function:
+  Now supports W3C-DOM of both NN 6+/Mozilla 0.9+ and IE 6+.
+
+1.17.2002.2 (2002-02-23)
+-------------------------
+- Updated enlargeImg(...) function:
+  Fixed bad bug with Mozilla/Netscape. Version of Mozilla newer than
+  0.9.6. and of Netscape newer than 6.1 do assign "about:blank" to a
+  temporary document which causes relative paths used for its resources
+  to be invalid. Further use of relative paths is provided by an
+  algorithm, used in JSX:<a href="outline.txt">outline.js</a> before and now improved, that calculates
+  the correct absolute path when provided the caller document's URL.
+
+1.16.2002.2 (2002-02-05)
+-------------------------
+- Updated enlargeImg(...) function:
+  Changed back to wImage.document because Opera's document.open(...)
+  function does not return the created object --> dImage is useless :(
+- Documentation update: Changed to HTML format
+
+1.15.2002.1 (2002-01-26)
+-------------------------
+- Updated enlargeImg(...) function:
+  Now uses previously defined dImage variable instead of wImage.document
+
+1.14.2002.1 (2002-01-18)
+-------------------------
+- Updated enlargeImg(...) function:
+  Masked / in written closing tags with \/ (backslash-slash) as
+  described in <a href="http://selfhtml.teamone.de/" target="_blank">SELFHTML 8.0</a>
+- Documentation update:
+  Word wrap at 72 characters (applies to documentation standards),
+  and version history is no longer in columns but separate paragraphs.
+
+1.13.2001.9 (2001-09-11)
+-------------------------
+Removed maximize() function:
+When used with virtual desktops larger than the physical resolution
+(screen), setting the window size to screen.width and screen.height
+causes the window to occupy the desktop but exceed the screen size,
+thus the browser window blocks the other desktop content.
+With this course of action it is intended not to support designers
+causing this undesired behavior on the computers of certain users.
+
+1.12.2001.4 (2001-04-03)
+------------------------
+Updated enlargeImg(...) function:
+Now checks if created window object exists and focuses it after creating
+its document (always focuses the popup, even if already open).
+
+1.11.2001.2 (2001-02-05)
+-------------------------
+Updated enlargeImg(...) function:
+Now allows to close zoom window when clicking on enlarged image and
+displays tooltip on mouse over.
+
+1.10.2001.1 (2001-01-11)
+-------------------------
+Moved general documentation to text file for faster processing.
+
+1.09.2000.11 (2000-11-24)
+--------------------------
+- Improved linkOutWin(...) function:
+  Now returns value of linkOut(...) (always false) for combined use
+  in both HREF attribute and onClick event handler of <span class="a">&lt;a&gt;</span>...<span
+  class="a">&lt;/a&gt;</span> tag.
+- Established string variable named enhanced2Version to contain
+  library version.
+  
+1.08.2000.10 (2000-10-30)
+--------------------------
+Improved maximize() function due to Netscape missing screen.left
+
+1.07.2000.10 (2000-10-17)
+--------------------------
+- Improved Enlarge(...) function:
+  - Fixed BUG_Enlarge:ALWAYS_FIT-TO-IMAGE (see code).
+  - Changed window name for temporary HTML document to "wndZoom".
+  - Renamed to "enlargeImg". Compatibility by internal redirection.
+- Bugfixed exception calls.
+- Improved inline documentation.
+
+1.06.2000.9 (2000-09-25)
+-------------------------
+Improved Enlarge(...) function:
+- iWidth and iHeight arguments are not longer mandatory
+  (moved to third and fourth argument) due to use of temporary
+  HTML document that displays the image and uses inline JavaScript code
+  to resize the window to fit image automatically
+  (standalone version; does neither utilize JSX:enhanced.js:popUp(...)
+  nor elements from document.js).
+- Additionally established window caption for second argument;
+  optional, uses image URL if not provided.
+  
+1.05.2000.8 (2000-08-13)
+-------------------------
+Tested script file successfully with IE5.5
+
+1.04.2000.7 (2000-06-10)
+-------------------------
+- Changed function names beginning with lowercase character.
+- Added playSound(...) function.
+
+1.03.2000.6 (2000-06-10)
+-------------------------
+- Changed OpenChildWin(...) call to popUp(...) and moved to enhanced.js
+- Improved Enlarge(...) function to display dependent browser
+  child window (with Netscape and compatibles only).
+- Improved documentation texts.
+
+1.02.2000.4 (2000-04-06)
+-------------------------
+Added Maximize(...) function.
+
+1.01.2000.3 (2000-03-24)
+-------------------------
+Added Enlarge(...) function.
+
+1.00.2000.3 (2000-03-23)
+-------------------------
+Added linkOutWin(...) function.
+
+  
+<a name="copyright">Copyright (c) 1999-2002  Thomas Lahn</a> &lt;<a
+  href="mailto:webmaster@PointedEars.de?subject=Feedback/JSX/enhancd2">webmaster@PointedEars.de</a>&gt;
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the <a
+  href="http://www.gnu.org/copyleft/gpl.html" target="_blank">GNU General Public License</a>
+as published by the <a href="http://www.fsf.org/" target="_blank">Free Software Foundation</a>; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program (<a href="COPYING" target="_blank">COPYING</a> file); if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+
+
+HOW TO USE:
+Note that this script depends on elements defined in JSX:enhanced.js
+For dependent scripts, the referred script file (enhanced.js) needs to
+be loaded previously and should be loaded only one time per document.
+To avoid providing the required elements in enhanced.js via copy&amp;paste,
+I recommend to utilize the functions of this script in (different)
+HTML documents when saving the entire file as enhancd2.js and appending
+the following sections within the &lt;head&gt;&lt;/head&gt; tags of these documents:
+
+<span class="scr">&lt;script src="enhanced.js" type="text/javascript"&gt;&lt;/script&gt;
+&lt;script src="enhancd2.js" type="text/javascript"&gt;&lt;/script&gt;</span>
+
+If dependencies cannot be resolved, you will always get a
+JavaScript error even if there are no bugs herein.
+
+
+<a name="details">Following the detailed description of the features of this script.</a>
+_______________________________________________________________________________
+
+function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter)
+
+The function defined below will open an independent browser child window
+(here: popup) calling the window.open(...) and document.open(...)
+functions to display the enlarged image of a thumbnail the user has
+clicked.
+Arguments: Pass the URL of the enlarged image, optionally the caption
+of the popup (if you leave it the URL is used as caption).
+Pass also width and/or height as arguments to override
+fit-window-to-image feature which results in the following behavior
+(disable automatic line-wrap and use fixed font for proper display):
+
+sImageURL  sCaption  iWidth  iHeight
+------------------------------------------------------------------------
+ -         ( )       ( )     ( )
+enhanced.js:EInvalidArgNum exception is raised
+	
+ +         ( )       ( )     ( )
+Use sImageURL as caption, fit-window-to-image horizontally & vertically
+
+ +          x        ( )     ( )
+Use sCaption as caption, fit-window-to-image horizontally & vertically
+
+ +          x         x      (0)
+Window width is defined by iWidth, fit-window-to-image vertically
+
+ +          x         0      (x)
+Window height is defined by iHeight, fit-window-to-image horizontally
+
+ +          x         x       x
+Window size is defined by iWidth and iHeight
+
+Legend:
+   -	Required argument not passed;
+   +	Required argument passed;
+   x	Mandatory optional argument passed except zero;
+   0	Zero ("0") passed for mandatory optional argument;
+  ( )	Optional argument not passed;
+  (0)	Optional argument not passed, or zero passed;
+  (x)	Optional argument not passed, or passed but not zero;
+
+The fifth argument, bCenter, is a Boolean expression that is `true' by
+default.
+You may pass an expression that returns `false' if you define the size
+of the popup by yourself. If bCenter == false, the popup will not be
+positioned in the center of the screen automatically but its left top
+corner is defined by the browser defaults (usually cascaded with other
+windows.)
+Pass iWidth == 0 and/or iHeight == 0, and bCenter == false if you wish
+the popup to be automatically resized horizontally and/or vertically,
+but not to be centered.
+
+NOTE:
+This feature had been previously addressed by the Enlarge(...) function
+with less arguments and therefore less possibilities to influence the
+display behavior (see below).
+Calls to Enlarge(...) are still possible as they redirect internally to
+enlargeImg(...), incl. exceptions. Nevertheless, calling Enlarge(...)
+disables you to define whether the popup should be centered as the old
+function definition is not being updated.  New scripts should call
+enlargeImg(...) anyway instead because Enlarge(...) may become obsolete
+in future versions.
+
+________________________________________________________________________
+
+function Enlarge(sImageURL, sCaption, iWidth, iHeight)
+
+Enlarge(...) call redirects to enlargeImg(...) for compatibility with
+previous versions.
+
+________________________________________________________________________
+
+function maximize()
+
+Maximizes the browser window.
+
+________________________________________________________________________
+
+function playSound( sSoundFile, Loop, sAttrib ) {
+
+Plays a sound file as background sound if the insertAdjacentHTML method
+is supported (currently on JScript browsers like IE5+ only, hence tests
+document.all object before).
+
+Note: If you specify the SRC or LOOP attributes in sAttrib, then
+sSoundFile and Loop will overwrite the respective values.
+________________________________________________________________________
+END OF FILE
+
+    </pre>
+</body>
+</html>
