@@ -1,0 +1,111 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>Untitled Document</title>
+<style type="text/css">
+textarea {
+  border: thin solid black;
+  background-color: #ccc;
+}
+</style>
+<script src="math.js" type="text/javascript"></script>
+<script type="text/javascript">
+      function esrever(s)
+      {
+        if (s && s.length > 1)
+        {
+          var s2 = "";
+          for (var i = s.length -1; i > -1; i--)
+          {
+            s2 += s.charAt(i);
+          }
+          s = s2;
+        }
+        
+        return s;
+      }
+      
+      function update(o, cbBE)
+      {
+        var oSource = o.what;
+        var oHex = oSource.form.elements['hex'];
+        var oBin = oSource.form.elements['bin'];
+        var oTxt = oSource.form.elements['txt'];
+
+        switch (oSource.name)
+        {
+          case "hex":
+            oSource.value =
+              oSource.value.replace(/([0-9A-F]{2})([0-9A-F]{2,})/ig, "$1 $2");
+            oBin.value = "";
+            oTxt.value = "";
+            var aOctets = oSource.value.split(" ");
+            
+            for (var i = 0; i < aOctets.length; i++)
+            {
+              oBin.value
+                += Math.dec2base(parseInt(aOctets[i], 16), 2, 8) + " ";
+              oTxt.value += String.fromCharCode(parseInt(aOctets[i], 16));
+            }
+            break;
+
+          case "bin":
+            oSource.value = oSource.value.replace(/([01]{8})([01]{8,})/g, "$1 $2");
+              /*
+              
+              (11111111)(1111111111111111111111111)
+              11111111 1111111111111111111111111
+              11111111 (11111111)(11111111111111111)
+              11111111 11111111 11111111111111111
+              
+              */
+
+            oHex.value = "";
+            oTxt.value = "";
+            var aOctets = oSource.value.split(" ");
+
+            for (var i = 0; i < aOctets.length; i++)
+            {
+              oHex.value
+                += Math.dec2base(parseInt(aOctets[i], 2), 16, 2) + " ";
+              oTxt.value += String.fromCharCode(parseInt(aOctets[i], 2));
+            }
+
+            break;
+
+          case "txt":
+            oHex.value = "";
+            oBin.value = "";
+
+            for (var i = 0; i < oSource.value.length; i++)
+            {
+              oHex.value +=
+                Math.dec2base(oSource.value.charCodeAt(i), 16, 2) + " ";
+              oBin.value +=
+                Math.dec2base(oSource.value.charCodeAt(i), 2, 8) + " ";
+            }
+        }
+        o.disabled = true;
+      }
+      
+      function change(o)
+      {
+        var o2 = o.form.elements['btUpdate'];
+        o2.what = o;
+        o2.disabled = false;
+      }
+    </script>
+</head>
+<body>
+<div style="text-align: center">
+<form action="" onSubmit="return false"><textarea name="hex"
+  cols="47" rows="10" onKeyPress="change(this);"></textarea> <textarea
+  name="txt" cols="16" rows="10" onKeyPress="change(this);"></textarea><br>
+<textarea name="bin" cols="71" rows="20" onKeyPress="change(this);"></textarea><br>
+<input type="button" name="btUpdate" value="Aktualisieren"
+  onclick="update(this);" disabled></form>
+</div>
+</body>
+</html>
