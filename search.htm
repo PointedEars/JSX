@@ -1,0 +1,436 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+ "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>PointedEars' JavaScript Extensions (JSX): search.js</title>
+<style type="text/css">
+code {
+  font-family: "Courier New", Courier, monospace;
+}
+
+.entity {
+  color: #000000;
+  font-weight: bold;
+  font-style: italic;
+  font-family: "Courier New", Courier, monospace;
+}
+
+.tags {
+  color: #000080;
+}
+
+.scr {
+  color: #800000;
+}
+
+.a {
+  color: #008000;
+}
+
+.comm {
+  color: #808080;
+  font-style: italic;
+  font-family: "Courier New", Courier, monospace;
+}
+
+.ident {
+  color: #000000;
+  font-weight: bold;
+  font-family: "Courier New", Courier, monospace;
+}
+
+.rswd {
+  color: #000080;
+  font-weight: bold;
+  font-family: "Courier New", Courier, monospace;
+}
+
+.arg,.str {
+  font-style: italic;
+  font-family: "Courier New", Courier, monospace;
+}
+
+.num {
+  color: #ff00ff;
+}
+
+.punct {
+  color: #0000ff;
+  font-family: "Courier New", Courier, monospace;
+}
+
+dl {
+  margin-top: 0px;
+}
+
+dt {
+  margin-top: 1em;
+}
+</style>
+</head>
+
+<body>
+<h1><a name="top">PointedEars' JavaScript Extensions (JSX)</a></h1>
+<h2>search.js</h2>
+<pre>
+
+ORIGINAL FILENAME:       <a href="search.js">search.js</a>
+PURPOSE:                 <a href="#def" title="Show definition">Search-string</a> support
+SCRIPT LANGUAGE/VERSION: JavaScript 1.1
+FILE VERSION:            1.06.2003.11
+PART OF:                 PointedEars' JavaScript Extensions (JSX)
+DEPENDS ON:              <a href="string.htm"
+  title="View documentation of JSX:string.js">JSX:string.js</a>
+    </pre>
+<h3>Contents</h3>
+<ul>
+  <li><a href="#features">Features provided by this script</a></li>
+  <li><a href="#testlist">List of browser tests</a></li>
+  <li><a href="#history">Version history</a></li>
+  <li><a href="#copyright">Copyright &amp; disclaimer</a></li>
+  <li><a href="#def">Expressions used herein</a></li>
+  <li><a href="#details">Detailed description of features</a></li>
+  <li><a href="#faq">FAQ -- Frequently Asked Questions</a></li>
+</ul>
+<p align="center" style="font-size: small;">Created with<br>
+<a href="http://quanta.sourceforge.net/" target="_top"><img
+  src="../media/quanta.png" alt="Quanta Plus" width="32" height="32"
+  border="0"></a> <a
+  href="http://www.macromedia.com/software/homesite/" target="_top"><img
+  src="../media/homesite3.gif" alt=" | Macromedia HomeSite | "
+  width="44" height="34" border="0"></a> <a
+  href="http://www.macromedia.com/software/dreamweaver/" target="_top"><img
+  src="../media/dreamweaver2.gif" alt="Macromedia Dreamweaver MX"
+  width="44" height="34" border="0"></a></p>
+<p align="center" style="font-size: small;"><a
+  href="http://validator.w3.org/check/referer" target="_top"><img
+  src="../media/valid-html401.png" alt="This is valid HTML 4.01, "
+  width="88" height="31" border="0"></a> <a
+  href="http://jigsaw.w3.org/css-validator/check/referer" target="_top"><img
+  src="../media/valid-css.png" alt="valid CSS "
+  style="border: 0; width: 88px; height: 31px"></a> <a
+  href="http://www.anybrowser.org/campaign/" target="_top"><img
+  src="../media/anybrowser.gif"
+  alt="and therefore optimized for ALL browsers!" width="88" height="31"
+  border="0"></a></p>
+<hr>
+<h4><a name="features">Features Provided By This Script</a></h4>
+<ul>
+  <li><pre><a href="#SearchString"><code>SearchString</code></a> prototype</pre></li>
+  <li><pre><a href="#globvar"><code>searchStringVersion</code></a> global variable</pre></li>
+</ul>
+<pre> </pre>
+<h4><a name="testlist">Tested To Work At Least With</a></h4>
+<pre><!-- <script type="text/javascript">
+  document.write(navigator.userAgent);
+</script>
+  -->
+  Mozilla 1.6a Nightly
+    [Mozilla/5.0 (Windows; U; Win98; en-US; rv:1.6a)
+     Gecko/20031025]
+  Mozilla 1.5b Nightly
+    [Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.5b)
+     Gecko/20030811]
+  Mozilla 0.9.8 de-AT
+    [Mozilla/5.0 (Windows; U; Windows NT 5.0; de-AT; rv:0.9.8)
+     Gecko/20020204]
+  Microsoft Internet Explorer 6.0 build 2600
+    [Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0; Hotbar 3.0)]
+
+<a href="#top">Goto top</a>
+
+</pre>
+<h4><a name="history">Version History</a></h4>
+
+<pre>
+1.06.2003.11 (2003-11-19)
+-------------------------
+* Allows for storing more than one value for a name
+* Changed from array-based search to property lookup;
+  removed <code>Value</code> prototype
+* Use decodeURIComponent(...) if available, unescape
+  or a dummy function
+* Updated documentation:
+  - Completed <a href="JSDoc/">JavaScriptDoc</a>&trade;.
+  - Use asterisks at the beginning of multi-line comments.
+  - Changed order of HTML documentation sections, updated
+    headings.
+
+1.05.2003.11 (2003-11-18)
+-------------------------
+* Updated documentation:
+  - Use <a href="JSDoc/">JavaScriptDoc</a>&trade; for newly edited code.
+* [to do]
+
+1.04.2003.10 (2003-10-??)
+-------------------------
+* Renamed <code>TSearchStr</code> to <code>SearchString</code>
+* Updated references to deprecated <tt>enhanced.js</tt> in the
+  documentation
+* [to do]
+
+1.03.200?.? (?)
+-------------------------
+[to do]
+
+1.02.200?.? (?)
+-------------------------
+[to do]
+
+1.01.200?.? (?)
+-------------------------
+[to do]
+
+1.00.2000.8 (2000-08-13)
+-------------------------
+Introduced <code>TSearchStr</code> prototype
+
+<a href="#top">Goto top</a>
+
+</pre>
+<h4><a name="copyright">Copyright &amp; Disclaimer</a></h4>
+
+<pre>COPYRIGHT (c) 2000-2002  Thomas Lahn (PES).
+<a href="mailto:search.js@PointedEars.de">mailto:search.js@PointedEars.de</a>
+
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License (GPL) for more details.
+
+You should have received a copy of the GNU GPL along with this
+program (COPYING file); if not, go to [1] or write to the Free
+Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+MA 02111-1307, USA.
+
+[1] &lt;<a href="http://www.gnu.org/licenses/licenses.html#GPL">http://www.gnu.org/licenses/licenses.html#GPL</a>&gt;
+
+<a href="#top">Goto top</a>
+
+    </pre>
+<h4><a name="def">Expressions Used Herein</a></h4>
+<dl>
+  <dt>search-string</dt>
+  <dd><pre>The part of a URI following the question mark (&quot;?&quot;) character.
+This string may contain a number of pairs of required names and
+associated values.  A value may be the <a href="#def">empty&nbsp;string</a>.
+A name and its associated value are to be separated from each
+other by an equals (&quot;=&quot;), each name/value pair is to be separated
+from the other by an ampersand (&quot;&amp;&quot;):
+
+  name1=value1&amp;name2=&amp;name3&amp;name4=value4...</pre></dd>
+  <dt>empty string</dt>
+  <dd><pre>A string that contains no characters, i.e. is of length 0.</pre></dd>
+</dl>
+<pre>
+
+<a name="details">Following the detailed description of the features of this script file.</a>
+_______________________________________________________________________________
+
+<a name="SearchString"><code>SearchString</code> prototype</a>
+---------------------
+
+The <code>SearchString</code> prototype encapsulates associated names and
+values of a <a href="#def" title="Show definition">search-string</a>.
+
+<code>SearchString<span class="punct">(</span>[<span class="arg">s</span>]<span
+  class="punct">)</span></code>
+
+Constructor arguments:
+  
+<code><span class="arg">s</span></code>         Original <a href="#def"
+  title="Show definition">search-string</a>.  Optional. If not provided or not
+          a string, `location.search' is assumed.  The object will
+          then have no properties if access to `location.search'
+          fails.
+
+Non-Function Properties:
+  
+<code>text</code>      The full <a href="#def" title="Show definition">search-string</a> without the leading &quot;?&quot; and
+          &quot;%26&quot; entities converted to &quot;&amp;&quot;.
+<code>length</code>    Length of <code>text</code>.
+<code>values</code>    Object that stores the values defined in the
+          <a href="#def" title="Show definition">search-string</a>.
+          Each name is a property of that object, the value of the
+          property is the value assigned to the name.  If more than
+          one value has been assigned to a name, the property is an
+          array where each element is an assigned value.
+          
+Function Properties (Methods):
+  
+<code><a href="#isName">isName</a></code>    Returns <code class="rswd">true</code> if a name is contained in the search-string.
+<code><a href="#hasValue">hasValue</a></code>  Returns <code
+  class="rswd">true</code> if a name is contained in the search-string
+          and has a value different from the <a href="#def"
+  title="Show definition">empty string</a>.
+<code><a href="#getValue">getValue</a></code>  Returns the value of a name as a string.  If the name is
+          not contained in the search-string, an <a href="#def"
+  title="Show definition">empty string</a> is
+          returned.
+        
+Usage:
+
+Provide a string with a structure described above as constructor
+argument of the prototype.  This will convert the string to an
+array with names and values as the properties of each item of this
+array where undefined values are assigned as <a href="#def">empty strings</a>:
+
+    <code><span class="rswd">var</span> s <span class="punct">=</span> <span
+  class="rswd">new</span> SearchString<span class="punct">(</span>location<span
+  class="punct">.</span>search<span class="punct">)</span>;</code>
+
+Then you can use the object's methods to access its properties
+easily:
+
+<a name="isName">Use the <code>isName<span class="punct">(</span>...<span
+  class="punct">)</span></code> method to determine whether a name has been
+provided with the string or not:</a>
+
+    <code><span class="rswd">if</span> <span class="punct">(!</span> s<span
+  class="punct">.</span>isName<span class="punct">(</span><span
+  class="str">&quot;url&quot;</span><span class="punct">))</span>
+        <span class="ident">alert</span><span class="punct">(</span><span
+  class="str">&quot;Required name 'url' missing!&quot;</span><span
+  class="punct">)</span>;</code>
+
+<a name="hasValue">Use the <code>hasValue<span class="punct">(</span>...<span
+  class="punct">)</span></code> method to determine whether a name has a
+value different from the </a><a href="#def">empty string</a>:
+
+    <code><span class="rswd">if</span> <span class="punct">(</span>s<span
+  class="punct">.</span>hasValue<span class="punct">(</span><span
+  class="str">&quot;test&quot;</span><span class="punct">))</span>
+        document<span class="punct">.</span><span class="ident">write</span><span
+  class="punct">(</span><span class="str">&quot;This is only a test&quot;</span><span
+  class="punct">)</span>;</code>
+
+<a name="getValue">Use the <code>getValue<span class="punct">(</span>...<span
+  class="punct">)</span></code> method to retrieve the value of a provided
+name:</a>
+
+    <code><span class="rswd">if</span> <span class="punct">(</span>s<span
+  class="punct">.</span><a href="#hasValue">hasValue</a><span
+  class="punct">(</span><span class="str">&quot;url&quot;</span><span
+  class="punct">))</span>
+        frames<span class="punct">[</span><span class="num">0</span><span
+  class="punct">].</span>location<span class="punct">.</span>href <span
+  class="punct">=</span> s<span class="punct">.</span>getValue<span
+  class="punct">(</span><span class="str">&quot;url&quot;</span><span
+  class="punct">)</span>;</code>
+
+With these methods, names are accessed case-insensitive by
+default.  If you need case-sensitivity, add <code class="rswd">true</code> as second
+argument to the method calls:
+
+    <code><span class="rswd">if</span> <span class="punct">(</span>s<span
+  class="punct">.</span><a href="#hasValue">hasValue</a><span
+  class="punct">(</span><span class="str">&quot;URL&quot;</span>, <span
+  class="rswd">true</span><span class="punct">))</span>
+        frames<span class="punct">[</span><span class="num">0</span><span
+  class="punct">].</span>location<span class="punct">.</span>href <span
+  class="punct">=</span> s<span class="punct">.</span><a
+  href="#getValue">getValue</a><span class="punct">(</span><span
+  class="str">&quot;URL&quot;</span><span class="punct">,</span> <span
+  class="rswd">true</span><span class="punct">)</span>;</code>
+
+<a href="#features">Goto list of features</a>
+<a href="#top">Goto top</a>
+
+        
+<a name="globvar"><code>searchStringVersion</code> global variable</a>
+----------------------------------
+        
+The initial value of the <code>searchStringVersion</code> variable shows the
+version of the library containing the <code><a
+  href="#SearchString">SearchString</a></code> prototype you
+are using.  This can be displayed, e.g. if you use the 
+<code>window<span class="punct">.</span><span class="ident">alert</span><span
+  class="punct">(</span>...<span class="punct">)</span></code> method with that variable as argument.
+
+<a href="#features">Goto list of features</a>
+<a href="#top">Goto top</a>
+
+
+<a name="how-to">HOW TO USE:</a>
+
+I recommend to utilize the functions of this script in different
+HTML documents when saving the entire file as search.js and
+appending the following sections within the <code><span
+  class="tags">&lt;head&gt;...&lt;/head&gt;</span></code> tags
+of that documents:
+
+<code><span class="scr">&lt;script src=&quot;string.js&quot; type=&quot;text/javascript&quot;&gt;&lt;/script&gt;</span>
+<span class="scr">&lt;script src=&quot;search.js&quot; type=&quot;text/javascript&quot;&gt;&lt;/script&gt;</span></code>
+
+<a href="#top">Goto top</a>
+
+</pre>
+<h4><a name="faq">FAQ (Frequently Asked Questions)</a></h4>
+<ul>
+  <li><pre><a href="#faq-error">Strange error messages with Internet Explorer and Netscape</a></pre></li>
+</ul>
+<pre>
+<a href="#top">Goto top</a>
+
+</pre>
+<h5><a name="faq-error">Strange error messages with Internet
+Explorer and Netscape</a></h5>
+<pre>
+Q: When I include the search.js library into my HTML/script, in
+   Netscape/Mozilla I get an <cite>&quot;Alert&quot;</cite> message saying a necessary
+   <cite>&quot;file&quot; [filename] &quot;cannot be found&quot;</cite>.  [filename] has the form
+   of [pathname] &quot;/%3Cnoscript%3E%3CFRAMESET%20rows=&quot;. But I
+   have not specified such a filename in my documents/scripts!
+
+   Instead, Internet Explorer shows either no alert message or
+   this one:
+
+       ,-----------------------------------------------------.
+       | Line:   [number]                                    |
+       | Column: [number]                                    |
+       | Error:  Object expected                             |
+       | Code:   0                                           |
+       | URL:    [fully qualified path of the HTML document] |
+       `-----------------------------------------------------'
+
+   Then, when I click the <cite>&quot;OK&quot;</cite> button of this alert message it
+   shows <cite>&quot;Error 404: File not found&quot;</cite> (or anything similar) in the
+   browser window, with the address bar containing a URL that has
+   the form of [pathname] &quot;/&lt;noscript&gt;&lt;FRAMESET%20rows=&quot;.
+
+   What have I done wrong?
+
+A: This occurs if the <a href="string.htm"
+  title="View documentation of JSX:string.js">JSX:string.js</a> script has <strong>not</strong> been included
+   <strong>before</strong> including the search.js library and you try to use
+   <code>SearchString</code> for a dynamic frameset.
+   
+   <code>search.js</code> now requires <a href="string.htm"
+  title="View documentation of JSX:string.js">JSX:string.js</a> because the latter contains
+   the <code><a href="string.htm#replaceText"
+  title="View documentation of JSX:string.js:replaceText(...)">replaceText</a><span
+  class="punct">(</span>...<span class="punct">)</span></code> function that is called by the constructor
+   of <code>SearchString</code> to replace HTML entities like <span
+  class="entity">&amp;nbsp;</span> with the
+   respective ASCII characters (here: <code>unescape<span
+  class="punct">(</span><span class="str">&quot;%A0&quot;</span><span
+  class="punct">)</span></code>; you'll see
+   that in the Netscape/Mozilla JavaScript Console under the &quot;Task&quot;
+   menu, &quot;Tools&quot; submenu.)
+   Include <a href="string.htm"
+  title="View documentation of JSX:string.js">JSX:string.js</a> in the correct order <a
+  href="#how-to">as described above</a> and
+   the problem should not occur again.
+   This is a known issue and I am working on a cross-platform bugfix.
+
+<a href="#top">Goto top</a>
+    </pre>
+</body>
+</html>
