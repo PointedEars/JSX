@@ -5,7 +5,7 @@ if (typeof String == "undefined")
 {
   var String = new Object();
 }
-/** @version */ String.version = "1.29.1.2006031822";
+/** @version */ String.version = "1.29.3.2007090212";
 /**
  * @filename string.js
  * @partof   PointedEars' JavaScript Extensions (JSX)
@@ -20,7 +20,7 @@ if (typeof String == "undefined")
  *   Dietmar Meier &lt;meier@innoline-systemtechnik.de&gt;<br>
  *   Martin Honnen &lt;Martin.Honnen@gmx.de&gt;
  */
-String.copyright = "Copyright \xA9 1999-2006";
+String.copyright = "Copyright \xA9 1999-2007";
 String.author    = "Thomas Lahn";
 String.email     = "string.js@PointedEars.de";
 String.path      = "http://pointedears.de/scripts/";
@@ -570,7 +570,7 @@ function leadingZero(s, n)
      s = this;
    }   
 
-   return pad(s, n);
+   return pad(s, n, "0");
 }
 
 /*
@@ -1223,7 +1223,8 @@ function strToCodeArray(s)
   {
     a = new Array();
 
-    for (i = 0, slen = s.length; i < slen; i++)
+    var slen = s.length;
+    for (i = 0; i < slen; i++)
     {
       a[i] = s.charCodeAt(i);
     }
@@ -1332,7 +1333,8 @@ function trimRight(s)
 }
 
 // If possible, add methods to the String prototype
-
+// Disabled until ECMAScript allows to hide properties from iteration
+/*
 String.prototype.addProperties(
   {'leadingCaps': leadingCaps,
    'leadingZero': leadingZero,
@@ -1362,7 +1364,6 @@ String.prototype.addProperties(
    'hashCode'   : hashCode,
    'format1k'   : format1k});
 
-/*
 p = Array.prototype;
 if (p)
 {
