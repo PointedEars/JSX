@@ -7,7 +7,7 @@
  */
 function SearchString(/** @argument string */ s)
 {
-  this.version = "1.10.2005112903";
+  this.version = "1.10.2006082411";
 /**
  * @file search.js
  * @partof PointedEars' JavaScript Extensions (JSX)
@@ -16,7 +16,7 @@ function SearchString(/** @argument string */ s)
  *         Thomas Lahn &lt;search.js@PointedEars.de&gt;
  *
  */
-  this.copyright = "Copyright \xA9 2000-2005";
+  this.copyright = "Copyright \xA9 2000-2006";
   this.author    = "Thomas Lahn";
   this.email     = "search.js@PointedEars.de";
   this.path      = "http://pointedears.de.vu/scripts/";
@@ -141,11 +141,14 @@ SearchString.prototype.isName =
  */
 function searchString_isName(sName, bCaseSensitive)
 {
-  if (!bCaseSensitive)
-  {
-    sName = sName.toLowerCase();
-  }
-
+  // FIXME: "A" is not found if bCaseSensitive == false
+  /*
+    if (!bCaseSensitive)
+    {
+      sName = sName.toLowerCase();
+    }
+   */
+   
   return (typeof this.values[sName] != "undefined");
 }
 
@@ -159,10 +162,13 @@ SearchString.prototype.hasValue =
  */
 function searchString_hasValue(sName, bCaseSensitive)
 {
-  if (!bCaseSensitive)
-  {
-    sName = sName.toLowerCase();
-  }
+  // FIXME (see above)
+  /*
+    if (!bCaseSensitive)
+    {
+      sName = sName.toLowerCase();
+    }
+   */
 
   return (this.isName(sName, bCaseSensitive) && this.values[sName] != "");
 }
@@ -177,10 +183,13 @@ SearchString.prototype.getValue =
  */
 function searchString_getValue(sName, bCaseSensitive, bConvertCode)
 {
-  if (!bCaseSensitive)
-  {
-    sName = sName.toLowerCase();
-  }
+  // FIXME (see above)
+  /*
+    if (!bCaseSensitive)
+    {
+      sName = sName.toLowerCase();
+    }
+   */
 
   return (this.isName(sName) ? this.values[sName] : "");
 }
