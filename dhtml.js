@@ -1,5 +1,5 @@
 /**
- * <title>PointedEars' DHTML Library</title>
+ * <title>PointedEars' DOM Library</title>
  * @partof
  *   PointedEars JavaScript Extensions (JSX)
  * @requires types.js
@@ -12,7 +12,7 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2002-2006 Thomas Lahn <dhtml.js@PointedEars.de>,
+ *   (C) 2002-2007 Thomas Lahn <dhtml.js@PointedEars.de>,
  *       2001      SELFHTML e.V. <stefan.muenz@selfhtml.org> et al.,
  *       2004      Ulrich Kritzner <droeppez@web.de> (loadScript),
  *       2005      MozillaZine Knowledge Base contributors (DOM XPath):
@@ -81,7 +81,7 @@
 
 function DHTML()
 {
-  this.version   = "0.9.1.2007103021";
+  this.version   = "0.9.2.2007111718";
 // var dhtmlDocURL = dhtmlPath + "dhtml.htm";
   this.copyright = "Copyright \xA9 2002-2007";
   this.author    = "Thomas Lahn";
@@ -178,8 +178,7 @@ function DHTML()
     
     this.getElemByTagName = this.gEBTN = (function dhtml_getElemByTagName()
     {
-      if (this.isMethodType(typeof document.evaluate)
-          && document.evaluate)
+      if (this.isMethodType(typeof document.evaluate) && document.evaluate)
       {
         // W3C DOM Level 3 XPath
         return function dhtml_getElemByTagName(s, i)
@@ -302,21 +301,17 @@ function DHTML()
 
     return result;
   };
-
+  
+  // Apart from isNS4DOM, none of these object-inference properties is used
+  // anymore; they are still here for backwards compatibility only 
   this.isW3CDOM = this.isMethod(document.getElementById);
   this.isOpera  = typeof window.opera != "undefined";
-  this.isNS4DOM =
-    (typeof window.netscape != "undefined"
-      && typeof window.screen != "undefined"
-      && !this.isW3CDOM
-      && !this.isOpera);
+  this.isNS4DOM = typeof document.layers != "undefined";
   this.isIE4DOM  = typeof document.all == "object" && !this.isOpera;
-  this.supported = this.isW3CDOM
-    || this.isNS4DOM
-    || this.isOpera
+  this.supported = this.isW3CDOM || this.isNS4DOM || this.isOpera
     || this.isIE4DOM;
 
-  // DOM preselection
+  // DOM preselection (why?)
   this.W3CDOM = 3;
   this.IE4DOM = 2;
   this.NS4DOM = 1;
@@ -479,8 +474,8 @@ function getCont(o, bHTML)
 
   if (o)
   {
-    if (dhtml.isW3CDOM
-        && typeof o.firstChild != "undefined")
+  	// W3C DOM Level 2 Core
+    if (typeof o.firstChild != "undefined")
     {
       if (typeof o.firstChild.nodeType != "undefined"
           && o.firstChild.nodeType ==
@@ -492,7 +487,7 @@ function getCont(o, bHTML)
         sResult = o.firstChild.nodeValue;
       }
     }
-    else if (dhtml.isIE4DOM)
+    else
     {
       if (typeof o.innerText != "undefined")
       {
@@ -530,24 +525,26 @@ function setCont(o, sNodeValue)
 {
   if (o)
   {
-    if (dhtml.isW3CDOM)
+  	// DOM Level 2 Core
+    if (typeof o.firstChild != "undefined")
     {
-      if (typeof o.firstChild != "undefined")
-      {
-        o.firstChild.nodeValue = sNodeValue;
-      }
-      else if (typeof o.nodeValue != "undefined")
-      {
-        o.nodeValue = sNodeValue;
-      }
-  
-      return true;   
+      o.firstChild.nodeValue = sNodeValue;
+      return true;
     }
-    else if (dhtml.isIE4DOM)
+    else if (typeof o.nodeValue != "undefined")
+    {
+      o.nodeValue = sNodeValue;
+      return true;
+    }
+    
+    // IE4 DOM
+    else if (typeof o.innerText != "undefined")
     {
       o.innerText = sNodeValue;
       return true;
     }
+    
+    // NS4 DOM
     else if (dhtml.isNS4DOM
              && o.document
              && o.document.open
@@ -699,7 +696,7 @@ function getAttr(sType, sValue, index, sAttrName)
   var result = "";
   var o = getElem(sType, sValue, index);
 
-  if ((dhtml.isW3CDOM || dhtml.isIE4DOM) && o)
+  if (o && isMethod(o.getAttribute))
   {
     result = o.getAttribute(sAttrName);
   }
@@ -773,7 +770,7 @@ function setAttr(o, sAttrName, attrValue)
       codetype: "codeType",
       datetime: "dateTime",
       frameborder: "frameBorder",
-      htmlfor: "htmlFor",
+      "for": "htmlFor",
       ismap: "isMap",
       longdesc: "longDesc",
       maxlength: "maxLength",
@@ -1123,7 +1120,7 @@ DHTML.prototype.setValue = setValue;
  */
 function hoverImg(imgID, state)
 {
-  var img = "null";
+  var img = null;
 
   if (document.images)
   {
@@ -1167,7 +1164,7 @@ function getCheckedRadio(oForm, sGroup)
       && (ig = e[sGroup]))
   {
     result = false;
-    for (var i = ig.length, io = null; i--;)
+    for (var i = ig.length; i--;)
     {
       if (ig[i].checked)
       {
@@ -1459,7 +1456,7 @@ function createElement(sTag)
 
   if (sTag
       && typeof document != "undefined"
-      && dhtml.isMethod(document.createElement))
+      && isMethod(document.createElement))
   {
     /*@cc_on @*/
     /*@if (@_jscript)
@@ -1801,7 +1798,7 @@ function loadScript(sURI, sType, sLanguage)
 {
   var result = false;
   
-  if (dhtml.isMethod(document.createElement))
+  if (isMethod(document.createElement))
   {
     var oScript = document.createElement("script");
     if (oScript)
@@ -1833,25 +1830,25 @@ function loadScript(sURI, sType, sLanguage)
       }
       
       var aHeads;
-      if (dhtml.isMethod(document.getElementsByTagName))
+      if (isMethod(document.getElementsByTagName))
       {
         aHeads = document.getElementsByTagName("head");
       }
-      else if (dhtml.isIE4DOM && document.all.tags)
+      else if (typeof document.all != "undefined" && document.all.tags)
       {
         aHeads = document.all.tags["head"];
       }
       
       if (aHeads && typeof aHeads[0] != "undefined")
       {
-        if (dhtml.isMethod(typeof aHeads[0].appendChild))
+        if (isMethod(typeof aHeads[0].appendChild))
         {
           aHeads[0].appendChild(oScript);
           result = (
             typeof aHeads[0].lastChild != "undefined"
             && aHeads[0].lastChild == oScript);
         }
-        else if (dhtml.isMethodType(typeof aHeads[0].insertAdjacentElement)
+        else if (isMethodType(typeof aHeads[0].insertAdjacentElement)
                  && aHeads[0].insertAdjacentElement)
         {
           aHeads[0].insertAdjacentElement("beforeEnd", oScript);
@@ -1908,7 +1905,7 @@ function getElementsByTabIndex(o)
     o = this;
   }
 
-  if (o && dhtml.isMethod(typeof o.getElementsByTagName))
+  if (o && isMethod(typeof o.getElementsByTagName))
   {
     var es = o.getElementsByTagName("*");
 
