@@ -14,8 +14,8 @@
   Refer enhancd2.htm file for general documentation.
 */
 
-var enhanced2Version   = "1.22.2002.5";
-var enhanced2Copyright = "Copyright © 2000-2002";
+var enhanced2Version   = "1.23.20080120";
+var enhanced2Copyright = "Copyright © 2000-2008";
 var enhanced2Author    = "Thomas Lahn";
 var enhanced2Email     = "PointedEars@gmx.de";
 var enhanced2DocURL    = "http://www.tu-ilmenau.de/~thla-in/scripts/enhancd2.htm";
@@ -80,57 +80,64 @@ function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter) {
       sImageURL = location.pathname.substring(0, iPathEnd) + "/" + sImageURL;
   }
   if (argnum < 1) return(EInvalidArgNum("Level 2: enlargeImg", 1));
+
 // preset also window position and size in the case the temporary script below fails
-  var sOptions = "toolbar=no,location=no,menubar=no,scrollbars=yes,resizable=yes" +
-    (((argnum > 2) && !isNaN(iWidth)) ? (",width=" + iWidth + 12) : "") +
-    (((argnum > 3) && !isNaN(iHeight)) ? (",height=" + iHeight + 32) : "") +
-    ",left=" + String( parseInt(screen.width/2 - (((argnum > 2) && !isNaN(iWidth))?(iWidth/2):0) )) +
-    ",top=" + String( parseInt(screen.height/2 - (((argnum > 3) && !isNaN(iHeight))?(iHeight/2):0) ));
-    var wImage = window.open( null, "wndZoom", sOptions );
-  if (wImage) {
-    /*var dImage = */ wImage.document.open("text/html");
-    var s = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">\n'
-      + '<html>\n'
-      + '  <head>\n'
-      + '    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-15">\n'
-      + '    <meta name="generator" value="JSX:enhancd2.js{' + enhanced2Version + '}:enlargeImg(...) ' + enhanced2Copyright + '  ' + enhanced2Author + ' &lt;' + enhanced2Email + '&gt;">\n'
-      + '    <title>';
-    if((argnum > 1) && (sCaption != ""))
-      s += sCaption;
-    else
-      s += sImageURL;
-  // temporary script and updated inline code to fix BUG_Enlarge:ALWAYS_FIT-TO-IMAGE
-    s += '<\/title>\n'
-      + '    <script type="text/javascript">\n'
-      + '      <!--\n'
-      + '      function fitWindowToImage() {\n'
-       + '        var imgWidth = ' + (((argnum > 2) && (iWidth != 0)) ? iWidth : ("document.images[0].width + 12")) + ';\n'
-      + '        var imgHeight = ' + (((argnum > 3) && (iHeight != 0)) ? iHeight : ("document.images[0].height + 32")) + ';\n'
-      + '        if (document.all) window.resizeTo(imgWidth, imgHeight);\n'
-      + '          else if (window.sizeToContent) window.sizeToContent();\n'
-      + '          else if (document.layers) { window.innerWidth = document.width; window.innerHeight = document.height; }\n';
-    if((argnum < 5) || ((argnum > 4) && (bCenter)))
-      s += '        window.moveTo(screen.width/2 - imgWidth/2, screen.height/2 - imgHeight/2);\n';
-    s += '      }\n'
-      + '      \/\/-->\n'
-      + '    <\/script>\n'
-      + '  <\/head>\n\n'
-      + '  <body leftmargin="0" '
-      + 'topmargin="0" marginwidth="0" marginheight="0" '
-      + 'style="margin: 0px">\n'
-      + '    <a href="#" title="'
-      + sEnlargeImgTitle + '" onClick="window.close(); return false;">'
-      + '<img src="' + sImageURL + '" border="0" '
-      + 'onload="fitWindowToImage(this);"><\/a>\n'
-      + '  <\/body>\n'
-      + '<\/html>';
-     // Workaround of version 1.16.2002.2 for Opera:
-     // With *this* browser, document.open(...) does not return created
-     // object :(
-    with (/*dImage*/ wImage.document ) {
-      write(s);
-      close();
-    }
+  var sOptions = "toolbar=no,location=no,menubar=no,scrollbars=yes,resizable=yes"
+               + (((argnum > 2) && !isNaN(iWidth)) ? (",width=" + iWidth + 12) : "")
+               + (((argnum > 3) && !isNaN(iHeight)) ? (",height=" + iHeight + 32) : "")
+               + ",left="
+               + parseInt(screen.width/2
+                          - (((argnum > 2) && !isNaN(iWidth))?(iWidth/2):0))
+               + ",top="
+               + parseInt(screen.height/2
+                          - (((argnum > 3) && !isNaN(iHeight))?(iHeight/2):0));
+  
+  var wImage = window.open(null, "wndZoom", sOptions);
+    
+  if (wImage)
+  {
+    var dImage = wImage.document;
+    dImage.open("text/html");
+    
+    var a = new Array(
+      '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">',
+      '<html>',
+      '  <head>',
+      '    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-15">',
+      '    <meta name="generator" value="JSX:enhancd2.js{'
+      + enhanced2Version + '}:enlargeImg(...) ' + enhanced2Copyright
+      + '  ' + enhanced2Author + ' &lt;' + enhanced2Email + '&gt;">',
+      '    <title>' + ((argnum > 1 && sCaption != "") ? sCaption : sImageURL),
+    
+      // temporary script and updated inline code to fix BUG_Enlarge:ALWAYS_FIT-TO-IMAGE
+      '    <\/title>',
+      '    <script type="text/javascript">',
+      '      // <![CDATA[',
+      '      function fitWindowToImage() {',
+      '        var imgWidth = ' + (((argnum > 2) && (iWidth != 0)) ? iWidth : ("document.images[0].width + 12")) + ';',
+      '        var imgHeight = ' + (((argnum > 3) && (iHeight != 0)) ? iHeight : ("document.images[0].height + 32")) + ';',
+      '        if (document.all) window.resizeTo(imgWidth, imgHeight);',
+      '          else if (window.sizeToContent) window.sizeToContent();',
+      '          else if (document.layers) { window.innerWidth = document.width; window.innerHeight = document.height; }',
+      (argnum < 5 || (argnum > 4 && bCenter))
+        ? '        window.moveTo(screen.width/2 - imgWidth/2, screen.height/2 - imgHeight/2);'
+        : '',
+      '      }',
+      '      // ]]>',
+      '    <\/script>',
+      '  <\/head>',
+      '  <body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0"'
+      + ' style="margin: 0px">',
+      '    <a href="#" title="'
+      + sEnlargeImgTitle + '" onclick="window.close(); return false;">'
+      + '<img src="' + sImageURL + '" border="0"'
+      + ' onload="fitWindowToImage(this);"><\/a>',
+      '  <\/body>',
+      '<\/html>'
+    );
+
+    dImage.write(s);
+    dImage.close();
     wImage.focus();
   }
   return(false);
