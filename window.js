@@ -3,7 +3,7 @@
  * @file window.js
  * @partof PointedEars' JavaScript Extensions (JSX)
  * @author
- *   (c) 2001-2003  Thomas Lahn &lt;types.js@PointedEars.de&gt;
+ *   (C) 2001-2008  Thomas Lahn &lt;window.js@PointedEars.de&gt;
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licnse
@@ -26,17 +26,16 @@
  * Refer window.htm file for general documentation. 
  *
  * This document contains JavaScriptDoc. Refer
- * http://pointedears.de.vu/scripts/JSDoc/
+ * http://pointedears.de/scripts/JSDoc/
  * for details.
  */
 
-var
-  windowVersion   = "1.29.2003.11b5+",
-  windowCopyright = "Copyright \xA9 1999-2003",
-  windowAuthor    = "Thomas Lahn",
-  windowEmail     = "window.js@PointedEars.de",
-  windowPath      = "http://pointedears.de.vu/scripts/";
-// windowDocURL = windowPath + "window.htm";
+var windowVersion   = "1.29.2008012001";
+var windowCopyright = "Copyright \xA9 1999-2008";
+var windowAuthor    = "Thomas Lahn";
+var windowEmail     = "window.js@PointedEars.de";
+var windowPath      = "http://pointedears.de/scripts/";
+// var windowDocURL = windowPath + "window.htm";
 
 // Script exceptions
 
@@ -53,6 +52,7 @@ function windowException(Msg)
       + windowEmail
       + ">\n\n"
       + Msg);
+
   return false;
 }
 
@@ -81,10 +81,10 @@ function resetStatus()
 }
 
 var sLinkOutMsg_de =
-    "Dieser Link ist offline nicht verfügbar.\n\n"
+    "Dieser Link ist offline nicht verfÃ¼gbar.\n\n"
   + "Wenn Sie mit dem Internet verbunden sind, steht Ihnen die Seite online"
-  + " zur Verfügung.\n\n"
-  + "Möchten Sie jetzt eine Verbindung zu dieser Seite herstellen?";
+  + " zur VerfÃ¼gung.\n\n"
+  + "MÃ¶chten Sie jetzt eine Verbindung zu dieser Seite herstellen?";
     
 var sLinkOutMsg_us =
   "This link is not available offline.\n\n"
@@ -93,14 +93,7 @@ var sLinkOutMsg_us =
 
 var sLinkOutMsg = sLinkOutMsg_de;
 
-function linkOut(
-  /** @argument string                 */ sURL,
-  /** @argument string                 */ sLink,
-  /** @argument optional boolean       */ bShowURL,
-  /** @argument optional string|number */ aTarget,
-  /** @argument optional number        */ iWidth,
-  /** @argument optional number        */ iHeight,
-  /** @argument optional string        */ sOptions)
+function linkOut(sURL, sLink, bShowURL, aTarget, iWidth, iHeight, sOptions)
 {
   if (arguments.length < 1)
   {
@@ -114,41 +107,40 @@ function linkOut(
    * fixed problem with websites created earlier
    */
   if (arguments.length < 3)
+  {
     bShowURL = true;
+  }
+
+  var oldArg;
 
   if ((sURL != "" && bShowURL == true)
       || (arguments.length >= 2 && sLink != ""))
   {
-    var oldArg = arg;
-    arg = "\n\n";
-    arg += oldArg;
+    oldArg = arg;
+    arg = "\n\n" + oldArg;
   }
 
   if (sURL != "" && bShowURL)
   {
-    var oldArg = arg;
-    arg = sURL;
-    arg += oldArg;
+    oldArg = arg;
+    arg = sUR + oldArg;
   }
 
   if (arguments.length >= 2 && sLink != "")
   {
     if (sURL != "" && bShowURL)
     {
-      var oldArg = arg;
-      arg = sLink;
-      arg += "\n";
-      arg += oldArg;
+      oldArg = arg;
+      arg = sLink + "\n" + oldArg;
     }
     else
     {
-      var oldArg = arg;
-      arg = sLink;
-      arg += oldArg;
+      oldArg = arg;
+      arg = sLink + oldArg;
     }
   }
 
-  if (confirm(arg))
+  if (window.confirm(arg))
   {
     var oTarget = document;
     if (arguments.length >= 4
@@ -164,11 +156,15 @@ function linkOut(
           return false;
         }
         else
+        {
           oTarget = parent.frames[aTarget].document;
+        }
         // and below: v1.09.2000.3 bugfix
       }
       else
+      {
         oTarget = parent.frames[aTarget].document;
+      }
     }
     oTarget.location = "";
     oTarget.location.href = sURL;
@@ -179,25 +175,22 @@ function linkOut(
 
 function popUp(sURL, iWidth, iHeight, sOptions)
 {
-  var sFeatures = "height=";
-  sFeatures += String(iHeight);
-  sFeatures += ",width=";
-  sFeatures += String(iWidth);
+  var sFeatures = "height=" + iHeight + ",width=" + iWidth;
+
   if (arguments.length > 3)
   {
-    sFeatures += ",";
-    sFeatures += sOptions;
+    sFeatures += "," + sOptions;
   }
+
   var wndChild = window.open(sURL, null, sFeatures);
   return false;
 }
 
-// OpenChildWin(...) call redirected to popUp(...) for compatibility to previous versions
-
-function OpenChildWin(sURL, iWidth, iHeight, sOptions)
-{
-  return popUp(sURL, iWidth, iHeight, sOptions);
-}
+/*
+ * OpenChildWin(...) call redirected to popUp(...) for compatibility to
+ * previous versions
+ */
+var OpenChildWin = popUp;
 
 function LoadFrame(sURL, targetFrame)
 {
@@ -206,6 +199,7 @@ function LoadFrame(sURL, targetFrame)
     // Raise exception if required arguments are missing
     return EInvalidArgNum("LoadFrame", 2);
   }
+
   if (isNaN(targetFrame))
   {
     if (parent.eval(targetFrame))
@@ -214,7 +208,9 @@ function LoadFrame(sURL, targetFrame)
       return sURL;
     }
     else
+    {
       return targetFrame;
+    }
   }
   else
   {
@@ -224,57 +220,21 @@ function LoadFrame(sURL, targetFrame)
       return sURL;
     }
     else
+    {
       return targetFrame;
+    }
   }
 }
 
-var
-  sEnlargeImgTitle_en = "Click to close window",
-  sEnlargeImgTitle_de = "Klicken, um Fenster zu schlie&szlig;en",
-  sEnlargeImgTitle = sEnlargeImgTitle_en;
+var sEnlargeImgTitle_en = "Click to close window";
+var sEnlargeImgTitle_de = "Klicken, um Fenster zu schliessen";
+var sEnlargeImgTitle    = sEnlargeImgTitle_en;
 
-function enlargeImg(
-  /** @argument string           */ sImageURL,
-  /** @argument optional string  */ sCaption,
-  /** @argument optional number  */ iWidth,
-  /** @argument optional number  */ iHeight,
-  /** @argument optional boolean */ bCenter)
-/**
- * @partof PointedEars' JavaScript Extensions (JSX)
- * @author
- *   (c) 2000-2003  Thomas Lahn &lt;PointedEars@gmx.de&gt;
- *   Protected under the terms of the GNU General Public License.
- *   See http://www.fsf.org/copyleft/gpl.html for details.
- *
- * Opens a dependent browser child window containing an (enlarged)
- * image. A primary button mouse click on the image or the window
- * closes the window.
- * 
- * @argdescr sImageURL
- *   Required. URL of the (enlarged) image.
- * @argdescr sCaption
- *   Optional. Caption of the browser child window.
- *   If not provided, sImageURL will be used as caption.
- * @param iWidth
- *   Optional. Width of the browser child window in pixels.
- *   If not provided or 0, the window will be resized to fit
- *   image width.
- * @param iHeight
- *   Optional. Height of the browser child window in pixels.
- *   If not provided or 0, the window will be resized to fit
- *   image height.
- * @param bCenter
- *   Optional. If <code>true</code>, the window will be centered
- *   on the screen. Note: Use with caution! Not all desktops
- *   return the correct position for the centered window.
- * @returns
- *   Always <code>false</code> which allows for
- *   <a href="..." ... onclick="return enlargeImg(...);">
- */
+function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter)
 {
   var ident = enlargeImg;
   var argnum = ident.arguments.length;
-  var wImage = false;
+
   if (sImageURL.charAt(0) != "/")
   {
     /*
@@ -284,202 +244,168 @@ function enlargeImg(
      * that generated pages have no path except about:blank which causes
      * relative paths for their resources to fail
      */
-    var iPathEnd = location.pathname.lastIndexOf('\\');
+    var iPathEnd = window.location.pathname.lastIndexOf('\\');
     // Windows local path
     if (iPathEnd < 0)
-      iPathEnd = location.pathname.lastIndexOf('/');
+    {
+      iPathEnd = window.location.pathname.lastIndexOf('/');
+    }
+
     // URL
     if (iPathEnd > -1) // Extends filename to full path
-      sImageURL = location.pathname.substring(0, iPathEnd) + "/" + sImageURL;
+    {
+      sImageURL = window.location.pathname.substring(0, iPathEnd)
+                + "/" + sImageURL;
+    }
   }
+
   if (argnum < 1)
-    return (EInvalidArgNum("Level 2: enlargeImg", 1));
-  // preset also window position and size in the case the temporary script below fails
-  var sOptions =
-    "toolbar=no,location=no,menubar=no,scrollbars=yes,resizable=yes"
-      + (((argnum > 2) && !isNaN(iWidth)) ? (",width=" + iWidth + 12) : "")
-      + (((argnum > 3) && !isNaN(iHeight)) ? (",height=" + iHeight + 32) : "")
-      + ",left="
-      + String(
-        parseInt(
-          screen.width / 2
-            - (argnum > 2 && !isNaN(iWidth)
-                 ? iWidth / 2
-                 : 0)))
-      + ",top="
-      + String(
-        parseInt(
-          screen.height / 2
-            - (argnum > 3 && !isNaN(iHeight)
-               ? iHeight / 2
-               : 0)));
-  wImage = window.open(null, "wndZoom", sOptions);
-  if (wImage)
   {
-    /*var dImage = */
-    wImage.document.open("text/html");
-
-    var s =
-        '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">\n'
-      + '<html>\n'
-      + '  <head>\n'
-      + '    <meta http-equiv="Content-Type" content="text/html;'
-      + ' charset=ISO-8859-15">\n'
-      + '    <meta name="generator" value="JSX:enhancd2.js{'
-      + windowVersion
-      + '}:enlargeImg(...) '
-      + windowCopyright
-      + '  '
-      + windowAuthor
-      + ' &lt;'
-      + windowEmail
-      + '&gt;">\n'
-      + '    <title>';
-
-    if (argnum > 1 && sCaption != "")
-      s += sCaption;
-    else
-      s += sImageURL;
-    /*
-     * temporary script and updated inline code to fix
-     * BUG_Enlarge:ALWAYS_FIT-TO-IMAGE
-     */
-
-    s +=
-        '<\/title>\n'
-      + '    <script type="text/javascript">\n'
-      + '      <!--\n'
-      + '      function fitWindowToImage()\n'
-      + '      {\n'
-      + '        var imgWidth = '
-      + (argnum > 2 && iWidth != 0
-        ? iWidth
-        : "document.images[0].width + 12")
-      + ';\n'
-      + '        var imgHeight = '
-      + (argnum > 3 && iHeight != 0
-        ? iHeight
-        : "document.images[0].height + 32")
-      + ';\n'
-      + '        if (document.all && window.resizeTo)\n'
-      + '        {\n'
-      + '          origLeft = window.screenLeft;\n'
-      + '          origTop = window.screenTop;\n'
-      + '          origWidth = window.width;\n'
-      + '          origHeight = window.height;\n'
-      + '          window.resizeTo(imgWidth, imgHeight);\n'
-      + '        }\n'
-      + '        else if (window.sizeToContent)\n'
-      + '        {\n'
-      + '          origLeft = window.screenX;\n'
-      + '          origTop = window.screenY;\n'
-      + '          origWidth = window.width;\n'
-      + '          origHeight = window.height;\n'
-      + '          window.sizeToContent();\n'
-      + '        }\n'
-      + '        else if (document.layers)\n'
-      + '        {\n'
-      + '          origLeft = window.screenX;\n'
-      + '          origTop = window.screenY;\n'
-      + '          origWidth = window.innerWidth;\n'
-      + '          origHeight = window.innerHeight;\n'
-      + '          window.innerWidth = document.width;\n'
-      + '          window.innerHeight = document.height;\n'
-      + '        }\n';
-
-    if (argnum < 5 || argnum > 4 && bCenter && window.moveTo)
-      s +=
-          '        window.moveTo(\n'
-        + '          screen.width/2 - imgWidth/2,\n'
-        + '          screen.height/2 - imgHeight/2);\n';
-        
-    s +=
-        '      }\n\n'
-      + '      function restoreWindowSize()\n'
-      + '      {\n'
-      + '        if (typeof window.origLeft != "undefined"\n'
-      + '            && typeof window.origTop != "undefined"\n'
-      + '            && typeof window.resizeTo != "undefined")\n'
-      + '          window.resizeTo(origLeft, origTop);\n'
-      + '        if (document.all && window.resizeTo)\n'
-      + '        {\n'
-      + '          try\n'
-      + '          {\n'
-      + '            window.screenLeft = origLeft;\n'
-      + '            window.screenTop = origTop;\n'
-      + '          }\n'
-      + '          catch (e)\n'
-      + '          {}\n'
-      + '        }\n'
-      + '        else if (window.sizeToContent || document.layers)\n'
-      + '        {\n'
-      + '          window.screenX = origLeft;\n'
-      + '          window.screenY = origTop;\n'
-      + '          window.innerWidth = origWidth;\n'
-      + '          window.innerHeight = origHeight;\n'
-      + '        }\n'
-      + '      }\n'
-      + '      \/\/-->\n'
-      + '    <\/script>\n'
-      + '  <\/head>\n\n'
-      + '  <body leftmargin="0" topmargin="0" marginwidth="	0" marginheight="0"'
-      + ' style="margin: 0px">\n'
-      + '    <a href="javascript:restoreWindowSize();window.close();"\n'
-      + '       title="' + sEnlargeImgTitle + '"\n'
-      + '       onClick="restoreWindowSize(); window.close(); return false;">'
-      + '<img\n'
-      + '         src="' + sImageURL + '" border="0"\n'
-      + '         onload="fitWindowToImage(this);"><\/a>\n'
-      + '  <\/body>\n'
-      + '<\/html>';
-
-    /*
-     * Workaround of version 1.16.2002.2 for Opera:
-     * With *this* browser, document.open(...) does not return
-     * created object :(
-     */
-    /*dImage*/
-    wImage.document.write(s);
-    wImage.document.close();
-    wImage.focus();
+    return (EInvalidArgNum("Level 2: enlargeImg", 1));
   }
-  return (false);
+
+  // preset also window position and size in the case the temporary script below fails
+  var sOptions = [
+    "toolbar=no,location=no,menubar=no,scrollbars=yes,resizable=yes",
+    ((argnum > 2) && !isNaN(iWidth)) ? (",width=" + iWidth + 12) : "",
+    ((argnum > 3) && !isNaN(iHeight)) ? (",height=" + iHeight + 32) : "",
+    ",left=",
+    parseInt(screen.width / 2 - (argnum > 2
+                                 && !isNaN(iWidth) ? iWidth / 2 : 0)),
+    ",top=",
+    parseInt(screen.height / 2 - (argnum > 3
+                                  && !isNaN(iHeight) ? iHeight / 2 : 0))
+  ].join("");
+
+  var w = window.open("", "wndZoom", sOptions);
+  if (w)
+  {
+    var d = w.document;
+    if (d)
+    {
+      d.open("text/html");
+  
+      var s = [
+        '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"',
+        '  "http://www.w3.org/TR/html4/loose.dtd"',
+        '<html>',
+        '  <head>',
+        '    <meta http-equiv="Content-Type" content="text/html;'
+        + ' charset=UTF-8">',
+        [
+          '    <meta name="generator" value="JSX:window.js{',
+           windowVersion, '}:enlargeImg(...) ', windowCopyright,
+           '  ', windowAuthor, ' &lt;', windowEmail, '&gt;">'
+        ].join(""),
+        [
+          '    <title>' + ((argnum > 1 && sCaption != "") ? sCaption : sImageURL),
+          '<\/title>'
+        ].join(""), 
+  
+        /*
+         * temporary script and updated inline code to fix
+         * BUG_Enlarge:ALWAYS_FIT-TO-IMAGE
+         */
+  
+        '    <script type="text/javascript">',
+        '      function fitWindowToImage()',
+        '      {',
+        '        var imgWidth = '
+        + (argnum > 2 && iWidth != 0 ? iWidth : "document.images[0].width + 12")
+        + ';',
+        '        var imgHeight = '
+        + (argnum > 3 && iHeight != 0 ? iHeight : "document.images[0].height + 32")
+        + ';\n',
+        '        if (typeof window.resizeTo == "object")', // IE only
+        '        {',
+        '          origLeft = window.screenLeft;',
+        '          origTop = window.screenTop;',
+        '          origWidth = window.width;',
+        '          origHeight = window.height;',
+        '          window.resizeTo(imgWidth, imgHeight);',
+        '        }',
+        '        else if (typeof window.sizeToContent == "function")', // Moz
+        '        {',
+        '          origLeft = window.screenX;',
+        '          origTop = window.screenY;',
+        '          origWidth = window.innerWidth;',
+        '          origHeight = window.innerHeight;',
+        '          window.sizeToContent();',
+        '        }',
+        '        else if (typeof document.layers == "object")', // NN4
+        '        {',
+        '          origLeft = window.screenX;',
+        '          origTop = window.screenY;',
+        '          origWidth = window.innerWidth;',
+        '          origHeight = window.innerHeight;',
+        '          window.innerWidth = document.width;',
+        '          window.innerHeight = document.height;',
+        '        }',
+  
+        (argnum < 5 || argnum > 4 && bCenter && window.moveTo)
+          ? ('        window.moveTo(\n'
+            + '          screen.width/2 - imgWidth/2,\n'
+            + '          screen.height/2 - imgHeight/2);\n')
+          : '',
+          
+        '      }\n',        
+        '      function restoreWindowSize()',
+        '      {',
+        '        if (typeof window.origLeft != "undefined"',
+        '            && typeof window.origTop != "undefined"',
+        '            && typeof window.resizeTo != "undefined")',
+        '          window.resizeTo(origLeft, origTop);\n',
+        '        if (document.all && window.resizeTo)',
+        '        {',
+        '          try',
+        '          {',
+        '            window.screenLeft = origLeft;',
+        '            window.screenTop = origTop;',
+        '          }',
+        '          catch (e)',
+        '          {}',
+        '        }',
+        '        else if (typeof window.sizeToContent == "function"',
+        '                 || typeof document.layers == "object")',
+        '        {',
+        '          window.screenX = origLeft;',
+        '          window.screenY = origTop;',
+        '          window.innerWidth = origWidth;',
+        '          window.innerHeight = origHeight;',
+        '        }',
+        '      }',
+        '    <\/script>',
+        '  <\/head>\n',
+        '  <body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0"'
+        + ' style="margin: 0 !important">',
+        '    <a href="javascript:restoreWindowSize();window.close();"',
+        '       title="' + sEnlargeImgTitle + '"',
+        '       onClick="restoreWindowSize(); window.close(); return false;">'
+        + '<img',
+        '         src="' + sImageURL + '" border="0"',
+        '         onload="fitWindowToImage(this);"><\/a>',
+        '  <\/body>',
+        '<\/html>'
+      ].join("\n");
+  
+      d.write(s);
+      d.close();
+      d = null;
+      w.focus();
+    }
+    else
+    {
+      w.close();
+    }
+    
+    w = null;
+  }
+
+  return false;
 }
 
 /*
  * Enlarge(...) call redirects to enlargeImg(...) for
  * compatibility with previous versions
  */
-Enlarge = enlargeImg;
-
-var
-  colMouseout = "#000000",
-  colMouseover = "#ffffff";
-
-function hoverImg(imgID, state)
-{
-  var img = "null";
-
-  if (document.all)
-    img = document.all(imgID);
-  else if (document.getElementById)
-    img = document.getElementById(imgID);
-
-  if (img)
-  {
-    col = "";
-    switch (state)
-    {
-      case 0:
-        col = colMouseout;
-        break;
-
-      default:
-        col = colMouseover;
-    }
-    if (col != "")
-      img.style.borderColor = col;
-  }
-
-  return true;
-}
+var Enlarge = enlargeImg;
