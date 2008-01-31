@@ -5,7 +5,7 @@ if (typeof String == "undefined")
 {
   var String = new Object();
 }
-/** @version */ String.version = "1.29.3.2007090212";
+/** @version */ String.version = "1.29.4.2008013102";
 /**
  * @filename string.js
  * @partof   PointedEars' JavaScript Extensions (JSX)
@@ -72,7 +72,8 @@ function StringException(Msg)
  * @optional string s
  *   String where " and ' should be escaped.  Ignored if
  *   the function is called as a method of a String object.
- * @return type string
+ * @type string
+ * @return
  *   The replaced string if String.replace(...)
  *   is supported, the original string otherwise.
  */
@@ -97,7 +98,8 @@ function addSlashes(s)
  * specification in RFC3986.
  * 
  * @param s: string
- * @return type string
+ * @type string
+ * @return
  *   <code>s</code> escaped, or unescaped if escaping through
  *   <code>encodeURIComponent()</code> or <code>escape()</code>
  *   is not possible.
@@ -489,7 +491,8 @@ function format1k(s, s1kDelim)
  *   not provided or <code>false</code>, it is assumed that
  *   the function is used as method of the String prototype,
  *   applied to a String object or literal.
- * @return type number
+ * @type number
+ * @return
  *   The hash code of the string, designed for implementing hash
  *   code access to associative arrays which can be implemented
  *   as objects with named properties in JavaScript 1.x.
@@ -532,7 +535,7 @@ function hashCode(s)
 
 /**
  * @optional string s
- * @return type string
+ * @type string
  */
 function leadingCaps(s)
 {
@@ -556,7 +559,8 @@ function leadingCaps(s)
  * @optional number n
  *   Length of the resulting string.  The default is 1,
  *   i.e. if the input string is empty, "0" is returned.
- * @return type string
+ * @type string
+ * @return
  *   Input string with leading zeros so that
  *   its length is @{(n)}.
  * @see
@@ -628,7 +632,7 @@ int LevenshteinDistance(char s[1..n], char t[1..m])
  *
  * @optional string s
  * @optional string t
- * @return type number
+ * @type number
  */
 function levenshtein(s, t)
 {
@@ -699,7 +703,7 @@ function levenshtein(s, t)
  * those prefixed by `&' or `<'.
  * 
  * @optional string s
- * @return type string
+ * @type string
  */ 
 function maskMarkup(s)
 {
@@ -717,7 +721,7 @@ function maskMarkup(s)
 
 /**
  * @argument string s
- * @return type string
+ * @type string
  */
 function nl2br(s)
 {
@@ -794,7 +798,7 @@ function pad(s, n, c, bRight, iStart)
  * @argument string sReplaced
  * @argument string sReplacement
  * @optional boolean bForceLoop
- * @return type string
+ * @type string
  */
 function replaceText(sText, sReplaced, sReplacement, bForceLoop)
 {
@@ -856,12 +860,112 @@ function replaceText(sText, sReplaced, sReplacement, bForceLoop)
 }
 
 /**
+ * @argument o: Object
+ *   Object to be serialized
+ * @argument options: optional Object
+ *   The property values of the passed object determine
+ *   one or more of the following display options:
+ *  
+ *   @option depth: number = 0
+ *     Depth down to which recursive serialization should
+ *     be performed.  The default is 0 (no recursion).
+ *     Negative values specify infinite recursion.
+ *     CAUTION: Recursive references are not detected;
+ *     in that case, a stack overflow will happen because
+ *     of too much recursion.
+ *  
+ *   @option showType: boolean = false
+ *     If <code>true</code>, <code>typeof</code> is used
+ *     to display the type of each property following a
+ *     colon after the identifier.  The value delimiter
+ *     then changes into a equals (`<code>=</code>').
+ *  
+ *   @option showConstructor: boolean = false
+ *     If <code>true</code>, <code>constructor</code> is used
+ *     to display the constructor of each property in brackets
+ *     after the identifier.
+ * 
+ *   @option iIndent: number = 0
+ *     Indentation level
+ * 
+ *   @option sIndent: string = "  "
+ *     Character string to use for indenting code
+ */
+function serialize(o, options)
+{
+  if (typeof options != "object" || !options)
+    options = {};
+    
+  if (typeof options.depth == "undefined")
+    options.depth = 0;
+     
+  if (typeof options.iIndent == "undefined")
+    options.iIndent = 0;
+    
+  if (typeof options.sIndent == "undefined")
+    options.sIndent = "  ";
+  
+  var
+    a = [],
+    indent = strRepeat(options.sIndent, options.iIndent); 
+  
+  for (var p in o)
+  {
+    var
+      v = o[p],
+      origV = v,    
+      t = typeof v,
+      isString = /string/i.test(t),
+      s = isString ? '"' : ''; 
+
+    // FIXME: number values
+    // unlimited or limited depth > 0 (0 == false)
+    if (options.depth && (!isString || isNaN(p)))
+    {
+      v = serialize(v, {
+        depth: options.depth - 1,
+        showType: options.showType,
+        showConstructor: options.showConstructor,
+        iIndent: options.iIndent + 1,
+        sIndent: options.sIndent
+      });
+    }
+    
+    a.push([
+      indent, options.sIndent, p,
+      (options.showConstructor
+       ? ("["
+          + (origV && typeof origV.constructor != "undefined"
+             ? (String(origV.constructor).match(/function\s*([^\s\(\{]+)/)
+                || {"1": "unknown"})[1]
+             : "unknown")
+          + "]")
+       : ""),
+      (options.showType ? ": " + t : ""),
+      (options.showType ? " = " : ": "),
+      !(options.depth && (!isString || isNaN(p)))
+        ? (s + v.replace(/"/g, "\\$&") + s)
+        : v
+    ].join(""));        
+  }
+  
+  if (a.length > 0)
+  {
+    return ["{\n", a.join(",\n"), "\n", indent, "}"].join("");
+  }
+  else
+  {
+    return String(o);
+  }
+}
+
+/**
  * Calculates the number of occurrences of one string in another.
  * 
  * @argument string s
  * @argument string substr
  * @optional boolean bCaseSensitive
- * @return type number
+ * @type number
  */
 function strCount(s, substr, bCaseSensitive)
 {
@@ -1083,11 +1187,11 @@ function stripTags(s, bStripContent, bCaseSensitive, tags, bElements)
  * 
  * @argument string|number s
  * @argument optional number nMultiplier
- * @return type string
+ * @type string
  */ 
 function strRepeat(s, nMultiplier)
 {
-  var sResult = "";
+  var aResult = [];
 
   var c;
   if ((c = this.constructor) && c == String && typeof s != "string")
@@ -1102,12 +1206,12 @@ function strRepeat(s, nMultiplier)
     {
       for (var i = 0; i < nMultiplier; i++)
       {
-        sResult += s;
+        aResult.push(s);
       }
     }
   }
 
-  return sResult;
+  return aResult.join("");
 }
 
 /**
@@ -1118,7 +1222,8 @@ function strRepeat(s, nMultiplier)
  *   provided or <code>false</code>, it is assumed that the
  *   function is used as method of the String prototype, applied
  *   to a String object or literal.
- * @return type Array
+ * @type Array
+ * @return
  *   An array with every character of <code>s</code> an element
  *   of it.
  * @see
@@ -1159,7 +1264,8 @@ function strToArray(s)
 /**
  * @argument [string,] as
  *   Input string array.
- * @return type RegExp
+ * @type RegExp
+ * @return
  *   A regular expression to match
  *   all the string array elements.
  */
@@ -1195,7 +1301,8 @@ function strArrayToCharClass(as)
  *   If not provided or <code>false</code>, it is assumed
  *   that the function is used as method of the String
  *   prototype, applied to a String object or literal.
- * @return type Array
+ * @type Array
+ * @return
  *   An array where every element is the ASCII character
  *   of <code>s</code> an element of it.
  * @see
@@ -1243,7 +1350,7 @@ function strToCodeArray(s)
  * and trailing whitespace removed.
  * 
  * @optional string s
- * @return type string
+ * @type string
  * @see #trimLeft(), #trimRight()
  */ 
 function trim(s)
@@ -1272,7 +1379,7 @@ function trim(s)
  * Returns the input string with all leading whitespace removed.
  * 
  * @optional string s
- * @return type string
+ * @type string
  */ 
 function trimLeft(s)
 {
@@ -1304,7 +1411,7 @@ function trimLeft(s)
  * Returns the input string with all trailing whitespace removed.
  * 
  * @optional string s
- * @return type string
+ * @type string
  */ 
 function trimRight(s)
 {
