@@ -5,7 +5,7 @@ if (typeof String == "undefined")
 {
   var String = new Object();
 }
-/** @version */ String.version = "1.29.4.2008013102";
+/** @version */ String.version = "1.29.5.2008032400";
 /**
  * @filename string.js
  * @partof   PointedEars' JavaScript Extensions (JSX)
@@ -14,13 +14,13 @@ if (typeof String == "undefined")
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2001-2006  Thomas Lahn &lt;string.js@PointedEars.de&gt;
+ *   (C) 2001-2008  Thomas Lahn &lt;string.js@PointedEars.de&gt;
  * @author
  *   Parts Copyright (C) 2003<br>
  *   Dietmar Meier &lt;meier@innoline-systemtechnik.de&gt;<br>
  *   Martin Honnen &lt;Martin.Honnen@gmx.de&gt;
  */
-String.copyright = "Copyright \xA9 1999-2007";
+String.copyright = "Copyright \xA9 1999-2008";
 String.author    = "Thomas Lahn";
 String.email     = "string.js@PointedEars.de";
 String.path      = "http://pointedears.de/scripts/";
@@ -103,15 +103,18 @@ function addSlashes(s)
  *   <code>s</code> escaped, or unescaped if escaping through
  *   <code>encodeURIComponent()</code> or <code>escape()</code>
  *   is not possible.
+ * @partof http://PointedEars.de/scripts/string.js
+ * @see types.js:isMethodType()
+ * @author Copyright (c) 2006-2008 Thomas Lahn <cljs@PointedEars.de>
  */
-function esc(s)
+var esc = (function()
 {
-  return (isMethodType(typeof encodeURIComponent)
-          ? encodeURIComponent(s)
-          : (isMethodType(typeof escape)
-             ? escape(s)
-             : s));
-}
+  return (isMethodType(typeof encodeURIComponent) && encodeURIComponent
+          ? encodeURIComponent
+          : (isMethodType(typeof escape) && escape
+             ? escape
+             : function(s) { return s; }));
+})();
 
 // Had to abandon addProperties since Konqueror's engine does not support
 // Object literals
@@ -460,7 +463,9 @@ function format1k(s, s1kDelim)
       s1kDelim = ",";
     }
 
-    var rx = /([\da-f])(\1{3}(,|(\.\1+)?$))/i;
+    // 1.29.4.2008030123:
+    // added parens around backrefs for JScript 3.x compliance 
+    var rx = /([\da-f])((\1){3}(,|(\.(\1)+)?$))/i;
     while (rx.test(s))
     {
       s = s.replace(rx, "$1" + s1kDelim + "$2");
@@ -568,13 +573,13 @@ function leadingCaps(s)
  */ 
 function leadingZero(s, n)
 {
-   var c;
-   if ((c = this.constructor) && c == String && typeof s != "string")
-   {
-     s = this;
-   }   
-
-   return pad(s, n, "0");
+  var c;
+  if ((c = this.constructor) && c == String && typeof s != "string")
+  {
+    s = this;
+  }   
+   
+  return pad(s, n, "0");
 }
 
 /*
@@ -768,7 +773,7 @@ function pad(s, n, c, bRight, iStart)
 
    if (typeof s != "string")
    {   
-     s = s.toString();
+     s = String(s);
    }
 
    if (typeof iStart == "undefined")
