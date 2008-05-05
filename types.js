@@ -3,15 +3,15 @@
  */
 function Types()
 {
-  this.version = "1.29.5.2006100900";
+  this.version = "1.29.6.2008050517";
 /**
  * @file types.js
  * @partof PointedEars' JavaScript Extensions (JSX)
  * @requires object.js
  * @author
- *   (C) 2001-2006  Thomas Lahn &lt;types.js@PointedEars.de&gt;
+ *   (C) 2001-2008  Thomas Lahn &lt;types.js@PointedEars.de&gt;
  */
-  this.copyright = "Copyright \xA9 1999-2006";
+  this.copyright = "Copyright \xA9 1999-2008";
   this.author    = "Thomas Lahn";
   this.email     = "types.js@PointedEars.de";
   this.path      = "http://pointedears.de/scripts/";
@@ -65,14 +65,44 @@ function TypesException(sMsg)
   return false;
 }
 
-function isDefined(a)
+/**
+ * Returns <code>true</code> if a property is defined and its value
+ * is different from `undefined', <code>false</code> otherwise.
+ *
+ * @optional Object o
+ *   Optional base object.  The default is the calling object.
+ * @argument String p
+ *   Property name; required.
+ */
+function isDefined(o, p)
 {
-  return (typeof a != "undefined");
+  if (!p)
+  {
+    p = o;
+    o = this;
+  }
+  
+  return (typeof o[p] != "undefined");
 }
 
-function isUndefined(a)
+/**
+ * Returns <code>true</code> if a property is undefined or
+ * its value is `undefined', <code>false</code> otherwise.
+ *
+ * @optional Object o
+ *   Optional base object.  The default is the calling object.
+ * @argument String p
+ *   Property name; required.
+ */
+function isUndefined(o, p)
 {
-  return (typeof a == "undefined");
+  if (!p)
+  {
+    p = o;
+    o = this;
+  }
+
+  return (typeof o[p] == "undefined");  
 }
 
 /**
@@ -262,28 +292,50 @@ function clearErrorHandler()
 }
 
 /**
+ * Determines whether a property is likely to be callable.
+ * 
  * @author
- *   (C) 2003-2005  Thomas Lahn &lt;types.js@PointedEars.de&gt;
- * @params :optional Object|string
+ *   (C) 2003-2008  Thomas Lahn &lt;types.js@PointedEars.de&gt;
+ * @params :optional Object|string|(Object,string)
  *   Objects to be determined a method, i.e. a
  *   <code>Function</code> object assigned as property of
  *   another object.  Each argument may also be a string
  *   to be evaluated and so is applicable to unknown properties.
- * @return type boolean
+ *   If an argument is followed by a string argument, it is
+ *   assumed that the argument is the object and the string
+ *   argument is the name of the property to be tested.
+ * @return
  *   <code>true</code> if all arguments refer to methods,
  *   <code>false</code> otherwise.
- * @see #isMethodType()
+ * @type boolean
+ * @see isMethodType()
  */
 function isMethod()
 {
-  for (var i = 0, len = arguments.length; i < len; i++)
+  for (var i = 0, len = arguments.length,
+           rxMethod = /^\s*(function|object|unknown)\s*$/i;
+       i < len; i++)
   {
     var arg = arguments[i];
 
+    if (rxMethod.test(typeof arg) && arg
+        && typeof arguments[i + 1] == "string")
+    {
+      // if the property is not a method
+      if (!(rxMethod.test(typeof arg[arguments[i + 1]])
+            && arg[arguments[i + 1]]))
+      {
+        return false;       
+      }
+      
+      i++;
+      continue;
+    }
+    
     if (typeof arg == "string") arg = eval(arg);
 
     // if the property is not a method
-    if (!(/\b(function|object)\b/i.test(typeof arg) && arg))
+    if (!(rxMethod.test(typeof arg) && arg))
     {
       return false;
     }
@@ -300,20 +352,20 @@ function isMethod2()
 
     if (typeof arg == "string")
     {
-    	setErrorHandler();
-    	arg = eval(arg);
-    	clearErrorHandler();
+      setErrorHandler();
+      arg = eval(arg);
+      clearErrorHandler();
     }
     else if (arg.constructor == Array)
     {
-    	setErrorHandler();
+      setErrorHandler();
       var o = (typeof arg[0] == "string")
         ? eval(arg[0])
         : arg[0];
       clearErrorHandler();
       
       if (o && arg.length > 1)
-      {    	
+      {     
         setErrorHandler();
         if (typeof o[arg[1]] == "string")
           arg = eval(o[arg[1]]);
@@ -321,7 +373,7 @@ function isMethod2()
       }
       else
       {
-      	arg = 0;
+        arg = 0;
       }
     }
 
@@ -334,29 +386,72 @@ function isMethod2()
   
   return true;
 }
+
 /**
+ * Determines whether a feature is available.
+ * 
  * @author
- *   (C) 2003, 2004  Thomas Lahn &lt;types.js@PointedEars.de&gt;
- *   Distributed under the GNU GPL v2.
- * @partof
- *   http://pointedears.de/scripts/types.js
- * @optional string s
+ *   (C) 2008  Thomas Lahn &lt;types.js@PointedEars.de&gt;
+ * @param o: Object
+ *   Base object
+ * @params string
+ *   Name(s) of the property/properties that are required for
+ *   the feature.  For example, passing "foo" and "bar"
+ *   determines whether o["foo"]["bar"] is an available feature.
+ * @return
+ *   The feature's value if the arguments refer to a feature,
+ *   <code>false</code> otherwise.  Note that if a feature
+ *   has type boolean, you should therefore not use this method
+ *   to determine its availability.
+ * @type boolean 
+ */
+function isFeature(o)
+{
+  if (typeof o != "undefined" && o)
+  {
+    for (var i = 1, len = arguments.length; i < len; i++)
+    { 
+      var arg = arguments[i];
+      
+      if (typeof o[arg] != "undefined" && o[arg])
+      {
+        o = o[arg];
+      }
+      else
+      {
+        o = null;
+        break;
+      }
+    }
+  }
+  
+  return o; 
+}
+
+/**
+ * @param s: optional string
  *   String to be determined a method type, i.e. "object"
- *   in IE, "function" otherwise.  The type must have been
- *   retrieved with the `typeof' operator, thus this method
- *   is applicable to unknown properties while
- *   @link{#isMethod()} is not.  Note that this method
+ *   or "unknown" in IE, "function" otherwise.  The type must
+ *   have been retrieved with the `typeof' operator, thus this
+ *   method is applicable to unknown properties while
+ *   <code>isMethod()</code> is not.  Note that this method
  *   may also return <code>true</code> if the value of
  *   the <code>typeof</code> operand is <code>null</code>; to
  *   be sure that the operand is a method reference, you have
  *   to && (AND)-combine the <code>isMethodType(...)</code>
  *   expression with the method reference identifier.
- * @return type boolean
+ * @type boolean
+ * @return
  *   <code>true</code> if <code>s</code> is a method type,
  *   <code>false</code> otherwise.
- * @see #isMethod()
+ * @author
+ *   (C) 2003-2008  Thomas Lahn &lt;types.js@PointedEars.de&gt;
+ *   Distributed under the GNU GPL v3 and later.
+ * @partof
+ *   http://pointedears.de/scripts/types.js
+ * @see isMethod()
  */
 function isMethodType(s)
 {
-  return /\b(function|object)\b/i.test(s);
+  return /^\s*(function|object|unknown)\s*$/i.test(s);
 }
