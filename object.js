@@ -1,14 +1,14 @@
 /**
  * <title>Object Library</title>
  */
-/** @version */ Object.version   = "0.1.3.2006100822";
+/** @version */ Object.version   = "0.1.5a.2008051818";
 /**
  * @file object.js
  * @partof PointedEars' JavaScript Extensions (JSX)
  * @author
- *   (C) 2004-2006  Thomas Lahn &lt;object.js@PointedEars.de&gt;
+ *   (C) 2004-2008  Thomas Lahn &lt;object.js@PointedEars.de&gt;
  */
-Object.copyright = "Copyright \xA9 2004-2006";
+Object.copyright = "Copyright \xA9 2004-2008";
 Object.author    = "Thomas Lahn";
 Object.email     = "object.js@PointedEars.de";
 Object.path      = "http://pointedears.de/scripts/";
@@ -90,26 +90,28 @@ Object.COPY_INHERIT = 4;
  */
 function addProperties(oSource, iFlags, oOwner)
 {
+  
   if (/\b(object|function)\b/i.test(typeof iFlags))
   {
     oOwner = iFlags;
     iFlags = 0;
   }
 
+
   if (!oOwner)
   {
     oOwner = this;
   }
 
-  for (var i in oSource)
+  for (var p in oSource)
   {
-    if (typeof oOwner[i] == "undefined"
+    if (typeof oOwner[p] == "undefined"
         || (iFlags & Object.ADD_OVERWRITE))
     {
-      oOwner[i] = clone(
+      oOwner[p] = clone(
         iFlags & (Object.COPY_ENUM_DEEP | Object.COPY_INHERIT),
-        oSource[i]);
-      oOwner[i].userDefined = true;
+        oSource[p]);
+      oOwner[p].userDefined = true;
     }
   }
 }
@@ -185,9 +187,14 @@ function clone(iLevel, oSource)
   }
 }
 
+
 /**
  * @argument Object o
- * @return type string
+ * @argument number iLength
+ *   Maximum property name length up to which an unused name
+ *   is searched.  The default is 256. 
+ * @type string
+ * @returns 
  *   The name of a non-existing property of o if
  *   @{Object.hasOwnProperty()} is supported, or
  *   the name of a property with value `undefined'
@@ -220,7 +227,7 @@ function findNewProperty(o, iLength)
     for (var i = "a".charCodeAt(0); i <= "z".charCodeAt(0); i++)
     {
       var c = String.fromCharCode(i);
-      if (!o._hasOwnProperty(s + c))
+      if (!_hasOwnProperty(o, s + c))
       {
         return s + c;
       }
@@ -252,7 +259,6 @@ function _hasOwnProperty(o, sProperty)
   // see debug.js
   // printfire(o);
   // printfire(sProperty);
-  var hasHasOwnProperty = (typeof o.hasOwnProperty == "function");
 
   // BUG: "Unhandled exception on WrappedNative prototype object" in
   // Firefox 1.5.0.1 and 2.0.0.7, cannot be handled with try..catch
@@ -263,9 +269,16 @@ function _hasOwnProperty(o, sProperty)
   // object.js:_hasOwnProperty
   // debug.js:1347
   // objinsp.js:showProperties
-  
-  return ((hasHasOwnProperty && o.hasOwnProperty(sProperty))
-          || (!hasHasOwnProperty && typeof o[sProperty] != "undefined"));
+
+  if (typeof o.hasOwnProperty == "function")
+  {
+    return o.hasOwnProperty(sProperty);
+  }
+  else
+  {
+    return (typeof o[sProperty] != "undefined"
+            && typeof o.constructor.prototype[sProperty] == "undefined");
+  }
 }
 
 // Disabled until ECMAScript allows to hide properties from iteration
@@ -320,8 +333,8 @@ if (/^\s*(function|object)\s*$/.test(typeof eval) && eval)
           a[i] = "argArray[" + i +"]";
         }
     
-        var p = thisArg.findNewProperty();
-        if (p && (thisArg[p] = this));
+        var p = findNewProperty(thisArg);
+        if (p && (thisArg[p] = this))
         {
           eval("thisArg[p](" + a.join(", ") + ")");
           delete thisArg[p];
@@ -333,7 +346,8 @@ if (/^\s*(function|object)\s*$/.test(typeof eval) && eval)
        * context of a different object (the calling object).
        *
        * @argument object thisArg
-       *   Reference to the calling object.
+       *   Reference to the calling object.  SHOULD
+       *   be a host object, since augmentation is required.
        * @arguments _ _
        *   Arguments for the object.
        */
@@ -345,8 +359,8 @@ if (/^\s*(function|object)\s*$/.test(typeof eval) && eval)
           a[i] = "arguments[" + i + "]";
         }
     
-        var p = thisArg.findNewProperty();
-        if (p && (thisArg[p] = this));
+        var p = findNewProperty(thisArg);
+        if (p && (thisArg[p] = this))
         {
           eval("thisArg[p](" + a.join(", ") + ")");
           delete thisArg[p];
@@ -371,14 +385,61 @@ if (/^\s*(function|object)\s*$/.test(typeof eval) && eval)
  * @param Constructor: Function
  *   Constructor from which prototype object should be
  *   inherited.
+ * @param oProtoProps: Object
+ *   Object from which to shallow-copy properties as prototype
+ *   properties.  Of those, the <code>_super</code>,
+ *   <code>constructor</code>, and <code>userDefined</code>
+ *   properties are ignored as they are used internally.
+ * @type boolean
+ * @returns
+ *   <code>true</code> if successful, <code>false</code> otherwise.
  */
-Function.prototype.extend = function function_extend(Constructor)
-{
+Function.prototype.extend =
+function function_extend(Constructor, oProtoProps) {
   function Dummy() {};
-  Dummy.prototype = Constructor;
-  this.prototype = new Dummy();
-  this.prototype.constructor = this;
-  this.userDefined = true;
+  
+  if (typeof Constructor == "function")
+  {
+    Dummy.prototype = Constructor.prototype;
+    this.prototype = new Dummy();
+    
+    if (oProtoProps)
+    {
+      for (var p in oProtoProps)
+      {
+        this.prototype[p] = oProtoProps[p];
+      }
+    }
+    
+    this.prototype._super = Constructor;
+    this.prototype.constructor = this;
+    this.userDefined = true;
+    
+    this.prototype.iterator = function() {
+      var o = new Object();
+      
+      for (var p in this)
+      {
+        switch (p)
+        {
+          case "_super":
+          case "constructor":
+          case "userDefined":
+          case "iterator":
+            break;          
+          
+          default:
+            o[p] = true;
+        }
+      };
+
+      return o;
+    };
+    
+    return true;
+  }
+  
+  return false;
 };
   
 /**
