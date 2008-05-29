@@ -1,7 +1,7 @@
 /**
  * <title>Object Library</title>
  */
-/** @version */ Object.version   = "0.1.5a.2008051818";
+/** @version */ Object.version   = "0.1.5a.2008052912";
 /**
  * @file object.js
  * @partof PointedEars' JavaScript Extensions (JSX)
@@ -75,15 +75,15 @@ Object.COPY_INHERIT = 4;
  * Adds/replaces properties of an object.
  *
  * @prototype method
- * @argument Object oSource
+ * @argument oSource : Object 
  *   Object specifying the properties to be added/replaced.
  *   The name of each property serves as the name for the
  *   property of the target object, its value as the value
  *   of that property.
- * @optional number iFlags
+ * @param iFlags : optional number 
  *   Flags for the modification, see @{#Object.ADD_OVERWRITE,
  *   ADD_*} and @{#Object.COPY_ENUM, COPY_*}.
- * @optional Object oOwner
+ * @param oOwner : optional Object 
  *   If provided, used as target object instead of the
  *   calling object.  This makes it possible to call
  *   the method without an explicit calling object.
@@ -119,10 +119,10 @@ function addProperties(oSource, iFlags, oOwner)
 /**
  * Creates a duplicate (clone) of an object.
  *
- * @optional number iLevel
- *   Use the Object @{#Object.COPY_ENUM, COPY*}
+ * @param iLevel : optional number
+ *   Use the <code>Object.COPY_*</code>
  *   properties to specify the level of cloning.
- * @optional object oSource
+ * @param oSource : optional Object 
  *   Reference to the object to be cloned.
  *   If omitted, the calling object is cloned.
  * @return type object
@@ -178,7 +178,7 @@ function clone(iLevel, oSource)
   else if (iLevel & Object.COPY_INHERIT)
   {
     var Dummy = function() {};
-    Dummy.prototype = object;
+    Dummy.prototype = oSource;
     return new Dummy();
   }
   else
@@ -240,6 +240,59 @@ function findNewProperty(o, iLength)
 }
 
 /**
+ * Determines whether a property is likely to be callable.
+ * 
+ * @author
+ *   (C) 2003-2008  Thomas Lahn &lt;object.js@PointedEars.de&gt;
+ * @params :optional Object|string|(Object,string)
+ *   Objects to be determined a method, i.e. a
+ *   <code>Function</code> object assigned as property of
+ *   another object.  Each argument may also be a string
+ *   to be evaluated and so is applicable to unknown properties.
+ *   If an argument is followed by a string argument, it is
+ *   assumed that the argument is the object and the string
+ *   argument is the name of the property to be tested.
+ * @return
+ *   <code>true</code> if all arguments refer to methods,
+ *   <code>false</code> otherwise.
+ * @type Boolean
+ * @see isMethodType()
+ */
+function isMethod()
+{
+  for (var i = 0, len = arguments.length,
+           rxMethod = /\b(function|object|unknown)\b/i;
+       i < len; i++)
+  {
+    var arg = arguments[i];
+
+    if (rxMethod.test(typeof arg) && arg
+        && typeof arguments[i + 1] == "string")
+    {
+      // if the property is not a method
+      if (!(rxMethod.test(typeof arg[arguments[i + 1]])
+            && arg[arguments[i + 1]]))
+      {
+        return false;       
+      }
+      
+      i++;
+      continue;
+    }
+    
+    if (typeof arg == "string") arg = eval(arg);
+
+    // if the property is not a method
+    if (!(rxMethod.test(typeof arg) && arg))
+    {
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+/**
  * @optional Object o
  *   Object which property should be checked for existence.
  * @argument string sProperty
@@ -248,7 +301,7 @@ function findNewProperty(o, iLength)
  *   <code>true</code> if there is such a property;
  *   <code>false</code> otherwise.
  */
-function _hasOwnProperty(o, sProperty)
+function _hasOwnProperty(o, p)
 {
   if (arguments.length < 2 && o)
   {
@@ -270,14 +323,44 @@ function _hasOwnProperty(o, sProperty)
   // debug.js:1347
   // objinsp.js:showProperties
 
-  if (typeof o.hasOwnProperty == "function")
+  // ECMAScript Edition 3
+  if (isMethod(o, "hasOwnProperty"))
   {
-    return o.hasOwnProperty(sProperty);
+    return o.hasOwnProperty(p);
   }
   else
   {
-    return (typeof o[sProperty] != "undefined"
-            && typeof o.constructor.prototype[sProperty] == "undefined");
+    // Object itself *supposedly* doesn't have the property
+    if (typeof o[p] == "undefined")
+    {
+      // JavaScript 1.0 to 1.3
+      if (typeof o.__proto__ != "undefined")
+      {
+        var hasP = false;
+        while ((o = o.__proto__))
+        {
+          if (typeof o[p] != "undefined")
+          {
+            hasP = true;
+            break;
+          }
+        }
+
+        return hasP;
+      }
+
+      // other, incl. JScript 1.1 to 4.0
+      else
+      {
+        return (typeof o.constructor.prototype[p] == "undefined");
+      }
+    }
+
+    // Object itself has the property
+    else
+    {
+      return true;
+    }
   }
 }
 
@@ -307,7 +390,7 @@ function inheritFrom(o)
   return new Dummy();
 }
 
-if (/^\s*(function|object)\s*$/.test(typeof eval) && eval)
+if (isMethod(this, "eval"))
 {
   // KJS 3.5.1 does not support named FunctionExpressions within Object
   // literals if the literal is an AssignmentExpression (right-hand side
@@ -382,10 +465,10 @@ if (/^\s*(function|object)\s*$/.test(typeof eval) && eval)
  * (or calling it as a method of the inheriting prototype),
  * else changes in the parent will not affect the child.
  * 
- * @param Constructor: Function
+ * @param Constructor : Function  
  *   Constructor from which prototype object should be
  *   inherited.
- * @param oProtoProps: Object
+ * @param oProtoProps : Object
  *   Object from which to shallow-copy properties as prototype
  *   properties.  Of those, the <code>_super</code>,
  *   <code>constructor</code>, and <code>userDefined</code>
@@ -396,6 +479,9 @@ if (/^\s*(function|object)\s*$/.test(typeof eval) && eval)
  */
 Function.prototype.extend =
 function function_extend(Constructor, oProtoProps) {
+  /**
+   * @return
+   */
   function Dummy() {};
   
   if (typeof Constructor == "function")
@@ -418,9 +504,9 @@ function function_extend(Constructor, oProtoProps) {
     this.prototype.iterator = function() {
       var o = new Object();
       
-      for (var p in this)
+      for (var p2 in this)
       {
-        switch (p)
+        switch (p2)
         {
           case "_super":
           case "constructor":
@@ -429,9 +515,9 @@ function function_extend(Constructor, oProtoProps) {
             break;          
           
           default:
-            o[p] = true;
+            o[p2] = true;
         }
-      };
+      }    
 
       return o;
     };
@@ -442,32 +528,22 @@ function function_extend(Constructor, oProtoProps) {
   return false;
 };
   
-/**
- * @extends Error
- */
-function Exception(s)
+function Exception(s, sType)
 {
-  (typeof Error != "undefined")
-    ? Error.call(s)
-    : (this.message = s);
+  var e = new Error((sType || "Exception") + ": " + s);
+  e.getMessage = function() { return this.message; };
+  e.getStackTrace = function() { return this.stack; };
+  e.printStackTrace = function() { alert(this.getStackTrace()); };
+  return e;
 }
-Exception.extend(typeof Error != "undefined" ? Error.prototype : null);
-
-addProperties({
-    getMessage:      function() { return this.message; },
-    getStackTrace:   function() { return this.stack; },
-    printStackTrace: function() { alert(this.getStackTrace()); }
-  },
-  Exception.prototype);
 
 /**
  * @extends Exception
  */
 function ObjectException(s)
 {
-  Exception.call(this, s);
+  return Exception(s, "ObjectException");
 }
-ObjectException.extend(Exception);
 
 /**
  * Raises an ObjectException
