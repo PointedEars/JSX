@@ -5,7 +5,7 @@ if (typeof String == "undefined")
 {
   var String = new Object();
 }
-/** @version */ String.version = "1.29.5.2008032400";
+/** @version */ String.version = "1.29.7.2008062500";
 /**
  * @filename string.js
  * @partof   PointedEars' JavaScript Extensions (JSX)
@@ -43,10 +43,18 @@ String.path      = "http://pointedears.de/scripts/";
  * 
  * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
  */
-// Refer string.htm file for general documentation. 
 
+/* Refer string.htm file for general documentation. */ 
+
+/**
+ * Non-breaking space
+ */
 var CH_NBSP = "\xA0";
 
+/**
+ * @param Msg
+ * @return boolean false
+ */
 function StringException(Msg)
 {
   alert(
@@ -69,13 +77,13 @@ function StringException(Msg)
  * @author Copyright (c) 2003
  *   Martin Honnen &lt;Martin.Honnen@gmx.de&gt;,
  *   Thomas Lahn &lt;string.js@PointedEars.de&gt;
- * @optional string s
+ * @param s : optional string
  *   String where " and ' should be escaped.  Ignored if
  *   the function is called as a method of a String object.
- * @type string
  * @return
  *   The replaced string if String.replace(...)
  *   is supported, the original string otherwise.
+ * @type string
  */
 function addSlashes(s)
 {
@@ -97,30 +105,58 @@ function addSlashes(s)
  * Tries hard to escape a string according to the query component
  * specification in RFC3986.
  * 
- * @param s: string
+ * @param s : string
  * @type string
  * @return
  *   <code>s</code> escaped, or unescaped if escaping through
  *   <code>encodeURIComponent()</code> or <code>escape()</code>
  *   is not possible.
  * @partof http://PointedEars.de/scripts/string.js
- * @see types.js:isMethodType()
+ * @see jsx.object#isMethod()
  * @author Copyright (c) 2006-2008 Thomas Lahn <cljs@PointedEars.de>
  */
-var esc = (function()
-{
-  return (isMethodType(typeof encodeURIComponent) && encodeURIComponent
+var esc = (function() {
+  return (jsx.object.isMethod(_global, "encodeURIComponent")
           ? encodeURIComponent
-          : (isMethodType(typeof escape) && escape
+          : (jsx.object.isMethod(_global, "escape")
              ? escape
              : function(s) { return s; }));
 })();
 
-// Had to abandon addProperties since Konqueror's engine does not support
-// Object literals
+/**
+ * Tries hard to unescape a string according to the query component
+ * specification in RFC3986.
+ * 
+ * @param s : string
+ * @type string
+ * @return
+ *   <code>s</code> unescaped, or escaped if unescaping through
+ *   <code>decodeURIComponent()</code> or <code>unescape()</code>
+ *   is not possible.
+ * @partof http://PointedEars.de/scripts/string.js
+ * @see jsx.object#isMethod()
+ * @author Copyright (c) 2006-2008 Thomas Lahn <cljs@PointedEars.de>
+ */
+var unesc = (function() {
+  return (jsx.object.isMethod(_global, "decodeURIComponent")
+          ? decodeURIComponent
+          : (jsx.object.isMethod(_global, "unescape")
+             ? unescape
+             : function(s) { return s; }));
+})();
+
+/*
+ * Had to abandon addProperties since Konqueror's engine does not support
+ * Object literals
+ */
 
 if (typeof Number.prototype.toFixed == "undefined")
 {
+  /**
+   * @param iPrecision
+   * @type string
+   * @return string
+   */
   Number.prototype.toFixed = function number_toFixed(iPrecision)
   {
     var
@@ -143,12 +179,17 @@ if (typeof Number.prototype.toFixed == "undefined")
       result = Math.round(result * m) / m;
     }
     return result;
-  }
+  };
 }
 
 if (typeof Number.prototype.toUnsigned == "undefined")
 {
   Number.prototype.toUnsigned =
+  /**
+   * @param iMax : number
+   * @type number
+   * @return number
+   */
   function number_toUnsigned(iMax)
   {
     var n = this;
@@ -160,16 +201,17 @@ if (typeof Number.prototype.toUnsigned == "undefined")
      * 2. If Result(1) is NaN, +0, -0, +Infinity, or -Infinity, return +0.
      */
     var i;
-    if (!isNaN(n) || (i = abs(n)) == 0 || i == Infinity)
+    if (!isNaN(n) || (i = Math.abs(n)) == 0 || i == Infinity)
     {
       return 0;
     }
 
-    // 3. Compute sign(Result(1)) * floor(abs(Result(1))).
-    /* The mathematical function sign(x) yields 1 if
-     * x is positive and -1 if x is negative. [...]
+    /*
+     * 3. Compute sign(Result(1)) * floor(abs(Result(1))).
+     * (The mathematical function sign(x) yields 1 if
+     * x is positive and -1 if x is negative.) [...]
      */
-    n = (n < 0 ? -1 : 1) * floor(i);
+    n = (n < 0 ? -1 : 1) * Math.floor(i);
  
     /*
      * 4. Compute Result(3) modulo 2^iMax; that is, a finite integer
@@ -181,243 +223,362 @@ if (typeof Number.prototype.toUnsigned == "undefined")
      * 5. Return Result(4).
      */
     return n % Math.pow(2, iMax || 32);
-    /*
-      if (n < 0)
-      {
-        n += (iMax || this.MAX_VALUE)/2;
-      }
-    */
-  }
+
+//    if (n < 0)
+//    {
+//      n += (iMax || this.MAX_VALUE)/2;
+//    }
+  };
 }
 
+// * Returns a string of values according to a format string.
+// * 
+// * This is the begin of an approach to implement <code>printf</code>(3)
+// * in an ECMAScript compliant implementation out of its man page
+// * documentation.  The syntax is intended to be compatible to that of
+// * the printf() C function finally, but this method will not *print*
+// * out anything characters by itself (so you probably want to use its
+// * return value along with <code>window.alert()</code>,
+// * <code>document.write()</code> and similar DOM features, or in
+// * concatenations as if you would use <code>sprintf</code>(3).)
+// * 
+// * Currently supported <code>printf</code>(3) features are:
+// * - replacing tags in a format string with a value given as argument: `%d'
+// * - padding that value with zeroes or (non-breaking) spaces on the left,
+// *   watching for negative values: `%42d', `% 42d' and `%042d'
+// * - padding that value with (non-breaking) spaces on the right: `%-42d'
+// * - using arguments to specify the field width: `%*d', `%*7$d'
+// * - specifying positive precision (round after point): `%.2d'
+// * - replacing `%%' with `%' without using an argument's value
+// *
+// * Additional features supported by this method are:
+// * - specifying negative precision (round before point): `%.-2d'
+// * - If `%,42s' is used and the argument refers to an Array instead of
+// *   a String, it is expanded to a character string consisting of the
+// *   string representations of the elements of the array delimited with
+// *   `,', each of them having the format specification (here: field
+// *   width=42) applied to it.  If `,' is missing, the delimiter is the
+// *   empty string, meaning that Arrays of strings (or characters) can
+// *   be easily put out.
+// * 
+// * @version 0.0.4.2005112603 (milestone 4) 
+// * @author
+// *   (C) 2004, 2005  Thomas Lahn <string.js@PointedEars.de>
+// *   Distributed under the GNU GPLv2.
+// * @partof
+// *   http://pointedears.de/scripts/string.js
+// * @param sFormat : string 
+// * @param values : _
+// * @return string
+// *   The formatted string.
+// */
+//function format(sFormat)
+//{
+//  arguments.skip = [];
+//  for (var i = 1, len = arguments.length; i < len; i++)
+//  {
+//    var a = arguments[i];
+//
+//    // skip tagged arguments; this allows for using following arguments
+//    // for precision without using them for expansion again
+//    if (!arguments.skip[i])
+//    {
+//      // compile only once
+//      if (!format.rxSearch)
+//      {
+//        format.rxSearch = new RegExp(
+//            "%([#0+' _-]*)"                          // flags
+//          + "([1-9]*\\d+|(\\*((\\d+)\\$)?))?"        // field width
+//          + "(\\.([+-]?\\d+|(\\*((\\d+)\\$)?))?)?"   // precision
+//          + "([ ,]+)?"                               // member delimiter
+//          + "([%diouxXeEfFgGaAcsCSpn])"              // conversion
+//        );
+//      }
+//      
+//      var result;
+//      if ((result = (format.rxSearch.exec(sFormat))))
+//      {
+//        var
+//          // flag characters
+//          flags = result[1],
+//          fieldWidth = result[2],
+//
+//          // undefined if the field width was given as an unsigned integer
+//          argFieldWidth = result[3],
+//
+//          // index of the argument to specify the field width;
+//          // undefined if the field width was given as an unsigned
+//          // integer
+//          uFieldWidthArg = result[5],
+//           
+//          precision = result[7],
+//          argPrecision = result[8],
+//
+//          // index of the argument to specify the precision;
+//          // undefined if the precision was given as an unsigned
+//          // integer or it will be specified by the next argument
+//          uPrecisionArg = result[10],
+//          srcArgIdx;
+//
+//        // length modifier
+//        // var lenModifier    = result[11];
+//
+//        // member delimiter
+//        var memberDelim = result[11];
+//
+//        // conversion specifier
+//        var
+//          convSpecifier  = result[12],
+//          aArgMembers = new Array();
+//  
+//        if (convSpecifier == "%")
+//        {
+//          aArgMembers = [convSpecifier];
+//          i--;
+//        }
+//        else
+//        {
+//          var memberLen = 1;
+//          var arg = a;
+//
+//          if (arg.constructor == Array)
+//          {
+//            memberLen = arg.length;
+//          }
+//          
+//          
+//          for (var j = 0; j < memberLen; j++)
+//          {
+//            if (arg.constructor == Array)
+//            {
+//              a = arg[j];
+//            }
+//
+//            if (/[diouxXeEfFgGaA]/.test(convSpecifier))
+//            {
+//              if (typeof a != "number")
+//              {
+//                a = Number(a);
+//              }
+//
+//              if (/[ouxX]/.test(convSpecifier))
+//              {
+//                switch (convSpecifier)
+//                {
+//                  case "o": a = a.toString(8); break;
+//                  case "u": a = a.toUnsigned(); break;
+//                  case "x":
+//                  case "X": a = a.toUnsigned().toString(16); break;
+//                  default:
+//                    var sError = 'Invalid conversion specifier';
+//                    _global.onerror = function()
+//                    {
+//                      alert('format: ' + sError);
+//                      _global.onerror = null;
+//                      return true;
+//                    }
+//                    eval("throw new {message: sError};");
+//                    _global.onerror = null;
+//                }
+//              }
+//            }
+//
+//            if (precision
+//                || (typeof precision == "number" && precision == 0))
+//            {
+//              if (argPrecision)
+//              { // precision is specified by another argument
+//                srcArgIdx = uPrecisionArg || (i + 1);
+//                precision = arguments[srcArgIdx];
+//                
+//                // mark argument as not to be expanded
+//                arguments.skip[srcArgIdx] = true;
+//              }
+//
+//              if (precision >= 0)
+//              { 
+//                a = Number(a).toFixed(precision);
+//              }
+//              else // if (precision < 0)
+//              {
+//                var pot = Math.pow(10, -precision);
+//                a = Math.round((a - (a % 1)) / pot) * pot;
+//              }
+//            }
+//
+//            if (fieldWidth)
+//            {
+//              if (argFieldWidth)
+//              { // field width is specified by another argument
+//                srcArgIdx = uFieldWidthArg || (i + 1);
+//                fieldWidth = arguments[srcArgIdx];
+//                arguments.skip[srcArgIdx] = true;
+//              }
+//
+//              if (fieldWidth > 0)
+//              { 
+//                var sPad = CH_NBSP;
+//                if (flags && /0/.test(flags))
+//                {
+//                  sPad = "0";
+//                }
+//
+//                if (/-/.test(flags))
+//                {
+//                  a = pad(a, fieldWidth, CH_NBSP, true);
+//                }
+//                else
+//                { // pad value, put sign in front
+//                  a = pad(a, fieldWidth, sPad)
+//                      .replace(/^(0+)([+-])/, "$2$1");
+//                }
+//              }
+//            }
+//
+//            aArgMembers.push(a);
+//          }
+//        }
+//        
+//        sFormat = sFormat.replace(
+//          format.rxSearch,
+//          aArgMembers.join(memberDelim));
+//      }
+//    }
+//  }
+//
+//  return sFormat;
+//}
+
 /**
- * Returns a string of values according to a format string.
+ * A more efficient rewrite of the previous format() function. 
  * 
- * This is the begin of an approach to implement <code>printf</code>(3)
- * in an ECMAScript compliant implementation out of its man page
- * documentation.  The syntax is intended to be compatible to that of
- * the printf() C function finally, but this method will not *print*
- * out anything characters by itself (so you probably want to use its
- * return value along with <code>window.alert()</code>,
- * <code>document.write()</code> and similar DOM features, or in
- * concatenations as if you would use <code>sprintf</code>(3).)
- * 
- * Currently supported <code>printf</code>(3) features are:
- * - replacing tags in a format string with a value given as argument: `%d'
- * - padding that value with zeroes or (non-breaking) spaces on the left,
- *   watching for negative values: `%42d', `% 42d' and `%042d'
- * - padding that value with (non-breaking) spaces on the right: `%-42d'
- * - using arguments to specify the field width: `%*d', `%*7$d'
- * - specifying positive precision (round after point): `%.2d'
- * - replacing `%%' with `%' without using an argument's value
- *
- * Additional features supported by this method are:
- * - specifying negative precision (round before point): `%.-2d'
- * - If `%,42s' is used and the argument refers to an Array instead of
- *   a String, it is expanded to a character string consisting of the
- *   string representations of the elements of the array delimited with
- *   `,', each of them having the format specification (here: field
- *   width=42) applied to it.  If `,' is missing, the delimiter is the
- *   empty string, meaning that Arrays of strings (or characters) can
- *   be easily output.
- * 
- * @version 0.0.4.2005112603 (milestone 4) 
- * @author
- *   (C) 2004, 2005  Thomas Lahn <string.js@PointedEars.de>
- *   Distributed under the GNU GPLv2.
- * @partof
- *   http://pointedears.de/scripts/string.js
- * @param sFormat : string 
- * @param values : _
+ * @param sFormat
  * @return string
- *   The formatted string.
  */
 function format(sFormat)
 {
-  arguments.skip = [];
-  for (var i = 1, len = arguments.length; i < len; i++)
-  {
-    var a = arguments[i];
-
-    /*
-     * skip tagged arguments; this allows for using following arguments
-     * for precision without using them for expansion again
-     */
-    if (!arguments.skip[i])
-    {
-      // compile only once
-      if (!format.rxSearch)
+  var args = arguments;
+  var i = 1;
+  
+  return String(sFormat).replace(
+    new RegExp(
+      /* flags */
+      "%([#0+' _-]*)"
+      
+      /* field width */
+      + "([1-9]*\\d+|(\\*((\\d+)\\$)?))?"
+      
+      /* precision */
+      + "(\\.([+-]?\\d+|(\\*((\\d+)\\$)?))?)?"
+      
+      /* member delimiter */
+      + "([ ,]+)?"
+      
+      /* conversion */
+      + "([%diouxXeEfFgGaAcsCSpn])",
+      
+      /* global replace */
+      "g"),
+      
+      /**
+       * @param m
+       * @param flags
+       * @param fieldWidth
+       * @param argFieldWidth
+       * @param p4
+       * @param uFieldWidthArg
+       * @param p6
+       * @param precision
+       * @param argPrecision
+       * @param p9
+       * @param uPrecisionArg
+       * @param memberDelim
+       * @param convSpecifier
+       * @return string
+       */
+    function(m, flags, fieldWidth, argFieldWidth, p4, uFieldWidthArg, p6,
+             precision, argPrecision, p9, uPrecisionArg, memberDelim,
+             convSpecifier) {
+      var v = args[i];
+      
+      switch (convSpecifier)
       {
-        format.rxSearch = new RegExp([
-          "%([#0+' _-]*)",                         // flags
-          "([1-9]*\\d+|(\\*((\\d+)\\$)?))?",       // field width
-          "(\\.([+-]?\\d+|(\\*((\\d+)\\$)?))?)?",  // precision
-          "([ ,]+)?",                              // member delimiter
-          "([%diouxXeEfFgGaAcsCSpn])"              // conversion
-        ].join(""));
+        case "%":
+          v = "%";
+          i--;
+          break;
+
+        case "c":
+        case "C":
+        case "s":
+        case "S":
+          v = String(v);
+          
+          if (/c/i.test(convSpecifier))
+          {
+            v = v.charAt(0);
+          }
+          break;
+                    
+        case "d":
+        case "i":
+        case "u":
+        case "x":
+        case "X":
+          v = Math.floor(v);
+          
+          if (/[ux]/i.test(convSpecifier))
+          {
+            // see ToUint32()          
+            v = +v;
+            
+            if (isNaN(v) || v == 0 || Math.abs(v) == Infinity)
+            {
+              v = 0;
+            }
+            else
+            {
+              v = ((v < 0 ? -1 : 1) * Math.floor(Math.abs(v))) % Math.pow(2, 32);
+            }
+  
+            if (/x/i.test(convSpecifier))
+            {
+              v = v.toString(16);
+           
+              if (convSpecifier == "X" && isNaN(v))
+              {
+                v = String(v).toUpperCase();
+              }
+            }
+          }
+          break;
+
+        case "f":
+        case "e":
+        case "E":
+          v = +v;
+          if (/e/i.test(convSpecifier))
+          {
+            // TODO
+            
+            if (convSpecifier == "E")
+            {
+              v = String(v).toUpperCase();
+            }
+          }
+          else if (/g/i.test(convSpecifier))
+          {
+            if (convSpecifier == "G")
+            {
+              v = String(v).toUpperCase();
+            }
+          }
+          break;
       }
       
-      var result;
-      if ((result = (format.rxSearch.exec(sFormat))))
-      {
-        var
-          // flag characters
-          flags = result[1],
-          fieldWidth = result[2],
-
-          /*
-           * undefined if the field width was given as an unsigned
-           * integer
-           */
-          argFieldWidth = result[3],
-
-          /*
-           * index of the argument to specify the field width;
-           * undefined if the field width was given as an unsigned
-           * integer
-           */
-          uFieldWidthArg = result[5],
-           
-          precision = result[7],
-          argPrecision = result[8],
-
-          /*
-           * index of the argument to specify the precision;
-           * undefined if the precision was given as an unsigned
-           * integer or it will be specified by the next argument
-           */
-          uPrecisionArg = result[10],
-          srcArgIdx;
-
-/*
-        // length modifier
-        var lenModifier    = result[11];
- */      
-        // member delimiter
-        var memberDelim = result[11];
-
-        // conversion specifier
-        var
-          convSpecifier  = result[12],
-          aArgMembers = new Array();
-  
-        if (convSpecifier == "%")
-        {
-          aArgMembers = [convSpecifier];
-          i--;
-        }
-        else
-        {
-          var
-            memberLen = 1,
-            arg = a;
-
-          if (arg.constructor == Array)
-          {
-            memberLen = arg.length;
-          }
-          
-          
-          for (var j = 0; j < memberLen; j++)
-          {
-            if (arg.constructor == Array)
-            {
-              a = arg[j];
-            }
-
-            if (/[diouxXeEfFgGaA]/.test(convSpecifier))
-            {
-              if (typeof a != "number")
-              {
-                a = Number(a);
-              }
-
-              if (/[ouxX]/.test(convSpecifier))
-              {
-                switch (convSpecifier)
-                {
-                  case "o": a = a.toString(8); break;
-                  case "u": a = a.toUnsigned(); break;
-                  case "x":
-                  case "X": a = a.toUnsigned().toString(16); break;
-                  default:
-                    var sError = 'Invalid conversion specifier';
-                    _global.onerror = function()
-                    {
-                      alert('format: ' + sError);
-                      _global.onerror = null;
-                      return true;
-                    }
-                    eval("throw new {message: sError};");
-                    _global.onerror = null;
-                }
-              }
-            }
-
-            if (precision
-                || (typeof precision == "number" && precision == 0))
-            {
-              if (argPrecision)
-              { // precision is specified by another argument
-                srcArgIdx = uPrecisionArg || (i + 1);
-                precision = arguments[srcArgIdx];
-                
-                // mark argument as not to be expanded
-                arguments.skip[srcArgIdx] = true;
-              }
-
-              if (precision >= 0)
-              { 
-                a = Number(a).toFixed(precision);
-              }
-              else // if (precision < 0)
-              {
-                var pot = Math.pow(10, -precision);
-                a = Math.round((a - (a % 1)) / pot) * pot;
-              }
-            }
-
-            if (fieldWidth)
-            {
-              if (argFieldWidth)
-              { // field width is specified by another argument
-                srcArgIdx = uFieldWidthArg || (i + 1);
-                fieldWidth = arguments[srcArgIdx];
-                arguments.skip[srcArgIdx] = true;
-              }
-
-              if (fieldWidth > 0)
-              { 
-                var sPad = CH_NBSP;
-                if (flags && /0/.test(flags))
-                {
-                  sPad = "0";
-                }
-
-                if (/-/.test(flags))
-                {
-                  a = pad(a, fieldWidth, CH_NBSP, true);
-                }
-                else
-                { // pad value, put sign in front
-                  a = pad(a, fieldWidth, sPad)
-                      .replace(/^(0+)([+-])/, "$2$1");
-                }
-              }
-            }
-
-            aArgMembers.push(a);
-          }
-        }
-        
-        sFormat = sFormat.replace(
-          format.rxSearch,
-          aArgMembers.join(memberDelim));
-      }
-    }
-  }
-
-  return sFormat;
+      i++;
+      return v;
+    });
 }
 
 /**
@@ -427,25 +588,25 @@ function format(sFormat)
  *   (C) 2004 Thomas Lahn <string.js@PointedEars.de>
  * @partof
  *   http://pointedears.de/scripts/string.js
- * @optional string|number s
+ * @param s : optional string|number 
  *   Un(completely )formatted number (decimal, hexadecimal
  *   or octal) or a string representing such a number.
  *   If the function is called as a method of
- *   @link{jsref#String} objects and <code>s</code> is
+ *   {@link jsref#String} objects and <code>s</code> is
  *   provided, the value of <code>s</code> is formatted
  *   instead of the @link{jsref#String} object.
- * @optional string s1kDelim = ","
+ * @param s1kDelim : optional string = ","
  *   Character or character sequence to delimit a sequence
  *   of three digits on the left-hand side of the point.
  *   The default is ",".
- * @returns
+ * @return
  *   the formatted number as string, <code>NaN</code> on error.
  */
 function format1k(s, s1kDelim)
 {
   var result = NaN;
 
-  // to use this method for String objects
+  /* to use this method for String objects */
   if (typeof this.constructor != "undefined"
       && this.constructor == String
       && !s)
@@ -453,7 +614,7 @@ function format1k(s, s1kDelim)
     s = this;
   }
 
-  // to allow for numbers as argument
+  /* to allow for numbers as argument */
   s = s.toString();
 
   if (!isNaN(s))
@@ -463,8 +624,10 @@ function format1k(s, s1kDelim)
       s1kDelim = ",";
     }
 
-    // 1.29.4.2008030123:
-    // added parens around backrefs for JScript 3.x compliance 
+    /*
+     * 1.29.4.2008030123:
+     * added parens around backrefs for JScript 3.x compliance
+     */ 
     var rx = /([\da-f])((\1){3}(,|(\.(\1)+)?$))/i;
     while (rx.test(s))
     {
@@ -491,7 +654,7 @@ function format1k(s, s1kDelim)
  * @author
  *   JavaScript implementation
  *   (C) 2003 Thomas Lahn &lt;hashCode.js@PointedEars.de&gt;
- * @optional string s
+ * @param s : optional string
  *   Optional string of which the hash code is computed. If
  *   not provided or <code>false</code>, it is assumed that
  *   the function is used as method of the String prototype,
@@ -502,7 +665,7 @@ function format1k(s, s1kDelim)
  *   code access to associative arrays which can be implemented
  *   as objects with named properties in JavaScript 1.x.
  * @see
- *   strCodeToArray(), java2:String#hashCode()
+ *   #strToCodeArray() java2:String#hashCode()
  */
 function hashCode(s)
 {
@@ -526,8 +689,7 @@ function hashCode(s)
   }
   else
   {
-    // only sample some characters
-
+    /* only sample some characters */
     var skip = Math.floor(len / 8);
     for (i = len; i > 0; i -= skip, off += skip)
     {
@@ -539,8 +701,9 @@ function hashCode(s)
 }
 
 /**
- * @optional string s
+ * @param s : optional string
  * @type string
+ * @return string
  */
 function leadingCaps(s)
 {
@@ -558,10 +721,10 @@ function leadingCaps(s)
 }
 
 /**
- * @optional string s
+ * @param s : optional string
  *   Input string.  If omitted and the calling object
  *   is a String object, it is used instead.
- * @optional number n
+ * @param n : optional number
  *   Length of the resulting string.  The default is 1,
  *   i.e. if the input string is empty, "0" is returned.
  * @type string
@@ -569,7 +732,7 @@ function leadingCaps(s)
  *   Input string with leading zeros so that
  *   its length is @{(n)}.
  * @see
- *   #pad()
+ *   #pad(string, number, string)
  */ 
 function leadingZero(s, n)
 {
@@ -603,45 +766,78 @@ int LevenshteinDistance(char s[1..n], char t[1..m])
     return d[n,m]
 */
 /**
- * Returns the Levenshtein Distance One between two strings.
- * 
- * Returns the Levenshtein Distance One between two input strings
- * @{(s)} and @{(t)} that is, the number of required edit moves
- * to make @{(s)} the same as @{(t)}, and vice-versa.  That value
- * indicates to what extent the two strings are similar -- small
- * distances mean more, large distances less similarity.  It is
- * computed as follows:
+ * Returns the Levenshtein Distance One between two strings
+ * <var>s</var> and <var>t</var> that is, the number of
+ * required edit moves to make <var>s</var> the same as
+ * <var>t</var>, and vice-versa.  That value indicates
+ * to what extent the two strings are similar -- small
+ * distances mean greater, large distances less similarity.
+ * It is computed as follows:
  *
- * <pre>
- * Step  Description
- * 
- * 1     Set n to be the length of s.
- *       Set m to be the length of t.
- *       If n = 0, return m and exit.
- *       If m = 0, return n and exit.
- *       Construct a matrix containing 0..m rows and 0..n columns.
- * 2     Initialize the first row to 0..n.
- *       Initialize the first column to 0..m.
- * 3     Examine each character of s (i from 1 to n).
- * 4     Examine each character of t (j from 1 to m).
- * 5     If s[i] equals t[j], the cost is 0.
- *       If s[i] doesn't equal t[j], the cost is 1.
- * 6     Set cell d[i,j] of the matrix equal to the minimum of:
- *       a. The cell immediately above plus 1: d[i-1,j] + 1.
- *       b. The cell immediately to the left plus 1: d[i,j-1] + 1.
- *       c. The cell diagonally above and to the left plus the cost:
- *          d[i-1,j-1] + cost.
- * 7     After the iteration steps (3, 4, 5, 6) are complete,
- *       the distance is found in cell d[n,m].
- * </pre>
+ * <table>
+ *   <thead>
+ *     <tr>
+ *       <th align="left">Step</th>
+ *       <th align="left">Description</th>
+ *     </tr>
+ *   </thead>
+ *   <tbody>
+ *     <tr valign="top">
+ *       <th>1</th>
+ *       <td>Set <tt>n</tt> to be the length of <var>s</var>.
+ *       Set <tt>m</tt> to be the length of <var>t</var>.
+ *       If <tt>n</tt> = 0, return <tt>m</tt> and exit.
+ *       If <tt>m</tt> = 0, return <tt>n</tt> and exit.
+ *       Construct a matrix containing 0..<tt>m rows and 0..<tt>n</tt>
+ *       columns.</td>
+ *     </tr>
+ *     <tr>
+ *       <th>2</th>
+ *       <td>Initialize the first row to 0..<tt>n</tt>.
+ *       Initialize the first column to 0..<tt>m</tt>.</td>
+ *     </tr>
+ *     <tr>
+ *       <th>3</th>
+ *       <td>Examine each character of <var>s</var> (<tt>i</tt> from 1 to <tt>n</tt>).</td>
+ *     </tr>
+ *     <tr>
+ *       <th>4</th>
+ *       <td>Examine each character of <var>t</var> (<tt>j</tt> from 1 to <tt>m</tt>).</td>
+ *     </tr>
+ *     <tr>
+ *       <th>5</th>
+ *       <td>If <var>s</var>[<tt>i</tt>] equals <var>t</var>[<tt>j</tt>], the cost is 0.
+ *       If <var>s</var>[<tt>i</tt>] doesn't equal <var>t</var>[<tt>j</tt>],
+ *       the cost is 1.</td>
+ *     </tr>
+ *     <tr valign="top">
+ *       <th>6</th>
+ *       <td>Set cell <tt>d</tt>[<tt>i</tt>, <tt>j</tt>] of the matrix
+ *       equal to the minimum of:
+ *         <ol type="a">
+ *           <li>The cell immediately above plus 1:
+ *             <tt>d</tt>[<tt>i</tt>-1, <tt>j</tt>] + 1.</li>
+ *           <li>The cell immediately to the left plus 1:
+ *             <tt>d</tt>[<tt>i</tt>, <tt>j</tt>-1] + 1.</li>
+ *           <li>The cell diagonally above and to the left plus the cost:
+ *             <tt>d</tt>[<tt>i</tt>-1, <tt>j</tt>-1] + cost.</li>
+ *         </ol></td>
+ *     </tr>
+ *     <tr>
+ *       <th>7</th>
+ *       <td>After the iteration steps (3, 4, 5, 6) are complete, the distance
+ *         is found in cell <tt>d</tt>[<tt>n</tt>, <tt>m</tt>].</td>
+ *     </tr>
+ *   </tbody>
+ * </table>
  *
- * @optional string s
- * @optional string t
- * @type number
+ * @param s : optional string 
+ * @param t : optional string
+ * @return number
  */
 function levenshtein(s, t)
 {
-  // Step 1
+  /* Step 1 */
   if (typeof s != "string")
   {
     s = s.toString();
@@ -665,9 +861,10 @@ function levenshtein(s, t)
     return n;
   }
   
-  var d = new Array(); // matrix
+  /* matrix */
+  var d = new Array();
 
-  // Step 2
+  /* Step 2 */
   for (var i = 0; i <= n; i++)
   {
     d[i] = new Array();
@@ -679,18 +876,18 @@ function levenshtein(s, t)
     d[0][j] = j;
   }
 
-  // Step 3
+  /* Step 3 */
   for (i = 1; i <= n; i++)
   {
     var s_i = s.charAt(i - 1);
 
-    // Step 4
+    /* Step 4 */
     for (j = 1; j <= m; j++)
     {
-      // Step 5
+      /* Step 5 */
       var cost = (s_i == t.charAt(j - 1)) ? 0 : 1;
 
-      // Step 6
+      /* Step 6 */
       d[i][j] = Math.min(
         d[i-1][j] + 1,
         d[i][j-1] + 1,
@@ -698,7 +895,7 @@ function levenshtein(s, t)
     }
   }
 
-  // Step 7
+  /* Step 7 */
   return d[n][m];
 }
 
@@ -707,9 +904,10 @@ function levenshtein(s, t)
  * may be interpreted as markup are escaped, that is,
  * those prefixed by `&' or `<'.
  * 
- * @optional string s
+ * @param s : optional string
  * @type string
- */ 
+ * @return string
+ */
 function maskMarkup(s)
 {
   if (!s)
@@ -725,8 +923,9 @@ function maskMarkup(s)
 }
 
 /**
- * @argument string s
+ * @param s : string
  * @type string
+ * @return string
  */
 function nl2br(s)
 {
@@ -763,7 +962,7 @@ function pad(s, n, c, bRight, iStart)
    
    if (!n)
    {
-     n = '1';
+     n = 1;
    }
    
    if (!c)
@@ -799,16 +998,17 @@ function pad(s, n, c, bRight, iStart)
 }
 
 /**
- * @argument - sText
- * @argument string sReplaced
- * @argument string sReplacement
- * @optional boolean bForceLoop
+ * @param sText
+ * @param sReplaced : string 
+ * @param sReplacement : string
+ * @param bForceLoop : boolean
  * @type string
+ * @return string
  */
 function replaceText(sText, sReplaced, sReplacement, bForceLoop)
 {
   var result = "";
-  var t;
+
   if (!sText && this.constructor == String)
   {
     sText = this;
@@ -821,7 +1021,8 @@ function replaceText(sText, sReplaced, sReplacement, bForceLoop)
     if (sText.replace && !bForceLoop)
     {
       sReplaced = sReplaced.replace(/\\/g, "\\\\");
-      /* Version 1.23.2002.4 bugfix: allows to replace \ with other
+      /* 
+       * Version 1.23.2002.4 bugfix: allows to replace \ with other
        * strings, required for proper rxReplaced;
        * Example (no quotes, no escaping):
        *    sReplaced (provided)                     "\\"
@@ -865,9 +1066,9 @@ function replaceText(sText, sReplaced, sReplacement, bForceLoop)
 }
 
 /**
- * @argument o: Object
+ * @param o : Object
  *   Object to be serialized
- * @argument options: optional Object
+ * @param options : optional Object
  *   The property values of the passed object determine
  *   one or more of the following display options:
  *  
@@ -895,6 +1096,7 @@ function replaceText(sText, sReplaced, sReplacement, bForceLoop)
  * 
  *   @option sIndent: string = "  "
  *     Character string to use for indenting code
+ * @return string
  */
 function serialize(o, options)
 {
@@ -916,15 +1118,18 @@ function serialize(o, options)
   
   for (var p in o)
   {
-    var
-      v = o[p],
-      origV = v,    
-      t = typeof v,
-      isString = /string/i.test(t),
-      s = isString ? '"' : ''; 
+    var v = o[p];
+    var origV = v;    
+    var t = typeof v;
+    var isString = /string/i.test(t);
+    var s = isString ? '"' : ''; 
 
-    // FIXME: number values
-    // unlimited or limited depth > 0 (0 == false)
+    /*
+     * FIXME: number values
+     */
+    /*
+     * unlimited or limited depth > 0 (0 == false)
+     */
     if (options.depth && (!isString || isNaN(p)))
     {
       v = serialize(v, {
@@ -967,10 +1172,11 @@ function serialize(o, options)
 /**
  * Calculates the number of occurrences of one string in another.
  * 
- * @argument string s
- * @argument string substr
- * @optional boolean bCaseSensitive
+ * @param s : string
+ * @param substr : string
+ * @param bCaseSensitive : optional boolean
  * @type number
+ * @return number
  */
 function strCount(s, substr, bCaseSensitive)
 {
@@ -994,7 +1200,7 @@ function strCount(s, substr, bCaseSensitive)
   {
     var rxSub = new RegExp(substr, "g" + (!bCaseSensitive ? "i" : ""));
 
-    if (s.match && rxSub)
+    if (isMethod(s, "match") && rxSub)
     {
       result = s.match(rxSub);
       if (result && result.length)
@@ -1038,28 +1244,28 @@ function strCount(s, substr, bCaseSensitive)
  *   (C) 2001-2004  Thomas Lahn &lt;js@PointedEars.de&gt;,
  *   Advanced RegExp parsing (C) 2003  Dietmar Meier
  *    &lt;meier@innoline-systemtechnik.de&gt;
- * @optional string s
+ * @param s : optional string
  *   String where all tags should be stripped from. If not
  *   provided or <code>false</code>, it is assumed that the
  *   function is used as method of the String prototype,
  *   applied to a String object or literal. Note that in
  *   this case the method will not modify the String object
  *   either, but return a second String object.
- * @optional boolean bStripContent = false
+ * @param bStripContent : optional boolean = false
  *   If <code>true</code>, the content between a start tag and
  *   a corresponding end tag is also removed.
  *   If <code>false</code> (default), only start and end tags
  *   are removed.
- * @optional boolean bCaseSensitive = false
+ * @param bCaseSensitive : optional boolean = false
  *   <code>true</code> for case-sensitive matches,
  *   <code>false</code> (default) otherwise.
- * @optional string|Array of string tags
+ * @param tags : optional string|Array of string 
  *   String or array of values that can be evaluated as string to
  *   specify the tag(s) to be stripped.  If omitted, all tags are
  *   stripped.
- * @optional boolean bElements = false
+ * @param bElements : optional boolean = false
  *   If <code>true</code>, strip elements, i.e. start and end tags.
- * @returns
+ * @return
  *   String where all tags are stripped from.
  * @see
  *   String.replace()
@@ -1080,7 +1286,7 @@ function stripTags(s, bStripContent, bCaseSensitive, tags, bElements)
   if (s.match && s.replace)
   {
     // sUntagged = s.replace(/<[^>]*>/g, "");
-    var sRxTags = "", i;
+    var sRxTags = "", i, len;
     if (tags)
     {
       if (!tags.constructor || tags.constructor == Array)
@@ -1190,10 +1396,11 @@ function stripTags(s, bStripContent, bCaseSensitive, tags, bElements)
  * of it.  If the first argument is then numeric, it is taken for
  * <code>nMultiplier</code> and the latter argument is ignored.
  * 
- * @argument string|number s
- * @argument optional number nMultiplier
+ * @param s : string|number
+ * @param nMultiplier : optional number
  * @type string
- */ 
+ * @return string
+ */
 function strRepeat(s, nMultiplier)
 {
   var aResult = [];
@@ -1222,7 +1429,7 @@ function strRepeat(s, nMultiplier)
 /**
  * @author
  *   (C) 2003 Thomas Lahn &lt;string.js@PointedEars.de&gt;
- * @optional string s
+ * @param s : optional string
  *   Optional string to be split into array elements.  If not
  *   provided or <code>false</code>, it is assumed that the
  *   function is used as method of the String prototype, applied
@@ -1231,8 +1438,8 @@ function strRepeat(s, nMultiplier)
  * @return
  *   An array with every character of <code>s</code> an element
  *   of it.
- * @see
- *   String#charAt(), String#split()
+ * @see String.prototype#charAt
+ * @see String.prototype#split
  */
 function strToArray(s)
 {
@@ -1260,28 +1467,27 @@ function strToArray(s)
   
   return a;
 }
-// TODO:
+/* TODO: */
 // function arrayFromStr(s)
 // {
 //   return strToArray(s);
 // }
 
 /**
- * @argument [string,] as
+ * @param as : [string,]
  *   Input string array.
- * @type RegExp
- * @return
+ * @todo return RegExp
  *   A regular expression to match
  *   all the string array elements.
  */
 function strArrayToCharClass(as)
 {
   var hashTable = [];
+  
   for (var i = as.length; i--; 0)
   {
-    var
-      s = as[i],
-      c = hashCode(s);
+    var s = as[i];
+    var c = hashCode(s);
     
     if (typeof hashTable[c] == "undefined")
     {
@@ -1298,7 +1504,7 @@ function strArrayToCharClass(as)
 /**
  * @author
  *   (C) 2003 Thomas Lahn &lt;string.js@PointedEars.de&gt;
- * @optional string s
+ * @param s : optional string 
  *   Optional string to be split into an array where each
  *   element represents the ASCII or Unicode value of a
  *   character (depending on the implementation) of the
@@ -1320,9 +1526,9 @@ function strToCodeArray(s)
     s = this;
   }
 
-  var a, i;
+  var a, i, alen;
     
-  if (s.split && _global.strToArray)
+  if (isMethod(s, "split") && isMethod(_global, "strToArray"))
   {
     a = strToArray(s);
 
@@ -1344,7 +1550,7 @@ function strToCodeArray(s)
   
   return a;
 }
-// TODO:
+/* TODO: */
 // function codeArrayFromStr(s)
 // {
 //   return strToCodeArray(s);
@@ -1354,10 +1560,10 @@ function strToCodeArray(s)
  * Returns the input string with all leading
  * and trailing whitespace removed.
  * 
- * @optional string s
- * @type string
+ * @param s : optional string
+ * @return string
  * @see #trimLeft(), #trimRight()
- */ 
+ */
 function trim(s)
 {
   if (!s && this.charAt)
@@ -1383,9 +1589,9 @@ function trim(s)
 /**
  * Returns the input string with all leading whitespace removed.
  * 
- * @optional string s
- * @type string
- */ 
+ * @param s : optional string
+ * @return string
+ */
 function trimLeft(s)
 {
   if (!s && this.charAt)
@@ -1415,9 +1621,9 @@ function trimLeft(s)
 /**
  * Returns the input string with all trailing whitespace removed.
  * 
- * @optional string s
- * @type string
- */ 
+ * @param s : optional string
+ * @return string
+ */
 function trimRight(s)
 {
   if (!s && this.charAt)
@@ -1444,51 +1650,51 @@ function trimRight(s)
   return s;
 }
 
-// If possible, add methods to the String prototype
-// Disabled until ECMAScript allows to hide properties from iteration
 /*
-String.prototype.addProperties(
-  {'leadingCaps': leadingCaps,
-   'leadingZero': leadingZero,
-   'repeat'     : strRepeat,
-   'pad'        : pad,
-   'replaceText': replaceText,
-   'addSlashes' : addSlashes,
-   'strCount'   : strCount,
-   'stripTags'  : stripTags,
-   'maskMarkup' : maskMarkup,
-   'trim'       : trim,
-   'trimLeft'   : trimLeft,
-   'trimRight'  : trimRight,
-
-   // TODO: corr. with Array.fromStr
-   'toArray'    : strToArray,
-
-   // TODO: corr. with Array.codeArrayFromStr
-   'toCodeArray': strToCodeArray,
-
-   // TODO: corr. with Array.toStr
-// 'fromArray'  : strFromArray,
-
-   // TODO: corr. with Array.codeArrayToStr
-// fromCodeArray: strFromCodeArray,
-
-   'hashCode'   : hashCode,
-   'format1k'   : format1k});
-
-p = Array.prototype;
-if (p)
-{
-  // TODO: corr. with String.toArray
-  p.fromStr = arrayFromStr;
-
-  // TODO: corr. with String.toCodeArray
-  p.codeArrayFromStr = codeArrayFromStr;
-   
-  // TODO: corr. with String.fromArray
-  p.toStr = arrayToStr;
-  
-  // TODO: corr. with String.fromCodeArray
-  p.codeArrayToStr = codeArrayToStr;
-}
-*/
+ * If possible, add methods to the String prototype;
+ * disabled until ECMAScript allows to hide properties from iteration.
+ */
+//String.prototype.addProperties(
+//  {'leadingCaps': leadingCaps,
+//   'leadingZero': leadingZero,
+//   'repeat'     : strRepeat,
+//   'pad'        : pad,
+//   'replaceText': replaceText,
+//   'addSlashes' : addSlashes,
+//   'strCount'   : strCount,
+//   'stripTags'  : stripTags,
+//   'maskMarkup' : maskMarkup,
+//   'trim'       : trim,
+//   'trimLeft'   : trimLeft,
+//   'trimRight'  : trimRight,
+//
+//   // TODO: corr. with Array.fromStr
+//   'toArray'    : strToArray,
+//
+//   // TODO: corr. with Array.codeArrayFromStr
+//   'toCodeArray': strToCodeArray,
+//
+//   // TODO: corr. with Array.toStr
+//// 'fromArray'  : strFromArray,
+//
+//   // TODO: corr. with Array.codeArrayToStr
+//// fromCodeArray: strFromCodeArray,
+//
+//   'hashCode'   : hashCode,
+//   'format1k'   : format1k});
+//
+//p = Array.prototype;
+//if (p)
+//{
+//  // TODO: corr. with String.toArray
+//  p.fromStr = arrayFromStr;
+//
+//  // TODO: corr. with String.toCodeArray
+//  p.codeArrayFromStr = codeArrayFromStr;
+//   
+//  // TODO: corr. with String.fromArray
+//  p.toStr = arrayToStr;
+//  
+//  // TODO: corr. with String.fromCodeArray
+//  p.codeArrayToStr = codeArrayToStr;
+//}
