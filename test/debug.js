@@ -2,21 +2,23 @@
  * <title>Debug Library<title>
  *
  * @filename debug.js
- * @requires types.js, array.js (for #Properties)
+ * @requires object.js, types.js, array.js (for #Properties)
  * @partof   PointedEars' JavaScript Extensions (JSX)
  *
  * @section Copyright & Disclaimer
  * 
  * @author
- *   (C) 2001-2006  Thomas Lahn &lt;debug.js@PointedEars.de&gt;
+ *   (C) 2001-2009  Thomas Lahn &lt;debug.js@PointedEars.de&gt;
  */
-var debug = new Object();
-debug.version   = /** @version */ "0.99.8.2006051120";
-debug.copyright = "Copyright \xA9 1999-2006";
-debug.author    = "Thomas Lahn";
-debug.email     = "debug.js@PointedEars.de";
-debug.path      = "http://pointedears.de/scripts/test/";
-debug.docURL    = debug.path + "../debug.htm";
+var debug = {
+  version:   /** @version */ "0.99.8.2008103119",
+  copyright: "Copyright \xA9 1999-2008",
+  author:    "Thomas Lahn",
+  email:     "debug.js@PointedEars.de",
+  path:      "http://pointedears.de/scripts/test/",
+  enabled:   false
+};
+debug.docURL = debug.path + "../debug.htm";
 /**
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licnse
@@ -46,9 +48,10 @@ var undefined = _global.undefined;
 /** @section Exceptions */
 
 /**
- * @param Msg : string 
- */ 
-function DebugException(Msg)
+ * @param msg : string
+ * @return boolean
+ */
+function DebugException(msg)
 {
   alert(
     "debug.js "
@@ -56,11 +59,304 @@ function DebugException(Msg)
       + debug.copyright
       + "  " + debug.author
       + " <" + debug.email + ">\n\n"
-      + Msg);
+      + msg);
   return false;
 }
 
 /** @section Features */
+
+if (typeof test == "undefined")
+{
+  /**
+   * @param expression
+   * @param trueValue
+   * @param falseValue
+   * @return mixed
+   */
+  var test = function(expression, trueValue, falseValue) {
+    var sDefault = "";
+    var result = sDefault;
+    
+    setErrorHandler();
+    
+    if (eval(expression))
+    {
+      result = (arguments.length > 1 ? trueValue : sDefault);
+    }
+    else
+    {
+      result = (arguments.length > 2 ? falseValue : sDefault);
+    }
+  
+    clearErrorHandler();
+    return result;
+  };
+}
+
+/**
+ * @param sExpression : string
+ * @param sTest : string
+ * @param expected
+ * @return mixed
+ */
+function test2(sExpression, sTest, expected)
+{
+  var out = new Array(), result;
+  
+  if (sExpression) out.push(sExpression);
+
+  setErrorHandler();
+  eval(new Array(
+    'try {',
+    '  eval(sExpression.replace(/\\bvar\\s+/g, ""));',
+    '  try {',
+    '    result = eval(sTest.replace(/\\bvar\\s+/g, ""));',
+    "    out.push('// ' + sTest + ' === ' + result",
+    "      + ' (expected: ' + expected + ')');",
+    '  } catch(e) {',
+    "    out.push('// ' + sTest + ' \\u21d2 ' + e.name + ': '",
+    "      + e.message);",
+    '  }',
+    '} catch(e) {',
+    "  out.push('// ' + sExpression + ' \\u21d2 ' + e.name + ': '",
+    "    + e.message);",
+    '}').join("\n"));
+  clearErrorHandler();
+  
+  document.write(out.join('\n') + '\n\n');
+  
+  return result;
+}
+/*
+var o;
+test('var o = {foo: 23};', 'o.foo', 23);
+test('addProperties({foo: 42}, o);', 'o.foo', 23);
+test('addProperties({foo: 42}, Object.ADD_OVERWRITE, o);', 'o.foo', 42);
+
+var o2;
+test(new Array(
+    'var o2 = {x: 42};',
+    'addProperties({bar: o2}, Object.ADD_OVERWRITE, o);').join('\n'),
+  'o.bar.x', 42);
+test('o2.x = null;', 'o.bar.x', null);
+test(new Array(
+    'o2 = {x: 42};',
+    'addProperties({baz: o2}, Object.COPY_ENUM_DEEP, o);').join('\n'),
+  'o.baz.x', 42);
+test('o2.x = null;', 'o.baz.x', '!= null (TODO)');
+*/
+
+if (typeof AssertionError == "undefined")
+{
+  /**
+   * @param s : string
+   * @return undefined
+   */
+  var AssertionError = function(s) {
+    Error.call(this);
+    this.message = "Assertion failed: " + s;
+  };
+  
+  if (typeof Error != "undefined")
+  {
+    AssertionError.extend(Error);
+  }
+}
+
+if (typeof assertTrue == "undefined")
+{
+  /**
+   * Asserts that a condition is true.  If it isn't, it throws
+   * an <code>AssertionError</code> with a default message.
+   * 
+   * @param x : string|any
+   *   If a string, it is evaluated as a <i>Program</i>; the assertion
+   *   fails if its result, type-converted to <i>boolean</i>, is
+   *   <code>false</code>.
+   *   If not a string, the value is type-converted to <i>boolean</i>;
+   *   the assertion fails if the result of the conversion is
+   *   <code>false</code>.  
+   * @throws
+   *   <code>AssertionError</code> if the assertion fails and this exception
+   *   can be thrown.
+   * @type boolean
+   * @return
+   *   <code>false</code>, if the assertion fails and no exception can be thrown;
+   *   <code>true</code>, if the assertion is met.
+   * @see Global#eval(string)
+   */
+  var assertTrue = function(x) {
+    var ox = x;
+    if (typeof x == "string") x = eval(x);
+    
+    if (!x)
+    {
+      (
+        function() {
+          eval('throw new AssertionError('
+               + '"assertTrue(" + (typeof ox == "string" ? ox : "...") + ");");');
+        }
+      )();
+    }
+    
+    return !!x;
+  };
+}
+
+if (typeof assertFalse == "undefined")
+{
+  /**
+   * Asserts that a condition is false.  If it isn't, it throws
+   * an <code>AssertionError</code> with a default message.
+   * 
+   * @param x : string|any
+   *   If a string, it is evaluated as a <i>Program</i>; the assertion
+   *   fails if its result, type-converted to <i>boolean</i>, is
+   *   <code>true</code>.
+   *   If not a string, the value is type-converted to <i>boolean</i>;
+   *   the assertion fails if the result of the conversion is
+   *   <code>true</code>.  
+   * @throws
+   *   <code>AssertionError</code> if the assertion fails and this exception
+   *   can be thrown.
+   * @type boolean
+   * @return
+   *   <code>false</code>, if the assertion fails and no exception can be thrown;
+   *   <code>true</code>, if the assertion is met.
+   * @see Global#eval()
+   */
+  var assertFalse = function(x) {
+    var ox = x;
+    if (typeof x == "string") x = eval(x);
+    
+    if (x)
+    {
+      (
+        /**
+         * @return undefined
+         */
+        function() {
+          eval('throw new AssertionError('
+               + '"assertFalse(" + (typeof ox == "string" ? ox : "...") + ");");');
+        }
+      )();
+    }
+    
+    return !!x;
+  };
+}
+
+if (typeof assertArrayEquals == "undefined")
+{
+  /**
+   * Asserts that two arrays are equal.  If they are not,
+   * an <code>AssertionError</code> is thrown with a default message.
+   * Two arrays are considered equal only if their elements are
+   * strictly equal (shallow strict comparison).
+   * 
+   * @param expecteds : string|Array
+   *   Expected value; if a string, it is evaluated as a <i>Program</i>.
+   * @param actuals : string|Array
+   *   Actual value; if a string, it is evaluated as a <i>Program</i>.
+   * @throws
+   *   <code>ArrayComparisonFailure</code> if either of the given
+   *   values is not a reference to an Array object;
+   *   
+   *   <code>AssertionError</code> 
+   *   if the assertion fails and either exception can be thrown.
+   * @type boolean
+   * @return 
+   *   <code>false</code>, if comparison is not possible
+   *   or the assertion fails, and no exception can be thrown;
+   *   <code>true</code>, if the assertion is met.
+   * @see eval()
+   */
+  var assertArrayEquals = function(expecteds, actuals) {
+    if (typeof expecteds == "string") expecteds = eval(expecteds); 
+    if (typeof actuals == "string") actuals = eval(actuals);
+    
+    if (expecteds == null && actuals == null)
+    {
+      return true;
+    }
+    
+    if (expecteds.constructor != Array || actuals.constructor != Array)
+    {
+      if (typeof ArrayComparisonFailure == "function")
+      {
+        eval('throw new ArrayComparisonFailure();');
+      }
+  
+      return false;
+    }
+    
+    for (var i = actuals.length, len2 = expecteds.length; i--;)
+    {
+      if (len2 < i || expecteds[i] !== actuals[i])
+      {
+        (
+          /**
+           * @param expecteds
+           * @param actuals
+           * @return mixed
+           */
+          function() {
+            var stack = (new Error()).stack || "";
+            if (stack)
+            {
+              stack = stack.split(/\r?\n|\r/);
+              stack.shift();
+              stack.shift();
+              stack = stack.join("\n");
+            } 
+            
+            eval('throw new AssertionError('
+                 + '"assertArrayEquals([" + expecteds + "], [" + actuals + "]);'
+                 + ' in " + stack);');
+          }
+        )();
+      }
+    }
+    
+    return true;
+  };
+}
+
+//if (!isMethod("profile"))
+//{
+//  /**
+//   * @param s
+//   * @return
+//   */
+//  var profile = function(s) {
+//    var me = arguments.callee;
+//    me.start = new Date();
+//    me.description = s || "";
+//  };
+//
+//  if (!isMethod("profileEnd"))
+//  {
+//    /**
+//     * @return string
+//     */
+//    var profileEnd = function() {
+//      var
+//        descr = profile.description,
+//        msg = (descr ? (descr + ": ") : "") + (new Date() - profile.start)
+//            + " ms";
+//      
+//      if (isMethod("window", "alert"))
+//      {
+//        window.alert(msg);
+//      }
+//      
+//      delete profile.start;
+//      delete profile.description;
+//      
+//      return msg;
+//    };
+//  }
+//}
 
 /**
  * Returns evaluation statistics.
@@ -69,7 +365,7 @@ function DebugException(Msg)
  *   Expression or array of expressions to be evaluated.
  * @param bPrintResult : optional boolean = false 
  *   If <code>true</code>, the method returns a printable result.
- * @param loops : optional number = 1 
+ * @param loops : optional number = 1
  *   Specifies the number of times the expression should be evaluated.
  * @param repeats : optional number = 1
  *   Specifies the number of times the evaluation loop(s) of the expression
@@ -102,24 +398,33 @@ function time(expr, bPrintResult, loops, repeats)
     result = ["Expressions:\n\n"],
     stats = [];
 
-  for (var i = 0, cnt = expr.length; i < cnt; i++)  // loop through expressions
+  // loop through expressions
+  for (var i = 0, cnt = expr.length; i < cnt; i++)
   {
     var cur_expr = expr[i];
     if (bPrintResult)
     {
       result.push("[", i + 1, "] ", cur_expr, "\n");
     }
-    var repeat_stats = stats[i] = []; // reset stats for this expression
-    for (var j = 0; j < repeats; j++)  // repeat loops
+    
+    // reset stats for this expression
+    var repeat_stats = stats[i] = [];
+    
+    // repeat loops
+    for (var j = 0; j < repeats; j++)
     {
-      repeat_stats[j] = -1; // reset stats for this repeat
+      // reset stats for this repeat
+      repeat_stats[j] = -1;
       var eval_loop_start = new Date();
-      for (var k = 0; k < loops; k++)  // repeat evaluation
+      
+      // repeat evaluation
+      for (var k = 0; k < loops; k++)
       {
         setErrorHandler();
         eval(["try {", expr[i], "} catch (e) {}"].join(""));
         clearErrorHandler();
       }
+      
       var eval_loop_stop = new Date();
       repeat_stats[j] = eval_loop_stop.getTime() - eval_loop_start.getTime();
     }
@@ -138,14 +443,14 @@ function time(expr, bPrintResult, loops, repeats)
       result.push(format("%*2$d", j + 1, col_width));
     }
   
+    var expr_width = (cnt + 1).toString().length;
+    
     result.push(
       format("\xA0%*4$s\xA0%*4$s\xA0%*4$s\n", "min", "max", "avg", col_width),
       format("%*2$d\\|", "e", expr_width),
       strRepeat("_", col_width * repeats),
       "\n");
 
-    var expr_width = (cnt + 1).toString().length;
-  
     for (i = 0; i < cnt; i++)  // loop through expressions
     {
       result.push(format("%*2$d|", i + 1, expr_width < 2 ? 2 : expr_width));
@@ -176,7 +481,7 @@ function time(expr, bPrintResult, loops, repeats)
 
 /**
  * @param e : Error 
- * @return type string
+ * @return string
  */ 
 function getError(e)
 {
@@ -227,32 +532,41 @@ function getError(e)
 }
 
 /** 
- * Print to FireBug console.
- * Courtesy of Joe Hewitt, extension creator.
+ * Print to Firebug console.
+ * printfire() courtesy of Joe Hewitt, extension creator.
  * <URL:http://www.joehewitt.com/software/firebug/>
  * 
- * @argument _
+ * @params
+ * @return undefined
  */
-function printfire()
+function dmsg()
 {
-  if (typeof document.createEvent == "function"
-      && typeof dispatchEvent == "function")
+  // Firebug 0.4+
+  if (isMethod("console", "log"))
+  {
+    console.log.apply(console, arguments);
+  }     
+  
+  // Firebug before 0.4
+  else if (isMethod("document", "createEvent")
+            && isMethod("document", "dispatchEvent"))
   {
     printfire.args = arguments;
     var ev = document.createEvent("Events");
     if (ev)
     {
-      setErrorHandler();
-      eval(new Array(
-        'try {',
-        '  ev.initEvent("printfire", false, true);',
-        '  dispatchEvent(ev);',
-        '} catch (e) {}'
-      ).join(""));
-      clearErrorHandler();
+      jsx.tryThis(
+        /**
+         * @return undefined
+         */
+        function() {
+          ev.initEvent("printfire", false, true);
+          dispatchEvent(ev);
+        });
     }
   }
 }
+var printfire = dmsg;
 
 /**
  * Returns the type of a reference and, if possible, of its object properties
@@ -263,11 +577,12 @@ function printfire()
  *   Value to be displayed along with its type.  If a string or an array of
  *   strings and bDontEval is not provided or false, each string is evaluated
  *   using eval() and that value is used.
- * @param bAlert : boolean
- *   If <code>true</code>, uses alert() to display the value(s).
+ * @param bDontAlert : boolean = false
+ *   If <code>true</code>, returns the value instead of displaying it.
  * @param bDontEval : boolean
  *   If <code>true</code>, does not evaluate arguments but uses their value.
  * @requires types#isArray()
+ * @return mixed
  */
 function alertValue(a, bDontAlert, bDontEval)
 {
@@ -311,7 +626,7 @@ function alertValue(a, bDontAlert, bDontEval)
 }
 
 
-/**
+/*
  * JavaScript Beautifier and Uglyfier ;-)
  * 
  * Test input:
@@ -350,7 +665,8 @@ javascript:
  
  */
 /**
- * @param : string
+ * @param s : string
+ * @return string
  */
 function beautify(s)
 {
@@ -364,11 +680,12 @@ function beautify(s)
 //alert(beautify('javascript:function resizeToHelp() { alert("Usage: resizeTo clientWidth [clientHeight]"); } if ("%s".length > 0) { var a = "%s".split(" "); if (a[0] && !isNaN(a[0])) { void (window.innerWidth=parseInt(a[0])); if (a[1] && !isNaN(a[1])) { void (window.innerHeight=parseInt(a[1])); } else resizeToHelp(); } else resizeToHelp(); } else resizeToHelp();'));
 
 /**
- * @param : string
+ * @param s : string
+ * @return string 
  */ 
 function uglyfy(s)
 {
-  return s.replace(/\s/g, " ") // .replace
+  return s.replace(/\s/g, " "); // .replace
 }
 
 /**
@@ -377,98 +694,208 @@ function uglyfy(s)
  * value "donthl".  Requires support for the (currently
  * proprietary) <code>innerHTML</code> property of element
  * objects.
+ *
+ * @param context : Node
+ *   Reference to the context node.
+ *   The default is the <code>document</code> node.
+ * @return Undefined
+ * @see types.js#isMethod()
  */
-function synhl()
+function synhl(context)
 {
+  if (debug.enabled)
+  {
+    if (isMethod("console", "profile"))
+    {
+      console.profile("synhl()");
+    }
+  }
+  
+  if (!context) context = document;
+  
   var collCode;
-  if (isMethodType(typeof document.getElementsByTagName)
-      && document.getElementsByTagName
-      && (collCode = document.getElementsByTagName('code'))
+  if (isMethod(context, "getElementsByTagName")
+      && (collCode = context.getElementsByTagName('code'))
       && collCode.length)
   {
     var
       bUnicode = ("\uFFFF".length == 1),
-      sElementType = [
-          "[:A-Z_a-z\\xC0-\\xD6\\xD8-\\xF6\\xF8-\\xFF[UCS_START]]",
-          "[:\\w.\\xB7[UCS_START][UCS_NAME]-]*"
-        ].join("")
+      sElementType = (
+          "[:A-Z_a-z\\xC0-\\xD6\\xD8-\\xF6\\xF8-\\xFF[UCS_START]]"
+          + "[:\\w.\\xB7[UCS_START][UCS_NAME]-]*"
+        )
         .replace(
           /\[UCS_START\]/g,
           bUnicode
-            ? ["\\u010-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF",
-               "\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF",
-               "\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD"
-              ].join("")
+            ? "\\u010-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF"
+              + "\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF"
+              + "\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD"
             : "")
         .replace(
           /\[UCS_NAME\]/,
           bUnicode ? "\\u0300-\\u036F\\u203F\\u2040" : ""),
-      sOptAttr = "(.|\r?\n|\r)*?",
-      rxCode = new RegExp([
-          "(//.*|/\\*(.|\\s)*?\\*/)",
-          "|</?", sElementType, sOptAttr, ">",
-          "|(&lt;/?script(.|\r?\n|\r)*?&gt;|^script$)",
-          "|(&lt;/?", sElementType, sOptAttr, "&gt;)",
-          "|('(\\\\'|[^'])*'|\"(\\\\\"|[^\"])*\")",
-          "|(&#?[0-9A-Za-z]+;)",
-          "|([\\{\\}]|\\b(else|for( +each)?|function|i[fn]|null",
-            "|typeof|var)\\b)",
-          "|\\b(Object|document|write)\\b",
-          "|([.:\\[\\]\\(\\),;])",
-          "|\\b(0x[0-9A-Fa-f]+|[0-9]+)\\b"
-        ].join(""),
+      sOptAttr = "(|\\s+[^>]+)",
+      reservedWords = [
+        "function", "var", "const", "get", "set",
+        "abstract", "class", "final", "import", "interface", "internal",
+          "package", "private", "protected", "public",
+        "boolean", "byte", "char", "decimal", "double", "enum", "float", "int",
+          "long", "sbyte", "short",
+        "new", "null",
+        "typeof", "delete", "instanceof",
+        "i[fn]", "else",
+        "switch", "case", "break", "default",
+        "do", "for( +each)?", "while",            
+        "try", "catch", "finally", "throw",
+        "let", "yield",
+        "expando", "hide", "override"
+      ],
+      identifiers = [
+        "(encode|decode)URI(Component)?", "Infinity", "NaN", "undefined",
+        "Object", "prototype", "__defineGetter__", "__defineSetter__",
+          "__iterator__", "__proto__", "constructor", "hasOwnProperty",
+          "isPrototypeOf", "propertyIsEnumerable",
+        "Array", "concat", "every", "indexOf", "join", "length", "pop", "push",
+          "reverse", "shift", "slice", "some", "sort", "splice", "unshift", 
+        "Boolean",
+        "Date", "getFullYear", "getMilliseconds", "getUTCDate", "getUTCDay",
+          "getUTCFullYear", "getUTCHours", "getUTCMilliseconds", "getUTCMinutes",
+          "getUTCMonth", "getUTCSeconds", "getVarDate", "setFullYear",
+          "setMilliseconds", "setUTCDate", "setUTCDay", "setUTCFullYear",
+          "setUTCHours", "setUTCMilliseconds", "setUTCMinutes", "setUTCMonth",
+          "setUTCSeconds",
+        "Function", "arguments", "arity", "apply", "call", "callee", "caller",
+          "toSource",
+        "Math", "max", "min",
+        "Number", "MAX_VALUE", "MIN_VALUE", "NEGATIVE_INFINITY",
+          "POSITIVE_INFINITY",
+        "Error", "description", "message", "name", "number", "stack",
+        "RegExp", "compile", "exec", "global", "ignoreCase", "index", "multiline",
+          "source",
+        "String",
+        "close", "next", "send",
+        "Iterator",
+        "ActiveXObject", "Enumerator", "GetObject", "isFinite", "print",
+          "VBArray",
+        "XMLHttpRequest",
+        "document", "write",
+        "window", "clearInterval", "clearTimeout", "setInterval", "setTimeout" 
+      ],
+      rxCode = new RegExp(
+          "(//.*|/\\*(.|\\s)*?\\*/)"
+          + "|(&lt;/?script(.|\\r?\\n|\\r)*?&gt;|^script$)"
+          + "|(^|[^<])(/(\\\\/|</|[^/])+/)"
+          + "|</?" + sElementType + sOptAttr + ">"
+          + "|(&lt;/?" + sElementType + sOptAttr + "&gt;)"
+          + "|('(\\\\'|[^'])*'|\"(\\\\\"|[^\"])*\")"
+          + "|(&#?[0-9A-Za-z]+;)"
+          + "|([\\{\\}]|\\b(" + reservedWords.join("|") + ")\\b)"
+          + "|\\b(" + identifiers.join("|") + ")\\b"
+          + "|([.:\\[\\]\\(\\),;])"
+          + "|\\b(0x[0-9A-Fa-f]+|[0-9]+)\\b",
         "g"),
-      fReplace =
-        function(match, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12,
-          p13, p14, p15, p16, p17, offset, input)
+      aReplace = [
+        [ 1, 'comm'],
+        [ 4, 'scr'],
+        [ 7, 'regexp'], 
+        [ 9, 'tag'],
+        [11, 'str'],
+        [14, 'entity'],
+        [15, 'rswd'],
+        [18, 'ident'],
+        [21, 'punct'],
+        [22, 'num']
+      ],
+      
+      /**
+       * @param match : string
+       * @return string
+       */
+      fReplace = function(match) {
+        for (var i = 0, len = aReplace.length; i < len; i++)
         {
-          if (p1)
+          var r = aReplace[i];
+        
+          if (arguments[r[0]])
           {
-            match = '<span class="comm">' + match + '<\/span>';
+            match = '<span class="' + r[1] + '">' + match + '<\/span>';
+            break; 
           }
-          else if (p4)
+        }
+
+        return match;
+      },
+      
+      /**
+       * @param node : Node
+       * @param needle : string
+       * @param replacement : string
+       * @return Undefined
+       */
+      recursiveReplace = function(node, needle, replacement) {
+        if (node.nodeType == Node.ELEMENT_NODE)
+        {
+          for (var i = 0, cs = node.childNodes, len = cs.length; i < len; i++)
           {
-            match = '<span class="scr">' + match + '<\/span>';
+            arguments.callee(cs[i], needle, replacement);
           }
-          else if (p6)
+        }
+        else if (node.nodeType == Node.TEXT_NODE)
+        {    
+          var v = node.nodeValue;
+          var m = v.match(needle);
+          if (m)
           {
-            match = '<span class="tag">' + match + '<\/span>';
+            var mLength = m[0].length;
+            var prefix = document.createTextNode(v.substring(0, m.index));
+            var suffix = document.createTextNode(v.substr(m.index + mLength));
+            var infix = document.createTextNode(v.substr(m.index, mLength));
+            var span = document.createElement("span");
+            span.style.color = "red";
+            span.appendChild(infix);
+            var parentNode = node.parentNode;
+            var nextSibling = node.nextSibling;
+            parentNode.removeChild(node);
+            parentNode.insertBefore(suffix, nextSibling);
+            parentNode.insertBefore(span, suffix);
+            parentNode.insertBefore(prefix, span);
           }
-          else if (p8)
-          {
-            match = '<span class="str">' + match + '<\/span>';
-          }
-          else if (p11)
-          {
-            match = '<span class="entity">' + match + '<\/span>';
-          }
-          else if (p12)
-          {
-            match = '<span class="rswd">' + match + '<\/span>';
-          }
-          else if (p15)
-          {
-            match = '<span class="ident">' + match + '<\/span>';
-          }
-          else if (p16)
-          {
-            match = '<span class="punct">' + match + '<\/span>';
-          }
-          else if (p17)
-          {
-            match = '<span class="num">' + match + '<\/span>';
-          }
-          
-          return match;
-        };
+        }
+      };
 
     for (var i = collCode.length; i--;)
     {
       var o = collCode[i];
-      if (o.className != "donthl" && typeof o.innerHTML != "undefined")
+      if (!/(^\s*|\s+)donthl(\s*$|\s+)/.test(o.className)
+          && typeof o.innerHTML != "undefined")
       {
-        o.innerHTML = o.innerHTML.replace(rxCode, fReplace);
+        var s = o.innerHTML;
+        jsx.tryThis(
+          /**
+           * @return undefined
+           */
+          function() {
+            o.innerHTML = s.replace(rxCode, fReplace);
+          },
+          /**
+           * @return undefined
+           */
+          function() {
+            o.innerHTML = s;
+          });
       }
+      else
+      {
+        // recursiveReplace(o, ...)
+      }
+    }
+  }
+
+  if (debug.enabled)
+  {
+    if (isMethod("console", "profileEnd"))
+    {
+      console.profileEnd();
     }
   }
 }
@@ -482,6 +909,7 @@ function synhl()
  *   default is an array with <code>null</code> as
  *   sole element.
  * @property Array items
+ * @return undefined
  */
 function Owners(aOwners)
 {
@@ -526,25 +954,25 @@ function Owners(aOwners)
  * <code>aoOwners</code> is an Owners object or not, the
  * <code>isInstanceOf()</code> method is required.
  *
- * @param sName: string 
+ * @param sName : string 
  *   Name of the property.
  * @param sValue
  *   Value of the property.
- * @param iID: optional number
+ * @param iID : optional number
  *   (Unique) ID of the property.
- * @param aoOwners: optional Owners|Object 
+ * @param aoOwners : optional Owners|Object 
  *   Reference to an Owners object storing references to the
  *   owner (object) of the property and its owners, where the
  *   last element references the direct owner.  Allows also
  *   for a reference to a non-Owners object to specify only
  *   the direct owner.
- * @param bNonEnum: optional boolean 
+ * @param bNonEnum : optional boolean 
  *   <code>true</code> specifies that the property is
  *   non-enumerable.  Optional.  The default <code>false</code>
  *   determines the property to be enumerable.
- * @param bCalledFromObjectInfo: optional boolean 
- * @see
- *   types#isArray(), array#inArray()
+ * @param bCalledFromObjectInfo : optional boolean
+ * @return undefined 
+ * @see types.js:isArray(), array.js:inArray()
  */
 function Property(sName, sValue, iID, aoOwners, bNonEnum,
   bCalledFromObjectInfo)
@@ -629,7 +1057,8 @@ function Property(sName, sValue, iID, aoOwners, bNonEnum,
 }
 
 /**
- * @param a: optional Array
+ * @param a : optional Array
+ * @return undefined
  */
 function PropertyArray(a)
 {
@@ -675,14 +1104,14 @@ function PropertyArray(a)
 /**
  * Adds the property to the property array.
  *
- * @type number|Property oProperty
- * @param : Property
+ * @param oProperty : Property
+ * @return number|Property
  */ 
 PropertyArray.prototype.push =
 function propertyArray_push(oProperty)
 {
   return this.items.push(oProperty);
-}
+};
 
 /**
  * With a reference to an ObjectInfo object having a valid
@@ -708,10 +1137,17 @@ function propertyArray_push(oProperty)
  * sortById(sdAscending).
  */
 // Specific sort methods
+/** @type Comparator */ 
 PropertyArray.prototype.cmpSortByIdAsc =
-  /** @type Comparator */ new Function("a", "b", "return a.id - b.id;");
+  new Function("a", "b", "return a.id - b.id;");
+/** @type Comparator */ 
 PropertyArray.prototype.cmpSortByIdDesc =
-  /** @type Comparator */ new Function("a", "b", "return b.id - a.id;");
+  new Function("a", "b", "return b.id - a.id;");
+
+/**
+ * @param iDir : number
+ * @return undefined
+ */
 PropertyArray.prototype.sortById =
 function propertyArray_sortById(iDir)
 {
@@ -726,13 +1162,18 @@ function propertyArray_sortById(iDir)
   
   this.sortOrder = this.soById;
   this.sortDir = iDir ? iDir : this.sdAscending;
-}
+};
 
 PropertyArray.prototype.unsort =
   PropertyArray.prototype.sortById;
   
+/**
+ * @param a : Property
+ * @param b : Property
+ * @type Comparator
+ * @return number
+ */
 PropertyArray.prototype.cmpSortByNameAsc =
-/** @type Comparator */
 function propertyArray_cmpSortByNameAsc(a, b)
 {
   if (a && b)
@@ -748,13 +1189,19 @@ function propertyArray_cmpSortByNameAsc(a, b)
   }
   
   return 0;
-}
+};
 
+/**
+ * @param a : Property
+ * @param b : Property
+ * @type Comparator
+ * @return number
+ */ 
 PropertyArray.prototype.cmpSortByNameDesc =
-/** @type Comparator */ 
 function propertyArray_cmpSortByNameDesc(a, b)
 {
   if (a && b)
+    
   {
     if (a.name > b.name)
     {
@@ -767,8 +1214,12 @@ function propertyArray_cmpSortByNameDesc(a, b)
   }
 
   return 0;
-}
+};
 
+/**
+ * @param iDir : number
+ * @return undefined
+ */
 PropertyArray.prototype.sortByName =
 function propertyArray_sortByName(iDir)
 {
@@ -783,10 +1234,15 @@ function propertyArray_sortByName(iDir)
   
   this.sortOrder = this.soByName;
   this.sortDir = iDir ? iDir : this.sdAscending;
-}
+};
 
+/**
+ * @param a : Property
+ * @param b : Property
+ * @type Comparator 
+ * @return number
+ */
 PropertyArray.prototype.cmpSortByTypeAsc =
-/** @type Comparator */ 
 function propertyArray_cmpSortByTypeAsc(a, b)
 {
   if (a && b)
@@ -802,10 +1258,15 @@ function propertyArray_cmpSortByTypeAsc(a, b)
   }
 
   return 0;
-}
+};
 
+/**
+ * @param a : Property
+ * @param b : Property
+ * @type Comparator
+ * @return number
+ */
 PropertyArray.prototype.cmpSortByTypeDesc =
-/** @type Comparator */
 function propertyArray_cmpSortByTypeDesc(a, b)
 {
   if (a && b)
@@ -821,8 +1282,12 @@ function propertyArray_cmpSortByTypeDesc(a, b)
   }
 
   return 0;
-}
+};
 
+/**
+ * @param iDir : number
+ * @return undefined
+ */
 PropertyArray.prototype.sortByType =
 function propertyArray_sortByType(iDir)
 {
@@ -837,10 +1302,15 @@ function propertyArray_sortByType(iDir)
 
   this.sortOrder = this.soByType;
   this.sortDir = iDir ? iDir : this.sdAscending;
-}
+};
 
+/**
+ * @param a : Property
+ * @param b : Property
+ * @type Comparator 
+ * @return number
+ */
 PropertyArray.prototype.cmpSortByValueAsc =
-/** @type Comparator */ 
 function propertyArray_cmpSortByValueAsc(a, b)
 {
   if (a && b)
@@ -856,10 +1326,15 @@ function propertyArray_cmpSortByValueAsc(a, b)
   }
 
   return 0;
-}
+};
 
+/**
+ * @param a : Property
+ * @param b : Property
+ * @type Comparator 
+ * @return number
+ */
 PropertyArray.prototype.cmpSortByValueDesc =
-/** @type Comparator */ 
 function propertyArray_cmpSortByValueDesc(a, b)
 {
   if (a && b)
@@ -875,7 +1350,12 @@ function propertyArray_cmpSortByValueDesc(a, b)
   }
 
   return 0;
-}
+};
+
+/**
+ * @param iDir : number
+ * @return undefined
+ */
 PropertyArray.prototype.sortByValue =
 function propertyArray_sortByValue(iDir)
 {
@@ -890,7 +1370,7 @@ function propertyArray_sortByValue(iDir)
 
   this.sortOrder = this.soByValue;
   this.sortDir = iDir ? iDir : this.sdAscending;
-}
+};
 
 /**
  * `properties' also defines a general method for sorting
@@ -912,6 +1392,7 @@ function propertyArray_sortByValue(iDir)
  *   Sort order.
  * @param iSortDir : optional number
  *   Sort direction.
+ * @return undefined
  */
 PropertyArray.prototype.sortBy =
 function propertyArray_sortBy(iSortOrder, iSortDir)
@@ -934,7 +1415,7 @@ function propertyArray_sortBy(iSortOrder, iSortDir)
     case this.soByValue:
       this.sortByValue(iSortDir);
   }
-}
+};
 
 /**
  * @param sName : string 
@@ -943,10 +1424,11 @@ function propertyArray_sortBy(iSortOrder, iSortDir)
  * @param oOwner : optional Object 
  * @param bNonEnum : optional boolean
  * @param bCalledFromProperty : optional boolean
+ * @return undefined
  */
 PropertyArray.prototype.addProperty =
-function propertyArray_addProperty(sName, sValue, iID, oOwner, bNonEnum,
-  bCalledFromProperty)
+function propertyArray_addProperty(
+  sName, sValue, iID, oOwner, bNonEnum, bCalledFromProperty)
 {
   // avoid dupes
   if ((isMethodType(typeof this.items.hasOwnProperty)
@@ -975,13 +1457,14 @@ function propertyArray_addProperty(sName, sValue, iID, oOwner, bNonEnum,
 
     this.length = this.items.length;
   }
-}
+};
 
 /**
  * @param rxPattern : RegExp 
  * @param asPropertyNames : [string] 
  * @param sType : optional string
  * @param fConstructor : optional Object
+ * @return undefined
  */
 function NonEnumProperties(rxPattern, asPropertyNames, sType, fConstructor)
 {
@@ -1043,24 +1526,24 @@ function NonEnumProperties(rxPattern, asPropertyNames, sType, fConstructor)
  *     alert("anyOtherObject references myObject.");
  * </code>
  *
- * @param sObject: string|Object 
+ * @param sObject : string|Object 
  *   Reference to an object or property, or string to be evaluated
  *   to an object or a property.
  *   (TODO: Throws NotAnObjectException if not provided or cannot
  *   be evaluated.)
- * @param sName: optional string 
+ * @param sName : optional string 
  *   Name of the object/property.
  *   If this argument is not provided, the value of the
  *   <code>name</code> property depends on <code>sObject</code>.
  *   If the latter is a reference, the default is `_odo', otherwise
  *   the default is the value of <code>sObject</code>.
- * @param bCalledFromProperty: optional boolean
+ * @param bCalledFromProperty : optional boolean
+ * @return undefined
  */
 function ObjectInfo(sObject, sName, bCalledFromProperty)
 {
   this.forObject(sObject, sName, bCalledFromProperty);
 }
-
 
 /**
  * Once you have a reference to an <code>ObjectInfo</code>
@@ -1115,7 +1598,7 @@ ObjectInfo.prototype.aStringProperties = [
   "toLocaleLowerCase", "toUpperCase", "toLocaleUpperCase"
 ];
 
-ObjectInfo.prototype.addProperties({
+jsx.object.addProperties({
     aNonEnumProperties: [
       new NonEnumProperties(
         new RegExp("^\\w"), // any object
@@ -1274,8 +1757,13 @@ ObjectInfo.prototype.addProperties({
         typeof DocumentStyle != "undefined" ? DocumentStyle : null)
     ],
 
-    forObject: function(sObject, sName, bCalledFromProperty)
-    {
+    /**
+     * @param sObject : Object
+     * @param sName : string
+     * @param bCalledFromProperty : boolean
+     * @return ObjectInfo
+     */
+    forObject: function(sObject, sName, bCalledFromProperty) {
       this.name =
         (typeof sObject == "string"
           ? sObject
@@ -1312,7 +1800,7 @@ ObjectInfo.prototype.addProperties({
       {
         this.target = sObject;
       }
-    
+
       if (this.target)
       {
         this.type = typeof this.target;
@@ -1345,8 +1833,7 @@ ObjectInfo.prototype.addProperties({
         }
           
         // Retrieve non-enumerable properties by guessing them
-        /** @property boolean */ this.hasNonEnumProperties = false;
-    
+        /** @property boolean */ this.hasNonEnumProperties = false;    
               
         for (i = this.aNonEnumProperties.length; i--; 0)
         {
@@ -1415,7 +1902,7 @@ ObjectInfo.prototype.addProperties({
      * @param rxType : optional string = //
      * @param bInvert : optional boolean = false
      * @param aValue : optional _ = undefined
-     * @return type PropertyArray
+     * @return PropertyArray
      *   An array with the data of all properties that
      *   match the passed conditions as elements.
      */    
@@ -1462,6 +1949,9 @@ ObjectInfo.prototype.addProperties({
       return a;
     },
 
+    /**
+     * @return string
+     */
     toString: function()
     {
       var s = "";
@@ -1487,7 +1977,8 @@ ObjectInfo.prototype.addProperties({
     
       return s;
     }
-  });
+  },
+  ObjectInfo.prototype);
 
 var sDefaultInspectorPath = debug.path + "ObjectInspector/obj-insp.html";
 var sNoObj = "[Not an object]";
@@ -1499,7 +1990,8 @@ var CH_NBSP = unescape("%A0");
  * @param sStyle : optional string 
  * @param sHeader : optional string 
  * @param sFooter : optional string 
- * @param sInspectorPath : optional string 
+ * @param sInspectorPath : optional string
+ * @return string 
  */
 function getObjInfo(sObject, aWhat, sStyle, sHeader, sFooter, sInspectorPath)
 {
@@ -1855,3 +2347,91 @@ function getObjInfo(sObject, aWhat, sStyle, sHeader, sFooter, sInspectorPath)
   
   return sProp;
 }
+
+/**
+ * Returns an object storing the minimum version required
+ * of the requested implementations in a piece of source code.
+ * 
+ * @param s : string
+ *   Source code to be analyzed
+ * @param implementations : Object
+ *   Dictionary of requested implementations.  The following
+ *   property names are supported:
+ *   
+ *   <table>
+ *     <tr valign="top">
+ *       <th align="left">javascript</th>
+ *       <td>Netscape/Mozilla.org JavaScript&trade;<sup>&reg;</sup></td>
+ *     </tr>
+ *     <tr valign="top">
+ *       <th align="left">jscript</th>
+ *       <td>Microsoft JScript&trade;</td>
+ *     </tr>
+ *     <tr valign="top">
+ *       <th align="left">es</th>
+ *       <td>ECMAScript</td>
+ *     </tr>
+ *   <table>
+ *   
+ * @return Object
+ *   An object having the same properties as <var>implementations</var>.
+ *   The property values specify the minimum version required of an
+ *   implementation in order to run <var>s</var>.
+ */
+function getMinimalVersions(s, implementations)
+{
+  // TODO: Let this be generated by PHP
+  var features = {
+    "RegExp": {javascript: 1.2, jscript: "3.0", es: 3},
+    
+    // anonymous function expression
+    "function\\s*\\(": {javascript: 1.3, jscript: "3.1.3510", es: 3},
+
+    "\\.\\s*constructor": {javascript: 1.1, jscript: "2.0", es: 1},
+    "\\.\\s*source": {jscript: "3.0", es: 3},
+    "\\.\\s*replace": {javascript: 1.2, jscript: "3.0", es: 3},
+    "\\.\\s*split": {javascript: 1.1, jscript: "3.0", es: 1},
+
+    // Object initializer
+    "[[(=]\\s*\\{": {javascript: 1.3, jscript: "3.0", es: 3},
+
+    // Array initializer
+    "\\[[^]]+\\]": {javascript: 1.3, jscript: "2.0", es: 3},
+
+    "\\.\\s*hasOwnProperty\\s*\\(": {javascript: 1.5, jscript: "5.5", es: 3}
+  };
+
+  var implMap = {
+    javascript: "JavaScript",
+    jscript: "JScript",
+    es: "ECMAScript Edition",
+  };
+
+  var result = {};
+
+  var lines = s.split(/\r?\n|\n/);
+
+  for (var f in features)
+  {
+    var rx = new RegExp("\\b" + f + "\\b");
+    if (rx.test(s))
+    {
+      for (var i in implementations)
+      {
+        if (typeof result[i] == "undefined")
+        {
+          result[i] = 0;
+        }
+
+        if (result[i] < features[f][i])
+        {
+          result[i] = features[f][i];
+          console.log(f + " requires " + getattr(implMap, i, i) + " " + features[f][i]);
+        }
+      }
+    }
+  }
+
+  return result;
+}
+// var o = getMinimalVersions(e, {javascript: true, jscript: true, es: true});
