@@ -77,7 +77,8 @@ function Collection(o)
   this.set(o);
 }
 
-Collection.prototype = {
+Collection.prototype = Array.prototype;
+jsx.object.addProperties({
   constructor: Collection, 
 
   /**
@@ -102,7 +103,7 @@ Collection.prototype = {
   },
 
   /**
-   * @param o: optional Object
+   * @param o : optional Object
    *   reference used to append to the collection.
    */ 
   addItems: function collection_addItems(o) {
@@ -190,7 +191,7 @@ Collection.prototype = {
     this.clear(); 
     return this.addItems(o);
   }
-};
+}, jsx.object.ADD_OVERWRITE, Collection.prototype);
 
 /**
  * Creates and initializes a <code>ValueCollection</code> object,
