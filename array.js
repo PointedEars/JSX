@@ -5,7 +5,7 @@
  * @section Copyright & Disclaimer
  * 
  * @author
- *   (C) 2004  Thomas Lahn &lt;array.js@PointedEars.de&gt;
+ *   (C) 2004-2008  Thomas Lahn &lt;array.js@PointedEars.de&gt;
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licnse
@@ -37,13 +37,17 @@ if (typeof Array == "undefined")
 {
   var Array = new Object();
 }
-Array.version   = "0.1.2007040519";
-Array.copyright = "Copyright \xA9 2004-2007";
+Array.version   = "0.1.2008062516";
+Array.copyright = "Copyright \xA9 2004-2008";
 Array.author    = "Thomas Lahn";
 Array.email     = "array.js@PointedEars.de";
 Array.path      = "http://pointedears.de/scripts/"
 // Array.docURL = Array.path + "array.htm";
 
+/**
+ * @param sMsg
+ * @return boolean false
+ */
 function ArrayException(/** @argument optional string */ sMsg)
 {
   alert(
@@ -61,8 +65,8 @@ function ArrayException(/** @argument optional string */ sMsg)
 }
 
 /**
- * Splits the array @{(a)} into several arrays with
- * @{(iSize)} values in them.
+ * Splits the array <code>a</code> into several arrays with
+ * <code>iSize</code> values in them.
  * 
  * @author
  *   (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
@@ -70,12 +74,11 @@ function ArrayException(/** @argument optional string */ sMsg)
  *   http://pointedears.de/scripts/array.js
  * @requires
  *   types#isArray()
- * @@optional Array a
+ * @param a : optional Array
  *   Array which should be split.  Is used instead of the
- *   @{jsref#Array} object the function is applied to.
- * @argument number iSize
+ *   <code>Array</code> object the function is applied to.
+ * @param iSize : number
  *   Maximum size of the resulting arrays.
- * @return type Array
  *   An array of arrays indexed with numbers starting from zero.
  */
 function array_chunk(a, iSize)
@@ -113,8 +116,8 @@ function array_chunk(a, iSize)
 }
 
 /**
- * Returns an object using the values of the array @{(a)}
- * as properties and their frequency in @{(a)} as values.
+ * Returns an object using the values of the array <code>a</code>
+ * as properties and their frequency in <code>a</code> as values.
  * 
  * @author
  *   (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
@@ -122,9 +125,9 @@ function array_chunk(a, iSize)
  *   http://pointedears.de/scripts/array.js
  * @requires
  *   types#isArray()
- * @optional Array a
+ * @param a : optional Array 
  *   Array which values should be counted.  Is used instead of
- *   the @{jsref#Array} object the function is applied to.
+ *   the <code>Array</code> object the function is applied to.
  * @return type Object
  */
 function array_countValues(a)
@@ -148,9 +151,9 @@ function array_countValues(a)
 }
 
 /**
- * Fills an array with @{(iNumber)} entries of the value
- * of the @{(value)} argument, indexes starting at the
- * value of the @{(iStart)} argument.
+ * Fills an array with <code>iNumber</code> entries of the value
+ * of the <code>value</code> argument, indexes starting at the
+ * value of the <code>iStart</code> argument.
  * 
  * @author
  *   (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
@@ -158,17 +161,16 @@ function array_countValues(a)
  *   http://pointedears.de/scripts/array.js
  * @requires
  *   types#isArray()
- * @optional Array a
+ * @param a : optional Array 
  *   Array which should be filled.  Is used instead of the
- *   @{jsref#Array} object the function is applied to.
- * @argument number iStart
+ *   {@link Array} object the function is applied to.
+ * @param iStart : number 
  *   Index where to start filling.
- * @argument number iNumber
- *   Number of elements to be filled, starting from
- *   @{(iStart)}.
- * @optional * value
- * @return type Array
- *   The filled array.
+ * @param iNumber : number 
+ *   Number of elements to be filled, starting from <code>iStart</code>.
+ * @param value : optional *
+ * @type Array
+ * @return The filled array.
  */
 function array_fill(a, iStart, iNumber, value)
 {
@@ -191,8 +193,8 @@ function array_fill(a, iStart, iNumber, value)
 }
 
 /**
- * Returns an array containing all the elements of @{(a)}
- * filtered according a callback function @{(fCallback)}.
+ * Returns an array containing all the elements of <code>a</code>
+ * filtered according a callback function <code>fCallback</code>.
  * 
  * @author
  *   (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
@@ -200,15 +202,15 @@ function array_fill(a, iStart, iNumber, value)
  *   http://pointedears.de/scripts/array.js
  * @requires
  *   types#isArray()
- * @argument Function fCallback
+ * @param fCallback : Function 
  *   A function accepting a single argument that returns
  *   a value to be interpreted either as <code>true</code>
  *   or <code>false</code>.  If it returns <code>true</code>
- *   for the element of @{(a)}, that element is
+ *   for the element of <code>a</code>, that element is
  *   included in the resulting array, otherwise it is not.
- * @optional Array a
+ * @param a : optional Array 
  *   Array which should be filtered.  Is used instead of the
- *   @{jsref#Array} object the function is applied to.
+ *   <code>Array</code> object the function is applied to.
  * @return type Array
  */
 function array_filter(fCallback, a)
@@ -273,11 +275,11 @@ function array_filter(fCallback, a)
  *   http://pointedears.de/scripts/array.js
  * @requires
  *   types#isArray()
- * @param a: optional Array
+ * @param a : optional Array
  *   Array from which the last element should be removed.  Is used
- *   instead of the @{jsref#Array} object the function is
+ *   instead of the {@link Array} object the function is
  *   applied to.
- * @returns
+ * @return
  *   The element removed from the array changed array.
  */
 function array_pop(a)
@@ -309,10 +311,10 @@ function array_pop(a)
  *   http://pointedears.de/scripts/array.js
  * @requires
  *   types#isArray()
- * @optional Array a
+ * @param a : optional Array 
  *   Array which should be added an element.  Is used instead
- *   of the @{jsref#Array} object the function is applied to.
- * @optional * value
+ *   of the <code>Array</code> object the function is applied to.
+ * @param value : optional *
  * @return type Array
  *   The changed array.
  */
@@ -333,7 +335,7 @@ function array_push(a, value)
 }
 
 /**
- * Takes input array @{(a)} or the calling @{jsref#Array}
+ * Takes input array <code>a</code> or the calling <code>Array</code>
  * object and returns a new <code>Array</code> object with the
  * order of the elements reversed.
  * 
@@ -343,13 +345,13 @@ function array_push(a, value)
  *   http://pointedears.de/scripts/array.js
  * @requires
  *   types#isArray()
- * @optional Array a
- *   @{jsref#Array} object which order of elements should be
+ * @param a : optional Array
+ *   <code>Array</code> object which order of elements should be
  *   reversed.  Is used instead of the calling <code>Array</code>
  *   object.
  * @return type Array
- *   A copy of @{(a)} or the calling @{jsref#Array}
- *   object with its elements in reverse order.  If @{(a)}
+ *   A copy of <code>a</code> or the calling <code>Array</code>
+ *   object with its elements in reverse order.  If <code>a</code>
  *   has no elements, an empty array is returned.
  */
 function array_reverse(a)
@@ -371,8 +373,8 @@ function array_reverse(a)
 }
 
 /**
- * Searches an @{jsref#Array} for a given value and
- * returns the corresponding index or vector if successful.
+ * Searches an array for a given value and returns
+ * the corresponding index or vector if successful.
  * 
  * @author
  *   (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
@@ -380,15 +382,15 @@ function array_reverse(a)
  *   http://pointedears.de/scripts/array.js
  * @requires
  *   types#isArray()
- * @argument * needle
+ * @param needle : *
  *   Value to be searched for.
- * @argument * aHaystack
- *   @{jsref#Array} to be searched for.  Is used instead of
- *   the calling @{jsref#Array} object.
- * @optional boolean bStrict
+ * @param aHaystack : *
+ *   <code>Array</code> to be searched for.  Is used instead of
+ *   the calling <code>Array</code> object.
+ * @param bStrict : optional boolean 
  *   If <code>true</code> then the function will also check the
- *   types of the @{(needle)} in the @{(aHaystack)}.
- * @optional boolean bDeepSearch
+ *   types of the <code>needle</code> in the <code>aHaystack</code>.
+ * @param bDeepSearch : optional boolean 
  *   If <code>true</code>, a deep search, if necessary, will be
  *   performed, i.e. also elements of the array are searched if
  *   they refer to <code>Array</code> objects.  (Note that this
@@ -398,39 +400,40 @@ function array_reverse(a)
  *   reduces efficiency as another <code>array_search()</code>
  *   must be invoked for every ancestor relationship.  Also
  *   note that this compares only references, not content.
- *   If @{(needle)} is a reference to an <code>Array</code>
+ *   If <code>needle</code> is a reference to an <code>Array</code>
  *   object, it is compared as reference with every single
  *   element, not its content with the content of elements
  *   [that refer to <code>Array</code> objects].)
- * @optional Array aAncestors
- *   Used internally by @{(bDeepSearch), deep search} to refer
- *   to an @{jsref#Array} object storing the ancestors of a
+ * @param aAncestors : optional Array 
+ *   Used internally by {@linkplain (bDeepSearch) deep search} to refer
+ *   to an <code>Array</code> object storing the ancestors of a
  *   "child" array element that refers to an <code>Array</code>
  *   object itself.  Usage prevents infinite recursion, see
- *   @{(bDeepSearch)}.
- * @optional Array aResultVector
- *   Used internally by @{(bDeepSearch), deep search}
- *   to refer to an @{jsref#Array} object storing the
+ *   <code>bDeepSearch</code>.
+ * @param aResultVector : optional Array 
+ *   Used internally by {@linkplain (bDeepSearch) deep search}
+ *   to refer to an <code>Array</code> object storing the
  *   vector of a matching array element that refers to an
  *   <code>Array</code> object itself.
- * @optional number iLevel
- *   Used internally by @{(bDeepSearch), deep search}
+ * @param iLevel : optional number 
+ *   Used internally by {@linkplain (bDeepSearch) deep search}
  *   to specify the level for index of the coordinate of
- *   @{(aResultVector)} if there is a match.  The default
+ *   <code>aResultVector</code> if there is a match.  The default
  *   level (also used for non-deep searches) is 0 for the
  *   first coordinate of <code>aResultVector</code>.
- * @optional number index
- *   Used internally by @{(bDeepSearch), deep search}
+ * @param index : optional number 
+ *   Used internally by {@linkplain (bDeepSearch) deep search}
  *   to specify the current index for the coordinate of
- *   @{(aResultVector)} if there is a match.
- * @return type number
- *   Without @{(bDeepSearch), deep search}:
+ *   <code>aResultVector</code> if there is a match.
+ * @type number
+ * @return
+ *   Without {@linkplain (bDeepSearch) deep search}:
  *     The zero-based index of the first matching element
- *       if @{(needle)} is found in the array,
+ *       if <code>needle</code> is found in the array,
  *     -1
  *       otherwise.
  * 
- *   With deep search:
+ *   With {@linkplain (bDeepSearch) deep search}:
  *     A reference to an Array object indicating the vector of
  *     the first matching element (i.e. its coordinates)
  *       if <code>needle</code> is found in the array,
@@ -439,9 +442,9 @@ function array_reverse(a)
  * 
  *   If neither the calling object is an <code>Array</code>
  *   object nor <code>aHaystack</code> is a reference to such:
- *     0 or @{(index)}
+ *     0 or <code>index</code>
  *       if <code>needle</code> is equal to <code>aHaystack</code>
- *       (@{(bStrict)} is noted),
+ *       (<code>bStrict</code> is noted),
  *    -1
  *       otherwise.
  */
@@ -575,19 +578,19 @@ function array_search(needle, aHaystack, bStrict, bDeepSearch, aAncestors,
  *   http://pointedears.de/scripts/array.js
  * @requires
  *   types#isArray()
- * @param * value
- * @argument Array
+ * @param value : *
+ * @param a : Array
  *   Array which should be searched.  Is used instead of the
- *   @{jsref#Array} object the function is applied to.
- * @optional boolean bExactMatch
+ *   <code>Array</code> object the function is applied to.
+ * @param bExactMatch : optional boolean 
  *   If <code>true</code> then the function will also check the
- *   types of the @{(needle)} in the @{(aHaystack)}.
- * @optional boolean bDeepSearch
- *   If <code>true</code>, a @{#array_search(bDeepSearch),deep
- *   search}, if necessary, will be performed.
+ *   types of the <code>needle</code> in the <code>aHaystack</code>.
+ * @param bDeepSearch : optional boolean 
+ *   If <code>true</code>, a {@linkplain #array_search(bDeepSearch)
+ *   deep search}, if necessary, will be performed.
  * @return type boolean
  *   <code>true</code> if <code>value</code> is an element of
- *   @{(a)}, <code>false</code> otherwise.
+ *   <code>a</code>, <code>false</code> otherwise.
  */
 function inArray(value, a, bExactMatch, bDeepSearch)
 {
@@ -606,38 +609,38 @@ function inArray(value, a, bExactMatch, bDeepSearch)
 }
 
 /**
- * Takes input array @{(a)} or the Array object it is applied
- * to as method and returns a new Array object with all string
- * elements (optionally all elements regardless of their type)
- * either lowercased or uppercased.
+ * Takes input array <code>a</code> or the <code>Array</code> object 
+ * it is applied to as method and returns a new <code>Array</code>
+ * object with all string elements (optionally all elements regardless
+ * of their type) either lowercased or uppercased.
  * 
  * @author
- *   (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
+ *   (C) 2004, 2008 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/array.js
  * @requires
  *   types#isArray()
- * @optional Array a
+ * @param a : optional Array
  *   Array which elements should be changed.  Is used instead
  *   of the Array object the function is applied to.
- * @optional boolean bUppercase = false
+ * @param bUppercase : optional boolean = false
  *   If <code>false</code> (default), changes the elements to
  *   be all lowercase.  If <code>true</code>, changes them to
  *   be all uppercase.
- * @optional boolean bConvertNonStrings = false
+ * @param bConvertNonStrings : optional boolean = false
  *   If <code>false</code> default, changes only the case of
  *   string elements.  If <code>true</code>, converts non-string
  *   elements to String and changes their case.
  * @return type Array
- *   A copy of @{(a)} or the Array object with its
- *   elements' value uppercased or lowercased.  If @{(a)}
+ *   A copy of <code>a</code> or the Array object with its
+ *   elements' value uppercased or lowercased.  If <code>a</code>
  *   has no elements, an empty array is returned.
  */
 function array_changeCase(a, bUppercase, bConvertNonStrings)
 {
   if (!isArray(a) && isArray(this))
   {
-    bConvertNonStrings = bUpperCase;
+    bConvertNonStrings = bUppercase;
     bUpperCase = a;
     a = this;
   }
@@ -658,16 +661,15 @@ function array_changeCase(a, bUppercase, bConvertNonStrings)
         }
       }
     }
+    
     return a;
   }
-  else
-  {
-    return new Array();
-  }
+  
+  return new Array();
 }
 
 /**
- * Takes input array @{(a)} or the Array object it is
+ * Takes input array <code>a</code> or the Array object it is
  * applied to as method and returns a new Array object with all
  * string elements (optionally all elements regardless of their
  * type) lowercased.
@@ -678,16 +680,16 @@ function array_changeCase(a, bUppercase, bConvertNonStrings)
  *   http://pointedears.de/scripts/array.js
  * @requires
  *   #array_changeCase()
- * @optional Array a
+ * @param a : optional Array 
  *   Array which elements should be converted.  Is used instead
  *   of the Array object the function is applied to.
- * @optional boolean bConvertNonStrings = false
+ * @param bConvertNonStrings : optional boolean = false
  *   If <code>false</code> default, changes only the case of
  *   string elements.  If <code>true</code>, converts non-string
  *   elements to String and changes their case.
  * @return type Array
- *   A copy of @{(a)} or the Array object with its
- *   elements' value lowercased.  If @{(a)} has no
+ *   A copy of <code>a</code> or the Array object with its
+ *   elements' value lowercased.  If <code>a</code> has no
  *   elements, an empty array is returned.
  */
 function array_toLowerCase(a, bConvertNonStrings)
@@ -702,7 +704,7 @@ function array_toLowerCase(a, bConvertNonStrings)
 }
 
 /**
- * Takes input array @{(a)} or the Array object it is
+ * Takes input array <code>a</code> or the Array object it is
  * applied to as method and returns a new Array object with all
  * string elements (optionally all elements regardless of their
  * type) uppercased.
@@ -713,16 +715,16 @@ function array_toLowerCase(a, bConvertNonStrings)
  *   http://pointedears.de/scripts/array.js
  * @requires
  *   #array_changeCase()
- * @optional Array a
+ * @param a : optional Array 
  *   Array which elements should be converted.  Is used instead
  *   of the Array object the function is applied to.
- * @optional boolean bConvertNonStrings = false
+ * @param bConvertNonStrings : optional boolean = false
  *   If <code>false</code> default, changes only the case of
  *   string elements.  If <code>true</code>, converts non-string
  *   elements to String and changes their case.
  * @return type Array
- *   A copy of @{(a)} or the Array object with its
- *   elements' value uppercased.  If @{(a)} has no
+ *   A copy of <code>a</code> or the Array object with its
+ *   elements' value uppercased.  If <code>a</code> has no
  *   elements, an empty array is returned.
  */
 function array_toUpperCase(a, bConvertNonStrings)
@@ -736,46 +738,48 @@ function array_toUpperCase(a, bConvertNonStrings)
   return array_changeCase(a, true, bConvertNonStrings);
 }
 
-Array.prototype.addProperties({
-  contains:    inArray,
-  chunk:       array_chunk,
-  changeCase:  array_changeCase,
-  countValues: array_countValues,
-  fill:        array_fill,
-  pop:         array_pop,
-  push:        array_push,
-  reverse:     array_reverse,
-  search:      array_search,
-  toUpperCase: array_toUpperCase,
-  
-  // JavaScript 1.6 (1.5 in Gecko 1.8b2 and later) emulation   
-  every: function(callback, thisObject) {
-    if (arguments.length < 2)
-    {
-      thisObject = this;
-    }
+addProperties(
+  {
+    contains:    inArray,
+    chunk:       array_chunk,
+    changeCase:  array_changeCase,
+    countValues: array_countValues,
+    fill:        array_fill,
+    pop:         array_pop,
+    push:        array_push,
+    reverse:     array_reverse,
+    search:      array_search,
+    toUpperCase: array_toUpperCase,
     
-    for (var i = 0, len = thisObject.length; i < len; i++)
-    {
-      if (!thisObject.callback())
+    // JavaScript 1.6 (1.5 in Gecko 1.8b2 and later) emulation
+    every: function(callback, thisObject) {
+      if (arguments.length < 2)
       {
-        return false;
-      };
+        thisObject = this;
+      }
+      
+      for (var i = 0, len = thisObject.length; i < len; i++)
+      {
+        if (!thisObject.callback())
+        {
+          return false;
+        };
+      }
+    
+      return true;
+    },
+    
+    filter: array_filter,
+       
+    iterate: function() {
+      var a = new Array();
+      
+      for (var i = 0, len = this.length; i < len; i++)
+      {
+        a.push(this[i]);
+      }
+      
+      return a;
     }
-
-    return true;
   },
-  
-  filter: array_filter,
-     
-  iterate: function() {
-    var a = new Array();
-    
-    for (var i = 0, len = this.length; i < len; i++)
-    {
-      a.push(this[i]);
-    }
-    
-    return a;
-  }
- });
+  Array.prototype);
