@@ -1,0 +1,26 @@
+RedirectMatch permanent ^(/scripts)/((events|scope)\.html?.*) $1/test/$2
+RedirectMatch permanent ^/(JSDoc|jsdoc)(.*) /scripts/JSdoc$2
+RedirectMatch permanent ^(/scripts)/js-version-info(\.php)?(.*) $1/test/es-matrix/?redir$3
+RedirectMatch permanent ^(/scripts)/((dom|es)-matrix.*) $1/test/$2
+
+Options +Indexes
+AddDescription "Creates documentation markup from JSdoc&trade; comments within JavaScript&trade; source code" JSdoc AddDescription "LCARS Extensions" LCARS.js
+AddDescription "ECMAScript Support Matrix" es-matrix
+AddDescription "LCARS Extensions: \"ACCESSING...\"" accessng.js
+AddDescription "LCARS Extensions: PageBack" back.js
+AddDescription "back.js Documentation" back.txt
+AddDescription "JSX: DHTML Library" dhtml.js
+AddDescription "JSX: Temporary Document Management" document.js
+AddDescription "JSX: Cookie Management" cookie.js
+AddDescription "cookie.js Documentation" cookie.txt
+AddDescription "JSX: Level-1 Enhanced Website Features" enhanced.js
+AddDescription "enhanced.js Documentation" enhanced.htm
+AddDescription "JSX: Level-2 Enhanced Website Features (depends on enhanced.js)" enhancd2.js
+AddDescription "enhancd2.js Documentation" enhancd2.htm
+AddDescription "Extended Math Support" math.js
+AddDescription "JSX: Support for Outline-styled Structure Using Dynamic HTML Statements" outline.js
+AddDescription "JSX: Search-String Support (depends on types.js)" search.js
+AddDescription "search.js Documentation" search.htm
+AddDescription "Documentation Global Style-Sheet" style.css
+AddDescription "JSX: Time Data Management" time.js
+AddDescription "time.js Documentation" time.txt
