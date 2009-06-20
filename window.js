@@ -1,9 +1,9 @@
-/*
+/**
  * <title>Window Function Library</title>
  * @file window.js
  * @partof PointedEars' JavaScript Extensions (JSX)
  * @author
- *   (C) 2001-2008  Thomas Lahn &lt;window.js@PointedEars.de&gt;
+ *   (C) 1999-2009  Thomas Lahn &lt;window.js@PointedEars.de&gt;
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licnse
@@ -19,26 +19,30 @@
  * program (COPYING file); if not, go to [1] or write to the Free
  * Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
  * MA 02111-1307, USA.
- * 
+ *
  * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
  */
 /*
- * Refer window.htm file for general documentation. 
+ * Refer window.htm file for general documentation.
  *
  * This document contains JavaScriptDoc. Refer
  * http://pointedears.de/scripts/JSDoc/
  * for details.
  */
-
-var windowVersion   = "1.29.2008012001";
-var windowCopyright = "Copyright \xA9 1999-2008";
+var windowVersion   = "1.29.2009052620";
+var windowCopyright = "Copyright \xA9 1999-2009";
 var windowAuthor    = "Thomas Lahn";
 var windowEmail     = "window.js@PointedEars.de";
 var windowPath      = "http://pointedears.de/scripts/";
 // var windowDocURL = windowPath + "window.htm";
 
-// Script exceptions
+/* Script exceptions */
 
+/**
+ * @param Msg : string
+ * @type boolean
+ * @return false
+ */
 function windowException(Msg)
 {
   alert(
@@ -52,47 +56,69 @@ function windowException(Msg)
       + windowEmail
       + ">\n\n"
       + Msg);
-
   return false;
 }
 
+/**
+ * @param sFunctionName : string
+ * @param iArg : number
+ * @return boolean
+ */
 function EInvalidArgNum(sFunctionName, iArg)
 {
-  /*  if (arguments.length < 2) iArg = "?";*/
+  // if (arguments.length < 2) iArg = "?";
   return windowException(
     sFunctionName
       + ": The user script did not pass the required number of arguments ("
       + iArg
       + ").\nRefer documentation in script file for correct function call.");
 }
-
-// Script features
-
+ 
+/* Script features */
+ 
+/**
+ * @param sCaption : string
+ * @type boolean
+ * @return true
+ */
 function setStatus(sCaption)
 {
   window.status = sCaption;
   return true;
 }
 
+/**
+ * @type boolean
+ * @return true
+ */
 function resetStatus()
 {
   window.status = window.defaultStatus;
   return true;
 }
-
+ 
 var sLinkOutMsg_de =
     "Dieser Link ist offline nicht verfügbar.\n\n"
   + "Wenn Sie mit dem Internet verbunden sind, steht Ihnen die Seite online"
   + " zur Verfügung.\n\n"
   + "Möchten Sie jetzt eine Verbindung zu dieser Seite herstellen?";
-    
 var sLinkOutMsg_us =
   "This link is not available offline.\n\n"
   + "If you are connected to the Internet, the website is available online.\n\n"
   + "Do you wish to connect to this website now?';";
-
 var sLinkOutMsg = sLinkOutMsg_de;
 
+/**
+ * @param sURL : string
+ * @param sLink : string
+ * @param bShowURL : boolean
+ * @param aTarget : number|string
+ * @param iWidth : number
+ * @param iHeight : number
+ * @param sOptions : string
+ * @type boolean
+ * @return false
+ */
 function linkOut(sURL, sLink, bShowURL, aTarget, iWidth, iHeight, sOptions)
 {
   if (arguments.length < 1)
@@ -100,7 +126,7 @@ function linkOut(sURL, sLink, bShowURL, aTarget, iWidth, iHeight, sOptions)
     EInvalidArgNum("linkOut", 1);
     return false;
   }
-
+  
   var arg = sLinkOutMsg;
   /*
    * version 1.05.2000.3 update, formerly bShowURL as 2nd argument;
@@ -110,22 +136,21 @@ function linkOut(sURL, sLink, bShowURL, aTarget, iWidth, iHeight, sOptions)
   {
     bShowURL = true;
   }
-
+  
   var oldArg;
-
   if ((sURL != "" && bShowURL == true)
       || (arguments.length >= 2 && sLink != ""))
   {
     oldArg = arg;
     arg = "\n\n" + oldArg;
   }
-
+  
   if (sURL != "" && bShowURL)
   {
     oldArg = arg;
-    arg = sUR + oldArg;
+    arg = sURL + oldArg;
   }
-
+  
   if (arguments.length >= 2 && sLink != "")
   {
     if (sURL != "" && bShowURL)
@@ -139,14 +164,18 @@ function linkOut(sURL, sLink, bShowURL, aTarget, iWidth, iHeight, sOptions)
       arg = sLink + oldArg;
     }
   }
-
+  
   if (window.confirm(arg))
   {
     var oTarget = document;
     if (arguments.length >= 4
         && aTarget != ""
         && aTarget.toLowerCase() != "_self")
-    { // version 1.05.2000.3 update, formerly no nullstrings nor "_self" supported
+    {
+      /*
+       * version 1.05.2000.3 update, formerly neither empty strings
+       * nor "_self" supported
+       */
       if (isNaN(aTarget))
       {
         if (aTarget.toLowerCase() == "_new"
@@ -155,11 +184,8 @@ function linkOut(sURL, sLink, bShowURL, aTarget, iWidth, iHeight, sOptions)
           popUp(sURL, iWidth, iHeight, sOptions);
           return false;
         }
-        else
-        {
-          oTarget = parent.frames[aTarget].document;
-        }
-        // and below: v1.09.2000.3 bugfix
+        oTarget = parent.frames[aTarget].document;
+        /* and below: v1.09.2000.3 bugfix */
       }
       else
       {
@@ -169,37 +195,49 @@ function linkOut(sURL, sLink, bShowURL, aTarget, iWidth, iHeight, sOptions)
     oTarget.location = "";
     oTarget.location.href = sURL;
   }
-
-  return false; // version 1.15.2000.11 update
+  
+  /* version 1.15.2000.11 update */
+  return false;
 }
 
+/**
+ * @param sURL : string
+ * @param iWidth : number
+ * @param iHeight : number
+ * @param sOptions : string
+ * @type boolean
+ * @return false
+ */
 function popUp(sURL, iWidth, iHeight, sOptions)
 {
   var sFeatures = "height=" + iHeight + ",width=" + iWidth;
-
   if (arguments.length > 3)
   {
     sFeatures += "," + sOptions;
   }
-
   var wndChild = window.open(sURL, null, sFeatures);
   return false;
 }
-
+ 
 /*
  * OpenChildWin(...) call redirected to popUp(...) for compatibility to
  * previous versions
  */
 var OpenChildWin = popUp;
-
+ 
+/**
+ * @param sURL : string
+ * @param targetFrame : number|string
+ * @return Window
+ */
 function LoadFrame(sURL, targetFrame)
 {
   if (arguments.length < 2)
   {
-    // Raise exception if required arguments are missing
+    /* Raise exception if required arguments are missing */
     return EInvalidArgNum("LoadFrame", 2);
   }
-
+  
   if (isNaN(targetFrame))
   {
     if (parent.eval(targetFrame))
@@ -207,34 +245,35 @@ function LoadFrame(sURL, targetFrame)
       parent.eval(targetFrame).location.href = sURL;
       return sURL;
     }
-    else
-    {
-      return targetFrame;
-    }
+    
+    return targetFrame;
   }
-  else
-  {
-    if (parent.frames[targetFrame])
-    {
-      parent.frames[targetFrame].location.href = sURL;
-      return sURL;
-    }
-    else
-    {
-      return targetFrame;
-    }
-  }
-}
 
+  if (parent.frames[targetFrame])
+  {
+    parent.frames[targetFrame].location.href = sURL;
+    return sURL;
+  }
+  
+  return targetFrame;
+}
 var sEnlargeImgTitle_en = "Click to close window";
 var sEnlargeImgTitle_de = "Klicken, um Fenster zu schliessen";
 var sEnlargeImgTitle    = sEnlargeImgTitle_en;
 
+/**
+ * @param sImageURL : string
+ * @param sCaption : string
+ * @param iWidth : number
+ * @param iHeight : number
+ * @param bCenter : boolean
+ * @type boolean
+ * @return false
+ */
 function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter)
 {
   var ident = enlargeImg;
   var argnum = ident.arguments.length;
-
   if (sImageURL.charAt(0) != "/")
   {
     /*
@@ -244,27 +283,28 @@ function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter)
      * that generated pages have no path except about:blank which causes
      * relative paths for their resources to fail
      */
+    /* Windows local path */
     var iPathEnd = window.location.pathname.lastIndexOf('\\');
-    // Windows local path
     if (iPathEnd < 0)
     {
       iPathEnd = window.location.pathname.lastIndexOf('/');
     }
-
-    // URL
-    if (iPathEnd > -1) // Extends filename to full path
+    
+    /* URL */
+    if (iPathEnd > -1)
     {
+      /* Extend filename to full path */
       sImageURL = window.location.pathname.substring(0, iPathEnd)
                 + "/" + sImageURL;
     }
   }
-
+  
   if (argnum < 1)
   {
     return (EInvalidArgNum("Level 2: enlargeImg", 1));
   }
-
-  // preset also window position and size in the case the temporary script below fails
+  
+  /* preset also window position and size in the case the temporary script below fails */
   var sOptions = [
     "toolbar=no,location=no,menubar=no,scrollbars=yes,resizable=yes",
     ((argnum > 2) && !isNaN(iWidth)) ? (",width=" + iWidth + 12) : "",
@@ -276,7 +316,7 @@ function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter)
     parseInt(screen.height / 2 - (argnum > 3
                                   && !isNaN(iHeight) ? iHeight / 2 : 0))
   ].join("");
-
+  
   var w = window.open("", "wndZoom", sOptions);
   if (w)
   {
@@ -284,10 +324,9 @@ function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter)
     if (d)
     {
       d.open("text/html");
-  
       var s = [
         '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"',
-        '  "http://www.w3.org/TR/html4/loose.dtd"',
+        '  "http://www.w3.org/TR/html4/loose.dtd">',
         '<html>',
         '  <head>',
         '    <meta http-equiv="Content-Type" content="text/html;'
@@ -300,14 +339,15 @@ function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter)
         [
           '    <title>' + ((argnum > 1 && sCaption != "") ? sCaption : sImageURL),
           '<\/title>'
-        ].join(""), 
-  
+        ].join(""),
+        
         /*
          * temporary script and updated inline code to fix
          * BUG_Enlarge:ALWAYS_FIT-TO-IMAGE
          */
-  
         '    <script type="text/javascript">',
+        '      var orig = {};\n',
+        
         '      function fitWindowToImage()',
         '      {',
         '        var imgWidth = '
@@ -316,51 +356,55 @@ function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter)
         '        var imgHeight = '
         + (argnum > 3 && iHeight != 0 ? iHeight : "document.images[0].height + 32")
         + ';\n',
-        '        if (typeof window.resizeTo == "object")', // IE only
+        
+        /* MSHTML */
+        '        if (typeof window.resizeTo == "object")',
         '        {',
-        '          origLeft = window.screenLeft;',
-        '          origTop = window.screenTop;',
-        '          origWidth = window.width;',
-        '          origHeight = window.height;',
+        '          orig.left = window.screenLeft;',
+        '          orig.top = window.screenTop;',
+        '          orig.width = window.width;',
+        '          orig.height = window.height;',
         '          window.resizeTo(imgWidth, imgHeight);',
         '        }',
-        '        else if (typeof window.sizeToContent == "function")', // Moz
+        /* Gecko */
+        '        else if (typeof window.sizeToContent == "function")',
         '        {',
-        '          origLeft = window.screenX;',
-        '          origTop = window.screenY;',
-        '          origWidth = window.innerWidth;',
-        '          origHeight = window.innerHeight;',
+        '          orig.left = window.screenX;',
+        '          orig.top = window.screenY;',
+        '          orig.width = window.innerWidth;',
+        '          orig.height = window.innerHeight;',
         '          window.sizeToContent();',
         '        }',
-        '        else if (typeof document.layers == "object")', // NN4
+        /* NN4 */
+        '        else if (typeof document.layers == "object")',
         '        {',
-        '          origLeft = window.screenX;',
-        '          origTop = window.screenY;',
-        '          origWidth = window.innerWidth;',
-        '          origHeight = window.innerHeight;',
+        '          orig.left = window.screenX;',
+        '          orig.top = window.screenY;',
+        '          orig.width = window.innerWidth;',
+        '          orig.height = window.innerHeight;',
         '          window.innerWidth = document.width;',
         '          window.innerHeight = document.height;',
         '        }',
-  
+        
         (argnum < 5 || argnum > 4 && bCenter && window.moveTo)
           ? ('        window.moveTo(\n'
             + '          screen.width/2 - imgWidth/2,\n'
             + '          screen.height/2 - imgHeight/2);\n')
           : '',
-          
-        '      }\n',        
+        '      }\n',
+        
         '      function restoreWindowSize()',
         '      {',
-        '        if (typeof window.origLeft != "undefined"',
-        '            && typeof window.origTop != "undefined"',
+        '        if (typeof orig.left != "undefined"',
+        '            && typeof orig.top != "undefined"',
         '            && typeof window.resizeTo != "undefined")',
-        '          window.resizeTo(origLeft, origTop);\n',
+        '          window.resizeTo(orig.left, orig.top);\n',
         '        if (document.all && window.resizeTo)',
         '        {',
         '          try',
         '          {',
-        '            window.screenLeft = origLeft;',
-        '            window.screenTop = origTop;',
+        '            window.screenLeft = orig.left;',
+        '            window.screenTop = orig.top;',
         '          }',
         '          catch (e)',
         '          {}',
@@ -368,10 +412,10 @@ function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter)
         '        else if (typeof window.sizeToContent == "function"',
         '                 || typeof document.layers == "object")',
         '        {',
-        '          window.screenX = origLeft;',
-        '          window.screenY = origTop;',
-        '          window.innerWidth = origWidth;',
-        '          window.innerHeight = origHeight;',
+        '          window.screenX = orig.left;',
+        '          window.screenY = orig.top;',
+        '          window.innerWidth = orig.width;',
+        '          window.innerHeight = orig.height;',
         '        }',
         '      }',
         '    <\/script>',
@@ -380,30 +424,26 @@ function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter)
         + ' style="margin: 0 !important">',
         '    <a href="javascript:restoreWindowSize();window.close();"',
         '       title="' + sEnlargeImgTitle + '"',
-        '       onClick="restoreWindowSize(); window.close(); return false;">'
+        '       onclick="restoreWindowSize(); window.close(); return false;">'
         + '<img',
         '         src="' + sImageURL + '" border="0"',
         '         onload="fitWindowToImage(this);"><\/a>',
         '  <\/body>',
         '<\/html>'
       ].join("\n");
-  
       d.write(s);
       d.close();
-      d = null;
       w.focus();
     }
     else
     {
       w.close();
+      return true;
     }
-    
-    w = null;
   }
-
+  
   return false;
 }
-
 /*
  * Enlarge(...) call redirects to enlargeImg(...) for
  * compatibility with previous versions
