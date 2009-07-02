@@ -6,7 +6,7 @@
  * @partof   PointedEars' JavaScript Extensions (JSX)
  *
  * @section Copyright & Disclaimer
- * 
+ *
  * @author
  *   (C) 2001-2009  Thomas Lahn &lt;debug.js@PointedEars.de&gt;
  */
@@ -34,7 +34,7 @@ debug.docURL = debug.path + "../debug.htm";
  * program (COPYING file); if not, go to [1] or write to the Free
  * Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
  * MA 02111-1307, USA.
- * 
+ *
  * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
  */
 
@@ -43,7 +43,7 @@ var sGlobal = "_global";
 this[sGlobal] = this;
 
 // global undefined value (for implementations without it)
-var undefined = _global.undefined;
+var undefined;
 
 /** @section Exceptions */
 
@@ -93,39 +93,42 @@ if (typeof test == "undefined")
   };
 }
 
-/**
- * @param sExpression : string
- * @param sTest : string
- * @param expected
- * @return mixed
- */
-function test2(sExpression, sTest, expected)
+if (typeof test2 == "undefined")
 {
-  var out = new Array(), result;
+  /**
+   * @param sExpression : string
+   * @param sTest : string
+   * @param expected
+   * @return mixed
+   */
+  var test2 = function(sExpression, sTest, expected)
+  {
+    var out = new Array(), result;
+    
+    if (sExpression) out.push(sExpression);
   
-  if (sExpression) out.push(sExpression);
-
-  setErrorHandler();
-  eval(new Array(
-    'try {',
-    '  eval(sExpression.replace(/\\bvar\\s+/g, ""));',
-    '  try {',
-    '    result = eval(sTest.replace(/\\bvar\\s+/g, ""));',
-    "    out.push('// ' + sTest + ' === ' + result",
-    "      + ' (expected: ' + expected + ')');",
-    '  } catch(e) {',
-    "    out.push('// ' + sTest + ' \\u21d2 ' + e.name + ': '",
-    "      + e.message);",
-    '  }',
-    '} catch(e) {',
-    "  out.push('// ' + sExpression + ' \\u21d2 ' + e.name + ': '",
-    "    + e.message);",
-    '}').join("\n"));
-  clearErrorHandler();
-  
-  document.write(out.join('\n') + '\n\n');
-  
-  return result;
+    setErrorHandler();
+    eval(new Array(
+      'try {',
+      '  eval(sExpression.replace(/\\bvar\\s+/g, ""));',
+      '  try {',
+      '    result = eval(sTest.replace(/\\bvar\\s+/g, ""));',
+      "    out.push('// ' + sTest + ' === ' + result",
+      "      + ' (expected: ' + expected + ')');",
+      '  } catch(e) {',
+      "    out.push('// ' + sTest + ' \\u21d2 ' + e.name + ': '",
+      "      + e.message);",
+      '  }',
+      '} catch(e) {',
+      "  out.push('// ' + sExpression + ' \\u21d2 ' + e.name + ': '",
+      "    + e.message);",
+      '}').join("\n"));
+    clearErrorHandler();
+    
+    document.write(out.join('\n') + '\n\n');
+    
+    return result;
+  };
 }
 /*
 var o;
@@ -168,14 +171,14 @@ if (typeof assertTrue == "undefined")
   /**
    * Asserts that a condition is true.  If it isn't, it throws
    * an <code>AssertionError</code> with a default message.
-   * 
+   *
    * @param x : string|any
    *   If a string, it is evaluated as a <i>Program</i>; the assertion
    *   fails if its result, type-converted to <i>boolean</i>, is
    *   <code>false</code>.
    *   If not a string, the value is type-converted to <i>boolean</i>;
    *   the assertion fails if the result of the conversion is
-   *   <code>false</code>.  
+   *   <code>false</code>.
    * @throws
    *   <code>AssertionError</code> if the assertion fails and this exception
    *   can be thrown.
@@ -208,14 +211,14 @@ if (typeof assertFalse == "undefined")
   /**
    * Asserts that a condition is false.  If it isn't, it throws
    * an <code>AssertionError</code> with a default message.
-   * 
+   *
    * @param x : string|any
    *   If a string, it is evaluated as a <i>Program</i>; the assertion
    *   fails if its result, type-converted to <i>boolean</i>, is
    *   <code>true</code>.
    *   If not a string, the value is type-converted to <i>boolean</i>;
    *   the assertion fails if the result of the conversion is
-   *   <code>true</code>.  
+   *   <code>true</code>.
    * @throws
    *   <code>AssertionError</code> if the assertion fails and this exception
    *   can be thrown.
@@ -253,7 +256,7 @@ if (typeof assertArrayEquals == "undefined")
    * an <code>AssertionError</code> is thrown with a default message.
    * Two arrays are considered equal only if their elements are
    * strictly equal (shallow strict comparison).
-   * 
+   *
    * @param expecteds : string|Array
    *   Expected value; if a string, it is evaluated as a <i>Program</i>.
    * @param actuals : string|Array
@@ -261,18 +264,18 @@ if (typeof assertArrayEquals == "undefined")
    * @throws
    *   <code>ArrayComparisonFailure</code> if either of the given
    *   values is not a reference to an Array object;
-   *   
-   *   <code>AssertionError</code> 
+   *
+   *   <code>AssertionError</code>
    *   if the assertion fails and either exception can be thrown.
    * @type boolean
-   * @return 
+   * @return
    *   <code>false</code>, if comparison is not possible
    *   or the assertion fails, and no exception can be thrown;
    *   <code>true</code>, if the assertion is met.
    * @see eval()
    */
   var assertArrayEquals = function(expecteds, actuals) {
-    if (typeof expecteds == "string") expecteds = eval(expecteds); 
+    if (typeof expecteds == "string") expecteds = eval(expecteds);
     if (typeof actuals == "string") actuals = eval(actuals);
     
     if (expecteds == null && actuals == null)
@@ -308,7 +311,7 @@ if (typeof assertArrayEquals == "undefined")
               stack.shift();
               stack.shift();
               stack = stack.join("\n");
-            } 
+            }
             
             eval('throw new AssertionError('
                  + '"assertArrayEquals([" + expecteds + "], [" + actuals + "]);'
@@ -344,15 +347,15 @@ if (typeof assertArrayEquals == "undefined")
 //        descr = profile.description,
 //        msg = (descr ? (descr + ": ") : "") + (new Date() - profile.start)
 //            + " ms";
-//      
+//
 //      if (isMethod("window", "alert"))
 //      {
 //        window.alert(msg);
 //      }
-//      
+//
 //      delete profile.start;
 //      delete profile.description;
-//      
+//
 //      return msg;
 //    };
 //  }
@@ -360,10 +363,10 @@ if (typeof assertArrayEquals == "undefined")
 
 /**
  * Returns evaluation statistics.
- * 
+ *
  * @param expr : string|Array
  *   Expression or array of expressions to be evaluated.
- * @param bPrintResult : optional boolean = false 
+ * @param bPrintResult : optional boolean = false
  *   If <code>true</code>, the method returns a printable result.
  * @param loops : optional number = 1
  *   Specifies the number of times the expression should be evaluated.
@@ -398,7 +401,7 @@ function time(expr, bPrintResult, loops, repeats)
     result = ["Expressions:\n\n"],
     stats = [];
 
-  // loop through expressions
+  /* loop through expressions */
   for (var i = 0, cnt = expr.length; i < cnt; i++)
   {
     var cur_expr = expr[i];
@@ -407,36 +410,34 @@ function time(expr, bPrintResult, loops, repeats)
       result.push("[", i + 1, "] ", cur_expr, "\n");
     }
     
-    // reset stats for this expression
+    /* reset stats for this expression */
     var repeat_stats = stats[i] = [];
     
-    // repeat loops
+    /* repeat loops */
     for (var j = 0; j < repeats; j++)
     {
-      // reset stats for this repeat
+      /* reset stats for this repeat */
       repeat_stats[j] = -1;
       var eval_loop_start = new Date();
       
-      // repeat evaluation
+      /* repeat evaluation */
       for (var k = 0; k < loops; k++)
       {
-        setErrorHandler();
-        eval(["try {", expr[i], "} catch (e) {}"].join(""));
-        clearErrorHandler();
+        jsx.tryThis(function() { expr[i]; });
       }
       
-      var eval_loop_stop = new Date();
-      repeat_stats[j] = eval_loop_stop.getTime() - eval_loop_start.getTime();
+      repeat_stats[j] = new Date() - eval_loop_start;
     }
   }
 
   if (bPrintResult)
   {
+    debugger;
     result.push(
       "\nEvaluation Results (ms):\n\n\\",
       pad("n|", cnt.toString().length - 1));
     
-    var col_width = Math.max(repeats, stats).toString().length + 1;
+    var col_width = Math.maxN(repeats, stats).toString().length + 1;
     
     for (j = 0; j < repeats; j++)
     {
@@ -463,9 +464,9 @@ function time(expr, bPrintResult, loops, repeats)
       result.push(
         format(
           "\xA0%*4$s\xA0%*4$s\xA0%*4$s\n",
-          Math.min(stats[i]),
-          Math.max(stats[i]),
-          Math.avg(stats[i]).toFixed(1),
+          Math.minN(stats[i]),
+          Math.maxN(stats[i]),
+          Math.avgN(stats[i]).toFixed(1),
           col_width));
     }
     
@@ -480,9 +481,9 @@ function time(expr, bPrintResult, loops, repeats)
 }
 
 /**
- * @param e : Error 
+ * @param e : Error
  * @return string
- */ 
+ */
 function getError(e)
 {
   var sError = e;
@@ -531,48 +532,11 @@ function getError(e)
   return sError;
 }
 
-/** 
- * Print to Firebug console.
- * printfire() courtesy of Joe Hewitt, extension creator.
- * <URL:http://www.joehewitt.com/software/firebug/>
- * 
- * @params
- * @return undefined
- */
-function dmsg()
-{
-  // Firebug 0.4+
-  if (isMethod("console", "log"))
-  {
-    console.log.apply(console, arguments);
-  }     
-  
-  // Firebug before 0.4
-  else if (isMethod("document", "createEvent")
-            && isMethod("document", "dispatchEvent"))
-  {
-    printfire.args = arguments;
-    var ev = document.createEvent("Events");
-    if (ev)
-    {
-      jsx.tryThis(
-        /**
-         * @return undefined
-         */
-        function() {
-          ev.initEvent("printfire", false, true);
-          dispatchEvent(ev);
-        });
-    }
-  }
-}
-var printfire = dmsg;
-
 /**
  * Returns the type of a reference and, if possible, of its object properties
  * (nested only one level deep), and optionally displays that in an alert()
  * box.
- * 
+ *
  * @param a
  *   Value to be displayed along with its type.  If a string or an array of
  *   strings and bDontEval is not provided or false, each string is evaluated
@@ -628,7 +592,7 @@ function alertValue(a, bDontAlert, bDontEval)
 
 /*
  * JavaScript Beautifier and Uglyfier ;-)
- * 
+ *
  * Test input:
 
 javascript:
@@ -681,8 +645,8 @@ function beautify(s)
 
 /**
  * @param s : string
- * @return string 
- */ 
+ * @return string
+ */
 function uglyfy(s)
 {
   return s.replace(/\s/g, " "); // .replace
@@ -745,7 +709,7 @@ function synhl(context)
         "typeof", "delete", "instanceof",
         "i[fn]", "else",
         "switch", "case", "break", "default",
-        "do", "for( +each)?", "while",            
+        "do", "for( +each)?", "while",
         "try", "catch", "finally", "throw",
         "let", "yield",
         "expando", "hide", "override"
@@ -756,7 +720,7 @@ function synhl(context)
           "__iterator__", "__proto__", "constructor", "hasOwnProperty",
           "isPrototypeOf", "propertyIsEnumerable",
         "Array", "concat", "every", "indexOf", "join", "length", "pop", "push",
-          "reverse", "shift", "slice", "some", "sort", "splice", "unshift", 
+          "reverse", "shift", "slice", "some", "sort", "splice", "unshift",
         "Boolean",
         "Date", "getFullYear", "getMilliseconds", "getUTCDate", "getUTCDay",
           "getUTCFullYear", "getUTCHours", "getUTCMilliseconds", "getUTCMinutes",
@@ -779,7 +743,7 @@ function synhl(context)
           "VBArray",
         "XMLHttpRequest",
         "document", "write",
-        "window", "clearInterval", "clearTimeout", "setInterval", "setTimeout" 
+        "window", "clearInterval", "clearTimeout", "setInterval", "setTimeout"
       ],
       rxCode = new RegExp(
           "(//.*|/\\*(.|\\s)*?\\*/)"
@@ -797,7 +761,7 @@ function synhl(context)
       aReplace = [
         [ 1, 'comm'],
         [ 4, 'scr'],
-        [ 7, 'regexp'], 
+        [ 7, 'regexp'],
         [ 9, 'tag'],
         [11, 'str'],
         [14, 'entity'],
@@ -819,7 +783,7 @@ function synhl(context)
           if (arguments[r[0]])
           {
             match = '<span class="' + r[1] + '">' + match + '<\/span>';
-            break; 
+            break;
           }
         }
 
@@ -841,7 +805,7 @@ function synhl(context)
           }
         }
         else if (node.nodeType == Node.TEXT_NODE)
-        {    
+        {
           var v = node.nodeValue;
           var m = v.match(needle);
           if (m)
@@ -923,7 +887,7 @@ function Owners(aOwners)
  * provide an identifier for the property with <code>iID</code>
  * and an array of references to the owner objects with
  * <code>aoOwners</code>.
- * 
+ *
  * If you provide the latter, the constructor function will
  * utilize <code>inArray()</code>, trying to determine if the
  * object/property references one of owners
@@ -945,7 +909,7 @@ function Owners(aOwners)
  * to count non-enumerable properties of a property; it seemed
  * ineffective to copypaste the ObjectInfo(...) code into this
  * constructor, thus the cross-calling.)
- * 
+ *
  * For reasons of backwards compatibility the object also provides
  * the `referencesOwner' property to specify if it references
  * its direct owner and allows for passing an object reference
@@ -954,24 +918,24 @@ function Owners(aOwners)
  * <code>aoOwners</code> is an Owners object or not, the
  * <code>isInstanceOf()</code> method is required.
  *
- * @param sName : string 
+ * @param sName : string
  *   Name of the property.
  * @param sValue
  *   Value of the property.
  * @param iID : optional number
  *   (Unique) ID of the property.
- * @param aoOwners : optional Owners|Object 
+ * @param aoOwners : optional Owners|Object
  *   Reference to an Owners object storing references to the
  *   owner (object) of the property and its owners, where the
  *   last element references the direct owner.  Allows also
  *   for a reference to a non-Owners object to specify only
  *   the direct owner.
- * @param bNonEnum : optional boolean 
+ * @param bNonEnum : optional boolean
  *   <code>true</code> specifies that the property is
  *   non-enumerable.  Optional.  The default <code>false</code>
  *   determines the property to be enumerable.
  * @param bCalledFromObjectInfo : optional boolean
- * @return undefined 
+ * @return undefined
  * @see types.js:isArray(), array.js:inArray()
  */
 function Property(sName, sValue, iID, aoOwners, bNonEnum,
@@ -1081,13 +1045,13 @@ function PropertyArray(a)
    * The current sort order and direction is stored in the
    * `sortOrder' and `sortDir' properties of the `properties'
    * extended Array object.
-   * 
+   *
    * For the sort direction constants are the negative opposite
    * of each other, you may toggle the sort direction easily:
    *
    *   var p = bar.properties;
    *   p.sortBy(p.sortOrder, -p.sortDir);
-   *  
+   *
    * If `sortDir' was `0' (zero) before and therefore the
    * properties were unsorted (i.e. sorted by ID), the array
    * will then be sorted ascending by the current criteria.
@@ -1106,7 +1070,7 @@ function PropertyArray(a)
  *
  * @param oProperty : Property
  * @return number|Property
- */ 
+ */
 PropertyArray.prototype.push =
 function propertyArray_push(oProperty)
 {
@@ -1117,7 +1081,7 @@ function propertyArray_push(oProperty)
  * With a reference to an ObjectInfo object having a valid
  * `target' reference, you may sort the property array by
  * properties of the Property prototype:
- *     
+ *
  *   if (bar && bar.properties)
  *   {
  *     bar.properties.unsort();
@@ -1137,10 +1101,10 @@ function propertyArray_push(oProperty)
  * sortById(sdAscending).
  */
 // Specific sort methods
-/** @type Comparator */ 
+/** @type Comparator */
 PropertyArray.prototype.cmpSortByIdAsc =
   new Function("a", "b", "return a.id - b.id;");
-/** @type Comparator */ 
+/** @type Comparator */
 PropertyArray.prototype.cmpSortByIdDesc =
   new Function("a", "b", "return b.id - a.id;");
 
@@ -1196,7 +1160,7 @@ function propertyArray_cmpSortByNameAsc(a, b)
  * @param b : Property
  * @type Comparator
  * @return number
- */ 
+ */
 PropertyArray.prototype.cmpSortByNameDesc =
 function propertyArray_cmpSortByNameDesc(a, b)
 {
@@ -1239,7 +1203,7 @@ function propertyArray_sortByName(iDir)
 /**
  * @param a : Property
  * @param b : Property
- * @type Comparator 
+ * @type Comparator
  * @return number
  */
 PropertyArray.prototype.cmpSortByTypeAsc =
@@ -1307,7 +1271,7 @@ function propertyArray_sortByType(iDir)
 /**
  * @param a : Property
  * @param b : Property
- * @type Comparator 
+ * @type Comparator
  * @return number
  */
 PropertyArray.prototype.cmpSortByValueAsc =
@@ -1331,7 +1295,7 @@ function propertyArray_cmpSortByValueAsc(a, b)
 /**
  * @param a : Property
  * @param b : Property
- * @type Comparator 
+ * @type Comparator
  * @return number
  */
 PropertyArray.prototype.cmpSortByValueDesc =
@@ -1379,7 +1343,7 @@ function propertyArray_sortByValue(iDir)
  * arguments, the first defining the sort criteria, the
  * second the sort direction.  You are recommended to use
  * the sort order and direction constants for arguments:
- * 
+ *
  *   var p = bar.properties;
  *   p.sortBy(p.soByName, p.sdDescending);
  *
@@ -1388,7 +1352,7 @@ function propertyArray_sortByValue(iDir)
  * invalid value causes no error, but the array not to be
  * re-sorted.
  *
- * @param iSortOrder : optional number 
+ * @param iSortOrder : optional number
  *   Sort order.
  * @param iSortDir : optional number
  *   Sort direction.
@@ -1418,10 +1382,10 @@ function propertyArray_sortBy(iSortOrder, iSortDir)
 };
 
 /**
- * @param sName : string 
- * @param sValue : _ 
- * @param iID : optional number 
- * @param oOwner : optional Object 
+ * @param sName : string
+ * @param sValue : _
+ * @param iID : optional number
+ * @param oOwner : optional Object
  * @param bNonEnum : optional boolean
  * @param bCalledFromProperty : optional boolean
  * @return undefined
@@ -1434,7 +1398,7 @@ function propertyArray_addProperty(
   if ((isMethodType(typeof this.items.hasOwnProperty)
       // IE does not allow reference shortcut here!
       && this.items.hasOwnProperty != null
-      && !this.items.hasOwnProperty(sName)) 
+      && !this.items.hasOwnProperty(sName))
          || (!isMethodType(typeof this.items.hasOwnProperty)
              && typeof this.items[sName] == "undefined"))
   {
@@ -1452,7 +1416,7 @@ function propertyArray_addProperty(
     if ((bMethod && !this.items.hasOwnProperty(sName))
         || (!bMethod && typeof this.items[sName] == "undefined"))
     {
-      this.items[sName] = sValue; 
+      this.items[sName] = sValue;
     }
 
     this.length = this.items.length;
@@ -1460,15 +1424,15 @@ function propertyArray_addProperty(
 };
 
 /**
- * @param rxPattern : RegExp 
- * @param asPropertyNames : [string] 
+ * @param rxPattern : RegExp
+ * @param asPropertyNames : [string]
  * @param sType : optional string
  * @param fConstructor : optional Object
  * @return undefined
  */
 function NonEnumProperties(rxPattern, asPropertyNames, sType, fConstructor)
 {
-  this.pattern      = rxPattern       || new RegExp("."); 
+  this.pattern      = rxPattern       || new RegExp(".");
   this.names        = asPropertyNames || new Array();
   this.type         = sType           || "";
   this.fConstructor = fConstructor    || null;
@@ -1481,27 +1445,27 @@ function NonEnumProperties(rxPattern, asPropertyNames, sType, fConstructor)
  * <code>name</code>, <code>type</code> and <code>value</code>
  * of the <code>Property</code> prototype.  [See the sort
  * methods defined in the <code>forObject(...)</code> method.]
- * 
+ *
  * Requires JavaScript 1.5+ for inline <code>function</code>
  * statement (1.2+) and <code>try...catch</code> statement (1.5+).
  *
  * Usage:
- * 
+ *
  * <code>var foo = new ObjectInfo(myObject, sMyObjectName);</code>
- * 
+ *
  * whereas <code>foo</code> is then a reference to the
  * <code>ObjectInfo</code> object containing property
  * information about the object referenced by
  * <code>myObject</code> or the object evaluated from
  * it (so that the argument can be a string, therefore
  * <code><strong>s</strong>Object</code>.)
- *   
+ *
  * The <code>foo.name</code> property contains the name of the
  * string to be evaluated to an object.  However, if you pass a
  * reference for first argument or want to fake the object's
  * name for some reason, you may pass a string for the second
  * argument in order to overwrite the default (see below.)
- * 
+ *
  * Note that it is also tried to retrieve known but non-enumerable
  * properties if either <code>sObject</code> is a string or
  * <code>sName</code> is a string, matching either value against a
@@ -1520,18 +1484,18 @@ function NonEnumProperties(rxPattern, asPropertyNames, sType, fConstructor)
  *
  * Otherwise, <code>foo.target</code> is a reference to the
  * object which properties are accessed by <code>foo</code>:
- * 
+ *
  * <code>
  *   if (foo && foo.target && foo.target == anyOtherObject)
  *     alert("anyOtherObject references myObject.");
  * </code>
  *
- * @param sObject : string|Object 
+ * @param sObject : string|Object
  *   Reference to an object or property, or string to be evaluated
  *   to an object or a property.
  *   (TODO: Throws NotAnObjectException if not provided or cannot
  *   be evaluated.)
- * @param sName : optional string 
+ * @param sName : optional string
  *   Name of the object/property.
  *   If this argument is not provided, the value of the
  *   <code>name</code> property depends on <code>sObject</code>.
@@ -1555,14 +1519,14 @@ function ObjectInfo(sObject, sName, bCalledFromProperty)
  *   if (foo)
  *     foo.forObject(myOtherObject);
  * </code>
- *   
+ *
  * The <code>forObject(...)</code> method returns
  * <code>null</code> as well if <code>myOtherObject</code>
  * cannot be evaluated to an object, otherwise a reference
  * to the <code>ObjectInfo</code> object. In the first case
  * the properties of the former <code>ObjectInfo</code> object
  * are preserved:
- * 
+ *
  * <code>
  *   var myObject = new Something(...);
  *   ...
@@ -1578,16 +1542,16 @@ function ObjectInfo(sObject, sName, bCalledFromProperty)
  *       alert(foo.toString());
  *   }
  * </code>
- * 
- * @param sObject: string|Object 
+ *
+ * @param sObject: string|Object
  *   See contract of this()
- * @param sName: optional string 
+ * @param sName: optional string
  *   See contract of this()
- * @param bCalledFromProperty: optional boolean 
- * @property name: string 
- * @property properties: PropertyArray 
- * @property target: object 
- * @property type: string 
+ * @param bCalledFromProperty: optional boolean
+ * @property name: string
+ * @property properties: PropertyArray
+ * @property target: object
+ * @property type: string
  */
 ObjectInfo.prototype.aStringProperties = [
   "length", "anchor", "big", "blink", "bold", "charAt", "charCodeAt",
@@ -1643,7 +1607,7 @@ jsx.object.addProperties({
           "getMinutes", "getMonth", "getSeconds", "getTime",
           "getTimezoneOffset", "getUTCDate", "getUTCDay", "getUTCFullYear",
           "getUTCHours", "getUTCMilliseconds", "getUTCMinutes",
-          "getUTCMonth", "getUTCSeconds", "getYear", 
+          "getUTCMonth", "getUTCSeconds", "getYear",
           "parse", "setDate",
           "setFullYear", "setHours", "setMilliseconds", "setMinutes",
           "setMonth", "setSeconds", "setTime", "setUTCDate", "setUTCFullYear",
@@ -1833,7 +1797,7 @@ jsx.object.addProperties({
         }
           
         // Retrieve non-enumerable properties by guessing them
-        /** @property boolean */ this.hasNonEnumProperties = false;    
+        /** @property boolean */ this.hasNonEnumProperties = false;
               
         for (i = this.aNonEnumProperties.length; i--; 0)
         {
@@ -1882,7 +1846,7 @@ jsx.object.addProperties({
                   true);                  // is non-enumerable
               }
             }
-          } 
+          }
         }
         this.hasProperties = (this.properties.length > 0);
     
@@ -1905,7 +1869,7 @@ jsx.object.addProperties({
      * @return PropertyArray
      *   An array with the data of all properties that
      *   match the passed conditions as elements.
-     */    
+     */
     getProperties: function(rxName, rxType, bInvert, aValue)
     {
       if (typeof rxType == "string")
@@ -1985,13 +1949,13 @@ var sNoObj = "[Not an object]";
 var CH_NBSP = unescape("%A0");
 
 /**
- * @param sObject : string|Object 
- * @param aWhat : optional string|RegExp 
- * @param sStyle : optional string 
- * @param sHeader : optional string 
- * @param sFooter : optional string 
+ * @param sObject : string|Object
+ * @param aWhat : optional string|RegExp
+ * @param sStyle : optional string
+ * @param sHeader : optional string
+ * @param sFooter : optional string
  * @param sInspectorPath : optional string
- * @return string 
+ * @return string
  */
 function getObjInfo(sObject, aWhat, sStyle, sHeader, sFooter, sInspectorPath)
 {
@@ -2024,7 +1988,7 @@ function getObjInfo(sObject, aWhat, sStyle, sHeader, sFooter, sInspectorPath)
           '  }',
         + '}').join("\n"));
       clearErrorHandler();
-      if (! tc)  
+      if (! tc)
       {
         o = eval(sObject);
         // alert("7: " + "[Not an object]");
@@ -2351,13 +2315,13 @@ function getObjInfo(sObject, aWhat, sStyle, sHeader, sFooter, sInspectorPath)
 /**
  * Returns an object storing the minimum version required
  * of the requested implementations in a piece of source code.
- * 
+ *
  * @param s : string
  *   Source code to be analyzed
  * @param implementations : Object
  *   Dictionary of requested implementations.  The following
  *   property names are supported:
- *   
+ *
  *   <table>
  *     <tr valign="top">
  *       <th align="left">javascript</th>
@@ -2372,7 +2336,7 @@ function getObjInfo(sObject, aWhat, sStyle, sHeader, sFooter, sInspectorPath)
  *       <td>ECMAScript</td>
  *     </tr>
  *   <table>
- *   
+ *
  * @return Object
  *   An object having the same properties as <var>implementations</var>.
  *   The property values specify the minimum version required of an
@@ -2404,12 +2368,12 @@ function getMinimalVersions(s, implementations)
   var implMap = {
     javascript: "JavaScript",
     jscript: "JScript",
-    es: "ECMAScript Edition",
+    es: "ECMAScript Edition"
   };
 
   var result = {};
-
   var lines = s.split(/\r?\n|\n/);
+  var obj = jsx.object;
 
   for (var f in features)
   {
@@ -2426,7 +2390,10 @@ function getMinimalVersions(s, implementations)
         if (result[i] < features[f][i])
         {
           result[i] = features[f][i];
-          console.log(f + " requires " + getattr(implMap, i, i) + " " + features[f][i]);
+          dmsg(
+            f + " requires " + obj.getProperty(implMap, i, i)
+              + " " + features[f][i],
+            "warn");
         }
       }
     }
