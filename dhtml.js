@@ -13,8 +13,8 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2002-2008 Thomas Lahn <dhtml.js@PointedEars.de>,
- *       2001      SELFHTML e.V. <stefan.muenz@selfhtml.org> et al.,
+ *   (C) 2001      SELFHTML e.V. <stefan.muenz@selfhtml.org> et al.,
+ *       2002-2009 Thomas Lahn <dhtml.js@PointedEars.de>,
  *       2004      Ulrich Kritzner <droeppez@web.de> (loadScript),
  *       2005      MozillaZine Knowledge Base contributors (DOM XPath):
  *                 Eric H. Jung <grimholtz@yahoo.com> et al.
@@ -81,14 +81,13 @@
  */
 
 /**
- * @return
- * @type DHTML
+ * @return undefined
  */
 function DHTML()
 {
-  this.version   = "0.9.4.2008042321";
+  this.version   = "0.9.7a.2009070814";
 // var dhtmlDocURL = dhtmlPath + "dhtml.htm";
-  this.copyright = "Copyright \xA9 2002-2008";
+  this.copyright = "Copyright \xA9 2002-2009";
   this.author    = "Thomas Lahn";
   this.email     = "dhtml.js@PointedEars.de";
   this.path      = "http://pointedears.de/scripts/";
@@ -107,25 +106,34 @@ function DHTML()
      * @type HTMLElement|null
      */
     this.getElemById = this.gEBI = (
-      function dhtml_getElemById() {
-        if (isMethod(document, "getElementById"))
+      function() {
+        if (typeof document == "undefined")
+        {
+          return function() {
+            return null;
+          };
+        }
+        
+        var jsx_object = jsx.object;
+        
+        if (jsx_object.isMethod(document, "getElementById"))
         {
           /**
-           * @param s
-           * @return
+           * @param s : string
+           * @return Element|null
            */
-          return function dhtml_getElemById(s) {
-            // wrapper method required to avoid "invalid op. on prototype" exception
+          return function(s) {
+            /* wrapper method required to avoid "invalid op. on prototype" exception */
             return document.getElementById(s);
           };
         }
-        else if ((hasDocumentAll = isMethod(document, "all")))
+        else if ((hasDocumentAll = jsx_object.isMethod(document, "all")))
         {
           /**
-           * @param s
-           * @return
+           * @param s : string
+           * @return Element|null
            */
-          return function dhtml_getElemById(s) {
+          return function(s) {
             return document.all(s);
           };
         }
@@ -133,9 +141,9 @@ function DHTML()
         {
           /**
            * @param s
-           * @return
+           * @return Element|undefined
            */
-          return function dhtml_getElemById(s) {
+          return function(s) {
             return document[s];
           };
         }
@@ -144,20 +152,24 @@ function DHTML()
 
     var hasDocumentLayers = false;
 
+    /**
+     * @param s : string
+     * @param i : optional number
+     * @return Element|Layer|null|undefined
+     */
     this.getElemByName = this.gEBN = (
-      /**
-       * @return
-       */
-      function dhtml_getElemByName() {
-        if (isMethod(document, "getElementsByName"))
+      function() {
+        function dummy()
         {
-          // W3C DOM Level 2 HTML
-          /**
-           * @param s 
-           * @param i 
-           * @return
-           */
-          return function dhtml_getElemByName(s, i) {
+          return null;
+        }
+        
+        if (typeof document == "undefined") return dummy;
+        
+        if (jsx.object.isMethod(document, "getElementsByName"))
+        {
+          /* W3C DOM Level 2 HTML */
+          return function(s, i) {
             var result = document.getElementsByName(s);
             if (result && !isNaN(i) && i > -1)
             {
@@ -168,13 +180,8 @@ function DHTML()
         }
         else if (hasDocumentAll)
         {
-          // IE4 DOM
-          /**
-           * @param s 
-           * @param i 
-           * @return
-           */
-          return function dhtml_getElemByName(s, i) {
+          /* IE4 DOM */
+          return function(s, i) {
             var result = document.all(s);
             if (result && !isNaN(i) && i > -1)
             {
@@ -185,13 +192,8 @@ function DHTML()
         }
         else if ((hasDocumentLayers = (typeof document.layers == "object")))
         {
-          // NN4 DOM
-          /**
-           * @param s 
-           * @param i 
-           * @return
-           */
-          return function dhtml_getElemByName(s, i) {
+          /* NN4 DOM */
+          return function(s, i) {
             var result = document.layers[s];
             if (result && !isNaN(i) && i > -1)
             {
@@ -201,41 +203,42 @@ function DHTML()
           };
         }
         
-        else
-        {
-          /**
-           * @return
-           */
-          return function dhtml_getElemByName() {
-            return null;
-          };
-        }
+        return dummy;
       }
     )();
 
     var hasGetElementsByTagName;
 
+    /**
+     * @return NodeList|Element|null|undefined
+     * TODO
+     */
     this.getElemByTagName = this.gEBTN = (
-      /**
-       * @return
-       */
-      function dhtml_getElemByTagName() {
-        if (typeof xpath != "undefined" && isMethod(xpath, "evaluate"))
+      function() {
+        var jsx_object = jsx.object;
+        
+        if (jsx_object.isMethod(jsx, "xpath", "evaluate"))
         {
-          // W3C DOM Level 3 XPath
+          /* W3C DOM Level 3 XPath */
           /**
-           * @param s 
-           * @param i 
-           * @return
+           * @param s : string
+           * @param i : optional number
+           * @param contextNode : optional Element
+           * @return XPathResult|null
            */
-          return function dhtml_getElemByTagName(s, i) {
-            if (!s)
+          return function(s, i, contextNode) {
+            if (!s) s = '*';
+            
+            if (typeof i != "number")
             {
-              s = '*';
+              var tmp = contextNode;
+              contextNode = i;
+              i = tmp;
             }
 
-            var result = xpath.evaluate(
-              '//' + s, false, false, XPathResult.ORDERED_NODE_ITERATOR_TYPE);
+            var result = jsx.xpath.evaluate('.//' + s, contextNode || null,
+              null, XPathResult.ORDERED_NODE_ITERATOR_TYPE);
+            
             if (result)
             {
               if (!isNaN(i) && i > -1)
@@ -248,127 +251,212 @@ function DHTML()
           };
         }
         else if ((hasGetElementsByTagName =
-                    isMethod(document, "getElementsByTagName")))
+                    typeof document != "undefined"
+                    && jsx_object.isMethod(document, "getElementsByTagName")))
         {
-          // W3C DOM Level 2 Core
+          /* W3C DOM Level 2 Core */
           /**
-           * @param s 
-           * @param i 
-           * @return
+           * @param s : string
+           * @param i : optional number 
+           * @param contextNode : optional Element 
+           * @return NodeList|Element|null
            */
-          return function dhtml_getElemByTagName(s, i) {
-            if (!s)
+          return function(s, i, contextNode) {
+            if (!s) s = '*';
+            
+            if (typeof i != "number")
             {
-              s = '*';
+              var tmp = contextNode;
+              contextNode = i;
+              i = tmp;
             }
-
-            var result = document.getElementsByTagName(s);
+            else if (arguments.length < 3)
+            {
+              contextNode = document;
+            }
+            
+            if (contextNode != document
+                && !jsx.object.isMethod(contextNode, "getElementsByTagName"))
+            {
+              return null;
+            }
+            
+            var result = contextNode.getElementsByTagName(s);
             if (result && !isNaN(i) && i > -1)
             {
               result = result[i];
             }
+            
             return result;
           };
         }
         else if (hasDocumentAll && isMethod(document.all, "tags"))
         {
           /**
-           * @param s 
-           * @param i 
-           * @return
+           * @param s : string
+           * @param i : optional number 
+           * @param contextNode : optional Element 
+           * @return NodeList|Element
            */
-          return function dhtml_getElemByTagName(s, i) {
-            var result = document.all.tags(s);
+          return function(s, i, contextNode) {
+            if (typeof i != "number")
+            {
+              var tmp = contextNode;
+              contextNode = i;
+              i = tmp;
+            }
+            else if (arguments.length < 3)
+            {
+              contextNode = document;
+            }
+            
+            if (contextNode != document
+                && !jsx.object.isMethod(contextNode, "all", "tags"))
+            {
+              return null;
+            }
+            
+            var result = contextNode.all.tags(s);
             if (result && !isNaN(i) && i > -1)
             {
               result = result[i];
             }
+            
             return result;
           };
         }
         else
         {
           /**
-           * @return
+           * @return null
            */
-          return function dhtml_getElemByTagName()
-          {
+          return function() {
             return null;
           };
         }
       }
     )();
 
+    /**
+     * @param i
+     * @return Element|Layer|null|undefined
+     */
     this.getElemByIndex = this.gEBIdx = (
-      /**
-       * @return
-       */
-      function dhtml_getElemByIndex() {
+      function() {
+        function dummy()
+        {
+          return null;
+        }
+        
+        if (typeof document == "undefined") return dummy;
+        
         if (hasGetElementsByTagName)
         {
-          return /**
-           * @param i
-           * @return
-           */
-          function dhtml_getElemByIndex(i)
-          {
+          return function(i) {
             return (result = document.getElementsByTagName('*')[i]);
           };
         }
         else if (hasDocumentAll)
         {
-          return /**
-           * @param i
-           * @return
-           */
-          function dhtml_getElemByIndex(i)
-          {
+          return function(i) {
             return document.all(i);
           };
         }
         else if (hasDocumentLayers)
         {
-          return /**
-           * @param i
-           * @return
-           */
-          function dhtml_getElemByIndex(i)
-          {
+          return function(i) {
             return document.layers[i];
           };
         }
-        else
-        {
-          return /**
-           * @return
-           */
-          function dhtml_getElemByIndex()
-          {
-            return null;
-          };
-        }
+
+        return dummy;
       }
     )();
   }
 
-  this.getElemByClassName = this.gEBCN =
   /**
    * @param s
-   * @return
+   * @return Array
    */
-  function dhtml_getElemByClassName(s) {
+  this.getElemByClassName = this.gEBCN = function(s) {
     var
       coll = this.getElemByTagName(),
-      result = new Array();
+      result = new Array(),
+      splice = (
+        /**
+         * @return Function
+         */
+        function() {
+          var jsx_object = jsx.object;
+           
+          if (jsx_object.isMethod(jsx.global, "array_splice"))
+          {
+            return array_splice;
+          }
+          else if (typeof Array != "undefined"
+                   && jsx_object.isMethod(Array, "prototype", "splice"))
+          {
+            return function(a, start, del, ins) {
+              ins = Array.prototype.slice.call(arguments, 3);
+              return Array.prototype.splice.apply(a, [start, del].concat(ins));
+            };
+          }
+          else
+          {
+            return function(a, start, del, ins) {
+              var aDeleted = new Array();
+              
+              for (var i = start + del, len = a.length; i < len; i++)
+              {
+                aDeleted[aDeleted.length] = a[i - del];
+                a[i - del] = a[i];
+              }
+              
+              a.length = len - del;
+              
+              for (i = 3, len = arguments.length; i < len; i++)
+              {
+                a[a.length] = arguments[i];
+              }
+              
+              return aDeleted; 
+            };
+          }
+        }
+      )();
 
     if (coll)
     {
-      var rx = new RegExp("\\b" + s + "\\b");
-      for (var i = 0, len = coll.length; i < len; i++)
+      /* FIXME: allow arbitrary order (use Array for repeated filtering) */
+      var classes = s.split(/[ \t\f\u200B\r\n]+/);
+      for (var i = 0, len = classes.length; i < len; i++)
       {
-        if (rx.test(coll[i].className))
+        var c = classes[i];
+        if (!/\S/.test(c))
         {
-          result[result.length] = coll[i];
+          var rx = new RegExp(
+            "(^|[ \\t\\f\\u200B\\r\\n]+)" + c + "($|[ \\t\\f\\u200B\\r\\n]+)");
+          
+          if (i == 0)
+          {
+            for (var j = 0, len = coll.length; i < len; i++)
+            {
+              if (rx.test(coll[j].className))
+              {
+                result[result.length] = coll[j];
+              }
+            }
+          }
+          else
+          {
+            for (j = result.length; j--;)
+            {
+              if (!rx.test(result[j].className))
+              {
+                splice(result, j, 1);
+              }
+            }
+          }
         }
       }
     }
@@ -376,16 +464,18 @@ function DHTML()
     return result;
   };
 
-  // Apart from isNS4DOM, none of these object-inference properties is used
-  // anymore; they are still here for backwards compatibility only
-  this.isW3CDOM = isMethod(document, "getElementById");
+  /*
+   * Apart from isNS4DOM, none of these object-inference properties is used
+   * anymore; they are still here for backwards compatibility only
+   */
+  this.isW3CDOM = jsx.object.isMethod(document, "getElementById");
   this.isOpera  = typeof window.opera != "undefined";
   this.isNS4DOM = typeof document.layers != "undefined";
   this.isIE4DOM  = typeof document.all == "object" && !this.isOpera;
   this.supported = this.isW3CDOM || this.isNS4DOM || this.isOpera
     || this.isIE4DOM;
 
-  // DOM preselection (why?)
+  /* DOM preselection (why?) */
   this.W3CDOM = 3;
   this.IE4DOM = 2;
   this.NS4DOM = 1;
@@ -395,65 +485,48 @@ function DHTML()
     || (this.isNS4DOM && this.NS4DOM);
 }
 
-// imports from object.js
-var objectPath = "/scripts/object.js"; 
+/* a more compatible approach */
+if (typeof dhtml == "undefined") var dhtml = new Object();
 
-if (typeof isMethod != "undefined")
+/* imports from object.js */
+dhtml.objectPath = "/scripts/object.js"; 
+
+if (typeof jsx != "undefined"
+    && typeof jsx.object != "undefined"
+    && typeof jsx.object.isMethod != "undefined")
 {
-  // for backwards compatibility only
-  DHTML.prototype.isMethod = isMethod;
+  /* for backwards compatibility only */
+  DHTML.prototype.isMethod = jsx.object.isMethod;
+  DHTML.prototype.isMethodType = jsx.object.isMethodType;
 }
 else
 {
   var msg = "isMethod() was not defined";
-  if (loadScript(objectPath))
+  if (loadScript(dhtml.objectPath))
   {
     if (typeof console.warn != "undefined")
     {
-      console.warn(msg + ", successfully loaded " + objectPath);
+      console.warn(msg + ", successfully loaded " + dhtml.objectPath);
     }
   }
   else
   {  
-    console.warn(msg + ", could not load " + objectPath);
+    console.warn(msg + ", could not load " + dhtml.objectPath);
   }
 }
 
-// imports from types.js
-var typesPath = "/scripts/types.js";
+/* discard previously referred object */
+dhtml = new DHTML();
 
-if (typeof isMethodType != "undefined")
-{
-  // for backwards compatibility only
-  DHTML.prototype.isMethodType = isMethodType;
-}
-else
-{
-  msg = "isMethodType() was not defined";
-  if (loadScript(typesPath))
-  {
-    if (typeof console.warn != "undefined")
-    {
-      if (typeof isMethodType != "undefined"
-          && (typeof isMethod == "undefined"
-              || (typeof console != "undefined" && isMethod(console, "warn"))))
-      {
-        console.warn(msg + ", successfully loaded " + typesPath);
-      }
-    }
-  }
-  else
-  {  
-    if (typeof isMethodType != "undefined"
-        && (typeof isMethod == "undefined"
-            || (typeof console != "undefined" && isMethod(console, "warn"))))
-    {
-      console.warn(msg + ", could not load " + typesPath);
-    }
-  }
-}
+/* a more compatible approach */
+if (typeof jsx == "undefined") var jsx = new Object();
+jsx.dhtml = dhtml;
 
-var dhtml = new DHTML();
+/* allows for de.pointedears.jsx.dhtml */
+if (typeof de == "undefined") var de = new Object();
+if (typeof de.pointedears == "undefined") de.pointedears = new Object();
+if (typeof de.pointedears.jsx == "undefined") de.pointedears.jsx = jsx;
+de.pointedears.jsx.dhtml = dhtml;
 
 /**
  * Shows an exception alert and allows for
@@ -465,24 +538,27 @@ var dhtml = new DHTML();
  */
 function DHTMLException(sMsg)
 {
-  // Prevent exceptions from "bubbling" on (keyboard) event
-  if (!dhtml.allowExceptionMsg)
+  /* Prevent exceptions from "bubbling" on (keyboard) event */
+  if (!jsx.dhtml.allowExceptionMsg)
   {
     return false;
   }
-  dhtml.allowExceptionMsg = false;
+  
+  jsx.dhtml.allowExceptionMsg = false;
 
-  setErrorHandler();
-  var stackTrace = isMethod(_global, "Error") && (new Error()).stack || "";
-  clearErrorHandler();
+  jsx.setErrorHandler();
+  var stackTrace =
+    jsx.object.isMethod(_global, "Error") && (new Error()).stack || "";
+  
+  jsx.clearErrorHandler();
 
   alert(
     "dhtml.js "
-      + dhtml.version + "\n"
-      + dhtml.copyright + "  "
-      + dhtml.author + " <" + dhtml.email + ">\n"
+      + jsx.dhtml.version + "\n"
+      + jsx.dhtml.copyright + "  "
+      + jsx.dhtml.author + " <" + jsx.dhtml.email + ">\n"
       + 'The latest version can be obtained from:\n'
-      + "<" + dhtml.URI + ">\n\n"
+      + "<" + jsx.dhtml.URI + ">\n\n"
       + sMsg + "\n"
       + "__________________________________________________________\n"
       + "Stack trace"
@@ -490,9 +566,54 @@ function DHTMLException(sMsg)
           ? ":\n\n" + stackTrace
           : " not available in this DOM."));
 
-  dhtml.allowExceptionMsg = true;
+  jsx.dhtml.allowExceptionMsg = true;
   return false;
 }
+DHTML.prototype.DHTMLException = DHTMLException;
+
+jsx.dhtml.write = function(s) {
+  var result = false;
+  
+  result = jsx.tryThis(
+    function() {
+      document.write(s);
+            
+      return true;
+    },
+    function() {      
+      return jsx.tryThis(
+        function() {
+          var result2 = false;
+          var ns = document.documentElement.getAttribute("xmlns");
+          var scripts;
+          if (ns)
+          {
+            scripts = document.getElementsByTagNameNS(ns, "script");
+          }
+          else
+          {
+            scripts = document.getElementsByTagName("script");
+          }
+          
+          if (scripts.length)
+          {
+            var lastScript = scripts[scripts.length - 1];
+            if (lastScript)
+            {
+              result2 = !!lastScript.parentNode.insertBefore(
+                document.createTextNode(s), lastScript.nextSibling);
+            }
+          }
+          
+          return result2;
+        });
+    });
+
+  /* fix circular reference */
+  s = null;
+
+  return result;
+};
 
 /**
  * Retrieves an HTMLElement object or a collection of such
@@ -523,11 +644,11 @@ function DHTMLException(sMsg)
 function getElem(sType, sValue, index)
 {
   /**
-   * @return
+   * Calls DHTMLException() for an invalid type. 
    */
   function invalidType()
   {
-    DHTMLException(
+    jsx.dhtml.DHTMLException(
         'getElem: Invalid type "' + sType + '"\n'
       + 'Must be one of "id", "name", "tagname", "index" or "classname"'
       + ' (case-insensitive).');
@@ -535,14 +656,14 @@ function getElem(sType, sValue, index)
 
   if (!sType || typeof sType != "string" || !sType.toLowerCase)
   {
-    DHTMLException(
+    jsx.dhtml.DHTMLException(
         "getElem: Invalid type: " + sType + "\n"
       + "Must be String.");
   }
 
   if (!sValue || typeof sValue != "string")
   {
-    DHTMLException(
+    jsx.dhtml.DHTMLException(
         "getElem: Invalid value: " + sValue + "\n"
       + "Must be String.");
   }
@@ -600,7 +721,7 @@ function getCont(o, bHTML)
 
   if (o)
   {
-    // W3C DOM Level 2 Core
+    /* W3C DOM Level 2 Core */
     if (typeof o.firstChild != "undefined")
     {
       if (typeof o.firstChild.nodeType != "undefined"
@@ -643,7 +764,7 @@ DHTML.prototype.getCont = getCont;
  *   Element which content is to be changed.
  * @param sNodeValue : string
  *   New content of the element.
- * @returns
+ * @return
  *   <code>true</code> if successful, <code>false</code>
  *   otherwise.
  */
@@ -651,7 +772,7 @@ function setCont(o, sNodeValue)
 {
   if (o)
   {
-    // DOM Level 2 Core
+    /* DOM Level 2 Core */
     if (typeof o.firstChild != "undefined")
     {
       o.firstChild.nodeValue = sNodeValue;
@@ -663,15 +784,15 @@ function setCont(o, sNodeValue)
       return true;
     }
 
-    // IE4 DOM
+    /* IE4 DOM */
     else if (typeof o.innerText != "undefined")
     {
       o.innerText = sNodeValue;
       return true;
     }
 
-    // NS4 DOM
-    else if (dhtml.isNS4DOM
+    /* NS4 DOM */
+    else if (jsx.dhtml.isNS4DOM
              && o.document
              && o.document.open
              && o.document.write
@@ -706,30 +827,31 @@ function getTextContent(oNode)
 
   if (oNode)
   {
-    // W3C DOM Level 3
+    /* W3C DOM Level 3 */
     if (typeof oNode.textContent != "undefined")
     {
       text = oNode.textContent;
     }
 
-    // W3C DOM Level 2
+    /* W3C DOM Level 2 */
     else if (oNode.childNodes && oNode.childNodes.length)
     {
       for (var i = oNode.childNodes.length; i--;)
       {
         var o = oNode.childNodes[i];
-        if (o.nodeType == ((Node && Node.TEXT_NODE) || 3))
+        if (o.nodeType == ((typeof Node != "undefined" && Node.TEXT_NODE)
+                           || 3))
         {
           text = o.nodeValue + text;
         }
         else
         {
-          text = getTextContent(o) + text;
+          text = arguments.callee(o) + text;
         }
       }
     }
 
-    // proprietary: IE4+
+    /* proprietary: IE4+ */
     else if (typeof oNode.innerText != "undefined")
     {
       text = oNode.innerText;
@@ -759,14 +881,14 @@ function setTextContent(oNode, sContent)
 
   if (oNode)
   {
-    // W3C DOM Level 3
+    /* W3C DOM Level 3 */
     if (typeof oNode.textContent != "undefined")
     {
       oNode.textContent = sContent;
       result = (oNode.textContent == sContent);
     }
 
-    // W3C DOM Level 2
+    /* W3C DOM Level 2 */
     else if (oNode.removeChild && oNode.firstChild)
     {
       while (oNode.firstChild)
@@ -777,7 +899,7 @@ function setTextContent(oNode, sContent)
       result = !!oNode.appendChild(document.createTextNode(sContent));
     }
 
-    // proprietary: IE4+
+    /* proprietary: IE4+ */
     else if (typeof oNode.innerText != "undefined")
     {
       oNode.innerText = sContent;
@@ -813,11 +935,11 @@ function getAttr(o, sAttrName)
 
   if (o)
   {
-    if (isMethod(o, "getAttribute"))
+    if (jsx.object.isMethod(o, "getAttribute"))
     {
       result = o.getAttribute(sAttrName);
     }
-    else if (dhtml.isNS4DOM)
+    else if (jsx.dhtml.isNS4DOM)
     {
       result = o[sAttrName];
     }
@@ -826,6 +948,64 @@ function getAttr(o, sAttrName)
   return result;
 }
 DHTML.prototype.getAttr = getAttr;
+
+/**
+ * @param s
+ * @return string
+ */
+DHTML.prototype.camelize = (function() {
+  var jsx_object = jsx.object;
+  
+  if ("x".replace(/x/, function() { return "u"; }) != "u")
+  {
+    /* 
+     * Fix String.prototype.replace(..., Function) for Safari <= 2.0.2;
+     * thanks to kangax <kangax@gmail.com> 
+     */
+    var origReplace = String.prototype.replace;
+    String.prototype.replace = function(searchValue, replaceValue) {
+      if (jsx_object.isMethod(replaceValue))
+      {
+        if (searchValue.constructor == RegExp)
+        {
+          var
+            result = this,
+            m,
+            i = searchValue.global ? -1 : 1;
+              
+          while (i-- && (m = searchValue.exec(result)))
+          {
+            result = result.replace(m[0],
+              String(replaceValue.apply(null, m.concat(m.index, this))));
+          }
+          
+          return result;
+        }
+        else
+        {
+          i = this.indexOf(searchValue);
+          if (i > -1)
+          {
+            return replaceValue(String(searchValue), i, this);
+          }
+          
+          return this;
+        }
+      }
+      else
+      {
+        return origReplace.apply(this, arguments);
+      }
+    };
+  }
+  
+  return function(s) {
+    return s.replace(/-([a-z])/gi,
+      function(match, p1) {
+        return p1.toUpperCase();
+      });
+  };
+})();
 
 /**
  * Sets the value of an attribute of an HTMLElement object.
@@ -854,7 +1034,7 @@ DHTML.prototype.getAttr = getAttr;
  * @param attrValue
  *   Value of the attribute to be set.  The value is
  *   converted to number if it can be interpreted as such.
- * @returns
+ * @return
  *   The value of the attribute of the element object;
  *   a null-string if no matching object exists or if the DOM
  *   does not provide retrieval of the attribute's values.
@@ -897,44 +1077,24 @@ function setAttr(o, sAttrName, attrValue)
       vlink: "vLink"
     };
 
-    // camel-case specific attribute names
+    /* camel-case specific attribute names */
     if (typeof attrMap[sAttrName] != "undefined")
     {
       sAttrName = attrMap[sAttrName];
     }
 
     var
-      hyphenatedToCamelCase =
-        /**
-         * @param s
-         * @return
-         */
-        function(s) {
-          return s.replace(/-([a-z])/g,
-            /**
-             * @param match 
-             * @param p1 
-             * @param offset 
-             * @param input 
-             * @return
-             */
-            function(match, p1, offset, input) {
-              return p1.toUpperCase();
-            })
-        },
+      hyphenatedToCamelCase = jsx.dhtml.camelize,
 
       strToValue =
         /**
          * @param s
-         * @return
+         * @return string|number
          */
         function(s) {
           s = s.replace(/^["']|["']$/g, "");
           return isNaN(s) ? s : +s;
         };
-
-    // camel-case hyphenated attribute names
-    sAttrName = hyphenatedToCamelCase(sAttrName);
 
     if (typeof attrValue != "undefined")
     {
@@ -948,9 +1108,9 @@ function setAttr(o, sAttrName, attrValue)
             stylePair = styleProps[j].split(/\s*:\s*/),
             stylePropName = hyphenatedToCamelCase(stylePair[0].toLowerCase());
 
-          dhtml.setStyleProperty(o, stylePropName,
+          jsx.dhtml.setStyleProperty(o, stylePropName,
             strToValue(stylePair[1]));
-          result = dhtml.getStyleProperty(o, stylePropName);
+          result = jsx.dhtml.getStyleProperty(o, stylePropName);
         }
       }
       else
@@ -990,29 +1150,23 @@ function getStyleProperty(o, sPropertyName)
 {
   if (o)
   {
-    sPropertyName = sPropertyName.replace(/-([a-z])/gi,
-      /**
-       * @param m 
-       * @param p1
-       * @return
-       */
-      function(m, p1) { return p1.toUpperCase(); });
+    sPropertyName = jsx.dhtml.camelize(sPropertyName);
 
     if (typeof o.style != "undefined")
     {
-      // handle the `float' property
+      /* handle the `float' property */
       var tested = false;
 
       if (sPropertyName == "float")
       {
-        // W3C DOM Level 2 CSS
+        /* W3C DOM Level 2 CSS */
         if (typeof o.style.cssFloat != "undefined")
         {
           sPropertyName = "cssFloat";
           tested = true;
         }
 
-        // MSHTML DOM
+        /* MSHTML DOM */
         else if (typeof o.style.styleFloat != "undefined")
         {
           sPropertyName = "styleFloat";
@@ -1061,7 +1215,7 @@ DHTML.prototype.getStyleProperty = getStyleProperty;
  */
 function hasStyleProperty(o, sPropertyName)
 {
-  return (getStyleProperty(o, sPropertyName) != null);
+  return (jsx.dhtml.getStyleProperty(o, sPropertyName) != null);
 }
 DHTML.prototype.hasStyleProperty = hasStyleProperty;
 
@@ -1097,30 +1251,23 @@ function setStyleProperty(o, sPropertyName, propValue, altValue)
 {
   if (o)
   {
-    sPropertyName = sPropertyName.replace(
-      /-([a-z])/gi,
-      /**
-       * @param m 
-       * @param p1 
-       * @return
-       */
-      function(m, p1) { return p1.toUpperCase(); });
+    sPropertyName = jsx.dhtml.camelize(sPropertyName);
 
     if (typeof o.style != "undefined")
     {
-      // handle the `float' property
+      /* handle the `float' property */
       var isStyleFloat = false;
 
       if (sPropertyName == "float")
       {
-        // W3C DOM Level 2 CSS
+        /* W3C DOM Level 2 CSS */
         if (typeof o.style.cssFloat != "undefined")
         {
           sPropertyName = "cssFloat";
           isStyleFloat = true;
         }
 
-        // MSHTML DOM
+        /* MSHTML DOM */
         else if (typeof o.style.styleFloat != "undefined")
         {
           sPropertyName = "styleFloat";
@@ -1130,8 +1277,10 @@ function setStyleProperty(o, sPropertyName, propValue, altValue)
 
       if (isStyleFloat || typeof o.style[sPropertyName] != "undefined")
       {
-        // NOTE: Shortcut evaluation changed behavior;
-        // result of assignment is *right-hand side* operand
+        /*
+         * NOTE: Shortcut evaluation changed behavior;
+         * result of assignment is *right-hand side* operand
+         */
         o.style[sPropertyName] = propValue;
         return (String(o.style[sPropertyName]).toLowerCase()
                 == String(propValue).toLowerCase());
@@ -1179,8 +1328,7 @@ DHTML.prototype.setStyleProperty = setStyleProperty;
  *   When retrieving: <code>true</code> if visible, <code>false</code>
  *   otherwise; when setting: <code>true</code> if successful,
  *   <code>false</code> otherwise.
- * @see
- *   visibility()
+ * @see #visible()
  */
 function display(o, bShow)
 {
@@ -1190,13 +1338,13 @@ function display(o, bShow)
   {
     if (arguments.length > 1)
     {
-      result = setStyleProperty(o, "display",
+      result = jsx.dhtml.setStyleProperty(o, "display",
         bShow ? ""     : "none",
         bShow ? "show" : "hide");
     }
     else
     {
-      result = /^(\s*|show)$/.test(getStyleProperty(o, "display"));
+      result = /^(\s*|show)$/.test(jsx.dhtml.getStyleProperty(o, "display"));
     }
   }
 
@@ -1235,13 +1383,14 @@ function visible(o, bVisible)
   {
     if (arguments.length > 1)
     {
-      result = setStyleProperty(o, "visibility",
+      result = jsx.dhtml.setStyleProperty(o, "visibility",
         bVisible ? "visible" : "hidden",
         bVisible ? "show" : "hide");
     }
     else
     {
-      result = /^(visible|show)$/.test(getStyleProperty(o, "visibility"));
+      result = /^(visible|show)$/.test(
+        jsx.dhtml.getStyleProperty(o, "visibility"));
     }
   }
 
@@ -1312,10 +1461,10 @@ function hoverImg(imgID, state)
     img = document.images[imgID];
   }
 
-  return setStyleProperty(img, "borderColor",
+  return jsx.dhtml.setStyleProperty(img, "borderColor",
     (state == 0 ? hoverImg.clMouseout : hoverImg.clMouseover));
 }
-hoverImg.clMouseout = "#000",
+hoverImg.clMouseout = "#000";
 hoverImg.clMouseover = "#fff";
 DHTML.prototype.hoverImg = hoverImg;
 
@@ -1382,7 +1531,7 @@ function removeOptions(oSelect, bAllowReload)
     var o = oSelect.options;
     if (o && o.length)
     {
-      // shortcut if "length" property is not read-only
+      /* shortcut if "length" property is not read-only */
       o.length = 0;
       while (o.length > 0)
       {
@@ -1625,10 +1774,8 @@ DHTML.prototype.disableElements = disableElements;
  *   and the <code>localName</code>, <code>prefix</code>,
  *   and <code>namespaceURI</code> properties set to
  *   <code>null</code>.
- * @see
- *   @link{dom2-core#ID-2141741547},
- *   @link{msdn#workshop/author/dhtml/reference/methods/createelement.asp}
- *   http://pointedears.de/scripts/JSdoc/
+ * @see <a href="dom2-core#ID-2141741547">DOM Level 2 Core: Document::createElement()</a>
+ * @see <a href="msdn#workshop/author/dhtml/reference/methods/createelement.asp">MSDN Library: createElement()</a>
  */
 function createElement(sTag)
 {
@@ -1636,7 +1783,7 @@ function createElement(sTag)
 
   if (sTag
       && typeof document != "undefined"
-      && isMethod(document, "createElement"))
+      && jsx.object.isMethod(document, "createElement"))
   {
     /*@cc_on @*/
     /*@if (@_jscript)
@@ -1709,8 +1856,7 @@ function getAbsPos(o)
 {
   var result = new Object();
   result.x = result.y = 0;
-  result.toString = function()
-  {
+  result.toString = function() {
     return "{x: " + this.x + ", y: " + this.y + "}";
   };
 
@@ -1738,19 +1884,20 @@ function getAbsPos(o)
  * DOM object as event target.  The following methods are
  * used (in order of preference):
  *
- * - addEventListener(...) method (W3C-DOM Level 2)
- * - Assignment to event-handling property (MSIE 4+ and others)
+ * <ul>
+ *   <li>addEventListener(...) method (W3C-DOM Level 2 Events)</li>
+ *   <li>Assignment to event-handling property (MSIE 4+ and others)</li>
+ * </ul>
  *
  * The attachEvent(...) method (proprietary to MSIE 5+) is not
  * used anymore because of the arbitrary execution order of
  * event listeners attached with it and because of `this' in
  * the event listener not referring to the event target then.
- * See also http://www.quirksmode.org/blog/archives/2005/08/addevent_consid.html
  *
  * @author
- *   (C) 2004-2008  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   (C) 2004-2009  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
- *   http://pointedears.de/scripts/dhtml.js
+ *   <a href="http://pointedears.de/scripts/dhtml.js">dhtml.js</a>
  * @param o : DOMObject
  *   Reference to the DOM object.
  * @param sEvent : string
@@ -1770,29 +1917,32 @@ function getAbsPos(o)
  *   successful always, while the new value of the proprietary
  *   event-handling property must match the assigned value for
  *   the method to be successful.
- * @see
- *   dom2-events#Events-EventTarget-addEventListener,
- *   msdn#workshop/author/dhtml/reference/methods/attachevent.asp,
- *   http://pointedears.de/scripts/JSdoc/
+ * @see <a href="http://www.quirksmode.org/blog/archives/2005/08/addevent_consid.html">QuirksBlog: addEvent() considered harmful (2005-08 CE)</a>
+ * @see <a href="dom2-events#Events-EventTarget-addEventListener">W3C DOM Level 2 Events: EventTarget::addEventListener</a>
+ * @see <a href="msdn#workshop/author/dhtml/reference/methods/attachevent.asp">MSDN Library: attachEvent()</a>
  */
 function _addEventListener(o, sEvent, fListener)
 {
-  var t, result = false, sHandler = "on" + sEvent;
+  var
+    jsx_object = jsx.object,
+    result = false,
+    sHandler = "on" + sEvent;
 
-  if (o && sEvent && isMethodType((t = typeof fListener))
-        && !/^\s*unknown\s*$/i.test(t) && fListener)
+  if (o && sEvent && jsx_object.isMethod(fListener))
   {
-    if (isMethod(o, "addEventListener"))
+    if (jsx_object.isMethod(o, "addEventListener"))
     {
       o.addEventListener(sEvent, fListener, false);
       result = true;
     }
     else if (typeof o[sHandler] != "undefined")
     {
-      // NOTE:
-      // We don't attempt to use MSHTML's buggy attachEvent() anymore;
-      // thanks to Peter-Paul Koch for insight:
-      // http://www.quirksmode.org/blog/archives/2005/08/addevent_consid.html
+      /*
+       * NOTE:
+       * We don't attempt to use MSHTML's buggy attachEvent() anymore;
+       * thanks to Peter-Paul Koch for insight:
+       * http://www.quirksmode.org/blog/archives/2005/08/addevent_consid.html
+       */
 
       var oldListener = o[sHandler];
 
@@ -1810,10 +1960,11 @@ function _addEventListener(o, sEvent, fListener)
 
           for (var i = 0, len = list.length; i < len; i++)
           {
-            // may be undefined because _replaceEventListener() was applied
-            if (list[i])
+            /* May be undefined because _replaceEventListener() was applied */
+            if (jsx_object.isMethod(list[i]))
             {
-              list[i].call(this, e);
+              /* Host object's methods may not implement call() */
+              Function.prototype.call.call(list[i], this, e);
             }
           }
         };
@@ -1822,15 +1973,16 @@ function _addEventListener(o, sEvent, fListener)
 
         if (oldListener)
         {
-          // We don't want dependencies, so no Array.prototype.push() call
-          newListener.listenerList[newListener.listenerList.length] =
-            oldListener;
+          /* We don't want dependencies, so no Array.prototype.push() call */
+          var list = newListener.listenerList;  
+          list[list.length] = oldListener;
         }
 
         oldListener = newListener;
       }
 
-      oldListener.listenerList[oldListener.listenerList.length] = fListener;
+      list = oldListener.listenerList;
+      list[list.length] = fListener;
 
       o[sHandler] = oldListener;
 
@@ -1842,7 +1994,7 @@ function _addEventListener(o, sEvent, fListener)
     }
   }
 
-  // break the circular reference created by the closure
+  /* Break the circular reference created by the closure */
   o = null;
 
   return result;
@@ -1857,12 +2009,12 @@ DHTML.prototype.addEventListener = _addEventListener;
  * preference):
  * 
  * <ul>
- *   <li>addEventListener(...) method (W3C-DOM Level 2)</li>
+ *   <li>addEventListener(...) method (W3C DOM Level 2 Events)</li>
  *   <li>TODO: captureEvent(...) method (NS 4)</li>
  * </ul>
  * 
  * @author
- *   (C) 2007  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   (C) 2007-2009 Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
  * @param o : DOMObject
@@ -1879,29 +2031,17 @@ DHTML.prototype.addEventListener = _addEventListener;
  *   proprietary event-handling property is available.
  * @return type boolean
  *   <code>true</code> on success, <code>false</code> otherwise.
- * @see
- *   dom2-events#Events-EventTarget-addEventListener,
- *   http://pointedears.de/scripts/JSdoc/
+ * @see <a href="dom2-events#Events-EventTarget-addEventListener">W3C DOM Level 2 Events: EventTarget::addEventListener()</a>
  */
 function _addEventListenerCapture(o, sEvent, fListener)
 {
-  var t, result = false;
-
-  if (o && sEvent && isMethodType((t = typeof fListener))
-        && !/^\s*unknown\s*$/i.test(t) && fListener)
+  if (o && sEvent && jsx.object.isMethod(fListener))
   {
-    if (isMethod(o, "addEventListener"))
-    {
-      o.addEventListener(sEvent, fListener, true);
-      result = true;
-    }
-    else
-    {
-      result = false;
-    }
+    o.addEventListener(sEvent, fListener, true);
+    return true;
   }
 
-  return result;
+  return false;
 }
 DHTML.prototype.addEventListenerCapture = _addEventListenerCapture;
 
@@ -1909,17 +2049,19 @@ DHTML.prototype.addEventListenerCapture = _addEventListenerCapture;
  * Replaces the event-handling function (event listener) for a
  * DOM object as event target.  The following methods are
  * used (in order of preference):
- *
- * - removeEventListener() and addEventListener(...) methods
- *   (W3C-DOM Level 2)
- * - Assignment to event-handling property (MSIE 4+ and others)
- *
+ * 
+ * <ul>
+ *   <li>removeEventListener() and addEventListener(...) methods
+ *   (W3C-DOM Level 2)</li>
+ *   <li>Assignment to event-handling property (MSIE 4+ and others)</li>
+ * </ul>
+ * 
  * Note that this still relies on the existence of the proprietary
  * event-handling property that yields a reference to the (first added)
  * event listener for the respective event.
  *
  * @author
- *   (C) 2007, 2008  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   (C) 2007-2009  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
  * @param o : DOMObject
@@ -1946,24 +2088,23 @@ DHTML.prototype.addEventListenerCapture = _addEventListenerCapture;
  *   or failure, and the new value of the proprietary
  *   event-handling property must match the assigned value for
  *   the method to be successful.
- * @see
- *   dom2-events#Events-EventTarget-removeEventListener,
- *   dom2-events#Events-EventTarget-addEventListener,
- *   msdn#workshop/author/dhtml/reference/methods/detachevent.asp,
- *   msdn#workshop/author/dhtml/reference/methods/attachevent.asp,
- *   http://pointedears.de/scripts/JSdoc/
+ * @see <a href="dom2-events#Events-EventTarget-removeEventListener">W3C DOM Level 2 Events: EventTarget::removeEventListener()</a>
+ * @see <a href="dom2-events#Events-EventTarget-addEventListener">W3C DOM Level 2 Events: EventTarget::addEventListener()</a>
+ * @see <a href="msdn#workshop/author/dhtml/reference/methods/detachevent.asp">MSDN Library: detachEvent()</a>
+ * @see <a href="msdn#workshop/author/dhtml/reference/methods/attachevent.asp">MSDN Library: attachEvent()</a>
  */
 function _replaceEventListener(o, sEvent, fListener, bUseCapture)
 {
-  var result = false, t, sHandler = "on" + sEvent;
+  var
+    jsx_object = jsx.object,
+    result = false,
+    sHandler = "on" + sEvent;
 
-  if (o && sEvent && isMethodType((t = typeof fListener))
-        && !/^\s*unknown\s*$/i.test(t) && fListener)
+  if (o && sEvent && jsx_object.isMethod(fListener))
   {
-    if (isMethod(o, "removeEventListener") && isMethod(o, "addEventListener"))
+    if (jsx_object.areMethods(o, ["removeEventListener", "addEventListener"]))
     {
-      if (isMethodType((t = typeof o[sHandler]))
-          && !/^\s*unknown\s*$/i.test(t) && o[sHandler])
+      if (jsx_object.isMethod(o[sHandler]))
       {
         var fOldListener = o[sHandler];
         o.removeEventListener(sEvent, fOldListener, !!bUseCapture);
@@ -1984,28 +2125,47 @@ function _replaceEventListener(o, sEvent, fListener, bUseCapture)
 DHTML.prototype.replaceEventListener = _replaceEventListener;
 
 /**
- * Appends a JavaScript include to the <code>head</code> element
- * of an (X)HTML document.
- *
- * Appends the include <code>sURI</code> to the <code>head</code>
+ * Prevents the default action for an event.
+ * 
+ * @param e : Event
+ * @return boolean
+ *   <code>true</code> if <var>e</var> is not a valid value,
+ *   <code>false</code> otherwise.  The return value of this
+ *   method can be used to return a value to the event-handler.
+ */
+jsx.dhtml.preventDefault = function(e) {
+  if (!e) return true;
+  
+  if (jsx.object.isMethod(e, "preventDefault"))
+  {
+    e.preventDefault();
+  }
+    
+  if (typeof e.returnValue != "undefined")
+  {
+    e.returnValue = false;                    
+  }
+  
+  return false;  
+};
+
+/**
+ * Appends the include located at <var>sURI</var> to the <code>head</code>
  * element of the current (X)HTML document.  (Is not wise to be
  * applied on script files that contain code to append content on
  * the fly (esp. document.write(...)) -- the existing content
  * would be overwritten.)
  *
- * Note: Tested successfully with MSIE and Mozilla/5.0, do not
- * rely on that the script was included, but _test_ for it.
+ * Note: Tested successfully with MSIE and Mozilla/5.0; however, do not
+ * rely on that the script was included, but <em>test</em> for it.
  *
- * @version
- *   0.2.2004053003
+ * @version 0.3.2009062115
  * @author
- *   (C) 2004-2006  Thomas Lahn <dhtml.js@PointedEars.de>,
+ *   (C) 2004-2009  Thomas Lahn <dhtml.js@PointedEars.de>,
  *       2004       Ulrich Kritzner <droeppez@web.de>
  *
- * @partof
- *   http://PointedEars.de/scripts/dhtml.js
- * @requires
- *   types.js#isMethod()
+ * @partof http://PointedEars.de/scripts/dhtml.js
+ * @requires types.js#isMethod()
  * @param sURI : string
  *   URI of the script resource to be loaded.
  * @param sType : optional string = "text/javascript"
@@ -2020,62 +2180,51 @@ DHTML.prototype.replaceEventListener = _replaceEventListener;
  */
 function loadScript(sURI, sType, sLanguage)
 {
-  var result = false;
+  var jsx_object = jsx.object;
 
-  if (isMethod(document, "createElement"))
+  var oHead = dhtml.getElemByTagName("head", 0);
+  if (!oHead) return false;
+  
+  if (!jsx_object.isMethod(document, "createElement")) return false;
+  
+  var oScript = document.createElement("script");
+  if (!oScript) return false;
+  
+  /* no exception handling for backwards compatibility reasons */
+  if (typeof oScript.src != "undefined")
   {
-    var oScript = document.createElement("script");
-    if (oScript)
-    {
-      // no exception handling for backwards compatibility reasons
-      if (typeof oScript.src != "undefined")
-      {
-        oScript.src  = sURI;
-      }
-
-      if (typeof oScript.type != "undefined")
-      {
-        oScript.type = sType || "text/javascript";
-      }
-
-      if (sLanguage)
-      {
-        oScript.language = sLanguage;
-      }
-
-      if (typeof oScript.defer != "undefined")
-      {
-        oScript.defer = true;
-      }
-
-      if (isMethod(document, "getElementsByTagName"))
-      {
-        var aHeads = document.getElementsByTagName("head");
-      }
-      else if (typeof document.all != "undefined" && document.all.tags)
-      {
-        aHeads = document.all.tags["head"];
-      }
-
-      if (aHeads && typeof aHeads[0] != "undefined")
-      {
-        if (isMethod(aHeads[0], "appendChild"))
-        {
-          aHeads[0].appendChild(oScript);
-          result = (
-            typeof aHeads[0].lastChild != "undefined"
-            && aHeads[0].lastChild == oScript);
-        }
-        else if (isMethod(aHeads[0], "insertAdjacentElement"))
-        {
-          aHeads[0].insertAdjacentElement("beforeEnd", oScript);
-          result = true;
-        }
-      }
-    }
+    oScript.src  = sURI;
   }
 
-  return result;
+  if (typeof oScript.type != "undefined")
+  {
+    oScript.type = sType || "text/javascript";
+  }
+
+  if (sLanguage)
+  {
+    oScript.language = sLanguage;
+  }
+
+  if (typeof oScript.defer != "undefined")
+  {
+    oScript.defer = true;
+  }
+
+  if (jsx_object.isMethod(oHead, "appendChild"))
+  {
+    oHead.appendChild(oScript);
+    return (
+      typeof oHead.lastChild != "undefined"
+      && oHead.lastChild == oScript);
+  }
+  else if (jsx_object.isMethod(oHead, "insertAdjacentElement"))
+  {
+    oHead.insertAdjacentElement("beforeEnd", oScript);
+    return true;
+  }
+
+  return false;
 }
 DHTML.prototype.loadScript = loadScript;
 
@@ -2114,7 +2263,7 @@ function getElementsByTabIndex(o)
   var aIndexedElements = new Array();
   var aUnindexedElements = new Array();
 
-  // makes the method applicable to Document and Element objects
+  /* makes the method applicable to Document and Element objects */
   if (!o
       && typeof this.constructor != "undefined"
       && /Document|Element/.test(this.constructor))
@@ -2122,7 +2271,7 @@ function getElementsByTabIndex(o)
     o = this;
   }
 
-  if (isMethod(o, "getElementsByTagName"))
+  if (jsx.object.isMethod(o, "getElementsByTagName"))
   {
     var es = o.getElementsByTagName("*");
 
@@ -2136,11 +2285,14 @@ function getElementsByTabIndex(o)
 
         if (typeof e.tabIndex != "undefined")
         {
-          if (e.tabIndex) // !null && !0
+          /* !null && !0 */
+          if (e.tabIndex)
           {
-            // tabindex="1" --> index == 0; use e.tabIndex
-            // and a "zero dummy" if you do not like this
-            aIndexedElements[e.tabindex - 1] = e;
+            /*
+             * tabindex="1" --> index == 0; use e.tabIndex
+             * and a "zero dummy" if you do not like this
+             */
+            aIndexedElements[e.tabIndex - 1] = e;
           }
           else
           {
@@ -2155,14 +2307,14 @@ function getElementsByTabIndex(o)
 }
 DHTML.prototype.getElementsByTabIndex = getElementsByTabIndex;
 
-if (typeof HTMLDocument != "undefined"
-    && typeof HTMLDocument.prototype != "undefined")
+if (jsx.types.isFeature("HTMLDocument", "prototype")
+    && !jsx.object.isMethod(HTMLDocument.prototype, "getElementsByTabIndex"))
 {
-  HTMLDocument.prototype.getElementsByTabIndex = getElementsByTabIndex;
+  HTMLDocument.prototype.getElementsByTabIndex = dhtml.getElementsByTabIndex;
 }
 
-if (typeof HTMLElement != "undefined"
-    && typeof HTMLElement.prototype != "undefined")
+if (jsx.types.isFeature("HTMLElement", "prototype")
+    && !jsx.object.isMethod(HTMLElement.prototype, "getElementsByTabIndex"))
 {
-  HTMLElement.prototype.getElementsByTabIndex = getElementsByTabIndex;
+  HTMLElement.prototype.getElementsByTabIndex = dhtml.getElementsByTabIndex;
 }
