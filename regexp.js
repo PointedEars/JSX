@@ -1,11 +1,11 @@
-/** 
+/**
  * <title>PointedEars' JSX: RegExp Library</title>
  */
 if (typeof RegExp == "undefined")
 {
   var RegExp = new Object();
 }
-/** @version */ RegExp.version = "0.1.2005091404";
+/** @version */ RegExp.version = "0.1.2009010602";
 /**
  * @filename regexp.js
  * @partof   PointedEars' JavaScript Extensions (JSX)
@@ -38,7 +38,7 @@ RegExp.path      = "http://pointedears.de/scripts/";
  * 
  * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
  */
-// Refer string.htm file for general documentation. 
+// Refer string.htm file for general documentation.
 
 /**
  * Returns the string representation of a RegExp object without delimiters.
@@ -48,7 +48,7 @@ RegExp.path      = "http://pointedears.de/scripts/";
  */
 function regexp2str(rx)
 {
-//return rx.toString().replace(/[^\/]*\/((\\\/|[^\/])+)\/[^\/]*/, "$1");
+  // return rx.toString().replace(/[^\/]*\/((\\\/|[^\/])+)\/[^\/]*/, "$1");
   return rx.source || rx.toString().replace(/[^\/]*\/(.+)\/[^\/]*/, "$1");
 }
 RegExp.prototype.toString2 = regexp2str;
@@ -92,19 +92,23 @@ function regexp_concat()
     i: false,
     m: false,
     
-    joinSet: function() {
-      var a = [], oDummy = {g: 1, i: 1, m: 1};
-      
-      for (var j in oDummy)
-      {
-        if (this[j] === true)
+    joinSet:
+      /**
+       * @return string
+       */
+      function() {
+        var a = [], oDummy = {g: 1, i: 1, m: 1};
+        
+        for (var j in oDummy)
         {
-          a.push(j);
+          if (this[j] === true)
+          {
+            a.push(j);
+          }
         }
+        
+        return a.join("");
       }
-      
-      return a.join("");
-    }
   };
   
   for (var i = 0, iArgnum = arguments.length, a; i < iArgnum; i++)
@@ -131,14 +135,97 @@ function regexp_concat()
 }
 RegExp.prototype.concat = regexp_concat;
 
-// test case
-/*
-  alert([
-    /("([^"\\]|\\")*"|'([^'\\]|\\')*')|\/\*([^*]|\*[^\/])*\*\/|\/\/[^\n\r]*([\n\r]|$)|(\/(\\\/|[^\/])+\/)/mg,
-    regexp_concat(
-      '(', /"([^"\\]|\\")*"/, '|', /'([^'\\]|\\')*'/,
-      ')|', /\/\*([^*]|\*[^\/])*\*\//,
-      '|', /\/\/[^\n\r]*([\n\r]|$)/,
-      '|', /(\/(\\\/|[^\/])+\/)/mg)
-  ].join("\n"));
-*/
+/**
+ * @param pattern2
+ * @param pattern1
+ * @return RegExp
+ */
+function regexp_intersect(pattern2, pattern1)
+{
+  if (!pattern1 || pattern1.constructor != RegExp)
+  {
+    if (this.constructor == RegExp)
+    {
+      pattern1 = this;
+    }
+    else
+    {
+      return null;
+    }
+  }
+  
+  /* Rule out invalid values */
+  if (!pattern2 || pattern2.constructor != RegExp) return null;
+
+  var
+    s = this.source.replace(/^\(?([^)]*)\)?$/, "$1"),
+    s2 = pattern2.source.replace(/^\(?([^)]*)\)?$/, "$1");
+
+  /* Register all parts within alternation of this pattern */
+  var a = s.split("|"), o = {};
+  for (var i = 0, len = a.length; i < len; i++) o[a[i]] = true;
+
+  /* Register all parts within alternation of pattern2 */
+  var a2 = s2.split("|"), o2 = {};
+  for (i = 0, len = a2.length; i < len; i++) o2[a2[i]] = true;
+
+  /* Compose the new alternation out of common parts */
+  var hOP = (
+    /**
+     * @return Function
+     */
+    function() {
+      if (typeof Object.prototype.hasOwnProperty == "function")
+      {
+        return function(o, p) {
+          return o.hasOwnProperty(p);
+        };
+      }
+
+      /* suffices *here* */
+      return function(o, p) {
+        return typeof o[p] != "undefined"
+               && typeof o.constructor.prototype[p] == "undefined";
+      };
+    }
+  )();
+
+  a = [];
+  for (var p in o)
+  {
+    if (hOP(o2, p)) a.push(p);
+  }
+
+  return new RegExp("(" + a.join("|") + ")");
+}
+RegExp.prototype.intersect = regexp_intersect;
+
+/**
+ * Returns an escaped version of the string that can be
+ * passed as an argument to {@link #RegExp(string, string)}
+ * to match that string.
+ * 
+ * @param s : string
+ * @return string
+ */
+function strRegExpEscape(s)
+{
+  if (arguments.length < 0 && this.constructor == String)
+  {
+    s = this;
+  }
+    
+  return s.replace(/[\]\\^$*+?.(){}[]/g, "\\$&");
+}
+String.prototype.regExpEscape = strRegExpEscape;
+
+/* test case */
+//
+//  alert([
+//    /("([^"\\]|\\")*"|'([^'\\]|\\')*')|\/\*([^*]|\*[^\/])*\*\/|\/\/[^\n\r]*([\n\r]|$)|(\/(\\\/|[^\/])+\/)/mg,
+//    regexp_concat(
+//      '(', /"([^"\\]|\\")*"/, '|', /'([^'\\]|\\')*'/,
+//      ')|', /\/\*([^*]|\*[^\/])*\*\//,
+//      '|', /\/\/[^\n\r]*([\n\r]|$)/,
+//      '|', /(\/(\\\/|[^\/])+\/)/mg)
+//  ].join("\n"));
