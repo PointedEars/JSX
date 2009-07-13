@@ -1,4 +1,4 @@
-/** 
+/**
  * <title>PointedEars' JSX: String Library</title>
  */
 if (typeof String == "undefined")
@@ -44,7 +44,7 @@ String.path      = "http://pointedears.de/scripts/";
  * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
  */
 
-/* Refer string.htm file for general documentation. */ 
+/* Refer string.htm file for general documentation. */
 
 /**
  * Non-breaking space
@@ -232,7 +232,7 @@ if (typeof Number.prototype.toUnsigned == "undefined")
 }
 
 // * Returns a string of values according to a format string.
-// * 
+// *
 // * This is the begin of an approach to implement <code>printf</code>(3)
 // * in an ECMAScript compliant implementation out of its man page
 // * documentation.  The syntax is intended to be compatible to that of
@@ -241,7 +241,7 @@ if (typeof Number.prototype.toUnsigned == "undefined")
 // * return value along with <code>window.alert()</code>,
 // * <code>document.write()</code> and similar DOM features, or in
 // * concatenations as if you would use <code>sprintf</code>(3).)
-// * 
+// *
 // * Currently supported <code>printf</code>(3) features are:
 // * - replacing tags in a format string with a value given as argument: `%d'
 // * - padding that value with zeroes or (non-breaking) spaces on the left,
@@ -260,14 +260,14 @@ if (typeof Number.prototype.toUnsigned == "undefined")
 // *   width=42) applied to it.  If `,' is missing, the delimiter is the
 // *   empty string, meaning that Arrays of strings (or characters) can
 // *   be easily put out.
-// * 
-// * @version 0.0.4.2005112603 (milestone 4) 
+// *
+// * @version 0.0.4.2005112603 (milestone 4)
 // * @author
 // *   (C) 2004, 2005  Thomas Lahn <string.js@PointedEars.de>
 // *   Distributed under the GNU GPLv2.
 // * @partof
 // *   http://pointedears.de/scripts/string.js
-// * @param sFormat : string 
+// * @param sFormat : string
 // * @param values : _
 // * @return string
 // *   The formatted string.
@@ -294,7 +294,7 @@ if (typeof Number.prototype.toUnsigned == "undefined")
 //          + "([%diouxXeEfFgGaAcsCSpn])"              // conversion
 //        );
 //      }
-//      
+//
 //      var result;
 //      if ((result = (format.rxSearch.exec(sFormat))))
 //      {
@@ -310,7 +310,7 @@ if (typeof Number.prototype.toUnsigned == "undefined")
 //          // undefined if the field width was given as an unsigned
 //          // integer
 //          uFieldWidthArg = result[5],
-//           
+//
 //          precision = result[7],
 //          argPrecision = result[8],
 //
@@ -330,7 +330,7 @@ if (typeof Number.prototype.toUnsigned == "undefined")
 //        var
 //          convSpecifier  = result[12],
 //          aArgMembers = new Array();
-//  
+//
 //        if (convSpecifier == "%")
 //        {
 //          aArgMembers = [convSpecifier];
@@ -345,8 +345,8 @@ if (typeof Number.prototype.toUnsigned == "undefined")
 //          {
 //            memberLen = arg.length;
 //          }
-//          
-//          
+//
+//
 //          for (var j = 0; j < memberLen; j++)
 //          {
 //            if (arg.constructor == Array)
@@ -390,13 +390,13 @@ if (typeof Number.prototype.toUnsigned == "undefined")
 //              { // precision is specified by another argument
 //                srcArgIdx = uPrecisionArg || (i + 1);
 //                precision = arguments[srcArgIdx];
-//                
+//
 //                // mark argument as not to be expanded
 //                arguments.skip[srcArgIdx] = true;
 //              }
 //
 //              if (precision >= 0)
-//              { 
+//              {
 //                a = Number(a).toFixed(precision);
 //              }
 //              else // if (precision < 0)
@@ -416,7 +416,7 @@ if (typeof Number.prototype.toUnsigned == "undefined")
 //              }
 //
 //              if (fieldWidth > 0)
-//              { 
+//              {
 //                var sPad = CH_NBSP;
 //                if (flags && /0/.test(flags))
 //                {
@@ -438,7 +438,7 @@ if (typeof Number.prototype.toUnsigned == "undefined")
 //            aArgMembers.push(a);
 //          }
 //        }
-//        
+//
 //        sFormat = sFormat.replace(
 //          format.rxSearch,
 //          aArgMembers.join(memberDelim));
@@ -450,7 +450,7 @@ if (typeof Number.prototype.toUnsigned == "undefined")
 //}
 
 /**
- * A more efficient rewrite of the previous format() function. 
+ * A more efficient rewrite of the previous format() function.
  * 
  * @param sFormat
  * @return string
@@ -529,7 +529,7 @@ function format(sFormat)
           
           if (/[ux]/i.test(convSpecifier))
           {
-            // see ToUint32()          
+            // see ToUint32()
             v = +v;
             
             if (isNaN(v) || v == 0 || Math.abs(v) == Infinity)
@@ -588,7 +588,7 @@ function format(sFormat)
  *   (C) 2004 Thomas Lahn <string.js@PointedEars.de>
  * @partof
  *   http://pointedears.de/scripts/string.js
- * @param s : optional string|number 
+ * @param s : optional string|number
  *   Un(completely )formatted number (decimal, hexadecimal
  *   or octal) or a string representing such a number.
  *   If the function is called as a method of
@@ -627,7 +627,7 @@ function format1k(s, s1kDelim)
     /*
      * 1.29.4.2008030123:
      * added parens around backrefs for JScript 3.x compliance
-     */ 
+     */
     var rx = /([\da-f])((\1){3}(,|(\.(\1)+)?$))/i;
     while (rx.test(s))
     {
@@ -733,14 +733,14 @@ function leadingCaps(s)
  *   its length is @{(n)}.
  * @see
  *   #pad(string, number, string)
- */ 
+ */
 function leadingZero(s, n)
 {
   var c;
   if ((c = this.constructor) && c == String && typeof s != "string")
   {
     s = this;
-  }   
+  }
    
   return pad(s, n, "0");
 }
@@ -831,7 +831,7 @@ int LevenshteinDistance(char s[1..n], char t[1..m])
  *   </tbody>
  * </table>
  *
- * @param s : optional string 
+ * @param s : optional string
  * @param t : optional string
  * @return number
  */
@@ -933,7 +933,7 @@ function nl2br(s)
 }
 
 /**
- * @param s : optional string 
+ * @param s : optional string
  *   Input string.  If omitted and the calling object
  *   is a String object, it is used instead.
  * @param n : optional number = 1
@@ -950,7 +950,7 @@ function nl2br(s)
  *   Assume that s is iStart characters long.
  * @return string
  *   The padded input string so that its length is n.
- */ 
+ */
 function pad(s, n, c, bRight, iStart)
 {
    var constr;
@@ -971,7 +971,7 @@ function pad(s, n, c, bRight, iStart)
    }
 
    if (typeof s != "string")
-   {   
+   {
      s = String(s);
    }
 
@@ -999,7 +999,7 @@ function pad(s, n, c, bRight, iStart)
 
 /**
  * @param sText
- * @param sReplaced : string 
+ * @param sReplaced : string
  * @param sReplacement : string
  * @param bForceLoop : boolean
  * @type string
@@ -1021,7 +1021,7 @@ function replaceText(sText, sReplaced, sReplacement, bForceLoop)
     if (sText.replace && !bForceLoop)
     {
       sReplaced = sReplaced.replace(/\\/g, "\\\\");
-      /* 
+      /*
        * Version 1.23.2002.4 bugfix: allows to replace \ with other
        * strings, required for proper rxReplaced;
        * Example (no quotes, no escaping):
@@ -1071,7 +1071,7 @@ function replaceText(sText, sReplaced, sReplacement, bForceLoop)
  * @param options : optional Object
  *   The property values of the passed object determine
  *   one or more of the following display options:
- *  
+ * 
  *   @option depth: number = 0
  *     Depth down to which recursive serialization should
  *     be performed.  The default is 0 (no recursion).
@@ -1079,13 +1079,13 @@ function replaceText(sText, sReplaced, sReplacement, bForceLoop)
  *     CAUTION: Recursive references are not detected;
  *     in that case, a stack overflow will happen because
  *     of too much recursion.
- *  
+ * 
  *   @option showType: boolean = false
  *     If <code>true</code>, <code>typeof</code> is used
  *     to display the type of each property following a
  *     colon after the identifier.  The value delimiter
  *     then changes into a equals (`<code>=</code>').
- *  
+ * 
  *   @option showConstructor: boolean = false
  *     If <code>true</code>, <code>constructor</code> is used
  *     to display the constructor of each property in brackets
@@ -1114,15 +1114,15 @@ function serialize(o, options)
   
   var
     a = [],
-    indent = strRepeat(options.sIndent, options.iIndent); 
+    indent = strRepeat(options.sIndent, options.iIndent);
   
   for (var p in o)
   {
     var v = o[p];
-    var origV = v;    
+    var origV = v;
     var t = typeof v;
     var isString = /string/i.test(t);
-    var s = isString ? '"' : ''; 
+    var s = isString ? '"' : '';
 
     /*
      * FIXME: number values
@@ -1156,7 +1156,7 @@ function serialize(o, options)
       !(options.depth && (!isString || isNaN(p)))
         ? (s + v.replace(/"/g, "\\$&") + s)
         : v
-    ].join(""));        
+    ].join(""));
   }
   
   if (a.length > 0)
@@ -1259,7 +1259,7 @@ function strCount(s, substr, bCaseSensitive)
  * @param bCaseSensitive : optional boolean = false
  *   <code>true</code> for case-sensitive matches,
  *   <code>false</code> (default) otherwise.
- * @param tags : optional string|Array of string 
+ * @param tags : optional string|Array of string
  *   String or array of values that can be evaluated as string to
  *   specify the tag(s) to be stripped.  If omitted, all tags are
  *   stripped.
@@ -1383,47 +1383,43 @@ function stripTags(s, bStripContent, bCaseSensitive, tags, bElements)
 }
 
 /**
- * Returns <code>s</code> repeated <code>sMultiplier</code> times.
- * <code>nMultiplier</code> has to be greater than or equal to 0.
- * If <code>nMultiplier</code> is set to 0, the function will
- * return the empty string.
+ * Returns <var>s</var> repeated <var>n</var> times.  <var>n</var>
+ * has to be greater than or equal to 0.  If <var>n</var> converted
+ * to number is <code>NaN</code> or a value less then 1, the function
+ * will return the empty string.
  * 
- * Note that this may be used also as method of the
- * <code>String</code> prototype (if supported), applicable to
- * <code>String</code> objects and literals.  If <code>s</code
- * is not provided, numeric or evaluates to <code>false</code>,
- * the value of the <code>String</code> object is taken instead
- * of it.  If the first argument is then numeric, it is taken for
- * <code>nMultiplier</code> and the latter argument is ignored.
+ * Note that this may be used also as method of the {@link String}
+ * prototype (if supported), applicable to <code>String</code> objects
+ * and literals.  If <var>s</var> is not provided, if it is numeric
+ * or evaluates to <code>false</code>, the value of the
+ * <code>String</code> object is taken instead of it.  If the first
+ * argument is then numeric, it is taken for <var>n</var> and the latter
+ * argument is ignored.
  * 
  * @param s : string|number
- * @param nMultiplier : optional number
+ * @param n : optional number
  * @type string
  * @return string
  */
-function strRepeat(s, nMultiplier)
+function strRepeat(s, n)
 {
-  var aResult = [];
-
   var c;
   if ((c = this.constructor) && c == String && typeof s != "string")
   {
     s = this;
-    nMultiplier = !isNaN(s) ? s : 0;
+    n = !isNaN(s) ? s : 0;
   }
+  
+  if (isNaN(n)) return s;
   
   if (s)
   {
-    if (nMultiplier > 0)
-    {
-      for (var i = 0; i < nMultiplier; i++)
-      {
-        aResult.push(s);
-      }
-    }
+    var aResult = [];
+    aResult.length = n + 1;
+    return aResult.join(s);
   }
 
-  return aResult.join("");
+  return "";
 }
 
 /**
@@ -1477,8 +1473,7 @@ function strToArray(s)
  * @param as : [string,]
  *   Input string array.
  * @todo return RegExp
- *   A regular expression to match
- *   all the string array elements.
+ *   A regular expression to match all the string array elements.
  */
 function strArrayToCharClass(as)
 {
@@ -1504,7 +1499,7 @@ function strArrayToCharClass(as)
 /**
  * @author
  *   (C) 2003 Thomas Lahn &lt;string.js@PointedEars.de&gt;
- * @param s : optional string 
+ * @param s : optional string
  *   Optional string to be split into an array where each
  *   element represents the ASCII or Unicode value of a
  *   character (depending on the implementation) of the
@@ -1557,8 +1552,7 @@ function strToCodeArray(s)
 // }
 
 /**
- * Returns the input string with all leading
- * and trailing whitespace removed.
+ * Returns the input string with all leading and trailing whitespace removed.
  * 
  * @param s : optional string
  * @return string
@@ -1650,6 +1644,24 @@ function trimRight(s)
   return s;
 }
 
+/**
+ * Converts a Python str (e.g. 'K\xc3\xb6ln') into
+ * an ECMAScript-compliant string (e.g. 'Köln').
+ * 
+ * @param s : string
+ *   The string to be converted
+ * @return string
+ *   The converted string
+ */
+function pyUTF8toString(s)
+{
+  return unesc(
+    s.replace(/[\x80-\xff]/g,
+      function(m) {
+        return "%" + m.charCodeAt(0).toString(16);
+      }));
+}
+
 /*
  * If possible, add methods to the String prototype;
  * disabled until ECMAScript allows to hide properties from iteration.
@@ -1691,10 +1703,10 @@ function trimRight(s)
 //
 //  // TODO: corr. with String.toCodeArray
 //  p.codeArrayFromStr = codeArrayFromStr;
-//   
+//
 //  // TODO: corr. with String.fromArray
 //  p.toStr = arrayToStr;
-//  
+//
 //  // TODO: corr. with String.fromCodeArray
 //  p.codeArrayToStr = codeArrayToStr;
 //}
