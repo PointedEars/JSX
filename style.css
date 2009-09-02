@@ -1,0 +1,114 @@
+/* Script documentation style-sheet */ /* General */
+body {
+  background-color: white;
+  color: black;
+}
+
+a:link:hover, a:visited:hover {
+  background-color: inherit;
+  color: red;
+  text-decoration: none;
+}
+
+code {
+  font-family: monospace;
+}
+
+/* HTML language elements */
+.text {
+  background-color: white;
+  color: black;
+}
+
+.entity {
+  background-color: white;
+  color: black;
+  font-weight: bold;
+  font-style: italic;
+  font-family: monospace;
+}
+
+.tag, .tagname {
+  background-color: white;
+  color: navy;
+}
+
+.img {
+  background-color: white;
+  color: purple;
+}
+
+.object {
+  background-color: white;
+  color: maroon;
+}
+
+.attrval {
+  background-color: white;
+  color: blue;
+}
+
+.scr {
+  background-color: #fff;
+  color: #900;
+}
+
+.a {
+  background-color: #fff;
+  color: #090;
+}
+
+/* JavaScript language elements */
+.comm {
+  background-color: #fff;
+  color: #999;
+  font-style: italic;
+  font-family: monospace;
+}
+
+.ident {
+  background-color: white;
+  color: black;
+  font-weight: bold;
+  font-family: monospace;
+}
+
+.rswd {
+  background-color: #fff;
+  color: #009;
+  font-weight: bold;
+  font-family: monospace;
+}
+
+.regexp {
+  background-color: transparent;
+  color: #900;
+}
+
+var {
+  font-style: italic;
+  font-family: monospace;
+}
+
+.str {
+  font-style: italic;
+  font-family: monospace;
+}
+
+.num {
+  background-color: white;
+  color: red;
+  font-family: monospace;
+}
+
+.punct {
+  background-color: inherit;
+  color: blue;
+  font-family: monospace;
+}
+
+.punct2 {
+  background-color: #fff;
+  color: #090;
+  font-family: monospace;
+}
