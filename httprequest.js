@@ -5,59 +5,111 @@
  * 
  * @idl
  * 
- * interface HTTPResponseHandler :: Function
+ * interface HTTPResponseListener :: Function
  * {
- *   boolean HTTPResponseHandler(IXMLHttpRequest x);
+ *   boolean HTTPResponseListener(IXMLHttpRequest x);
  *     // Handles the response for the HTTP request initiated with x.send()
  *     // SHOULD return a true-value if successful, a false-value otherwise
  * }
  * 
+ * interface HTTPMethod
+ * {
+ *   const string GET="GET"
+ *   const string POST="POST"
+ * }
+ * 
+ * interface HTTPRequestReadyState
+ * {
+ *   const int COMPLETED=4
+ * }
+ * 
+ * interface HTTPStatus {
+ *   const RegExp OK_EXPR=/\b(0|2\d\d)\b/
+ *   const RegExp FAILED_EXPR=/\b[45]\d\d\b/
+ * }
+ * 
  * interface HTTPRequest
  * {
- *   attribute string requestType setter=setRequestType(string)
- *                                default=setRequestType();
+ *   attribute string                URL
+ *                                     setter=setURL(string)
+ *                                     default=setURL();
+ *   attribute HTTPMethod            method
+ *                                     setter=setMethod(string)
+ *                                     default=setMethod();
+ *   attribute boolean               async
+ *                                     setter=setAsync(boolean)
+ *                                     default=setAsync();
+ *   attribute string                data
+ *                                     setter=setData(string)
+ *                                     default=setData();
+ *   attribute string                requestType
+ *                                     setter=setRequestType(string)
+ *                                     default=setRequestType();
+ *   readonly attribute HTTPRequestReadyState readyState
+ *   readonly attribute HTTPStatus            status
+ *   attribute HTTPResponseListener   responseListener
+ *   attribute HTTPResponseListener   successListener
+ *   attribute HTTPResponseListener   errorListener
  *
- *   void HTTPRequest();
- *     // URL=document.URL, method="GET", async=true, responseHandler=null,
- *     // errorHandler=null
+ *   HTTPRequest HTTPRequest();
+ *     // URL=document.URL, method="GET", async=true, successListener=null,
+ *     // errorListener=null
  *
- *   void HTTPRequest(string sURL);
- *     // URL=sURL||document.URL, method="GET", async=true, responseHandler=null,
- *     // errorHandler=null
+ *   HTTPRequest HTTPRequest(string sURL);
+ *     // URL=sURL||document.URL, method="GET", async=true,
+ *     // successListener=null, errorListener=null
  * 
- *   void HTTPRequest(string sURL, string sMethod);
+ *   HTTPRequest HTTPRequest(string sURL, string sMethod);
  *     // URL=sURL||document.URL, method=sMethod||"GET", async=true,
- *     // responseHandler=null, errorHandler=null
+ *     // successListener=null, errorListener=null
  * 
- *   void HTTPRequest(string sURL, string sMethod, boolean bAsync);
+ *   HTTPRequest HTTPRequest(string sURL, string sMethod, boolean bAsync);
  *     // URL=sURL||document.URL, method=sMethod||"GET", async=bAsync,
  *
- *   void HTTPRequest(string sURL, string sMethod, boolean bAsync,
- *                    HTTPResponseHandler fResponseHandler);
+ *   HTTPRequest HTTPRequest(string sURL, string sMethod, boolean bAsync,
+ *                           HTTPResponseListener fSuccessListener);
  *     // URL=sURL||document.URL, method=sMethod||"GET", async=bAsync,
- *     // responseHandler=fResponseHandler, errorHandler=null
+ *     // successListener=fSuccessListener, errorListener=null
  * 
- *   void HTTPRequest(string sURL, string sMethod, boolean bAsync,
- *                    HTTPResponseHandler fResponseHandler,
- *                    HTTPResponseHandler fErrorHandler);
+ *   HTTPRequest HTTPRequest(string sURL, string sMethod, boolean bAsync,
+ *                           HTTPResponseListener fSuccessListener,
+ *                           HTTPResponseListener fErrorListener);
  *     // URL=sURL||document.URL, method=sMethod||"GET", async=bAsync,
- *     // responseHandler=fResponseHandler, errorHandler=fErrorHandler
+ *     // successListener=fSuccessListener, errorListener=fErrorListener
  * 
+ *   boolean setURL(string sURL default="");
+ *     // URL=sURL
+ *
+ *   boolean setMethod(string sMethod default="GET");
+ *     // method=sMethod
+ *
+ *   boolean setAsync(boolean bAsync default=true);
+ *     // async=bAsync
+ *
+ *   boolean setData(string sData default="");
+ *     // data=sData
+ *
  *   boolean setRequestType(string sRequestType
  *                          default="application/x-www-form-urlencoded");
  *     // requestType=sRequestType
- * 
+ *
+ *   boolean send(string sData, string sURL, string sMethod, boolean bAsync);
+ *     // sData=null, URL=sURL||document.URL, method=sMethod||"GET",
+ *     // bAsync=true
  * }
  * 
  * @end
  */
 
 /**
- * Creates a new HTTPRequest object when called as constructor.
- * Set up response handlers per argument (see below), or
- * {@link HTTPRequest.prototype#setResponseHandler} and
- * {@link HTTPRequest.prototype#setErrorHandler}, then call
- * {@link HTTPRequest.prototype#send} method to send the request.
+ * Creates a new HTTPRequest object.
+ * 
+ * You can set up response listeners per argument (see below), or
+ * {@link HTTPRequest.prototype#setResponseListener setResponseListener()},
+ * {@link HTTPRequest.prototype#setSuccessListener setSuccessListener()},
+ * and {@link HTTPRequest.prototype#setErrorListener setErrorListener()},
+ * then call {@link HTTPRequest.prototype#send send()} to submit
+ * the request.
  * 
  * @param sURL : optional string=document.URL
  *   Request URL.  The default is the URL of the sending resource.
@@ -69,22 +121,29 @@
  *   Pass <code>true</code> to make an asynchronous request (default),
  *   that is, a request that is processed in the background and does
  *   not interrupt user operation.
- * @param fResponseHandler : optional HTTPResponseHandler=null
+ * @param fSuccessListener : optional HTTPResponseListener=null
  *   The function to handle the response of a successful request
  *   (default: <code>null</code>).
- * @param fErrorHandler : optional HTTPResponseHandler=null
+ * @param fErrorListener : optional HTTPResponseListener=null
  *   The function to handle the response of a request that failed
  *   (default: <code>null</code>).
  * @constructor
- * @return undefined
+ * @type HTTPRequest
  */
-function HTTPRequest(sURL, sMethod, bAsync, fResponseHandler, fErrorHandler)
+function HTTPRequest(sURL, sMethod, bAsync, fSuccessListener, fErrorListener)
 {
-  this.setURL(sURL);
+  /* Enables factory use */
+  var me = arguments.callee;
+  if (this.constructor !== me)
+  {
+    return me.construct(arguments);
+  }
+  
+  this.setURL(sURL, true);
   this.setMethod(sMethod);
   this.setAsync(bAsync);
-  this.setResponseHandler(fResponseHandler);
-  // this.setErrorHandler(fErrorHandler);
+  this.setSuccessListener(fSuccessListener);
+  this.setErrorListener(fErrorListener);
   this.setData();
   this.setRequestType();
 }
@@ -109,7 +168,11 @@ jsx.object.addProperties(
     },
     
     status: {
-      OK_EXPR: /\b(0|2\d\d)\b/,
+      /*
+       * NOTE: MSXML translates 204 to 1223, see
+       * https://prototype.lighthouseapp.com/projects/8886/tickets/129-ie-mangles-http-response-status-code-204-to-1223
+       */
+      OK_EXPR: /\b(0|2\d\d|1223)\b/,
       LOCAL_NONE: 0,
 
       CONTINUE: 100,
@@ -132,6 +195,7 @@ jsx.object.addProperties(
       TEMP_REDIR: 307,
       
       FAILED_EXPR: /\b[45]\d\d\b/,
+      
       CLIENT_ERROR_EXPR: /\b4\d\d\b/,
       BAD_REQUEST: 400,
       UNAUTHORIZED: 401,
@@ -167,28 +231,60 @@ HTTPRequest.prototype = {
   constructor: HTTPRequest,
 
   /**
+   * Method to be called onreadystatechange
+   * 
+   * @param x : XMLHttpRequest
+   */
+  responseListener: function(x) {
+    var C = this.constructor;
+  
+    if (x.readyState === C.readyState.COMPLETED)
+    {
+      var
+        jsx_object = jsx.object,
+        oStatus = C.status,
+        reqStatus = x.status;
+      
+      if (oStatus.OK_EXPR.test(reqStatus))
+      {
+        if (jsx_object.isMethod(this.successListener))
+        {
+          this.successListener(x);
+        }
+      }
+      else if (oStatus.FAILED_EXPR.test(reqStatus))
+      {
+        if (jsx_object.isMethod(this.errorListener))
+        {
+          this.errorListener(x);
+        }
+      }
+    }
+  },
+  
+  /**
    * Sets the <code>URL</code> property.
    * 
    * @param sURL : string
    *   If not provided or a false-value, the
    *   URL of the sending recource is set.
    * @param bDontEncode : optional boolean
-   *   If <code>true</code>, do not encode the request URL
-   *   (with <code>escURI()</code> or <code>escape()</code>).
+   *   If <code>true</code>, do not encode the request URI
+   *   with {@link jsx.string#escURI()}.
    */
   setURL: function(sURL, bDontEncode) {
-    if (!bDontEncode && sURL) sURL = esc(sURL);
+    if (!bDontEncode && sURL) sURL = escURI(sURL);
     this.URL = (sURL || document.URL);
   },
 
   /**
    * Sets the <code>method</code> property.  Use the
-   * <code>HTTPRequest.(GET|POST)</code> properties
+   * <code>HTTPRequest.method.(GET|POST)</code> properties
    * to avoid problems with character case and typos.
    * 
    * @param sMethod : optional string
    *   If not provided or a false-value, the value
-   *   of <code>HTTPRequest.GET</code> is used.
+   *   of <code>HTTPRequest.method.GET</code> is used.
    */
   setMethod: function(sMethod) {
     this.method =
@@ -211,64 +307,109 @@ HTTPRequest.prototype = {
   },
   
   /**
-   * Defines the response handler method to be used for handling
-   * successful requests.  A HTTPRequest object is always initialized
-   * with a dummy response handler that does nothing, if you do not
-   * specify one.  Once initialized, passing a reference to a non-callable
-   * object as argument, throws an InvalidArgumentException.
+   * Defines the response Listener method to be used for handling
+   * requests.
    * 
-   * @param fResponseHandler : HTTPResponseHandler
-   * @throws InvalidArgumentException
+   * A <code>HTTPRequest</code> object is always initialized with
+   * an inherited default response Listener that calls
+   * {@link HTTPRequest.prototype#successListener() successListener()}
+   * on success, and
+   * {@link HTTPRequest.prototype#errorListener() errorListener()}
+   * on failure.  Once initialized, passing a reference to a
+   * non-callable object as argument, throws an
+   * {@link jsx#InvalidArgumentError InvalidArgumentError}
+   * exception.
+   * 
+   * @param fResponseListener : HTTPResponseListener
+   * @throws jsx.InvalidArgumentError
    */
-  setResponseHandler: function(fResponseHandler) {
-    // initialization
-    if (typeof this.responseHandler == "undefined")
+  setResponseListener: function(fResponseListener) {
+    /* initialization */
+    if (typeof this.responseListener == "undefined")
     {
-      this.responseHandler = new HTTPResponseHandler();
+      this.responseListener = new HTTPResponseListener();
       return true;
     }
-    else if (jsx.object.isMethod(fResponseHandler))
+    else if (jsx.object.isMethod(fResponseListener))
     {
-      this.responseHandler = fResponseHandler;
-      return (this.responseHandler == fResponseHandler);
+      this.responseListener = fResponseListener;
+      return (this.responseListener == fResponseListener);
     }
     else
     {
-      _global.setErrorHandler();
-      eval('throw new Error('
-        + '"jsx:HTTPRequest::setResponseHandler: Argument is not a method");');
-      _global.clearErrorHandler();
+      jsx.throwThis("jsx.InvalidArgumentError",
+        "jsx:HTTPRequest::setResponseListener: Argument is not a method");
       return false;
     }
   },
 
   /**
-   * Defines the response handler method to be used for handling
-   * unsuccessful requests.
+   * Defines the response Listener method to be used for handling
+   * successful requests.
    * 
-   * @param : HTTPResponseHandler
+   * A <code>HTTPRequest</code> object is always initialized with
+   * an inherited dummy success Listener that does nothing, if you
+   * do not specify one.  Once initialized, passing a reference
+   * to a non-callable object as argument throws an
+   * {@link jsx#InvalidArgumentError InvalidArgumentError}
+   * exception.
+   * 
+   * @param fSuccessListener : HTTPResponseListener
+   * @throws jsx.InvalidArgumentError
    */
-   /*
-  setErrorHandler: function(fErrorHandler) {
-    if (typeof this.errorHandler == "undefined")
+  setSuccessListener: function(fSuccessListener) {
+    /* initialization */
+    if (typeof this.responseListener == "undefined")
     {
-      this.errorHandler = new HTTPResponseHandler();
+      this.successListener = new HTTPResponseListener();
+      return true;
     }
-    else if (jsx.object.isMethod(fErrorHandler))
+    else if (jsx.object.isMethod(fSuccessListener))
     {
-      this.errorHandler = fErrorHandler;
-      return (this.errorHandler == this.errorHandler);
+      this.successListener = fSuccessListener;
+      return (this.successListener == fSuccessListener);
     }
     else
     {
-      _global.setErrorHandler();
-      eval('throw new Error('
-        + '"jsx:HTTPRequest::setErrorHandler: Argument is not a method");');
-      _global.clearErrorHandler();
+      jsx.throwThis("jsx.InvalidArgumentError",
+        "jsx:HTTPRequest::setResponseListener: Argument is not a method");
       return false;
     }
   },
-*/
+  
+  /**
+   * Defines the response Listener method to be used for handling
+   * unsuccessful requests.
+   * 
+   * A <code>HTTPRequest</code> object is always initialized with
+   * an inherited dummy error Listener that does nothing, if you
+   * do not specify one.  Once initialized, passing a reference
+   * to a non-callable object as argument throws an
+   * {@link jsx#InvalidArgumentError InvalidArgumentError}
+   * exception.
+   * 
+   * @param fErrorListener : HTTPResponseListener
+   * @throws jsx.InvalidArgumentError
+   */
+  setErrorListener: function(fErrorListener) {
+    if (typeof this.errorListener == "undefined")
+    {
+      this.errorListener = new HTTPResponseListener();
+      return true;
+    }
+    else if (jsx.object.isMethod(fErrorListener))
+    {
+      this.errorListener = fErrorListener;
+      return (this.errorListener == this.errorListener);
+    }
+    else
+    {
+      jsx.throwThis('jsx.InvalidArgumentError',
+        "jsx:HTTPRequest::setErrorListener: Argument is not a method");
+      return false;
+    }
+  },
+
   /**
    * Sets the <code>data</code> property.
    * 
@@ -286,8 +427,7 @@ HTTPRequest.prototype = {
    * 
    * @see HTTPRequest.prototype#setData()
    */
-  resetData: function()
-  {
+  resetData: function() {
     this.setData();
   },
 
@@ -302,8 +442,7 @@ HTTPRequest.prototype = {
    *   is <code>false</code>.
    * @return boolean
    */
-  getDataFromForm: function(f, bUseFormMethod)
-  {
+  getDataFromForm: function(f, bUseFormMethod) {
     var result = false, es, len;
 
     if (f && (es = f.elements) && (len = es.length))
@@ -343,6 +482,8 @@ HTTPRequest.prototype = {
   },
 
   /**
+   * Submits the HTTP request.
+   * 
    * @param sData : optional string
    *   The data to form the request body.  If the request method is "GET",
    *   this argument is ignored and <code>null</code> is used instead (no body).
@@ -361,11 +502,20 @@ HTTPRequest.prototype = {
    *   if <code>false</code> is passed.  If not provided, this value defaults
    *   to that of the <code>async</code> property, which is <code>true</code>
    *   if not set different previously.
+   * @type boolean
+   * @return <code>true</code> if the XHR object could be created
+   *   and <code>IXMLHTTPRequest::send()</code> was successful;
+   *   <code>false</code> otherwise.  Note that "successful" does
+   *   not imply that the server has actually received the message,
+   *   and responded with an OK status code, only that the method
+   *   could be called successfully.
    */
   send: function(sData, sURL, sMethod, bAsync) {
     var
       result = false,
+      jsx_global = jsx.global,
       jsx_object = jsx.object,
+      C = this.constructor,
       x = null;
 
     /*
@@ -379,7 +529,7 @@ HTTPRequest.prototype = {
      * currently not for `file:' URIs, so we don't prefer that wrapper (see
      * <http://xhab.blogspot.com/2006/11/ie7-support-for-xmlhttprequest.html>).
      */
-    if (jsx_object.isMethod(jsx.global, "ActiveXObject"))
+    if (jsx_object.isMethod(jsx_global, "ActiveXObject"))
     {
       /*@cc_on @*/
       /*@if (@_jscript_version >= 5)
@@ -396,31 +546,34 @@ HTTPRequest.prototype = {
     }
     
     /* Gecko and Opera 8.1+ */
-    if (!x && jsx_object.isMethod(jsx.global, "XMLHttpRequest"))
+    if (!x && jsx_object.isMethod(jsx_global, "XMLHttpRequest"))
     {
-      /*
-       * eval() is needed here so that this compiles in ECMAScript < 3
-       * (e.g. IE 4, NS 4)
-       */
-      eval('try { x = new XMLHttpRequest(); } catch (e) { x = null; }');
+      jsx.tryThis(
+        function() { x = new XMLHttpRequest(); },
+        function() { x = null; });
     }
     
     /* IceBrowser */
     if (!x && typeof window != "undefined"
         && jsx_object.isMethod(window, "createRequest"))
     {
-      /* see above */
-      eval('try { x = window.createRequest(); } catch (e) { x = null; }');
+      jsx.tryThis(
+        function() { x = window.createRequest(); },
+        function() { x = null; });
     }
     
-    if (x) //  && jsx_object.isMethod(x.open)
+    if (x && jsx_object.isMethod(x, "open"))
     {
+      /* Assume everything goes smoothly from here */
+      result = true;
+      
+      if (arguments.length < 1) sData = this.data;
       if (arguments.length < 2) sURL = this.URL;
 
       if (arguments.length < 3) sMethod = this.method;
-      var bGET = (sMethod == this.constructor.method.GET);
+      var bGET = (sMethod == C.method.GET);
 
-      bAsync = (arguments.length > 3) ? !!bAsync  : this.async;
+      bAsync = (arguments.length > 3) ? !!bAsync : this.async;
       
       x.open(
         sMethod.toUpperCase(),
@@ -432,63 +585,60 @@ HTTPRequest.prototype = {
                 + sData
               : ""),
         bAsync);
-
-//      if (jsx_object.isMethod(x.setRequestHeader))
-//      {
-        // see above
-        eval('try { x.setRequestHeader("Content-Type", this.requestType); }'
-          + 'catch (e) {}');
-//      }
-      
+  
+      if (jsx_object.isMethod(x, "setRequestHeader"))
+      {
+        /* NOTE: Failure to call this method is _not_ considered a fatal error. */
+        jsx.tryThis(
+          function() {
+            x.setRequestHeader("Content-Type", this.requestType);
+          }
+        );
+      }
+    
       if (bAsync)
       {
         var me = this;
-        x.onreadystatechange = function()
-        {
+        x.onreadystatechange = function() {
           // alert(x.readyState);
           // alert(x.status);
           
           // console.log("readyState = %i, status = %i", x.readyState, x.status);
-          // console.log(me.constructor.status.OK_EXPR);
+          // console.log(C.status.OK_EXPR);
           
-//          if (x.readyState > HTTPRequest.readyState.LOADED
-//              && me.constructor.status.OK_EXPR.test(x.status))
-//          {
-          me.responseHandler(x);
-//          }
-//          else
-//          {
-//            me.errorHandler(x);
-//          }
+          if (jsx_object.isMethod(me.responseListener))
+          {
+            me.responseListener(x);
+          }
           
-          if (x.readyState == me.constructor.readyState.COMPLETED)
+          if (x.readyState == C.readyState.COMPLETED)
           {
           	x = null;
           }
         };
       }
       
-      eval('try { x.send(bGET ? null : (sData || this.data)); }'
-        + 'catch (e) { /*this.errorHandler();*/ }');
+      jsx.tryThis(
+        function() { x.send(bGET ? null : (sData || this.data)); },
+        function() { result = false; this.errorListener(x); });
       
       if (!bAsync)
       {
-//        if (this.constructor.status.OK_EXPR.test(x.status)
-//            && jsx_object.isMethod(this.responseHandler))
-//        {
-        this.responseHandler(x);
+        if (jsx_object.isMethod(this.responseListener))
+        {
+          this.responseListener(x);
+        }
           
-          // Handle stopped servers
-          eval('try { if (this.constructor.status.OK_EXPR.test(x.status)) {'
-            + 'result = true;'
-            + '} } catch {}');
-//        }
-//        else if (this.constructor.status.FAILED_EXPR.test(x.status)
-//                  && jsx_object.isMethod(this.errorHandler))
-//        {
-//          this.errorHandler(x);
-//        }
+        /* Handle stopped servers */
+        jsx.tryThis(
+          function() {
+            if (C.status.OK_EXPR.test(x.status)) {
+              result = true;
+            }
+          }
+        );
 
+        /* TODO: Is this error-prone? */
         x = null;
       }
     }
@@ -498,13 +648,15 @@ HTTPRequest.prototype = {
 };
 
 /**
- * A HTTPResponseHandler object is a specialized Function object
- * that takes an IXMLHttpRequest object <code>x</code>as its only
+ * Creates a new HTTPResponseListener object.
+ * 
+ * A HTTPResponseListener object is a specialized Function object
+ * that takes an IXMLHttpRequest object <var>x</var> as its only
  * argument.  This method is a factory to create such an object.
  * 
  * Recommended usage:
  * <pre><code>
- * var f = HTTPResponseHandler(
+ * var f = HTTPResponseListener(
  *   new Array(
  *     'statement;',
  *     'statement;'
@@ -512,22 +664,15 @@ HTTPRequest.prototype = {
  * </code></pre>
  * 
  * @param sCode
- * @return Function
- *   A new <code>HTTPResponseHandler</code> object
+ * @type Function
+ * @return A new <code>HTTPResponseListener</code> object
  */
-function HTTPResponseHandler(sCode)
+function HTTPResponseListener(sCode)
 {
   return Function("x", sCode || "");
 }
 
-/**
- * @param x
- */
-function processResponse(x)
-{
-  /* ... */
-}
-
-// var x = new HTTPRequest("", HTTPRequest.GET, processResponse);
+/* Usage: */
+// var x = new HTTPRequest("", HTTPRequest.method.GET, true, processResponse);
 /* ... */
 // x.send();
