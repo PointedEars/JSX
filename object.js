@@ -173,7 +173,7 @@ var printfire = jsx.dmsg = function(sMsg, sType) {
 };
 
 /**
- * Adds/replaces properties of an object.
+ * Adds/replaces properties of an object
  *
  * @prototype method
  * @param oSource : Object
@@ -202,12 +202,14 @@ var addProperties = jsx.object.addProperties =
       oOwner = this;
     }
   
+    var jsx_object = jsx.object;
+    
     for (var p in oSource)
     {
-      if (typeof oOwner[p] == "undefined" || (iFlags & jsx.object.ADD_OVERWRITE))
+      if (typeof oOwner[p] == "undefined" || (iFlags & jsx_object.ADD_OVERWRITE))
       {
-        oOwner[p] = jsx.object.clone(
-          iFlags & (jsx.object.COPY_ENUM_DEEP | jsx.object.COPY_INHERIT),
+        oOwner[p] = jsx_object.clone(
+          iFlags & (jsx_object.COPY_ENUM_DEEP | jsx_object.COPY_INHERIT),
           oSource[p]);
         oOwner[p].userDefined = true;
       }
@@ -215,7 +217,7 @@ var addProperties = jsx.object.addProperties =
   };
 
 /**
- * Lets one object inherit from another.
+ * Lets one object inherit from another
  *
  * @param o : optional Object
  *   Object from which to inherit.
@@ -232,7 +234,7 @@ var inheritFrom = jsx.object.inheritFrom = (function() {
 })();
 
 /**
- * Creates a duplicate (clone) of an object.
+ * Creates a duplicate (clone) of an object
  *
  * @param iLevel : optional number
  *   Use the {@link Object#COPY_ENUM Object.COPY_*}
@@ -303,6 +305,8 @@ var clone = jsx.object.clone = function(iLevel, oSource) {
 };
 
 /**
+ * Returns the name of an unused property for an object.
+ * 
  * @param o : Object
  * @param iLength : number
  *   Maximum property name length up to which an unused name
@@ -591,8 +595,8 @@ function getFeature(o)
 }
 
 /**
- * Implements the instanceof operator of JavaScript 1.5
- * down to JavaScript 1.1 for <strong>one</strong> inheritance level.
+ * Emulates the <code>instanceof</code> operator (JavaScript 1.5) compatible to JavaScript 1.1
+ * for <strong>one</strong> inheritance level.
  * Example:
  * <pre><code>
  *   var o = new Object();
@@ -629,8 +633,7 @@ var isInstanceOf = jsx.object.isInstanceOf = function(a, Prototype) {
 };
 
 /**
- * Determines whether an object is, or several objects are,
- * likely to be callable.
+ * Determines whether an object is, or several objects are, likely to be callable
  * 
  * @author (C) 2003-2009  Thomas Lahn &lt;object.js@PointedEars.de&gt;
  * @param o : Object
@@ -668,20 +671,20 @@ var isMethod = jsx.object.isMethod = jsx.object.areMethods = (function() {
     var len = arguments.length;
     if (len < 1)
     {
-      jsx.throwThis(jsx.InvalidArgumentError,
+      jsx.throwThis("jsx.InvalidArgumentError",
         ["Not enough arguments", "saw 0", "(o : Object[, p : string])"]);
       return false;
     }
   
     var t = typeof o;
   
-    /* When no property names are provided, test if the object is a method */
+    /* When no property names are provided, test if the object is a method; */
     if (len < 2)
     {
       return rxUnknown.test(t) || rxMethod.test(t) && o && true || false;
     }
     
-    /* Otherwise the first argument must refer to a suitable object */
+    /* otherwise the first argument must refer to a suitable object */
     if (rxUnknown.test(t) || !o) return false;
       
     /*
@@ -732,7 +735,7 @@ var isMethod = jsx.object.isMethod = jsx.object.areMethods = (function() {
         
         /*
          * NOTE: Test for "unknown" required in any case;
-         * evaluation order speeds up evaluation
+         * this order speeds up evaluation
          */
         if (rxUnknown.test(t) || (rxMethod.test(t) && o[p]))
         {
@@ -762,6 +765,8 @@ var isMethod = jsx.object.isMethod = jsx.object.areMethods = (function() {
 isMethod.evalStrings = false;
 
 /**
+ * Determines if the passed value could be the result of <code>typeof <var>callable</var></code>
+ * 
  * NOTE: This method has previously been provided by {@link types.js};
  * optimizations in code reuse moved it here.
  *
@@ -789,6 +794,8 @@ var isMethodType = jsx.object.isMethodType = function(s) {
 };
 
 /**
+ * Determines if an object has a (non-inherited) property
+ * 
  * @param o : optional Object
  *   Object which property should be checked for existence.
  * @param p : string
@@ -810,7 +817,7 @@ var _hasOwnProperty = jsx.object._hasOwnProperty = function(o, p) {
 };
 
 /**
- * Retrieves the value of a property.
+ * Retrieves the value of a property of an object
  * 
  * @param o : Object
  * @param sProperty : string
@@ -830,7 +837,7 @@ jsx.object.getProperty = function(o, sProperty, aDefault) {
   /* default value not passed */
   if (arguments.length < 3)
   {
-    jsx.throwThis(this.PropertyError, sProperty);
+    jsx.throwThis("jsx.object.PropertyError", sProperty);
   }
 
   return aDefault;
@@ -1147,6 +1154,8 @@ jsx.object.addProperties(
   Array.prototype);
   
 /**
+ * General exception
+ * 
  * @param sMsg : string
  */
 var Exception = jsx.Error = (
@@ -1198,6 +1207,8 @@ jsx.InvalidArgumentError = (
 });
 
 /**
+ * Object-related exception
+ * 
  * @param s
  * @extends jsx.Error
  */
@@ -1210,6 +1221,8 @@ jsx.object.ObjectError = (
 });
 
 /**
+ * Property-related exception
+ * 
  * @param s
  * @extends jsx.object.ObjectError
  */
