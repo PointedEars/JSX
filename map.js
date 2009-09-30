@@ -1,14 +1,14 @@
 /**
  * Thread-unsafe map implementations
  *
- * @version 2009-05-23
+ * @version 2009-09-30
  * @author (c) 2009  Thomas 'PointedEars' Lahn &lt;cljs@PointedEars.de&gt;
  * @requires de.pointedears.jsx.object.js
  */
 
 /**
- * An object that maps keys to values.  A map cannot contain duplicate keys;
- * each key can map to at most one value.
+ * An object that maps keys to values.
+ * A map cannot contain duplicate keys; each key can map to at most one value.
  */
 var Map = (function() {
   /**
@@ -107,8 +107,8 @@ var Map = (function() {
      */
     
     /**
-     * Gets the maximum alias property name length for further storage
-     * and retrieval operations.  The default is 255.
+     * Gets the maximum alias property name length
+     * for further storage and retrieval operations.  The default is 255.
      *
      * @return boolean
      *   <code>true</code> if successful, <code>false</code> otherwise.
@@ -120,8 +120,8 @@ var Map = (function() {
     };
       
     /**
-     * Sets the maximum alias property name length for further storage and
-     * retrieval operations.
+     * Sets the maximum alias property name length
+     * for further storage and retrieval operations.
      *
      * @param len : number
      *   Integer greater than 0 to define the maximum alias property name
@@ -141,7 +141,7 @@ var Map = (function() {
     };
       
     /**
-     * Returns the number of key-value mappings in this map.
+     * Returns the number of key-value mappings in this map
      *
      * @return number
      *   The number of key-value mappings in this map
@@ -152,7 +152,7 @@ var Map = (function() {
     };
     
     /**
-     * Returns <code>true</code> if this map contains no key-value mappings.
+     * Returns <code>true</code> if this map contains no key-value mappings
      *
      * @return boolean
      *   <code>true</code> if this map contains no key-value mappings
@@ -163,7 +163,7 @@ var Map = (function() {
     };
   
     /**
-     * Returns the value to which the specified key is mapped in this map.
+     * Returns the value to which the specified key is mapped in this map
      *
      * @param key
      * @param defaultValue
@@ -185,8 +185,7 @@ var Map = (function() {
     };
     
     /**
-     * Returns <code>true</code> if this map contains a mapping
-     * for the specified key.
+     * Returns <code>true</code> if this map contains a mapping for the specified key
      *
      * @param key
      * @return boolean
@@ -197,7 +196,7 @@ var Map = (function() {
     };
     
     /**
-     * Associates the specified value with the specified key in this map.
+     * Associates the specified value with the specified key in this map
      *
      * @param key
      * @param value
@@ -247,7 +246,7 @@ var Map = (function() {
     if (arguments.length > 0) this.putAll(m);
   
     /**
-     * Removes the mapping for the specified key from this map if present.
+     * Removes the mapping for the specified key from this map if present
      *
      * @param key
      *   Key whose mapping is to be removed from the map
@@ -285,8 +284,7 @@ var Map = (function() {
     };
     
     /**
-     * Returns <code>true</code> if this map maps one or more keys
-     * to the specified value.
+     * Returns <code>true</code> if this map maps one or more keys to the specified value.
      *
      * @param value
      *   Value whose presence in this map is to be tested
@@ -307,8 +305,9 @@ var Map = (function() {
     };
     
     /**
+     * Returns a shallow copy of this map
+     * 
      * @return Map
-     *   A shallow copy of this map
      * @public
      */
     this.clone = function() {
@@ -316,7 +315,7 @@ var Map = (function() {
     };
   
     /**
-     * Returns a list of the keys contained in this map.
+     * Returns a list of the keys contained in this map
      *
      * @return Array
      * @public
@@ -333,7 +332,7 @@ var Map = (function() {
     };
     
     /**
-     * Returns a list of the values contained in this map.
+     * Returns a list of the values contained in this map
      *
      * @return Array
      * @public
@@ -352,9 +351,10 @@ var Map = (function() {
     };
     
     /**
-     * Returns a list of the mappings contained in this map as an
-     * {@link Array} of Arrays of key-value pairs.  The inner Arrays
-     * consist of two elements each, the key and its associated value.
+     * Returns a list of the mappings contained in this map
+     * as an {@link Array} of Arrays of key-value pairs.
+     * The inner Arrays consist of two elements each, the key
+     * and its associated value.
      *
      * @return Array
      * @public
