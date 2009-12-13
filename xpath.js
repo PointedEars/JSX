@@ -29,7 +29,7 @@
  */
 /*
  * Refer xpath.js.diff for changes to the last version,
- * and xpath.htm file for a printable documentation. 
+ * and xpath.htm file for a printable documentation.
  *
  * This document contains JavaScriptDoc. See
  * http://pointedears.de/scripts/JSdoc/
@@ -38,7 +38,7 @@
 
 if (typeof _global == "undefined")
 {
-  var _global = this; 
+  var _global = this;
 }
 
 if (typeof XPathResult == "undefined")
@@ -65,96 +65,98 @@ function XPath() {
   if (this == _global)
   {
     return new XPath();
-  } 
+  }
 }
 
 XPath.prototype = {
   constructor: XPath,
   evaluate:
-  /**
-   * @return Result of the XPath expression
-   * @type number|string|boolean|Array|
-   */
-  function(expression, contextNode, namespaceResolver, resultType, oResult) {
-    var result;
-                 
-    if (isMethod(document, "evaluate"))
-    {
-      result = document.evaluate(expression,
-        contextNode || document,
-        namespaceResolver || this.getDefaultNSResolver(contextNode),
-        /^[0-9]$/.test(resultType) ? resultType : 0,
-        oResult || null);
-
-      if (result)
+    /**
+     * @return Result of the XPath expression
+     * @type number|string|boolean|Array|
+     */
+    function(expression, contextNode, namespaceResolver, resultType, oResult) {
+      var result;
+                   
+      if (isMethod(document, "evaluate"))
       {
-        var found = []; 
+        if (!contextNode) contextNode = document;
         
-        switch (result.resultType)
+        result = document.evaluate(expression,
+          contextNode,
+          namespaceResolver || this.getDefaultNSResolver(contextNode),
+          /^[0-9]$/.test(resultType) ? resultType : 0,
+          oResult || null);
+  
+        if (result)
         {
-          case XPathResult.NUMBER_TYPE:
-            result = typeof result.numberValue != "undefined"
-                    && result.numberValue;
-            break;
-            
-          case XPathResult.STRING_TYPE:
-            result = typeof result.stringValue != "undefined"
-                    && result.stringValue;
-            break;
-            
-          case XPathResult.BOOLEAN_TYPE:
-            result = typeof result.booleanValue != "undefined"
-                    && result.booleanValue;
-            break;
-            
-          case XPathResult.UNORDERED_NODE_ITERATOR_TYPE:
-          case XPathResult.ORDERED_NODE_ITERATOR_TYPE:
-            if (isMethod(result, "iterateNext"))
-            {
-              while ((res = result.iterateNext()))
-              {
-                found.push(res);
-              }
-              
-              result = found;
-            }
-            break;
-            
-          case XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE:
-          case XPathResult.ORDERED_NODE_SNAPSHOT_TYPE:
-            if (typeof result.snapshotLength != "undefined"
-                && isMethod(result, "snapshotItem"))
-            {
-              for (var i = 0, len = result.snapshotLength; i < len; i++)
-              {
-                found.push(result.snapshotItem(i));
-              }
-    
-              result = found;
-            }
-            break;
-            
-          case XPathResult.ANY_UNORDERED_NODE_TYPE:
-          case XPathResult.FIRST_ORDERED_NODE_TYPE:
-            if (typeof result.singleNodeValue != "undefined")
-            {
-              result = result.singleNodeValue;
-            }
-            break;
+          var found = [];
           
-          default:
-            if (typeof throwException == "function")
-            { 
-              jsx.throwException("xpath.InvalidImplementationException");
-            }
-
-            result = null;              
+          switch (result.resultType)
+          {
+            case XPathResult.NUMBER_TYPE:
+              result = typeof result.numberValue != "undefined"
+                      && result.numberValue;
+              break;
+              
+            case XPathResult.STRING_TYPE:
+              result = typeof result.stringValue != "undefined"
+                      && result.stringValue;
+              break;
+              
+            case XPathResult.BOOLEAN_TYPE:
+              result = typeof result.booleanValue != "undefined"
+                      && result.booleanValue;
+              break;
+              
+            case XPathResult.UNORDERED_NODE_ITERATOR_TYPE:
+            case XPathResult.ORDERED_NODE_ITERATOR_TYPE:
+              if (isMethod(result, "iterateNext"))
+              {
+                while ((res = result.iterateNext()))
+                {
+                  found.push(res);
+                }
+                
+                result = found;
+              }
+              break;
+              
+            case XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE:
+            case XPathResult.ORDERED_NODE_SNAPSHOT_TYPE:
+              if (typeof result.snapshotLength != "undefined"
+                  && isMethod(result, "snapshotItem"))
+              {
+                for (var i = 0, len = result.snapshotLength; i < len; i++)
+                {
+                  found.push(result.snapshotItem(i));
+                }
+      
+                result = found;
+              }
+              break;
+              
+            case XPathResult.ANY_UNORDERED_NODE_TYPE:
+            case XPathResult.FIRST_ORDERED_NODE_TYPE:
+              if (typeof result.singleNodeValue != "undefined")
+              {
+                result = result.singleNodeValue;
+              }
+              break;
+            
+            default:
+              if (typeof throwException == "function")
+              {
+                jsx.throwException("xpath.InvalidImplementationException");
+              }
+  
+              result = null;
+          }
         }
       }
-    }
-
-    return result;
-  },
+  
+      return result;
+    },
   
   getDefaultNSResolver:
     /**

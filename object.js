@@ -7,7 +7,7 @@
  *   (C) 2004-2009  Thomas Lahn &lt;object.js@PointedEars.de&gt;
  * 
  * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public Licnse
+ * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2O
  * of the License, or (at your option) any later version.
  *
@@ -161,7 +161,7 @@ var printfire = jsx.dmsg = function(sMsg, sType) {
       if (jsx.tryThis(
             function() {
               ev.initEvent("printfire", false, true);
-              dispatchEvent(ev);
+              document.dispatchEvent(ev);
             }))
       {
         return true;
@@ -576,8 +576,7 @@ var throwException = jsx.throwThis = function(errorType, message, context) {
  * @return mixed
  *   <code>false</code> if <var>o</var> does not have such a feature
  */
-function getFeature(o)
-{
+var getFeature = jsx.object.getFeature = function(o) {
   for (var i = 1, len = arguments.length; i < len; i++)
   {
     var arg = arguments[i];
@@ -592,7 +591,7 @@ function getFeature(o)
   }
   
   return o;
-}
+};
 
 /**
  * Emulates the <code>instanceof</code> operator (JavaScript 1.5) compatible to JavaScript 1.1
@@ -678,7 +677,7 @@ var isMethod = jsx.object.isMethod = jsx.object.areMethods = (function() {
   
     var t = typeof o;
   
-    /* When no property names are provided, test if the object is a method; */
+    /* When no property names are provided, test if the first argument is a method */
     if (len < 2)
     {
       return rxUnknown.test(t) || rxMethod.test(t) && o && true || false;
@@ -714,7 +713,7 @@ var isMethod = jsx.object.isMethod = jsx.object.areMethods = (function() {
       else
       {
         jsx.dmsg(
-          "jsx.object.isMethod: Evaluation of strings requires"
+          "jsx.object.isMethod: '" + o + "': Evaluation of strings requires"
             + " .evalStrings == true",
           "warn");
       }
