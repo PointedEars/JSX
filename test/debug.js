@@ -684,7 +684,7 @@ function synhl(context)
     var
       bUnicode = ("\uFFFF".length == 1),
       sElementType = (
-          "[:A-Z_a-z\\xC0-\xD6\xD8-\xF6\xF8-\xFF[UCS_START]]"
+          "[:A-Z_a-z\xC0-\xD6\xD8-\xF6\xF8-\xFF[UCS_START]]"
           + "[:\\w.\xB7[UCS_START][UCS_NAME]-]*"
         )
         .replace(
