@@ -229,7 +229,7 @@ function DHTML()
           return function(s, i, contextNode) {
             if (!s) s = '*';
             
-            if (typeof i != "number")
+            if (arguments.length > 2 && typeof i != "number")
             {
               var tmp = contextNode;
               contextNode = i;
@@ -257,20 +257,20 @@ function DHTML()
           /* W3C DOM Level 2 Core */
           /**
            * @param s : string
-           * @param i : optional number 
-           * @param contextNode : optional Element 
+           * @param i : optional number
+           * @param contextNode : optional Element
            * @return NodeList|Element|null
            */
           return function(s, i, contextNode) {
             if (!s) s = '*';
             
-            if (typeof i != "number")
+            if (arguments.length > 2 && typeof i != "number")
             {
-              var tmp = contextNode;
-              contextNode = i;
-              i = tmp;
+                var tmp = contextNode;
+                contextNode = i;
+                i = tmp;
             }
-            else if (arguments.length < 3)
+            else
             {
               contextNode = document;
             }
@@ -294,18 +294,18 @@ function DHTML()
         {
           /**
            * @param s : string
-           * @param i : optional number 
-           * @param contextNode : optional Element 
+           * @param i : optional number
+           * @param contextNode : optional Element
            * @return NodeList|Element
            */
           return function(s, i, contextNode) {
-            if (typeof i != "number")
+            if (arguments.length > 2 && typeof i != "number")
             {
               var tmp = contextNode;
               contextNode = i;
               i = tmp;
             }
-            else if (arguments.length < 3)
+            else
             {
               contextNode = document;
             }
@@ -419,7 +419,7 @@ function DHTML()
                 a[a.length] = arguments[i];
               }
               
-              return aDeleted; 
+              return aDeleted;
             };
           }
         }
@@ -489,7 +489,7 @@ function DHTML()
 if (typeof dhtml == "undefined") var dhtml = new Object();
 
 /* imports from object.js */
-dhtml.objectPath = "/scripts/object.js"; 
+dhtml.objectPath = "/scripts/object.js";
 
 if (typeof jsx != "undefined"
     && typeof jsx.object != "undefined"
@@ -510,7 +510,7 @@ else
     }
   }
   else
-  {  
+  {
     console.warn(msg + ", could not load " + dhtml.objectPath);
   }
 }
@@ -580,7 +580,7 @@ jsx.dhtml.write = function(s) {
             
       return true;
     },
-    function() {      
+    function() {
       return jsx.tryThis(
         function() {
           var result2 = false;
@@ -644,7 +644,7 @@ jsx.dhtml.write = function(s) {
 function getElem(sType, sValue, index)
 {
   /**
-   * Calls DHTMLException() for an invalid type. 
+   * Calls DHTMLException() for an invalid type.
    */
   function invalidType()
   {
@@ -916,7 +916,7 @@ DHTML.prototype.setTextContent = setTextContent;
  *
  * @author
  *   (C) 2003, 2008  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
- * @param o 
+ * @param o
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
  * @param sAttrName : string
@@ -958,9 +958,9 @@ DHTML.prototype.camelize = (function() {
   
   if ("x".replace(/x/, function() { return "u"; }) != "u")
   {
-    /* 
+    /*
      * Fix String.prototype.replace(..., Function) for Safari <= 2.0.2;
-     * thanks to kangax <kangax@gmail.com> 
+     * thanks to kangax <kangax@gmail.com>
      */
     var origReplace = String.prototype.replace;
     String.prototype.replace = function(searchValue, replaceValue) {
@@ -1014,7 +1014,7 @@ DHTML.prototype.camelize = (function() {
  *   (C) 2003, 2006  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @param o 
+ * @param o
  * @param sAttrName : string
  *   Name of the attribute for which the value should be set.
  *   Attribute names for which an ECMAScript language binding
@@ -1812,6 +1812,36 @@ function createElement(sTag)
 }
 DHTML.prototype.createElement = createElement;
 
+function html2nodes(s)
+{
+  var m,
+    rx = /(<([^\s>]+)(\s+[^>]*)?>)|([^<]+)/g,
+    node = document.createElement("html");
+
+  while ((m = rx.exec(s)))
+  {
+    if (m[1])
+    {
+      if (m[2].charAt(0) !== "/")
+      {
+        var newNode = document.createElement(m[2]);
+        node.appendChild(newNode);
+        node = newNode;
+      }
+      else
+      {
+        node = node.parentNode;
+      }
+    }
+    else
+    {
+      node.appendChild(document.createTextNode(m[4]));
+    }
+  }
+  
+  return node;
+}
+
 function getFirstChild(o)
 {
   var result = null;
@@ -1974,7 +2004,7 @@ function _addEventListener(o, sEvent, fListener)
         if (oldListener)
         {
           /* We don't want dependencies, so no Array.prototype.push() call */
-          var list = newListener.listenerList;  
+          var list = newListener.listenerList;
           list[list.length] = oldListener;
         }
 
@@ -2143,10 +2173,10 @@ jsx.dhtml.preventDefault = function(e) {
     
   if (typeof e.returnValue != "undefined")
   {
-    e.returnValue = false;                    
+    e.returnValue = false;
   }
   
-  return false;  
+  return false;
 };
 
 /**
@@ -2177,10 +2207,29 @@ jsx.dhtml.preventDefault = function(e) {
  *   HTML 4.01 and XHTML 1.0, absent from XHTML 1.1 and later
  *   versions) to specify the version of the script language.
  *   Unused by default.
+ * @param bReload
+ *   If <code>true</code>Force an already loaded script to be reloaded,
+ *   i.e. another <code>script</code> element with the same URI in the
+ *   <code>src</code> attribute to be added; if <code>false</code>
+ *   (default), the attempt to load a script that has already been loaded
+ *   fails silently.
+ *  @return
+ *    <code>false</code> if the script could not be loaded,
+ *    <code>true</code> otherwise.
  */
-function loadScript(sURI, sType, sLanguage)
+function loadScript(sURI, sType, sLanguage, bReload)
 {
-  var jsx_object = jsx.object;
+  var
+    me = arguments.callee,
+    jsx_object = jsx.object,
+    result = false;
+    
+  if (typeof me.registry != "undefined"
+      && jsx_object.getProperty(me.registry, sURI)
+      && !bReload)
+  {
+    return true;
+  }
 
   var oHead = dhtml.getElemByTagName("head", 0);
   if (!oHead) return false;
@@ -2214,17 +2263,23 @@ function loadScript(sURI, sType, sLanguage)
   if (jsx_object.isMethod(oHead, "appendChild"))
   {
     oHead.appendChild(oScript);
-    return (
+    result = (
       typeof oHead.lastChild != "undefined"
       && oHead.lastChild == oScript);
   }
   else if (jsx_object.isMethod(oHead, "insertAdjacentElement"))
   {
     oHead.insertAdjacentElement("beforeEnd", oScript);
-    return true;
+    result = true;
+  }
+  
+  if (result)
+  {
+    if (typeof me.registry == "undefined") me.registry = new Object();
+    me.registry[sURI] = true;
   }
 
-  return false;
+  return result;
 }
 DHTML.prototype.loadScript = loadScript;
 
