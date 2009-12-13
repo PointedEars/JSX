@@ -684,19 +684,19 @@ function synhl(context)
     var
       bUnicode = ("\uFFFF".length == 1),
       sElementType = (
-          "[:A-Z_a-z\\xC0-\\xD6\\xD8-\\xF6\\xF8-\\xFF[UCS_START]]"
-          + "[:\\w.\\xB7[UCS_START][UCS_NAME]-]*"
+          "[:A-Z_a-z\\xC0-\xD6\xD8-\xF6\xF8-\xFF[UCS_START]]"
+          + "[:\\w.\xB7[UCS_START][UCS_NAME]-]*"
         )
         .replace(
           /\[UCS_START\]/g,
           bUnicode
-            ? "\\u010-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF"
-              + "\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF"
-              + "\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD"
+            ? "\u0010-\u02FF\u0370-\u037D\u037F-\u1FFF"
+              + "\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF"
+              + "\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD"
             : "")
         .replace(
           /\[UCS_NAME\]/,
-          bUnicode ? "\\u0300-\\u036F\\u203F\\u2040" : ""),
+          bUnicode ? "\u0300-\u036F\u203F\u2040" : ""),
       sOptAttr = "(|\\s+[^>]+)",
       reservedWords = [
         "function", "var", "const", "get", "set",
