@@ -219,6 +219,53 @@ function strRegExpEscape(s)
 }
 String.prototype.regExpEscape = strRegExpEscape;
 
+if (typeof jsx != "object") var jsx = {};
+jsx.RegExp = (function() {
+  var
+    rxUnicodeProperty = /\\[pPX]/,
+    jsx_object = jsx.object;
+  
+  function jsxRegExp(sExpression)
+  {
+    var me = arguments.callee;
+    
+    if (sExpression.test(rxUnicodeProperty))
+    {
+      
+    }
+    
+    this.expr = new RegExp(sExpression);
+  }
+  
+  var req = new jsx.HTTPRequest(me.unicodeFilePath, "GET", false,
+    function(x) {
+      jsxRegExp.characterData = {
+        cache: {},
+        
+        getCharacters: function(property) {
+          if (jsx_object.getProperty(this.cache, property, false))
+          {
+            /* .. */
+          }
+          else
+          {
+            // this.cache[property] = [for (line in this.lines)]
+          }
+        }
+      };
+      
+      var lines = x.responseText.split(/\r?\n|\r/);
+      
+      
+      
+      jsxRegExp.characterData.lines = lines;
+    });  
+  req.send();   
+   
+  return jsxRegExp;
+})();
+jsx.RegExp.unicodeFilePath = "UnicodeData.txt";
+
 /* test case */
 //
 //  alert([

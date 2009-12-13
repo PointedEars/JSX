@@ -105,33 +105,33 @@
  * Creates a new HTTPRequest object.
  * 
  * You can set up response listeners per argument (see below), or
- * {@link HTTPRequest.prototype#setResponseListener setResponseListener()},
- * {@link HTTPRequest.prototype#setSuccessListener setSuccessListener()},
- * and {@link HTTPRequest.prototype#setErrorListener setErrorListener()},
- * then call {@link HTTPRequest.prototype#send send()} to submit
+ * {@link jsx.HTTPRequest.prototype#setResponseListener setResponseListener()},
+ * {@link jsx.HTTPRequest.prototype#setSuccessListener setSuccessListener()},
+ * and {@link jsx.HTTPRequest.prototype#setErrorListener setErrorListener()},
+ * then call {@link jsx.HTTPRequest.prototype#send send()} to submit
  * the request.
  * 
  * @param sURL : optional string=document.URL
  *   Request URL.  The default is the URL of the sending resource.
- * @param sMethod : optional string=HTTPRequest.method.GET
- *   Request method.  Use the <code>HTTPRequest.method.GET</code>
+ * @param sMethod : optional string=jsx.HTTPRequest.method.GET
+ *   Request method.  Use the <code>jsx.HTTPRequest.method.GET</code>
  *   (default) and <code>.POST</code> properties to avoid problems
  *   caused by case mismatch, and other typos.
  * @param bAsync : optional boolean=true
  *   Pass <code>true</code> to make an asynchronous request (default),
  *   that is, a request that is processed in the background and does
  *   not interrupt user operation.
- * @param fSuccessListener : optional HTTPResponseListener=null
+ * @param fSuccessListener : optional jsx.HTTPResponseListener=null
  *   The function to handle the response of a successful request
  *   (default: <code>null</code>).
- * @param fErrorListener : optional HTTPResponseListener=null
+ * @param fErrorListener : optional jsx.HTTPResponseListener=null
  *   The function to handle the response of a request that failed
  *   (default: <code>null</code>).
  * @constructor
- * @type HTTPRequest
+ * @type jsx.HTTPRequest
  */
-function HTTPRequest(sURL, sMethod, bAsync, fSuccessListener, fErrorListener)
-{
+
+jsx.HTTPRequest = function(sURL, sMethod, bAsync, fSuccessListener, fErrorListener) {
   /* Enables factory use */
   var me = arguments.callee;
   if (this.constructor !== me)
@@ -146,7 +146,7 @@ function HTTPRequest(sURL, sMethod, bAsync, fSuccessListener, fErrorListener)
   this.setErrorListener(fErrorListener);
   this.setData();
   this.setRequestType();
-}
+};
 
 jsx.object.addProperties(
   {
@@ -225,9 +225,9 @@ jsx.object.addProperties(
       HTTP_VER_NOT_SUPP: 505
     }
   },
-  HTTPRequest);
+  jsx.HTTPRequest);
 
-HTTPRequest.prototype = {
+jsx.HTTPRequest.prototype = {
   constructor: HTTPRequest,
 
   /**
@@ -667,10 +667,9 @@ HTTPRequest.prototype = {
  * @type Function
  * @return A new <code>HTTPResponseListener</code> object
  */
-function HTTPResponseListener(sCode)
-{
+jsx.HTTPResponseListener = function(sCode) {
   return Function("x", sCode || "");
-}
+};
 
 /* Usage: */
 // var x = new HTTPRequest("", HTTPRequest.method.GET, true, processResponse);
