@@ -662,7 +662,6 @@ function uglyfy(s)
  * @param context : Node
  *   Reference to the context node.
  *   The default is the <code>document</code> node.
- * @return Undefined
  * @see types.js#isMethod()
  */
 function synhl(context)
@@ -753,7 +752,7 @@ function synhl(context)
           + "|(&lt;/?" + sElementType + sOptAttr + "&gt;)"
           + "|('(\\\\'|[^'])*'|\"(\\\\\"|[^\"])*\")"
           + "|(&#?[0-9A-Za-z]+;)"
-          + "|([\\{\\}]|\\b(" + reservedWords.join("|") + ")\\b)"
+          + "|([\\{\\}]|\\b(" + reservedWords.join("|") + ")\\b(?!>))"
           + "|\\b(" + identifiers.join("|") + ")\\b"
           + "|([.:\\[\\]\\(\\),;])"
           + "|\\b(0x[0-9A-Fa-f]+|[0-9]+)\\b",
@@ -775,20 +774,23 @@ function synhl(context)
        * @param match : string
        * @return string
        */
-      fReplace = function(match) {
-        for (var i = 0, len = aReplace.length; i < len; i++)
-        {
-          var r = aReplace[i];
+      fReplace = (function() {
+        var len = aReplace.length;
         
-          if (arguments[r[0]])
+        return function(match) {
+          for (var i = len; i--;)
           {
-            match = '<span class="' + r[1] + '">' + match + '<\/span>';
-            break;
+            var r = aReplace[i];
+          
+            if (arguments[r[0]])
+            {
+              return '<span class="' + r[1] + '">' + match + '<\/span>';
+            }
           }
+          
+          return match;
         }
-
-        return match;
-      },
+      })(),
       
       /**
        * @param node : Node
