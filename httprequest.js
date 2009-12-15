@@ -327,7 +327,7 @@ jsx.HTTPRequest.prototype = {
     /* initialization */
     if (typeof this.responseListener == "undefined")
     {
-      this.responseListener = new HTTPResponseListener();
+      this.responseListener = new jsx.HTTPResponseListener();
       return true;
     }
     else if (jsx.object.isMethod(fResponseListener))
@@ -359,9 +359,9 @@ jsx.HTTPRequest.prototype = {
    */
   setSuccessListener: function(fSuccessListener) {
     /* initialization */
-    if (typeof this.responseListener == "undefined")
+    if (typeof this.successListener == "undefined")
     {
-      this.successListener = new HTTPResponseListener();
+      this.successListener = new jsx.HTTPResponseListener();
       return true;
     }
     else if (jsx.object.isMethod(fSuccessListener))
@@ -394,7 +394,7 @@ jsx.HTTPRequest.prototype = {
   setErrorListener: function(fErrorListener) {
     if (typeof this.errorListener == "undefined")
     {
-      this.errorListener = new HTTPResponseListener();
+      this.errorListener = new jsx.HTTPResponseListener();
       return true;
     }
     else if (jsx.object.isMethod(fErrorListener))
@@ -656,7 +656,7 @@ jsx.HTTPRequest.prototype = {
  * 
  * Recommended usage:
  * <pre><code>
- * var f = HTTPResponseListener(
+ * var f = jsx.HTTPResponseListener(
  *   new Array(
  *     'statement;',
  *     'statement;'
