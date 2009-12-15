@@ -1006,7 +1006,8 @@ DHTML.prototype.camelize = (function() {
   else
   {
     var prefix = " ", suffix = "";
-  
+    
+    cache = {};
     cache.get = function(s) {
       return jsx_object.getProperty(this, prefix + s + suffix, false);
     };
