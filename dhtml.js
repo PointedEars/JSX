@@ -999,11 +999,40 @@ DHTML.prototype.camelize = (function() {
     };
   }
   
+  if (typeof Map == "function")
+  {
+    var cache = new Map();
+  }
+  else
+  {
+    var prefix = " ", suffix = "";
+  
+    cache.get = function(s) {
+      return jsx_object.getProperty(this, prefix + s + suffix, false);
+    };
+    
+    cache.put = function(s, v) {
+      this[prefix + s + suffix] = v;
+    };
+  }
+  
+  function f(match, p1)
+  {
+    return p1.toUpperCase();
+  }
+  
   return function(s) {
-    return s.replace(/-([a-z])/gi,
-      function(match, p1) {
-        return p1.toUpperCase();
-      });
+    var p;
+    if ((p = cache.get(s, false)))
+    {
+      return p;
+    }
+    else
+    {
+      var s2 = s.replace(/-([a-z])/gi, f);
+      cache.put(s, s2);
+      return s2;
+    }
   };
 })();
 
