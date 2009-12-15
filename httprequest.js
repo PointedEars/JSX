@@ -228,7 +228,7 @@ jsx.object.addProperties(
   jsx.HTTPRequest);
 
 jsx.HTTPRequest.prototype = {
-  constructor: HTTPRequest,
+  constructor: jsx.HTTPRequest,
 
   /**
    * Method to be called onreadystatechange
