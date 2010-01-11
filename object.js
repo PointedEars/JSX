@@ -118,10 +118,6 @@ Object.COPY_INHERIT   = jsx.object.COPY_INHERIT;
 /**
  * Prints debugging messages to the script console
  * 
- * printfire() implementation for Firebug &lt; 0.4
- * by courtesy of Joe Hewitt, extension creator.
- * {@link http://www.joehewitt.com/software/firebug/}
- *
  * NOTE: This method has previously been provided by
  * {@link debug.js}; optimizations in code reuse
  * moved it here.
@@ -134,7 +130,7 @@ Object.COPY_INHERIT   = jsx.object.COPY_INHERIT;
 var printfire = jsx.dmsg = function(sMsg, sType) {
   var jsx_object = jsx.object;
   
-  /* Firebug 0.4+ */
+  /* Firebug 0.4+ and others */
   if (typeof console != "undefined")
   {
     if (!sType || !jsx_object.isMethod(console, sType) && sType != "log")
@@ -149,33 +145,12 @@ var printfire = jsx.dmsg = function(sMsg, sType) {
     }
   }
   
-  /* Firebug before 0.4 */
-  else if (typeof document != "undefined"
-            && jsx_object.isMethod(document, "createEvent")
-            && jsx_object.isMethod(document, "dispatchEvent"))
-  {
-    printfire.args = [sMsg];
-    var ev = document.createEvent("Events");
-    if (ev)
-    {
-      if (jsx.tryThis(
-            function() {
-              ev.initEvent("printfire", false, true);
-              document.dispatchEvent(ev);
-            }))
-      {
-        return true;
-      }
-    }
-  }
-  
   return false;
 };
 
 /**
  * Adds/replaces properties of an object
  *
- * @prototype method
  * @param oSource : Object
  *   Object specifying the properties to be added/replaced.
  *   The name of each property serves as the name for the
@@ -298,10 +273,8 @@ var clone = jsx.object.clone = function(iLevel, oSource) {
   {
     return jsx.object.inheritFrom(oSource);
   }
-  else
-  {
-    return null;
-  }
+
+  return null;
 };
 
 /**
@@ -467,7 +440,7 @@ var clearErrorHandler = jsx.clearErrorHandler = function () {
  *   Distributed under the GNU GPL v3 and later.
  * @partof JSX:object.js
  */
-var tryThis = jsx.tryThis = function(statements, errorHandlers) {
+var tryThis = jsx.tryThis = (function() {
   /**
    * @param s Value to be stringified
    * @param sIdent Identifier of the value to be stringified
@@ -487,14 +460,16 @@ var tryThis = jsx.tryThis = function(statements, errorHandlers) {
     return s;
   }
   
-  var sStatements = stringify(statements, "statements();");
-  var sErrorHandlers = stringify(errorHandlers, "errorHandlers(e);");
-  
-  var code = 'try {\n  ' + sStatements + '\n}\n'
-           + 'catch (e) {\n  ' + sErrorHandlers + '\n}';
-  
-  return eval(code);
-};
+  return function(statements, errorHandlers) {
+    var sStatements = stringify(statements, "statements();");
+    var sErrorHandlers = stringify(errorHandlers, "errorHandlers(e);");
+    
+    var code = 'try {\n  ' + sStatements + '\n}\n'
+             + 'catch (e) {\n  ' + sErrorHandlers + '\n}';
+    
+    return eval(code);
+  };
+})();
 
 /**
  * Throws a qualified exception, including an execution context hint
@@ -634,6 +609,10 @@ var isInstanceOf = jsx.object.isInstanceOf = function(a, Prototype) {
 /**
  * Determines whether an object is, or several objects are, likely to be callable
  * 
+ * <em>Not thread-safe:</em> calls from different global execution
+ * contexts must use their own object.js include if this method
+ * is used.  See the {@link #isMethod.evalStrings} property below.
+ * 
  * @author (C) 2003-2009  Thomas Lahn &lt;object.js@PointedEars.de&gt;
  * @param o : Object
  *   Reference to the object which should be tested for a method,
@@ -644,10 +623,9 @@ var isInstanceOf = jsx.object.isInstanceOf = function(a, Prototype) {
  *   Use a string argument for each component of the path, e.g.
  *   the argument list <code>(o, "foo", "bar")</code> for testing whether
  *   <code>o.foo.bar</code> is a method.
- *   In addition if the last argument is an Array object reference,
- *   all elements of this array are used for property names.  This
- *   allows for testing several properties of the same object with
- *   one call.
+ *   If the last argument is an Array object reference, all elements of
+ *   this array are used for property names.  This allows for testing several
+ *   properties of the same object with one call.
  * @return boolean
  *   <code>true</code> if all arguments refer to methods,
  *   <code>false</code> otherwise.
@@ -723,12 +701,12 @@ var isMethod = jsx.object.isMethod = jsx.object.areMethods = (function() {
     {
       var
         p = arguments[i],
-        p_is_Array = (i === len - 1 && p != null && typeof p.valueOf() != "string"),
-        origP = p;
+        p_is_Array = (i === len - 1 && p && typeof p.valueOf() != "string"),
+        aProp = p;
       
-      for (var j = (p_is_Array && origP.length || 1); j--;)
+      for (var j = (p_is_Array && aProp.length || 1); j--;)
       {
-        if (p_is_Array) p = origP[j];
+        if (p_is_Array) p = aProp[j];
         
         t = typeof o[p];
         
@@ -809,10 +787,16 @@ var _hasOwnProperty = jsx.object._hasOwnProperty = function(o, p) {
     sProperty = o;
     o = this;
   }
+  
+  var proto;
 
   return (jsx.object.isMethod(o, "hasOwnProperty")
     ? o.hasOwnProperty(p)
-    : (typeof o[p] != "undefined"));
+    : (typeof o[p] != "undefined"
+        && ((typeof o.constructor != "undefind"
+              && (proto = o.constructor.prototype)
+              && typeof proto[p] == "undefined")
+            || (typeof o.constructor == "undefined"))));
 };
 
 /**
@@ -823,7 +807,7 @@ var _hasOwnProperty = jsx.object._hasOwnProperty = function(o, p) {
  * @param aDefault : mixed
  * @return mixed
  * @throw
- *   <code>jsx.object.</code>{@link PropertyError} if the property
+ *   {@link jsx.object#PropertyError} if the property
  *   does not exist or has the <code>undefined</code> value, and
  *   <var>aDefault</var> was not provided
  */
@@ -891,7 +875,7 @@ if (jsx.object.isMethod(this, "eval"))
         }
     
         if (!thisArg) thisArg = jsx.global;
-        var o = new Object(), p = jsx_object.findNewProperty(o);
+        var o = {}, p = jsx_object.findNewProperty(o);
         if (p)
         {
           o[p] = this;
@@ -921,7 +905,7 @@ if (jsx.object.isMethod(this, "eval"))
     
         if (!thisArg) thisArg = jsx.global;
         var
-          o = new Object(),
+          o = {},
           p = jsx.object.findNewProperty(o);
         
         if (p)

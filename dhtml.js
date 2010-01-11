@@ -486,10 +486,10 @@ function DHTML()
 }
 
 /* a more compatible approach */
-if (typeof dhtml == "undefined") var dhtml = new Object();
+if (typeof dom == "undefined") var dom = new Object();
 
 /* imports from object.js */
-dhtml.objectPath = "/scripts/object.js";
+dom.objectPath = "/scripts/object.js";
 
 if (typeof jsx != "undefined"
     && typeof jsx.object != "undefined"
@@ -502,31 +502,32 @@ if (typeof jsx != "undefined"
 else
 {
   var msg = "isMethod() was not defined";
-  if (loadScript(dhtml.objectPath))
+  if (loadScript(dom.objectPath))
   {
     if (typeof console.warn != "undefined")
     {
-      console.warn(msg + ", successfully loaded " + dhtml.objectPath);
+      console.warn(msg + ", successfully loaded " + dom.objectPath);
     }
   }
   else
   {
-    console.warn(msg + ", could not load " + dhtml.objectPath);
+    console.warn(msg + ", could not load " + dom.objectPath);
   }
 }
 
 /* discard previously referred object */
-dhtml = new DHTML();
+var dhtml;
+dom = dhtml = new DHTML();
 
 /* a more compatible approach */
 if (typeof jsx == "undefined") var jsx = new Object();
-jsx.dhtml = dhtml;
+jsx.dom = jsx.dhtml = dom;
 
 /* allows for de.pointedears.jsx.dhtml */
 if (typeof de == "undefined") var de = new Object();
 if (typeof de.pointedears == "undefined") de.pointedears = new Object();
 if (typeof de.pointedears.jsx == "undefined") de.pointedears.jsx = jsx;
-de.pointedears.jsx.dhtml = dhtml;
+de.pointedears.jsx.dom = de.pointedears.jsx.dhtml = dom;
 
 /**
  * Shows an exception alert and allows for
@@ -675,7 +676,7 @@ function getElem(sType, sValue, index)
     case 'id':
     case 'index':
     case 'classname':
-      o = dhtml["getElemBy" + {
+      o = dom["getElemBy" + {
         id:        "Id",
         index:     "Index",
         classname: "ClassName"
@@ -684,7 +685,7 @@ function getElem(sType, sValue, index)
 
     case 'name':
     case 'tagname':
-      o = dhtml["getElemBy" + {
+      o = dom["getElemBy" + {
         name:    "Name",
         tagname: "TagName"
       }[sType]](sValue, index);
@@ -1037,6 +1038,39 @@ DHTML.prototype.camelize = (function() {
   };
 })();
 
+dom.attrMap = {
+  alink: "aLink",
+  accesskey: "accessKey",
+  bgcolor: "bgColor",
+  cellpadding: "cellPadding",
+  cellspacing: "cellSpacing",
+  "char": "ch",
+  charoff: "chOff",
+  "class": "className",
+  codebase: "codeBase",
+  codetype: "codeType",
+  colspan: "colSpan",
+  datetime: "dateTime",
+  frameborder: "frameBorder",
+  "for": "htmlFor",
+  ismap: "isMap",
+  longdesc: "longDesc",
+  maxlength: "maxLength",
+  marginheight: "marginHeight",
+  marginwidth: "marginWidth",
+  nohref: "noHref",
+  noresize: "noResize",
+  noshade: "noShade",
+  nowrap: "noWrap",
+  readonly: "readOnly",
+  rowspan: "rowSpan",
+  tabindex: "tabIndex",
+  usemap: "useMap",
+  valuetype: "valueType",
+  vlink: "vLink"
+};
+
+
 /**
  * Sets the value of an attribute of an HTMLElement object.
  *
@@ -1075,37 +1109,7 @@ function setAttr(o, sAttrName, attrValue)
 
   if (o && sAttrName)
   {
-    var attrMap = {
-      alink: "aLink",
-      accesskey: "accessKey",
-      bgcolor: "bgColor",
-      cellpadding: "cellPadding",
-      cellspacing: "cellSpacing",
-      "char": "ch",
-      charoff: "chOff",
-      "class": "className",
-      codebase: "codeBase",
-      codetype: "codeType",
-      colspan: "colSpan",
-      datetime: "dateTime",
-      frameborder: "frameBorder",
-      "for": "htmlFor",
-      ismap: "isMap",
-      longdesc: "longDesc",
-      maxlength: "maxLength",
-      marginheight: "marginHeight",
-      marginwidth: "marginWidth",
-      nohref: "noHref",
-      noresize: "noResize",
-      noshade: "noShade",
-      nowrap: "noWrap",
-      readonly: "readOnly",
-      rowspan: "rowSpan",
-      tabindex: "tabIndex",
-      usemap: "useMap",
-      valuetype: "valueType",
-      vlink: "vLink"
-    };
+    var attrMap = jsx.dom.attrMap;
 
     /* camel-case specific attribute names */
     if (typeof attrMap[sAttrName] != "undefined")
@@ -1783,6 +1787,139 @@ function disableElements(oForm)
 DHTML.prototype.disableElements = disableElements;
 
 /**
+ * @param f
+ * @return string
+ */
+var serializeForm = (function() {
+  var
+    rxSubmit = /(^|\s)(submit|image)(\s|$)/i,
+    rxSelect = /(^|\s)(select(-one)?|undefined)(\s|$)/i,
+    rxFileReset = /^\s*(file|reset)\s*$/i,
+    rxObject = /^\s*object\s*$/i;
+  
+  return function(f) {
+    /**
+     * @param o
+     */
+    function serializeControl(o)
+    {
+      /* HTML 4.01: Controls that are disabled cannot be successful. */
+      if (o.disabled) return;
+      
+      /*
+       * If a form contains more than one submit button,
+       * only the activated submit button is successful.
+       * (here: the first one)
+       */
+      var isSubmit = rxSubmit.test(o.type);
+      if (!gotSubmit || !isSubmit)
+      {
+        if (isSubmit) gotSubmit = true;
+        
+        /*
+         * For menus, the control name is provided by a SELECT element
+         * and values are provided by OPTION elements. Only selected
+         * options may be successful. When no options are selected,
+         * the control is not successful and neither the name nor any
+         * values are submitted to the server when the form is submitted.
+         */
+        var m = rxSelect.exec(o.type);
+        if (m)
+        {
+          /* select-one */
+          if (m[3])
+          {
+            if (o.selectedIndex > -1)
+            {
+              /*
+               * MSHTML 6 is buggy with <option>foo</option>;
+               * always provide a `value' attribute!
+               */
+              items.add(o.name, o.options[o.selectedIndex].value);
+            }
+          }
+          
+          /* select */
+          else if (m[2])
+          {
+            for (var i = 0, opts = o.options, len = opts && opts.length; i < len; i++)
+            {
+              var opt = opts[i];
+              if (opt.selected)
+              {
+                /*
+                 * MSHTML 6 is buggy with <option>foo</option>;
+                 * always provide a `value' attribute!
+                 */
+                items.add(o.name, opt.value);
+              }
+            }
+          }
+        }
+        
+        /*
+         * All "on" checkboxes may be successful.
+         * For radio buttons that share the same value of the
+         * name attribute, only the "on" radio button may be successful.
+         */
+        else if (!rxFileReset.test(o.type)
+                  && !(rxObject.test(o.tagName) && o.declare)
+                  && !/^\s*(checkbox|radio)\s*$/i.test(o.type)
+                  || o.checked)
+        {
+          items.add(o.name, o.value);
+        }
+      }
+    }
+        
+    var es = getFeature(f, "elements");
+    if (!es) return "";
+
+    var items = [];
+    
+    items.add = function(sName, sValue) {
+      var s = esc(sName) + "=" + esc(sValue);
+      this.push(s);
+    };
+    
+    if (!jsx.object.isMethod(items, "push"))
+    {
+      items.push = function() {
+        for (var i = 0, len = arguments.length; i < len; i++)
+        {
+          this[this.length] = arguments[i];
+        }
+      };
+    }
+    
+    var gotSubmit = false;
+
+    for (var i = 0, len = es.length; i < len; i++)
+    {
+      var e = es[i];
+      
+      /*
+       * Elements with the same name create a NodeList object,
+       * however options of select objects are also indexable in Gecko.
+       */
+      if (typeof e[0] != "undefined" && typeof e.options == "undefined")
+      {
+        for (var j = 0, len2 = e.length; j < len2; j++)
+        {
+          serializeControl(e[j]);
+        }
+      }
+      else
+      {
+        serializeControl(e);
+      }
+    }
+    
+    return items.join("&");
+  };
+})();
+
+/**
  * Creates an element of the type specified, using the
  * <code>document.createElement()</code> method if supported.
  * This method works with MSIE, too, for if JScript is used,
@@ -1871,6 +2008,95 @@ function html2nodes(s)
   
   return node;
 }
+
+dom.HTMLSerializer = (
+  function() {
+  
+  }
+).extend("Object", {
+  serializeToString: (function() {
+    var elemInfo = {
+      'a': {
+        attribs: ["name", "href", "hreflang", "type", "rel", "rev", "charset",
+                  "id", "class", "lang", "title", "style", "shape", "coords",
+                  "onfocus", "onblur", "onclick", "ondblclick", "onmousedown",
+                  "onmouseup", "onmouseover", "onmousemove", "onmouseout",
+                  "onkeypress", "onkeydown", "onkeyup",
+                  "target", "tabindex", "accesskey"]
+      },
+      'area': {
+        empty: false
+      },
+      'base': {
+        empty: false
+      },
+      'basefont': {
+        empty: false
+      },
+      'br': {
+        empty: false
+      },
+      'col': {
+        empty: false
+      },
+      'frame': {
+        empty: false
+      },
+      'hr': {
+        empty: false
+      },
+      'img': {
+        empty: true
+      },
+      'input': {
+        empty: false
+      },
+      'isindex': {
+        empty: false
+      },
+      'link': {
+        empty: false
+      },
+      'meta': {
+        empty: false
+      },
+      'param': {
+        empty: true
+      }
+    };
+    
+    return function(node, bIncludeProprietary) {
+      var me = arguments.callee;
+    
+      if (node.tagName)
+      {
+        var
+          t = node.tagName.toLowerCase(),
+          startTag = "<" + t,
+          content = [],
+          endTag = "";
+        
+        
+        
+        for (var i = 0, c = node.childNodes, len = c && c.length; i < len; i++)
+        {
+          content.push(me(node, bIncludeProprietary));
+        }
+        
+        if (typeof elemInfo[t] != "undefined" && !elemInfo[t].empty)
+        {
+          endTag = "</" + t + ">";
+        }
+        
+        return startTag + content.join("") + endTag;
+      }
+      else
+      {
+        return node.textContent;
+      }
+    };
+  })()
+});
 
 function getFirstChild(o)
 {
@@ -1970,8 +2196,9 @@ function getAbsPos(o)
  *   event-handling code.  Use <code>null</code> to
  *   detach the event listener if, and only if, the
  *   proprietary event handler property is available.
- * @return type boolean
- *   <code>true</code> on success, <code>false</code> otherwise.
+ * @return type Object
+ *   A reference to the added listener on success,
+ *   <code>null</code> otherwise.
  *   Since addEventListener(...) returns no value and throws
  *   no exceptions (what a bad design!), it is considered to be
  *   successful always, while the new value of the proprietary
@@ -1993,13 +2220,16 @@ function _addEventListener(o, sEvent, fListener)
     if (jsx_object.isMethod(o, "addEventListener"))
     {
       o.addEventListener(sEvent, fListener, false);
-      result = true;
+      result = fListener;
     }
-    else if (typeof o[sHandler] != "undefined")
+    else
     {
       /*
        * NOTE:
-       * We don't attempt to use MSHTML's buggy attachEvent() anymore;
+       * No more bogus feature tests here; MSHTML yields `null' for unset
+       * listeners, Gecko yields `undefined'.
+       * 
+       * We also don't attempt to use MSHTML's buggy attachEvent() anymore;
        * thanks to Peter-Paul Koch for insight:
        * http://www.quirksmode.org/blog/archives/2005/08/addevent_consid.html
        */
@@ -2046,16 +2276,9 @@ function _addEventListener(o, sEvent, fListener)
 
       o[sHandler] = oldListener;
 
-      result = (o[sHandler] == oldListener);
-    }
-    else
-    {
-      result = false;
+      result = (o[sHandler] == oldListener) && oldListener || null;
     }
   }
-
-  /* Break the circular reference created by the closure */
-  o = null;
 
   return result;
 }
@@ -2173,7 +2396,7 @@ function _replaceEventListener(o, sEvent, fListener, bUseCapture)
       o.addEventListener(sEvent, fListener, !!bUseCapture);
       result = true;
     }
-    else if (typeof o[sHandler] != "undefined")
+    else
     {
       o[sHandler] = fListener;
       result = (o[sHandler] == fListener);
@@ -2261,7 +2484,7 @@ function loadScript(sURI, sType, sLanguage, bReload)
     return true;
   }
 
-  var oHead = dhtml.getElemByTagName("head", 0);
+  var oHead = dom.getElemByTagName("head", 0);
   if (!oHead) return false;
   
   if (!jsx_object.isMethod(document, "createElement")) return false;
@@ -2395,11 +2618,11 @@ DHTML.prototype.getElementsByTabIndex = getElementsByTabIndex;
 if (jsx.types.isFeature("HTMLDocument", "prototype")
     && !jsx.object.isMethod(HTMLDocument.prototype, "getElementsByTabIndex"))
 {
-  HTMLDocument.prototype.getElementsByTabIndex = dhtml.getElementsByTabIndex;
+  HTMLDocument.prototype.getElementsByTabIndex = dom.getElementsByTabIndex;
 }
 
 if (jsx.types.isFeature("HTMLElement", "prototype")
     && !jsx.object.isMethod(HTMLElement.prototype, "getElementsByTabIndex"))
 {
-  HTMLElement.prototype.getElementsByTabIndex = dhtml.getElementsByTabIndex;
+  HTMLElement.prototype.getElementsByTabIndex = dom.getElementsByTabIndex;
 }
