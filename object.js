@@ -690,9 +690,10 @@ var isMethod = jsx.object.isMethod = jsx.object.areMethods = (function() {
       }
       else
       {
+        var e = new Error();
         jsx.dmsg(
           "jsx.object.isMethod: '" + o + "': Evaluation of strings requires"
-            + " .evalStrings == true",
+            + " .evalStrings == true" + (e && "\n\nStack trace:\n\n" + (e.stack || "N/A")),
           "warn");
       }
     }
