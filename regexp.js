@@ -80,9 +80,11 @@ RegExp.prototype.toString2 = regexp2str;
  */
 function regexp_concat()
 {
-  var aParts = [], start = 0, c;
+  var
+    aParts = [],
+    c = this.constructor;
     
-  if ((c = this.constructor) && c == RegExp)
+  if (c && c == RegExp)
   {
     aParts.push(regexp2str(this));
   }
@@ -91,19 +93,22 @@ function regexp_concat()
     g: false,
     i: false,
     m: false,
+    y: false,
     
     joinSet:
       /**
        * @return string
        */
       function() {
-        var a = [], oDummy = {g: 1, i: 1, m: 1};
+        var
+          a = [],
+          oDummy = {g: 1, i: 1, m: 1, y: 1};
         
-        for (var j in oDummy)
+        for (var flag in oDummy)
         {
-          if (this[j] === true)
+          if (this[flag] === true)
           {
-            a.push(j);
+            a.push(flag);
           }
         }
         
@@ -111,19 +116,17 @@ function regexp_concat()
       }
   };
   
-  for (var i = 0, iArgnum = arguments.length, a; i < iArgnum; i++)
+  for (var i = 0, iArgnum = arguments.length; i < iArgnum; i++)
   {
-    if ((c = (a = arguments[i]).constructor) && c == RegExp)
+    var a = arguments[i];
+    c = a.constructor;
+    if (c && c == RegExp)
     {
       aParts.push(regexp2str(a));
-      if (!oFlags.g && a.global)
-        oFlags.g = true;
-
-      if (!oFlags.i && a.ignoreCase)
-        oFlags.i = true;
-
-      if (!oFlags.m && a.multiline)
-        oFlags.m = true;
+      if (!oFlags.g && a.global)     oFlags.g = true;
+      if (!oFlags.i && a.ignoreCase) oFlags.i = true;
+      if (!oFlags.m && a.multiline)  oFlags.m = true;
+      if (!oFlags.y && a.sticky)     oFlags.y = true;
     }
     else
     {
@@ -162,11 +165,15 @@ function regexp_intersect(pattern2, pattern1)
     s2 = pattern2.source.replace(/^\(?([^)]*)\)?$/, "$1");
 
   /* Register all parts within alternation of this pattern */
-  var a = s.split("|"), o = {};
+  var
+    a = s.split("|"),
+    o = {};
   for (var i = 0, len = a.length; i < len; i++) o[a[i]] = true;
 
   /* Register all parts within alternation of pattern2 */
-  var a2 = s2.split("|"), o2 = {};
+  var
+    a2 = s2.split("|"),
+    o2 = {};
   for (i = 0, len = a2.length; i < len; i++) o2[a2[i]] = true;
 
   /* Compose the new alternation out of common parts */
@@ -202,7 +209,7 @@ RegExp.prototype.intersect = regexp_intersect;
 
 /**
  * Returns an escaped version of the string that can be
- * passed as an argument to {@link #RegExp(string, string)}
+ * passed as an argument to {@link Global#RegExp(string, string)}
  * to match that string.
  * 
  * @param s : string
@@ -259,12 +266,73 @@ jsx.RegExp = (function() {
       
       
       jsxRegExp.characterData.lines = lines;
-    });  
-  req.send();   
+    });
+  req.send();
    
   return jsxRegExp;
 })();
 jsx.RegExp.unicodeFilePath = "UnicodeData.txt";
+
+jsx.RegExp = (function() {
+  var
+    rxEscapes = /\\([ae]|c([A-Z])|[pP]([A-Za-z]|\{([^\}]+)\}))/g,
+    escapeMap = {
+      /* BEL */
+      a: "\\u0007",
+      
+      /* ESC */
+      e: "\\u001B"
+    },
+    unicodeMap = {
+      Letter: "A-Za-z"
+    },
+    shortcutMap = [
+      ["L", "Letter"]
+    ];
+  
+  for (var i = shortcutMap.length; i--;)
+  {
+    var pair = shortcutMap[i];
+    unicodeMap[pair[0]] = unicodeMap[pair[1]];
+  }
+  
+  return function(expression, sFlags) {
+    if (expression && expression.constructor == RegExp) return expression;
+    if (typeof expression != "string") jsx.throwThis("TypeError");
+    
+    expression = expression.replace(rxEscapes,
+      function(m, p1, p2, p3) {
+        var result = m;
+        
+        switch (p1)
+        {
+          case "a":
+          case "e":
+            result = escapeMap[p1];
+            break;
+                      
+          case "p":
+          case "P":
+            result = unicodeMap[p1] || unicodeMap[p4];
+            
+            if (p1 === "P")
+            {
+              result = "^" + result;
+            }
+            
+            result = "[" + result + "]";
+            break;
+            
+          default:
+            result = "\\u00" + (p2.charCodeAt(0) - 64).toString(16);
+        }
+        
+        return result;
+      });
+    
+    return new RegExp(expression, sFlags);
+  };
+})();
 
 /* test case */
 //
