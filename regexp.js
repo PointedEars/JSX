@@ -238,36 +238,33 @@ jsx.RegExp = (function() {
     
     if (sExpression.test(rxUnicodeProperty))
     {
-      
-    }
+      var req = new jsx.HTTPRequest(me.unicodeFilePath, "GET", false,
+        function(x) {
+          jsxRegExp.characterData = {
+            cache: {},
+            
+            getCharacters: function(property) {
+              if (jsx_object.getProperty(this.cache, property, false))
+              {
+                /* .. */
+              }
+              else
+              {
+                // this.cache[property] = [for (line in this.lines)]
+              }
+            }
+          };
+          
+          var lines = x.responseText.split(/\r?\n|\r/);
+          
+          jsxRegExp.characterData.lines = lines;
+        });
+      req.send();
+
+      this.expr = new RegExp(sExpression);
     
-    this.expr = new RegExp(sExpression);
+    }
   }
-  
-  var req = new jsx.HTTPRequest(me.unicodeFilePath, "GET", false,
-    function(x) {
-      jsxRegExp.characterData = {
-        cache: {},
-        
-        getCharacters: function(property) {
-          if (jsx_object.getProperty(this.cache, property, false))
-          {
-            /* .. */
-          }
-          else
-          {
-            // this.cache[property] = [for (line in this.lines)]
-          }
-        }
-      };
-      
-      var lines = x.responseText.split(/\r?\n|\r/);
-      
-      
-      
-      jsxRegExp.characterData.lines = lines;
-    });
-  req.send();
    
   return jsxRegExp;
 })();

@@ -53,7 +53,7 @@ Object.email     = jsx.object.email;
 Object.path      = jsx.object.path;
 // Object.docURL = jsx.object.docURL;
 
-/* allows de.pointedears.jsx.object */
+/* allows for de.pointedears.jsx.object */
 if (typeof de == "undefined") var de = {};
 if (typeof de.pointedears == "undefined") de.pointedears = {};
 de.pointedears.jsx = jsx;
