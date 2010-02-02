@@ -1,31 +1,19 @@
 /**
  * <title>PointedEars' JSX: String Library</title>
- */
-if (typeof String == "undefined")
-{
-  var String = new Object();
-}
-/** @version */ String.version = "1.29.7.2008062500";
-/**
- * @filename string.js
+ * @file string.js
+ *
  * @partof   PointedEars' JavaScript Extensions (JSX)
  * @requires object.js
  *
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2001-2008  Thomas Lahn &lt;string.js@PointedEars.de&gt;
+ *   (C) 2001-2010  Thomas Lahn &lt;string.js@PointedEars.de&gt;
  * @author
  *   Parts Copyright (C) 2003<br>
  *   Dietmar Meier &lt;meier@innoline-systemtechnik.de&gt;<br>
  *   Martin Honnen &lt;Martin.Honnen@gmx.de&gt;
- */
-String.copyright = "Copyright \xA9 1999-2008";
-String.author    = "Thomas Lahn";
-String.email     = "string.js@PointedEars.de";
-String.path      = "http://pointedears.de/scripts/";
-//String.docURL    = stringPath + "string.htm";
-/**
+ * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -45,6 +33,37 @@ String.path      = "http://pointedears.de/scripts/";
  */
 
 /* Refer string.htm file for general documentation. */
+
+if (typeof jsx == "undefined") var jsx = {};
+
+jsx.string = {
+  /** @version */
+  version:   "1.29.8.2010013105",
+  copyright: "Copyright \xA9 1999-2010",
+  author:    "Thomas Lahn",
+  email:     "string.js@PointedEars.de",
+  path:      "http://pointedears.de/scripts/"
+};
+
+// jsx.string.docURL = jsx.string.path + "string.htm";
+
+if (typeof String == "undefined")
+{
+  var String = new Object();
+}
+
+/** @deprecated since 1.29.8.2010013105, see jsx.string */
+String.version   = jsx.string.version;
+String.copyright = jsx.string.copyright;
+String.author    = jsx.string.author;
+String.email     = jsx.string.email;
+String.path      = jsx.string.path;
+// String.docURL = jsx.string.docURL;
+
+/* allows for de.pointedears.jsx.string */
+if (typeof de == "undefined") var de = {};
+if (typeof de.pointedears == "undefined") de.pointedears = {};
+de.pointedears.jsx = jsx;
 
 /**
  * Non-breaking space
@@ -455,8 +474,8 @@ if (typeof Number.prototype.toUnsigned == "undefined")
  * @param sFormat
  * @return string
  */
-function format(sFormat)
-{
+var sprintf,
+format = sprintf = jsx.string.format = jsx.string.sprintf = function(sFormat) {
   var args = arguments;
   var i = 1;
   
@@ -472,33 +491,17 @@ function format(sFormat)
       + "(\\.([+-]?\\d+|(\\*((\\d+)\\$)?))?)?"
       
       /* member delimiter */
-      + "([ ,]+)?"
+      + "(,)?"
       
       /* conversion */
-      + "([%diouxXeEfFgGaAcsCSpn])",
+      + "([%aAbdiouxXeEfFgGcsCSpn])",
       
       /* global replace */
       "g"),
       
-      /**
-       * @param m
-       * @param flags
-       * @param fieldWidth
-       * @param argFieldWidth
-       * @param p4
-       * @param uFieldWidthArg
-       * @param p6
-       * @param precision
-       * @param argPrecision
-       * @param p9
-       * @param uPrecisionArg
-       * @param memberDelim
-       * @param convSpecifier
-       * @return string
-       */
     function(m, flags, fieldWidth, argFieldWidth, p4, uFieldWidthArg, p6,
-             precision, argPrecision, p9, uPrecisionArg, memberDelim,
-             convSpecifier) {
+              precision, argPrecision, p9, uPrecisionArg, memberDelim,
+              convSpecifier) {
       var v = args[i];
       
       switch (convSpecifier)
@@ -507,31 +510,68 @@ function format(sFormat)
           v = "%";
           i--;
           break;
-
-        case "c":
-        case "C":
-        case "s":
-        case "S":
-          v = String(v);
           
-          if (/c/i.test(convSpecifier))
+        case "A":
+        case "a":
+          var a = [];
+          
+          for (var j = 0, len = v &&  v.length; j < len; j++)
           {
-            v = v.charAt(0);
+            a.push(v[j]);
           }
+          
+          v = a.join(memberDelim);
           break;
-                    
+        
+        case "b":
         case "d":
-        case "i":
-        case "u":
+        case "o":
         case "x":
         case "X":
+          v = +v;
+          
+          switch (convSpecifier)
+          {
+            case "b": v = v.toString(2);
+            case "o": v = v.toString(8);
+            case "x":
+            case "X":
+              v = v.toString(16);
+              if (convSpecifier === "X") v = v.toUpperCase();
+          }
+          
+          break;
+
+        case "C":
+        case "c":
+        case "S":
+        case "s":
+          if (/c/i.test(convSpecifier))
+          {
+            if (typeof v === "string")
+            {
+              v = v.charAt(0);
+            }
+            else
+            {
+              v = String.fromCharCode(v);
+            }
+          }
+
+          if (/[CS]/.test(convSpecifier))
+          {
+            v = String(v).toUpperCase();
+          }
+          
+          break;
+                    
+        case "i":
+        case "u":
           v = Math.floor(v);
           
-          if (/[ux]/i.test(convSpecifier))
+          if (convSpecifier === "u")
           {
             // see ToUint32()
-            v = +v;
-            
             if (isNaN(v) || v == 0 || Math.abs(v) == Infinity)
             {
               v = 0;
@@ -540,23 +580,18 @@ function format(sFormat)
             {
               v = ((v < 0 ? -1 : 1) * Math.floor(Math.abs(v))) % Math.pow(2, 32);
             }
-  
-            if (/x/i.test(convSpecifier))
-            {
-              v = v.toString(16);
-           
-              if (convSpecifier == "X" && isNaN(v))
-              {
-                v = String(v).toUpperCase();
-              }
-            }
           }
+          
           break;
 
-        case "f":
         case "e":
         case "E":
+        case "f":
+        case "F":
+        case "G":
+        case "g":
           v = +v;
+          
           if (/e/i.test(convSpecifier))
           {
             // TODO
@@ -573,13 +608,14 @@ function format(sFormat)
               v = String(v).toUpperCase();
             }
           }
+          
           break;
       }
       
       i++;
       return v;
     });
-}
+};
 
 /**
  * @version

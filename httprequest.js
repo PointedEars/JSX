@@ -229,7 +229,14 @@ jsx.object.addProperties(
 
 jsx.HTTPRequest.prototype = {
   constructor: jsx.HTTPRequest,
-
+  
+  /**
+   * Cached XHR object
+   * 
+   * @protected
+   */
+  _xhr: null,
+  
   /**
    * Method to be called onreadystatechange
    * 
@@ -482,46 +489,37 @@ jsx.HTTPRequest.prototype = {
   },
 
   /**
-   * Submits the HTTP request.
+   * Returns a reference to an XML HTTP Request object.  Reuses an existing
+   * object if possible (if it has processed the previous request); creates
+   * a new object if necessary;
    * 
-   * @param sData : optional string
-   *   The data to form the request body.  If the request method is "GET",
-   *   this argument is ignored and <code>null</code> is used instead (no body).
-   *   If the request method is "POST", and this value is not provided, the
-   *   value defaults to that of the <code>data</code> property, which is
-   *   the empty string if not set different previously.
-   * @param sURL : optional string
-   *   The request URL.  If not provided, this value defaults to that of the
-   *   <code>URL</code> property, which is the empty string if not set
-   *   different previously.
-   * @param sMethod : optional string
-   *   The request method.  If not provided, this value defaults to that of
-   *   the <code>HTTPRequest.method.GET</code> property, which is "GET".
-   * @param bAsync : optional boolean
-   *   The request is asynchronous if <code>true</code> is passed, synchronous
-   *   if <code>false</code> is passed.  If not provided, this value defaults
-   *   to that of the <code>async</code> property, which is <code>true</code>
-   *   if not set different previously.
-   * @type boolean
-   * @return <code>true</code> if the XHR object could be created
-   *   and <code>IXMLHTTPRequest::send()</code> was successful;
-   *   <code>false</code> otherwise.  Note that "successful" does
-   *   not imply that the server has actually received the message,
-   *   and responded with an OK status code, only that the method
-   *   could be called successfully.
+   * @protected
+   * @type XMLHttpRequest|XMLHTTPRequest|Null
+   * @return
+   *   A reference to an XML HTTP Request object or <code>null</code>,
+   *   if no such object can be created.
    */
-  send: function(sData, sURL, sMethod, bAsync) {
+  _getXHR: function() {
     var
-      result = false,
       jsx_global = jsx.global,
       jsx_object = jsx.object,
-      C = this.constructor,
-      x = null;
+      x = this._xhr;
 
+    /* Reuse existing XHR instance if possible */
+    if (x !== null
+        && x.readyState == this.constructor.readyState.COMPLETED)
+    {
+      return x;
+    }
+          
     /*
+     * Create new XHR instance:
      * Feature detection based on Jim Ley's XML HTTP Request tutorial
      * at <http://jibbering.com/2002/4/httprequest.html>
      */
+
+    /* Initialize to detect failure later */
+    x = null;
 
     /*
      * IE 6+ (JScript allows for conditional compilation; an ordinary comment
@@ -555,92 +553,132 @@ jsx.HTTPRequest.prototype = {
     
     /* IceBrowser */
     if (!x && typeof window != "undefined"
-        && jsx_object.isMethod(window, "createRequest"))
+           && jsx_object.isMethod(window, "createRequest"))
     {
       jsx.tryThis(
         function() { x = window.createRequest(); },
         function() { x = null; });
     }
+
+    /* Update cache if unused */
+    if (x && this._xhr === null) this._xhr = x;
     
-    if (x && jsx_object.isMethod(x, "open"))
-    {
-      /* Assume everything goes smoothly from here */
-      result = true;
-      
-      if (arguments.length < 1) sData = this.data;
-      if (arguments.length < 2) sURL = this.URL;
-
-      if (arguments.length < 3) sMethod = this.method;
-      var bGET = (sMethod == C.method.GET);
-
-      bAsync = (arguments.length > 3) ? !!bAsync : this.async;
-      
-      x.open(
-        sMethod.toUpperCase(),
-        sURL
-          + ((bGET && sData)
-              ? (!/[?&]$/.test(sURL)
-                  ? (sURL.indexOf("?") < 0 ? "?" : "&")
-                  : "")
-                + sData
-              : ""),
-        bAsync);
+    return x;
+  },
   
-      if (jsx_object.isMethod(x, "setRequestHeader"))
-      {
-        /* NOTE: Failure to call this method is _not_ considered a fatal error. */
-        jsx.tryThis(
-          function() {
-            x.setRequestHeader("Content-Type", this.requestType);
-          }
-        );
-      }
-    
-      if (bAsync)
-      {
-        var me = this;
-        x.onreadystatechange = function() {
-          // alert(x.readyState);
-          // alert(x.status);
-          
-          // console.log("readyState = %i, status = %i", x.readyState, x.status);
-          // console.log(C.status.OK_EXPR);
-          
-          if (jsx_object.isMethod(me.responseListener))
-          {
-            me.responseListener(x);
-          }
-          
-          if (x.readyState == C.readyState.COMPLETED)
-          {
-          	x = null;
-          }
-        };
-      }
-      
-      jsx.tryThis(
-        function() { x.send(bGET ? null : (sData || this.data)); },
-        function() { result = false; this.errorListener(x); });
-      
-      if (!bAsync)
-      {
-        if (jsx_object.isMethod(this.responseListener))
-        {
-          this.responseListener(x);
-        }
-          
-        /* Handle stopped servers */
-        jsx.tryThis(
-          function() {
-            if (C.status.OK_EXPR.test(x.status)) {
-              result = true;
-            }
-          }
-        );
+  /**
+   * Submits the HTTP request.
+   * 
+   * @param sData : optional string
+   *   The data to form the request body.  If the request method is "GET",
+   *   this argument is ignored and <code>null</code> is used instead (no body).
+   *   If the request method is "POST", and this value is not provided, the
+   *   value defaults to that of the <code>data</code> property, which is
+   *   the empty string if not set different previously.
+   * @param sURL : optional string
+   *   The request URL.  If not provided, this value defaults to that of the
+   *   <code>URL</code> property, which is the empty string if not set
+   *   different previously.
+   * @param sMethod : optional string
+   *   The request method.  If not provided, this value defaults to that of
+   *   the <code>HTTPRequest.method.GET</code> property, which is "GET".
+   * @param bAsync : optional boolean
+   *   The request is asynchronous if <code>true</code> is passed, synchronous
+   *   if <code>false</code> is passed.  If not provided, this value defaults
+   *   to that of the <code>async</code> property, which is <code>true</code>
+   *   if not set different previously.
+   * @type boolean
+   * @return <code>true</code> if the XHR object could be created
+   *   and <code>IXMLHTTPRequest::send()</code> was successful;
+   *   <code>false</code> otherwise.  Note that "successful" does
+   *   not imply that the server has actually received the message,
+   *   and responded with an OK status code, only that the method
+   *   could be called successfully.
+   */
+  send: function(sData, sURL, sMethod, bAsync) {
+    var
+      jsx_object = jsx.object,
+      C = this.constructor,
+      x = this._getXHR();
 
-        /* TODO: Is this error-prone? */
-        x = null;
+    if (!x || !jsx_object.isMethod(x, "open")) return false;
+    
+    /* Assume everything goes smoothly from here */
+    var result = true;
+    
+    if (arguments.length < 1) sData = this.data;
+    if (arguments.length < 2) sURL = this.URL;
+
+    if (arguments.length < 3) sMethod = this.method;
+    var bGET = (sMethod == C.method.GET);
+
+    bAsync = (arguments.length > 3) ? !!bAsync : this.async;
+    
+    x.open(
+      sMethod.toUpperCase(),
+      sURL
+        + ((bGET && sData)
+            ? (!/[?&]$/.test(sURL)
+                ? (sURL.indexOf("?") < 0 ? "?" : "&")
+                : "")
+              + sData
+            : ""),
+      bAsync);
+
+    if (jsx_object.isMethod(x, "setRequestHeader"))
+    {
+      /* NOTE: Failure to call this method is _not_ considered a fatal error. */
+      jsx.tryThis(
+        function() {
+          x.setRequestHeader("Content-Type", this.requestType);
+        }
+      );
+    }
+  
+    if (bAsync)
+    {
+      var me = this;
+      x.onreadystatechange = function() {
+        // alert(x.readyState);
+        // alert(x.status);
+        
+        // console.log("readyState = %i, status = %i", x.readyState, x.status);
+        // console.log(C.status.OK_EXPR);
+        
+        if (jsx_object.isMethod(me.responseListener))
+        {
+          me.responseListener(x);
+        }
+        
+        if (x.readyState == C.readyState.COMPLETED)
+        {
+        	x = null;
+        }
+      };
+    }
+    
+    jsx.tryThis(
+      function() { x.send(bGET ? null : (sData || this.data)); },
+      function() { result = false; this.errorListener(x); });
+    
+    if (!bAsync)
+    {
+      if (jsx_object.isMethod(this.responseListener))
+      {
+        this.responseListener(x);
       }
+        
+      /* Handle stopped servers */
+      jsx.tryThis(
+        function() {
+          if (C.status.OK_EXPR.test(x.status)) {
+            result = true;
+          }
+        }
+      );
+
+      /* TODO: Is this error-prone? */
+      x = null;
     }
     
     return result;
