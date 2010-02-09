@@ -127,26 +127,51 @@ Object.COPY_INHERIT   = jsx.object.COPY_INHERIT;
  * @param sType : string
  *   Type of the message.  Values include "
  */
-var printfire = jsx.dmsg = function(sMsg, sType) {
-  var jsx_object = jsx.object;
+var printfire = jsx.dmsg = (function() {
+  var
+    jsx_object = jsx.object,
+    msgMap = {
+      data: {
+        info: "INFO",
+        warn: "WARNING",
+        debug: "DEBUG"
+      },
+      
+      getString: function(s) {
+        var data = this.data;
+        
+        if (typeof data[s] != "undefined")
+          return data[s] + ": ";
+        else
+          return "";
+      }
+    };
   
-  /* Firebug 0.4+ and others */
-  if (typeof console != "undefined")
-  {
-    if (!sType || !jsx_object.isMethod(console, sType) && sType != "log")
+  return function(sMsg, sType) {
+    /* Firebug 0.4+ and others */
+    if (typeof console != "undefined")
     {
-      sType = "log";
+      if (!sType || !jsx_object.isMethod(console, sType) && sType != "log")
+      {
+        sMsg = msgMap.getString(sType) + sMsg;
+        sType = "log";
+      }
+      
+      if (jsx_object.isMethod(console, sType))
+      {
+        console[sType].call(console, sMsg);
+        return true;
+      }
+    }
+    else if (typeof opera != "undefined"
+              && jsx_object.isMethod(opera, "postError"))
+    {
+      opera.postError(msgMap.getString(sType) + sMsg);
     }
     
-    if (jsx_object.isMethod(console, sType))
-    {
-      console[sType].call(console, sMsg);
-      return true;
-    }
-  }
-  
-  return false;
-};
+    return false;
+  };
+})();
 
 /**
  * Adds/replaces properties of an object
@@ -191,6 +216,7 @@ var addProperties = jsx.object.addProperties =
     }
   };
 
+
 /**
  * Lets one object inherit from another
  *
@@ -207,6 +233,7 @@ var inheritFrom = jsx.object.inheritFrom = (function() {
     return new Dummy();
   };
 })();
+
 
 /**
  * Creates a duplicate (clone) of an object
@@ -270,9 +297,7 @@ var clone = jsx.object.clone = function(iLevel, oSource) {
     return o2;
   }
   else if (iLevel & jsx.object.COPY_INHERIT)
-  {
     return jsx.object.inheritFrom(oSource);
-  }
 
   return null;
 };
@@ -316,9 +341,7 @@ var findNewProperty = jsx.object.findNewProperty = function(o, iLength) {
     {
       var c = String.fromCharCode(i);
       if (!jsx_object._hasOwnProperty(o, s + c + "_"))
-      {
         return s + c + "_";
-      }
     }
 
     s += "a";
@@ -382,6 +405,7 @@ var clearErrorHandler = jsx.clearErrorHandler = function () {
 
   return true;
 };
+
 
 /**
  * Wrapper for a safer <code>try</code>...<code>catch</code>.
@@ -471,6 +495,7 @@ var tryThis = jsx.tryThis = (function() {
   };
 })();
 
+
 /**
  * Throws a qualified exception, including an execution context hint
  * if provided, followed by an error message.
@@ -544,6 +569,7 @@ var throwException = jsx.throwThis = function(errorType, message, context) {
   eval(throwStmt);
 };
 
+
 /**
  * Returns a feature of an object
  * 
@@ -560,9 +586,7 @@ var getFeature = jsx.object.getFeature = function(o) {
       o = o[arg];
     }
     else
-    {
       return false;
-    }
   }
   
   return o;
@@ -605,6 +629,82 @@ var isInstanceOf = jsx.object.isInstanceOf = function(a, Prototype) {
     && typeof a.constructor != "undefined"
     && a.constructor == Prototype);
 };
+
+/**
+ * Gets the stack trace of the calling execution context
+ * 
+ * Based on getStackTrace() from jsUnit 2.2alpha of 2006-03-24
+ * 
+ * @returns
+ * @type String
+ */
+var getStackTrace = jsx.getStackTrace = function() {
+  function parseErrorStack(excp)
+  {
+    var stack = [];
+    var name;
+
+    if (!excp || !excp.stack) return stack;
+
+    var stacklist = excp.stack.split('\n');
+
+    for (var i = 0; i < stacklist.length - 1; i++)
+    {
+        var framedata = stacklist[i];
+
+        name = framedata.match(/^(\w*)/)[1];
+        if (!name) name = 'anonymous';
+
+        stack[stack.length] = name;
+    }
+    
+    /* remove top level anonymous functions to match JScript */
+    while (stack.length && stack[stack.length - 1] == 'anonymous')
+    {
+      stack.length = stack.length - 1;
+    }
+
+    return stack;
+  }
+  
+  function getFunctionName(aFunction)
+  {
+    var regexpResult = String(aFunction).match(/function(\s*)(\w*)/);
+    if (regexpResult && regexpResult.length >= 2 && regexpResult[2])
+      return regexpResult[2];
+    
+    return 'anonymous';
+  }
+
+  var result = '';
+
+  if (typeof arguments.caller != 'undefined')
+  {
+    /* JScript and older JavaScript */
+    for (var a = arguments.caller; a != null; a = a.caller)
+    {
+      result += '> ' + getFunctionName(a.callee) + '\n';
+      if (a.caller == a)
+      {
+        result += '*';
+        break;
+      }
+    }
+  }
+  else
+  {
+    /* other */
+    if (typeof Error !== "function") return result;
+
+    var stack = parseErrorStack(new Error());
+    for (var i = 1; i < stack.length; i++)
+    {
+      result += '> ' + stack[i] + '\n';
+    }
+  }
+
+  return result;
+}
 
 /**
  * Determines whether an object is, or several objects are, likely to be callable
@@ -657,9 +757,7 @@ var isMethod = jsx.object.isMethod = jsx.object.areMethods = (function() {
   
     /* When no property names are provided, test if the first argument is a method */
     if (len < 2)
-    {
       return rxUnknown.test(t) || rxMethod.test(t) && o && true || false;
-    }
     
     /* otherwise the first argument must refer to a suitable object */
     if (rxUnknown.test(t) || !o) return false;
@@ -690,10 +788,11 @@ var isMethod = jsx.object.isMethod = jsx.object.areMethods = (function() {
       }
       else
       {
-        var e = new Error();
+        /* FIXME: Remove bogus entries from stack trace */
         jsx.dmsg(
           "jsx.object.isMethod: '" + o + "': Evaluation of strings requires"
-            + " .evalStrings == true" + (e && "\n\nStack trace:\n\n" + (e.stack || "N/A")),
+            + " .evalStrings == true"
+            + "\n\nStack trace:\n\n" + ((new jsx.Error()).stack || "N/A"),
           "warn");
       }
     }
@@ -724,9 +823,7 @@ var isMethod = jsx.object.isMethod = jsx.object.areMethods = (function() {
           }
         }
         else
-        {
           return false;
-        }
       }
     }
     
@@ -814,9 +911,7 @@ var _hasOwnProperty = jsx.object._hasOwnProperty = function(o, p) {
  */
 jsx.object.getProperty = function(o, sProperty, aDefault) {
   if (typeof o[sProperty] != "undefined")
-  {
     return o[sProperty];
-  }
 
   /* default value not passed */
   if (arguments.length < 3)
@@ -1164,8 +1259,7 @@ var Exception = jsx.Error = (
     
     if (!this.stack && e && e.stack)
     {
-      var stack = String(e.stack).split(/\r?\n|\r/);
-      stack.shift();
+      var stack = String(e.stack).split(/\r?\n|\r/).slice(2);
       this.stack = stack.join("\n");
     }
   }
