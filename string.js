@@ -34,7 +34,7 @@
 
 /* Refer string.htm file for general documentation. */
 
-if (typeof jsx == "undefined") var jsx = {};
+if (typeof jsx === "undefined") var jsx = {};
 
 jsx.string = {
   /** @version */
@@ -47,7 +47,7 @@ jsx.string = {
 
 // jsx.string.docURL = jsx.string.path + "string.htm";
 
-if (typeof String == "undefined")
+if (typeof String === "undefined")
 {
   var String = new Object();
 }
@@ -61,8 +61,8 @@ String.path      = jsx.string.path;
 // String.docURL = jsx.string.docURL;
 
 /* allows for de.pointedears.jsx.string */
-if (typeof de == "undefined") var de = {};
-if (typeof de.pointedears == "undefined") de.pointedears = {};
+if (typeof de === "undefined") var de = {};
+if (typeof de.pointedears === "undefined") de.pointedears = {};
 de.pointedears.jsx = jsx;
 
 /**
@@ -169,7 +169,7 @@ var unesc = (function() {
  * Object literals
  */
 
-if (typeof Number.prototype.toFixed == "undefined")
+if (typeof Number.prototype.toFixed === "undefined")
 {
   /**
    * @param iPrecision
@@ -201,7 +201,7 @@ if (typeof Number.prototype.toFixed == "undefined")
   };
 }
 
-if (typeof Number.prototype.toUnsigned == "undefined")
+if (typeof Number.prototype.toUnsigned === "undefined")
 {
   Number.prototype.toUnsigned =
   /**
@@ -221,9 +221,7 @@ if (typeof Number.prototype.toUnsigned == "undefined")
      */
     var i;
     if (!isNaN(n) || (i = Math.abs(n)) == 0 || i == Infinity)
-    {
       return 0;
-    }
 
     /*
      * 3. Compute sign(Result(1)) * floor(abs(Result(1))).
@@ -476,13 +474,16 @@ if (typeof Number.prototype.toUnsigned == "undefined")
  */
 var sprintf,
 format = sprintf = jsx.string.format = jsx.string.sprintf = function(sFormat) {
-  var args = arguments;
-  var i = 1;
+  var
+    args = arguments,
+    i = 1,
+    jsx_string = jsx.string,
+    ignoredArgs = [];
   
   return String(sFormat).replace(
     new RegExp(
       /* flags */
-      "%([#0+' _-]*)"
+      "%(\\(([^)]*)\\))?([#0+' _-]*)"
       
       /* field width */
       + "([1-9]*\\d+|(\\*((\\d+)\\$)?))?"
@@ -499,10 +500,29 @@ format = sprintf = jsx.string.format = jsx.string.sprintf = function(sFormat) {
       /* global replace */
       "g"),
       
-    function(m, flags, fieldWidth, argFieldWidth, p4, uFieldWidthArg, p6,
-              precision, argPrecision, p9, uPrecisionArg, memberDelim,
-              convSpecifier) {
+    function(m, p1, propertyName, flags,
+              fieldWidth, argFieldWidth, p4, uFieldWidthArg, p6,
+              precision, argPrecision, p9, uPrecisionArg,
+              memberDelim, convSpecifier) {
+      while (ignoredArgs[i]) i++;
+      
+      if (argFieldWidth)
+      {
+        if (!uFieldWidthArg)
+        {
+          uFieldWidthArg = i++;
+        }
+        else
+        {
+          uFieldWidthArg = +uFieldWidthArg;
+        }
+        
+        ignoredArgs[uFieldWidthArg] = true;
+        fieldWidth = args[uFieldWidthArg];
+      }
+
       var v = args[i];
+      if (propertyName) v = v[propertyName];
       
       switch (convSpecifier)
       {
@@ -513,30 +533,31 @@ format = sprintf = jsx.string.format = jsx.string.sprintf = function(sFormat) {
           
         case "A":
         case "a":
-          var a = [];
-          
-          for (var j = 0, len = v &&  v.length; j < len; j++)
-          {
-            a.push(v[j]);
-          }
-          
-          v = a.join(memberDelim);
+          v = Array.prototype.join.call(v, memberDelim);
           break;
         
         case "b":
         case "d":
         case "o":
-        case "x":
         case "X":
+        case "x":
           v = +v;
           
           switch (convSpecifier)
           {
-            case "b": v = v.toString(2);
-            case "o": v = v.toString(8);
+            case "b":
+              v = v.toString(2);
+              break;
+              
+            case "o":
+              v = v.toString(8);
+              if (flags.indexOf("#") > -1 && v.charAt(0) !== "0") v = "0" + v;
+              break;
+              
             case "x":
             case "X":
               v = v.toString(16);
+              if (flags.indexOf("#") > -1 && v !== "0") v = "0x" + v;
               if (convSpecifier === "X") v = v.toUpperCase();
           }
           
@@ -567,21 +588,8 @@ format = sprintf = jsx.string.format = jsx.string.sprintf = function(sFormat) {
                     
         case "i":
         case "u":
-          v = Math.floor(v);
-          
-          if (convSpecifier === "u")
-          {
-            // see ToUint32()
-            if (isNaN(v) || v == 0 || Math.abs(v) == Infinity)
-            {
-              v = 0;
-            }
-            else
-            {
-              v = ((v < 0 ? -1 : 1) * Math.floor(Math.abs(v))) % Math.pow(2, 32);
-            }
-          }
-          
+          v = (+v < 0) ? Math.ceil(v) : Math.floor(v);
+          if (convSpecifier === "u") v >>>= 0;
           break;
 
         case "e":
@@ -590,15 +598,34 @@ format = sprintf = jsx.string.format = jsx.string.sprintf = function(sFormat) {
         case "F":
         case "G":
         case "g":
-          v = +v;
+          v = (+v).toString();
           
           if (/e/i.test(convSpecifier))
           {
-            // TODO
             
+            /* FIXME: ...Exx, xx < 0 */
+            var msdPos = v.match(/[1-9]/);
+            v = v.charAt(msdPos) + "." + v.slice(msdPos + 1).replace(".", "");
+            
+/*
+            var
+              numParts = v.match(/^((\d)(\d*))?(\.(\d+))?(e([+-]\d+))?/i),
+              intPart = numParts[1],
+              intPrefix = numParts[2],
+              intSuffix = parseInt(numParts[3].replace(/0+$/, ""), 10) || 0,
+              fracPart = parseInt(numParts[5], 10) || 0,
+              exponent = numParts[7];
+              decShiftLeft = intPart.length - 1,
+              newExponent = (parseInt(exponent, 10) || 0) + decShiftLeft;
+              
+            if (intSuffix === 0 && fracPart === 0) fracPart = "";
+              
+            v = intPrefix + "." + intSuffix + fracPart
+              + "e" + (newExponent >= 0 ? "+" : "") + newExponent;
+  */
             if (convSpecifier == "E")
             {
-              v = String(v).toUpperCase();
+              v = v.toUpperCase();
             }
           }
           else if (/g/i.test(convSpecifier))
@@ -612,7 +639,13 @@ format = sprintf = jsx.string.format = jsx.string.sprintf = function(sFormat) {
           break;
       }
       
-      i++;
+      fieldWidth = +fieldWidth;
+      if (fieldWidth)
+      {
+        v = jsx_string.pad(v, fieldWidth);
+      }
+      
+      if (!propertyName) i++;
       return v;
     });
 };
@@ -749,9 +782,7 @@ function leadingCaps(s)
   }
 
   if (!s)
-  {
     return "";
-  }
 
   return s.charAt(0).toUpperCase() + s.substr(1).toLowerCase();
 }
@@ -888,14 +919,10 @@ function levenshtein(s, t)
   var m = t.length;
   
   if (n == 0)
-  {
     return m;
-  }
   
   if (m == 0)
-  {
     return n;
-  }
   
   /* matrix */
   var d = new Array();
@@ -987,51 +1014,55 @@ function nl2br(s)
  * @return string
  *   The padded input string so that its length is n.
  */
-function pad(s, n, c, bRight, iStart)
-{
-   var constr;
-   if ((constr = this.constructor) && constr == String
-       && typeof s != "string")
-   {
-     s = this;
-   }
-   
-   if (!n)
-   {
-     n = 1;
-   }
-   
-   if (!c)
-   {
-     c = CH_NBSP;
-   }
+var pad = jsx.string.pad = function(s, n, c, bRight, iStart) {
+  var constr;
+  if ((constr = this.constructor) && constr == String
+      && typeof s != "string")
+  {
+    s = this;
+  }
+  
+  if (!n) n = 1;
+  if (!c) c = CH_NBSP;
+  if (typeof s != "string") s = String(s);
+  if (typeof iStart == "undefined") iStart = s.length;
+  if (n <= iStart) return s;
+  
+  var a = [];
+  var missingLength = n - iStart + 1;
+  
+  if (typeof a.join === "function" && (missingLength < Math.pow(2, 32)))
+  {
+    a.length = missingLength;
+    var rep = a.join(c);
+    if (bRight)
+    {
+      s += rep;
+    }
+    else
+    {
+      s = rep + s;
+    }
+  }
+  else
+  {
+    while (iStart < n)
+    {
+      if (bRight)
+      {
+        s += c;
+      }
+      else
+      {
+        s = c + s;
+      }
+  
+      iStart++;
+    }
+  }
 
-   if (typeof s != "string")
-   {
-     s = String(s);
-   }
-
-   if (typeof iStart == "undefined")
-   {
-     iStart = s.length;
-   }
-   
-   while (iStart < n)
-   {
-     if (bRight)
-     {
-       s += c;
-     }
-     else
-     {
-       s = c + s;
-     }
-
-     iStart++;
-   }
-
-   return s;
-}
+  return s;
+};
 
 /**
  * @param sText
@@ -1077,25 +1108,21 @@ function replaceText(sText, sReplaced, sReplacement, bForceLoop)
     else if (sText.split
              && (a = sText.split(sReplaced))
              && a.join)
-    {
       return a.join(sReplacement);
-    }
-    else
+    
+    var i = sText.indexOf(sReplaced);
+
+    if (i > -1)
     {
-      var i = sText.indexOf(sReplaced);
-
-      if (i > -1)
-      {
-        sNewText = sText.substring(0, i);
-        sNewText += sReplacement
-          + replaceText(
-            sText.substring(i + sReplaced.length),
-            sReplaced,
-            sReplacement);
-      }
-
-      result = sNewText;
+      sNewText = sText.substring(0, i);
+      sNewText += sReplacement
+        + replaceText(
+          sText.substring(i + sReplaced.length),
+          sReplaced,
+          sReplacement);
     }
+
+    result = sNewText;
   }
 
   return result;
@@ -1196,13 +1223,9 @@ function serialize(o, options)
   }
   
   if (a.length > 0)
-  {
     return ["{\n", a.join(",\n"), "\n", indent, "}"].join("");
-  }
-  else
-  {
-    return String(o);
-  }
+
+  return String(o);
 }
 
 /**
@@ -1219,10 +1242,9 @@ function strCount(s, substr, bCaseSensitive)
   var result = 0;
 
   if ((!s && !this.toLowerCase) || !substr)
-  {
     return -1;
-  }
-  else if (s && this.toLowerCase)
+  
+  if (s && this.toLowerCase)
   {
     s = this;
   }
@@ -1240,13 +1262,9 @@ function strCount(s, substr, bCaseSensitive)
     {
       result = s.match(rxSub);
       if (result && result.length)
-      {
         return result.length;
-      }
-      else
-      {
-        return 0;
-      }
+
+      return 0;
     }
   }
   else if (s.substr && substr.length)
