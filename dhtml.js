@@ -108,16 +108,13 @@ function DHTML()
     this.getElemById = this.gEBI = (
       function() {
         if (typeof document == "undefined")
-        {
           return function() {
             return null;
           };
-        }
         
         var jsx_object = jsx.object;
         
         if (jsx_object.isMethod(document, "getElementById"))
-        {
           /**
            * @param s : string
            * @return Element|null
@@ -126,9 +123,7 @@ function DHTML()
             /* wrapper method required to avoid "invalid op. on prototype" exception */
             return document.getElementById(s);
           };
-        }
         else if ((hasDocumentAll = jsx_object.isMethod(document, "all")))
-        {
           /**
            * @param s : string
            * @return Element|null
@@ -136,9 +131,7 @@ function DHTML()
           return function(s) {
             return document.all(s);
           };
-        }
         else
-        {
           /**
            * @param s
            * @return Element|undefined
@@ -146,7 +139,6 @@ function DHTML()
           return function(s) {
             return document[s];
           };
-        }
       }
     )();
 
@@ -167,7 +159,6 @@ function DHTML()
         if (typeof document == "undefined") return dummy;
         
         if (jsx.object.isMethod(document, "getElementsByName"))
-        {
           /* W3C DOM Level 2 HTML */
           return function(s, i) {
             var result = document.getElementsByName(s);
@@ -177,9 +168,7 @@ function DHTML()
             }
             return result;
           };
-        }
         else if (hasDocumentAll)
-        {
           /* IE4 DOM */
           return function(s, i) {
             var result = document.all(s);
@@ -189,9 +178,7 @@ function DHTML()
             }
             return result;
           };
-        }
         else if ((hasDocumentLayers = (typeof document.layers == "object")))
-        {
           /* NN4 DOM */
           return function(s, i) {
             var result = document.layers[s];
@@ -201,7 +188,6 @@ function DHTML()
             }
             return result;
           };
-        }
         
         return dummy;
       }
@@ -218,7 +204,6 @@ function DHTML()
         var jsx_object = jsx.object;
         
         if (jsx_object.isMethod(jsx, "xpath", "evaluate"))
-        {
           /* W3C DOM Level 3 XPath */
           /**
            * @param s : string
@@ -249,11 +234,9 @@ function DHTML()
 
             return result;
           };
-        }
         else if ((hasGetElementsByTagName =
                     typeof document != "undefined"
                     && jsx_object.isMethod(document, "getElementsByTagName")))
-        {
           /* W3C DOM Level 2 Core */
           /**
            * @param s : string
@@ -277,9 +260,7 @@ function DHTML()
             
             if (contextNode != document
                 && !jsx.object.isMethod(contextNode, "getElementsByTagName"))
-            {
               return null;
-            }
             
             var result = contextNode.getElementsByTagName(s);
             if (result && !isNaN(i) && i > -1)
@@ -289,9 +270,7 @@ function DHTML()
             
             return result;
           };
-        }
         else if (hasDocumentAll && isMethod(document.all, "tags"))
-        {
           /**
            * @param s : string
            * @param i : optional number
@@ -312,9 +291,7 @@ function DHTML()
             
             if (contextNode != document
                 && !jsx.object.isMethod(contextNode, "all", "tags"))
-            {
               return null;
-            }
             
             var result = contextNode.all.tags(s);
             if (result && !isNaN(i) && i > -1)
@@ -324,16 +301,13 @@ function DHTML()
             
             return result;
           };
-        }
         else
-        {
           /**
            * @return null
            */
           return function() {
             return null;
           };
-        }
       }
     )();
 
@@ -351,23 +325,17 @@ function DHTML()
         if (typeof document == "undefined") return dummy;
         
         if (hasGetElementsByTagName)
-        {
           return function(i) {
             return (result = document.getElementsByTagName('*')[i]);
           };
-        }
         else if (hasDocumentAll)
-        {
           return function(i) {
             return document.all(i);
           };
-        }
         else if (hasDocumentLayers)
-        {
           return function(i) {
             return document.layers[i];
           };
-        }
 
         return dummy;
       }
@@ -390,19 +358,14 @@ function DHTML()
           var jsx_object = jsx.object;
            
           if (jsx_object.isMethod(jsx.global, "array_splice"))
-          {
             return array_splice;
-          }
           else if (typeof Array != "undefined"
                    && jsx_object.isMethod(Array, "prototype", "splice"))
-          {
             return function(a, start, del, ins) {
               ins = Array.prototype.slice.call(arguments, 3);
               return Array.prototype.splice.apply(a, [start, del].concat(ins));
             };
-          }
           else
-          {
             return function(a, start, del, ins) {
               var aDeleted = new Array();
               
@@ -421,7 +384,6 @@ function DHTML()
               
               return aDeleted;
             };
-          }
         }
       )();
 
@@ -541,9 +503,7 @@ function DHTMLException(sMsg)
 {
   /* Prevent exceptions from "bubbling" on (keyboard) event */
   if (!jsx.dhtml.allowExceptionMsg)
-  {
     return false;
-  }
   
   jsx.dhtml.allowExceptionMsg = false;
 
@@ -986,17 +946,13 @@ DHTML.prototype.camelize = (function() {
         {
           i = this.indexOf(searchValue);
           if (i > -1)
-          {
             return replaceValue(String(searchValue), i, this);
-          }
           
           return this;
         }
       }
       else
-      {
         return origReplace.apply(this, arguments);
-      }
     };
   }
   
@@ -1026,9 +982,7 @@ DHTML.prototype.camelize = (function() {
   return function(s) {
     var p;
     if ((p = cache.get(s, false)))
-    {
       return p;
-    }
     else
     {
       var s2 = s.replace(/-([a-z])/gi, f);
@@ -1209,18 +1163,14 @@ function getStyleProperty(o, sPropertyName)
       }
 
       if (tested || typeof o.style[sPropertyName] != "undefined")
-      {
         return o.style[sPropertyName];
-      }
     }
     else
     {
       if (sPropertyName == "display") sPropertyName = "visibility";
 
       if (typeof o[sPropertyName] != "undefined")
-      {
         return o[sPropertyName];
-      }
     }
   }
 
@@ -2091,9 +2041,7 @@ dom.HTMLSerializer = (
         return startTag + content.join("") + endTag;
       }
       else
-      {
         return node.textContent;
-      }
     };
   })()
 });
@@ -2408,6 +2356,88 @@ function _replaceEventListener(o, sEvent, fListener, bUseCapture)
 DHTML.prototype.replaceEventListener = _replaceEventListener;
 
 /**
+ * Returns a reference to a <code>Function</code> that can be used as event listener.
+ * Differences between DOM implementations are smoothed out as much as
+ * possible (e.g., the first argument of that function will be a reference
+ * to the Event instance regardless if the DOM implementation passes it,
+ * and you can use the <code>target</code> property even though
+ * the DOM implementation supports <code>srcElement</code> instead.)
+ * 
+ * @param f : Callable
+ *   Reference to the object that contains the actual listener code
+ * @return Function
+ */
+function _createEventListener(f)
+{
+  var jsx_object = jsx.object;
+  
+  function listener(e)
+  {
+    if (typeof e == "undefined"
+      && typeof window != "undefined"
+      && typeof window.event != "undefined"
+      && window.event)
+    {
+      e = window.event;
+    }
+
+    /* NOTE: Cannot inherit from Event objects, so values need to be copied */
+    var e2 = {
+      getProperty: function(p) {
+        return e[p];
+      },
+      
+      target: (typeof e.target != "undefined")
+        ? e.target
+        : (typeof e.srcElement != "undefined")
+            ? e.srcElement
+            : null,
+      
+      stopPropagation: (function(e) {
+        if (jsx_object.isMethod(e, "stopPropagation"))
+          return function() {
+            e.stopPropagation();
+          };
+        else if (typeof e.cancelBubble != "undefined")
+          return function() {
+            e.cancelBubble = true;
+          };
+      })(e),
+      
+      preventDefault: (function(e) {
+        if (jsx_object.isMethod(e, "preventDefault"))
+          return function() {
+            return e.preventDefault();
+          };
+        else if (typeof e.returnValue != "undefined")
+          return function() {
+            e.returnValue = false;
+          };
+      })(e),
+      
+      initEvent: (function() {
+        if (jsx_object.isMethod(e, "initEvent"))
+          return function(eventTypeArg, canBubbleArg, cancelableArg) {
+            return e.initEvent(eventTypeArg, canBubbleArg, cancelableArg);
+          };
+        else
+          return function() {};
+      })()
+    };
+
+    return f(e2);
+  }
+  
+  /* Strict W3C DOM Level 2 Events compatibility */
+  listener.handleEvent = function(e) {
+    return this(e);
+  };
+  
+  return listener;
+}
+DHTML.prototype.createEventListener = _createEventListener;
+
+/**
  * Prevents the default action for an event.
  * 
  * @param e : Event
@@ -2448,7 +2478,7 @@ jsx.dhtml.preventDefault = function(e) {
  *       2004       Ulrich Kritzner <droeppez@web.de>
  *
  * @partof http://PointedEars.de/scripts/dhtml.js
- * @requires types.js#isMethod()
+ * @requires jsx.object#isMethod()
  * @param sURI : string
  *   URI of the script resource to be loaded.
  * @param sType : optional string = "text/javascript"
@@ -2480,9 +2510,7 @@ function loadScript(sURI, sType, sLanguage, bReload)
   if (typeof me.registry != "undefined"
       && jsx_object.getProperty(me.registry, sURI)
       && !bReload)
-  {
     return true;
-  }
 
   var oHead = dom.getElemByTagName("head", 0);
   if (!oHead) return false;
