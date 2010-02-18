@@ -531,16 +531,16 @@ format = sprintf = jsx.string.format = jsx.string.sprintf = function(sFormat) {
           i--;
           break;
           
-        case "A":
         case "a":
+        case "A":
           v = Array.prototype.join.call(v, memberDelim);
           break;
         
         case "b":
         case "d":
         case "o":
-        case "X":
         case "x":
+        case "X":
           v = +v;
           
           switch (convSpecifier)
@@ -563,10 +563,10 @@ format = sprintf = jsx.string.format = jsx.string.sprintf = function(sFormat) {
           
           break;
 
-        case "C":
         case "c":
-        case "S":
+        case "C":
         case "s":
+        case "S":
           if (/c/i.test(convSpecifier))
           {
             if (typeof v === "string")
@@ -596,33 +596,45 @@ format = sprintf = jsx.string.format = jsx.string.sprintf = function(sFormat) {
         case "E":
         case "f":
         case "F":
-        case "G":
         case "g":
+        case "G":
           v = (+v).toString();
           
           if (/e/i.test(convSpecifier))
           {
-            
-            /* FIXME: ...Exx, xx < 0 */
-            var msdPos = v.match(/[1-9]/);
-            v = v.charAt(msdPos) + "." + v.slice(msdPos + 1).replace(".", "");
-            
-/*
             var
-              numParts = v.match(/^((\d)(\d*))?(\.(\d+))?(e([+-]\d+))?/i),
-              intPart = numParts[1],
-              intPrefix = numParts[2],
-              intSuffix = parseInt(numParts[3].replace(/0+$/, ""), 10) || 0,
-              fracPart = parseInt(numParts[5], 10) || 0,
-              exponent = numParts[7];
-              decShiftLeft = intPart.length - 1,
-              newExponent = (parseInt(exponent, 10) || 0) + decShiftLeft;
+              numParts  = v.match(/^([+-])?(\d*)(\.(\d*))?(e([+-]\d+))?/i),
+              sign      = numParts[1] || "",
+              sUintPart = numParts[2],
+              uintPart  = sUintPart && parseInt(sUintPart, 10) || 0,
+              fracPart  = numParts[4] || "",
+              exponent  = numParts[6] && parseInt(numParts[6], 10) || 0;
               
-            if (intSuffix === 0 && fracPart === 0) fracPart = "";
-              
-            v = intPrefix + "." + intSuffix + fracPart
-              + "e" + (newExponent >= 0 ? "+" : "") + newExponent;
-  */
+            if (uintPart > 0)
+            {
+              if (uintPart > 9)
+              {
+                /* integer part with two or more digits */
+                exponent += sUintPart.length - 1;
+                fracPart = sUintPart.slice(1) + fracPart;
+                sUintPart = sUintPart.charAt(0);
+              }
+            }
+            else if (fracPart)
+            {
+              /* Integer part must be 0 */
+              var numLeadingZeroes = (fracPart.match(/^0+/) || [""])[0].length;
+
+              sUintPart = fracPart.charAt(numLeadingZeroes);
+              fracPart = fracPart.slice(numLeadingZeroes + 1);
+              exponent -= numLeadingZeroes + 1;
+            }
+            
+            if (!parseInt(fracPart, 10)) fracPart = "0";
+                          
+            v = sign + sUintPart + "." + fracPart
+              + "e" + (exponent >= 0 ? "+" : "") + exponent;
+
             if (convSpecifier == "E")
             {
               v = v.toUpperCase();
@@ -638,11 +650,31 @@ format = sprintf = jsx.string.format = jsx.string.sprintf = function(sFormat) {
           
           break;
       }
-      
+            
       fieldWidth = +fieldWidth;
       if (fieldWidth)
       {
-        v = jsx_string.pad(v, fieldWidth);
+        if (flags.indexOf("0") > -1 && /[bdoxXiueEfFgG]/.test(convSpecifier))
+        {
+          v = String(v);
+          
+          var
+            padCharacter = "0",
+            wasNegative = (v.charAt(0) === "-");
+            
+          if (wasNegative)
+          {
+            v = v.slice(1);
+            fieldWidth--;
+          }
+        }
+
+        v = jsx_string.pad(v, fieldWidth, padCharacter);
+        
+        if (wasNegative)
+        {
+          v = "-" + v;
+        }
       }
       
       if (!propertyName) i++;
