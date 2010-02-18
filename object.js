@@ -62,7 +62,9 @@ if (typeof _global == "undefined")
 {
   /**
    * @var Global
-   * @deprecated since 0.1.5a.2009063012 in favor of {@link jsx.global}
+   * @deprecated
+   *   since 0.1.5a.2009063012 in favor of {@link jsx.global}
+   *   for library references
    */
   var _global = this;
 }
