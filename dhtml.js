@@ -80,9 +80,6 @@
  * for details.
  */
 
-/**
- * @return undefined
- */
 function DHTML()
 {
   this.version   = "0.9.7a.2009070814";
@@ -105,16 +102,19 @@ function DHTML()
      *   the element with the given ID.
      * @type HTMLElement|null
      */
-    this.getElemById = this.gEBI = (
+    this.getElementById = this.getElemById = this.getEBI = this.gEBI = (
       function() {
         if (typeof document == "undefined")
+        {
           return function() {
             return null;
           };
+        }
         
         var jsx_object = jsx.object;
         
         if (jsx_object.isMethod(document, "getElementById"))
+        {
           /**
            * @param s : string
            * @return Element|null
@@ -123,7 +123,9 @@ function DHTML()
             /* wrapper method required to avoid "invalid op. on prototype" exception */
             return document.getElementById(s);
           };
+        }
         else if ((hasDocumentAll = jsx_object.isMethod(document, "all")))
+        {
           /**
            * @param s : string
            * @return Element|null
@@ -131,7 +133,9 @@ function DHTML()
           return function(s) {
             return document.all(s);
           };
+        }
         else
+        {
           /**
            * @param s
            * @return Element|undefined
@@ -139,6 +143,7 @@ function DHTML()
           return function(s) {
             return document[s];
           };
+        }
       }
     )();
 
@@ -156,9 +161,13 @@ function DHTML()
           return null;
         }
         
-        if (typeof document == "undefined") return dummy;
+        if (typeof document == "undefined")
+        {
+          return dummy;
+        }
         
         if (jsx.object.isMethod(document, "getElementsByName"))
+        {
           /* W3C DOM Level 2 HTML */
           return function(s, i) {
             var result = document.getElementsByName(s);
@@ -168,7 +177,9 @@ function DHTML()
             }
             return result;
           };
+        }
         else if (hasDocumentAll)
+        {
           /* IE4 DOM */
           return function(s, i) {
             var result = document.all(s);
@@ -178,7 +189,9 @@ function DHTML()
             }
             return result;
           };
+        }
         else if ((hasDocumentLayers = (typeof document.layers == "object")))
+        {
           /* NN4 DOM */
           return function(s, i) {
             var result = document.layers[s];
@@ -188,6 +201,7 @@ function DHTML()
             }
             return result;
           };
+        }
         
         return dummy;
       }
@@ -204,6 +218,7 @@ function DHTML()
         var jsx_object = jsx.object;
         
         if (jsx_object.isMethod(jsx, "xpath", "evaluate"))
+        {
           /* W3C DOM Level 3 XPath */
           /**
            * @param s : string
@@ -212,7 +227,10 @@ function DHTML()
            * @return XPathResult|null
            */
           return function(s, i, contextNode) {
-            if (!s) s = '*';
+            if (!s)
+            {
+              s = '*';
+            }
             
             if (arguments.length > 2 && typeof i != "number")
             {
@@ -234,9 +252,11 @@ function DHTML()
 
             return result;
           };
+        }
         else if ((hasGetElementsByTagName =
                     typeof document != "undefined"
                     && jsx_object.isMethod(document, "getElementsByTagName")))
+        {
           /* W3C DOM Level 2 Core */
           /**
            * @param s : string
@@ -245,13 +265,16 @@ function DHTML()
            * @return NodeList|Element|null
            */
           return function(s, i, contextNode) {
-            if (!s) s = '*';
+            if (!s)
+            {
+              s = '*';
+            }
             
             if (arguments.length > 2 && typeof i != "number")
             {
-                var tmp = contextNode;
-                contextNode = i;
-                i = tmp;
+              var tmp = contextNode;
+              contextNode = i;
+              i = tmp;
             }
             else
             {
@@ -260,7 +283,9 @@ function DHTML()
             
             if (contextNode != document
                 && !jsx.object.isMethod(contextNode, "getElementsByTagName"))
+            {
               return null;
+            }
             
             var result = contextNode.getElementsByTagName(s);
             if (result && !isNaN(i) && i > -1)
@@ -270,7 +295,9 @@ function DHTML()
             
             return result;
           };
+        }
         else if (hasDocumentAll && isMethod(document.all, "tags"))
+        {
           /**
            * @param s : string
            * @param i : optional number
@@ -291,7 +318,9 @@ function DHTML()
             
             if (contextNode != document
                 && !jsx.object.isMethod(contextNode, "all", "tags"))
+            {
               return null;
+            }
             
             var result = contextNode.all.tags(s);
             if (result && !isNaN(i) && i > -1)
@@ -301,13 +330,16 @@ function DHTML()
             
             return result;
           };
+        }
         else
+        {
           /**
-           * @return null
+           * @return Null
            */
           return function() {
             return null;
           };
+        }
       }
     )();
 
@@ -322,20 +354,29 @@ function DHTML()
           return null;
         }
         
-        if (typeof document == "undefined") return dummy;
+        if (typeof document == "undefined")
+        {
+          return dummy;
+        }
         
         if (hasGetElementsByTagName)
+        {
           return function(i) {
             return (result = document.getElementsByTagName('*')[i]);
           };
+        }
         else if (hasDocumentAll)
+        {
           return function(i) {
             return document.all(i);
           };
+        }
         else if (hasDocumentLayers)
+        {
           return function(i) {
             return document.layers[i];
           };
+        }
 
         return dummy;
       }
@@ -358,14 +399,19 @@ function DHTML()
           var jsx_object = jsx.object;
            
           if (jsx_object.isMethod(jsx.global, "array_splice"))
+          {
             return array_splice;
+          }
           else if (typeof Array != "undefined"
                    && jsx_object.isMethod(Array, "prototype", "splice"))
+          {
             return function(a, start, del, ins) {
               ins = Array.prototype.slice.call(arguments, 3);
               return Array.prototype.splice.apply(a, [start, del].concat(ins));
             };
+          }
           else
+          {
             return function(a, start, del, ins) {
               var aDeleted = new Array();
               
@@ -384,6 +430,7 @@ function DHTML()
               
               return aDeleted;
             };
+          }
         }
       )();
 
@@ -448,7 +495,10 @@ function DHTML()
 }
 
 /* a more compatible approach */
-if (typeof dom == "undefined") var dom = new Object();
+if (typeof dom == "undefined")
+{
+  var dom = new Object();
+}
 
 /* imports from object.js */
 dom.objectPath = "/scripts/object.js";
@@ -478,17 +528,31 @@ else
 }
 
 /* discard previously referred object */
-var dhtml;
-dom = dhtml = new DHTML();
+var dhtml = dom = new DHTML();
 
 /* a more compatible approach */
-if (typeof jsx == "undefined") var jsx = new Object();
+if (typeof jsx == "undefined")
+{
+  var jsx = new Object();
+}
 jsx.dom = jsx.dhtml = dom;
 
 /* allows for de.pointedears.jsx.dhtml */
-if (typeof de == "undefined") var de = new Object();
-if (typeof de.pointedears == "undefined") de.pointedears = new Object();
-if (typeof de.pointedears.jsx == "undefined") de.pointedears.jsx = jsx;
+if (typeof de == "undefined")
+{
+  var de = new Object();
+}
+
+if (typeof de.pointedears == "undefined")
+{
+  de.pointedears = new Object();
+}
+
+if (typeof de.pointedears.jsx == "undefined")
+{
+  de.pointedears.jsx = jsx;
+}
+
 de.pointedears.jsx.dom = de.pointedears.jsx.dhtml = dom;
 
 /**
@@ -503,7 +567,9 @@ function DHTMLException(sMsg)
 {
   /* Prevent exceptions from "bubbling" on (keyboard) event */
   if (!jsx.dhtml.allowExceptionMsg)
+  {
     return false;
+  }
   
   jsx.dhtml.allowExceptionMsg = false;
 
@@ -595,7 +661,7 @@ jsx.dhtml.write = function(s) {
  *   collection. For IDs must be unique throughout a document,
  *   this argument is ignored if <code>sType</code> is "id".
  * @type object
- * @return
+ * @return HTMLElement|HTMLNodeList
  *   A reference to an object if <code>sType</code> is "id", or
  *   if it is "name" or "tagname" and <code>index</code> is
  *   specified; otherwise a collection of objects matching the
@@ -725,7 +791,7 @@ DHTML.prototype.getCont = getCont;
  *   Element which content is to be changed.
  * @param sNodeValue : string
  *   New content of the element.
- * @return
+ * @return boolean
  *   <code>true</code> if successful, <code>false</code>
  *   otherwise.
  */
@@ -946,13 +1012,17 @@ DHTML.prototype.camelize = (function() {
         {
           i = this.indexOf(searchValue);
           if (i > -1)
+          {
             return replaceValue(String(searchValue), i, this);
+          }
           
           return this;
         }
       }
       else
+      {
         return origReplace.apply(this, arguments);
+      }
     };
   }
   
@@ -982,7 +1052,9 @@ DHTML.prototype.camelize = (function() {
   return function(s) {
     var p;
     if ((p = cache.get(s, false)))
+    {
       return p;
+    }
     else
     {
       var s2 = s.replace(/-([a-z])/gi, f);
@@ -1117,6 +1189,110 @@ function setAttr(o, sAttrName, attrValue)
 DHTML.prototype.setAttr = setAttr;
 
 /**
+ * Returns the computed style of an {@link Element} or the
+ * computed value of an <code>Element</code>'s style property.
+ * 
+ * @param o : Element
+ *   Element for which the computed style should be retrieved.
+ * @param sPseudoEl : string
+ *   The name of the pseudo-element, such as ":first-child".
+ *   Use <code>null</code> (default) for the element itself.
+ * @param sProperty : string
+ *   The property name in CSS or script syntax (names are mapped
+ *   automatically according to the feature used).  If not passed
+ *   or empty, the entire computed style is returned.
+ * @return CSSStyleDeclaration | currentStyle | string
+ */
+dom.getComputedStyle = (function () {
+  var
+    hasGCS = jsx.object.isMethod(document, "defaultView", "getComputedStyle"),
+    propertyMap = {
+      "float": hasGCS ? "cssFloat" : "styleFloat"
+    };
+  
+  return function(o, sPseudoEl, sProperty) {
+    if (hasGCS || typeof o.currentStyle != "undefined")
+    {
+      var compStyle = (hasGCS
+        ? document.defaultView.getComputedStyle(o, sPseudoEl || null)
+        : o.currentStyle);
+      
+      return (sProperty
+        ? compStyle[
+            jsx.string.hyphenatedToCamelCase(
+              jsx.object.getProperty(propertyMap, sProperty, sProperty))
+          ]
+        : compStyle);
+    }
+    
+    var emptyResult = {};
+    emptyResult[sProperty] = "";
+    
+    return (sProperty ? emptyResult : null);
+  };
+}());
+
+/**
+ * Adds a CSS class name to the <code>class</code> attribute of
+ * an {@link Element}.
+ * 
+ * @param o : Element
+ * @param sClassName : string
+ * @param bRemove : boolean
+ *   If the class name is already there, and this argument is
+ *   <code>true</code>, all instances of it are removed first.
+ *   If the class is there and this argument is <code>false</code>,
+ *   exit without changing anything.  The default is <code>false</code>,
+ *   which is more efficient.
+ */
+dom.addClassName =
+  function(o, sClassName, bRemove) {
+    var rx = new RegExp("(^\\s*|\\s+)" + sClassName + "(\\s*$|\\s)");
+    
+    if (bRemove)
+    {
+      this.removeClassName(o, sClassName);
+    }
+    else if (rx.test(o.className))
+    {
+      return;
+    }
+    
+    if (sClassName)
+    {
+      if (/\S/.test(o.className))
+      {
+        o.className += " " + sClassName;
+      }
+      else
+      {
+        o.className = sClassName;
+      }
+    }
+  };
+
+/**
+ * Removes all occurences of a CSS class name from the
+ * <code>class</code> attribute of an {@link Element}.
+ * 
+ * @param o : Element
+ * @param sClass : string
+ */
+dom.removeClassName =
+  function(o, sClassName) {
+    var curClassNames = o.className;
+    var newClassNames = curClassNames.replace(
+      new RegExp("(^\\s*|\\s+)" + sClassName + "(\\s*$|(\\s))", "g"),
+      "$3");
+    o.className = newClassNames;
+  
+    if (!newClassNames && jsx.object.isMethod(o, "removeAttribute"))
+    {
+      o.removeAttribute("class");
+    }
+  };
+
+/**
  * Retrieves the value of a style property of an HTMLElement object.
  *
  * @author
@@ -1163,14 +1339,21 @@ function getStyleProperty(o, sPropertyName)
       }
 
       if (tested || typeof o.style[sPropertyName] != "undefined")
+      {
         return o.style[sPropertyName];
+      }
     }
     else
     {
-      if (sPropertyName == "display") sPropertyName = "visibility";
+      if (sPropertyName == "display")
+      {
+        sPropertyName = "visibility";
+      }
 
       if (typeof o[sPropertyName] != "undefined")
+      {
         return o[sPropertyName];
+      }
     }
   }
 
@@ -1754,7 +1937,10 @@ var serializeForm = (function() {
     function serializeControl(o)
     {
       /* HTML 4.01: Controls that are disabled cannot be successful. */
-      if (o.disabled) return;
+      if (o.disabled)
+      {
+        return;
+      }
       
       /*
        * If a form contains more than one submit button,
@@ -1764,7 +1950,10 @@ var serializeForm = (function() {
       var isSubmit = rxSubmit.test(o.type);
       if (!gotSubmit || !isSubmit)
       {
-        if (isSubmit) gotSubmit = true;
+        if (isSubmit)
+        {
+          gotSubmit = true;
+        }
         
         /*
          * For menus, the control name is provided by a SELECT element
@@ -1823,7 +2012,10 @@ var serializeForm = (function() {
     }
         
     var es = getFeature(f, "elements");
-    if (!es) return "";
+    if (!es)
+    {
+      return "";
+    }
 
     var items = [];
     
@@ -2041,7 +2233,9 @@ dom.HTMLSerializer = (
         return startTag + content.join("") + endTag;
       }
       else
+      {
         return node.textContent;
+      }
     };
   })()
 });
@@ -2395,33 +2589,45 @@ function _createEventListener(f)
       
       stopPropagation: (function(e) {
         if (jsx_object.isMethod(e, "stopPropagation"))
+        {
           return function() {
             e.stopPropagation();
           };
+        }
         else if (typeof e.cancelBubble != "undefined")
+        {
           return function() {
             e.cancelBubble = true;
           };
+        }
       })(e),
       
       preventDefault: (function(e) {
         if (jsx_object.isMethod(e, "preventDefault"))
+        {
           return function() {
             return e.preventDefault();
           };
+        }
         else if (typeof e.returnValue != "undefined")
+        {
           return function() {
             e.returnValue = false;
           };
+        }
       })(e),
       
       initEvent: (function() {
         if (jsx_object.isMethod(e, "initEvent"))
+        {
           return function(eventTypeArg, canBubbleArg, cancelableArg) {
             return e.initEvent(eventTypeArg, canBubbleArg, cancelableArg);
           };
+        }
         else
+        {
           return function() {};
+        }
       })()
     };
 
@@ -2447,7 +2653,10 @@ DHTML.prototype.createEventListener = _createEventListener;
  *   method can be used to return a value to the event-handler.
  */
 jsx.dhtml.preventDefault = function(e) {
-  if (!e) return true;
+  if (!e)
+  {
+    return true;
+  }
   
   if (jsx.object.isMethod(e, "preventDefault"))
   {
@@ -2510,15 +2719,26 @@ function loadScript(sURI, sType, sLanguage, bReload)
   if (typeof me.registry != "undefined"
       && jsx_object.getProperty(me.registry, sURI)
       && !bReload)
+  {
     return true;
+  }
 
   var oHead = dom.getElemByTagName("head", 0);
-  if (!oHead) return false;
+  if (!oHead)
+  {
+    return false;
+  }
   
-  if (!jsx_object.isMethod(document, "createElement")) return false;
+  if (!jsx_object.isMethod(document, "createElement"))
+  {
+    return false;
+  }
   
   var oScript = document.createElement("script");
-  if (!oScript) return false;
+  if (!oScript)
+  {
+    return false;
+  }
   
   /* no exception handling for backwards compatibility reasons */
   if (typeof oScript.src != "undefined")
@@ -2556,7 +2776,11 @@ function loadScript(sURI, sType, sLanguage, bReload)
   
   if (result)
   {
-    if (typeof me.registry == "undefined") me.registry = new Object();
+    if (typeof me.registry == "undefined")
+    {
+      me.registry = new Object();
+    }
+    
     me.registry[sURI] = true;
   }
 
