@@ -7,20 +7,34 @@ Options +Indexes
 AddDescription "Creates documentation markup from JSdoc&trade; comments within JavaScript&trade; source code" JSdoc AddDescription "LCARS Extensions" LCARS.js
 AddDescription "ECMAScript Support Matrix" es-matrix
 AddDescription "LCARS Extensions: \"ACCESSING...\"" accessng.js
+AddDescription "Array Library" array.js
 AddDescription "LCARS Extensions: PageBack" back.js
 AddDescription "back.js Documentation" back.txt
-AddDescription "JSX: DHTML Library" dhtml.js
-AddDescription "JSX: Temporary Document Management" document.js
-AddDescription "JSX: Cookie Management" cookie.js
+AddDescription "CSS Library" css.js
+AddDescription "Collection Library" collection.js
+AddDescription "JavaScript Cookie Data Access Prototype" cookie.js
 AddDescription "cookie.js Documentation" cookie.txt
-AddDescription "JSX: Level-1 Enhanced Website Features" enhanced.js
+AddDescription "JavaScript ClosePage Support" close.js
+AddDescription "DOM Library" dhtml.js
+AddDescription "DOM Library (commented)" dhtml-commented.js
+AddDescription "JavaScript Routines and Objects to Create Temporary Documents" document.js
 AddDescription "enhanced.js Documentation" enhanced.htm
-AddDescription "JSX: Level-2 Enhanced Website Features (depends on enhanced.js)" enhancd2.js
+AddDescription "JSX: Level-1 Enhanced Website Features" enhanced.js
 AddDescription "enhancd2.js Documentation" enhancd2.htm
-AddDescription "Extended Math Support" math.js
+AddDescription "JSX: Level-2 Enhanced Website Features (depends on enhanced.js)" enhancd2.js
+AddDescription "Global Object Support Library" global.js
+AddDescription "JSX: Math Library" math.js
+AddDescription "Basic Object Library" object.js
+AddDescription "Basic Object Library (commented)" object-commented.js
 AddDescription "JSX: Support for Outline-styled Structure Using Dynamic HTML Statements" outline.js
-AddDescription "JSX: Search-String Support (depends on types.js)" search.js
+AddDescription "JSX: RegExp Library" regexp.js
 AddDescription "search.js Documentation" search.htm
+AddDescription "JSX: Search-String Library" search.js
+AddDescription "JSX: String Library" string.js
+AddDescription "JSX: String Library (commented)" string-commented.js
 AddDescription "Documentation Global Style-Sheet" style.css
-AddDescription "JSX: Time Data Management" time.js
+AddDescription "JSX: Time Prototypes and Functions" time.js
 AddDescription "time.js Documentation" time.txt
+AddDescription "Type Function Library" types.js
+AddDescription "Window Function Library" window.js
+AddDescription "XPath Library" xpath.js
