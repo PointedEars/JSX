@@ -8,7 +8,7 @@
  * @section Copyright & Disclaimer
  * 
  * @author
- *   (C) 2000-2009  Thomas Lahn &lt;math.js@PointedEars.de&gt;
+ *   (C) 2000-2010  Thomas Lahn &lt;math.js@PointedEars.de&gt;
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -42,7 +42,7 @@ Math.email     = "math.js@PointedEars.de";
 Math.path      = "http://pointedears.de/scripts/";
 // Math.docURL = Math.path + "math.htm";
 
-/* User interface language */ 
+/* User interface language */
 Math.language  = "en";
 
 /** @section Exceptions */
@@ -82,7 +82,7 @@ Math.msgDivByZero = {
  * @param sMessage
  */
 Math.MathError = function(sError, sMessage) {
-  Exception.call(this, 
+  Exception.call(this,
         "math.js Error: "
       + (typeof sError[Math.language] != "undefined"
            ? sError[Math.language]
@@ -150,7 +150,7 @@ Math.Interval = function(aSections, bLeftOpen, bRightOpen) {
   if (isArray(aSections))
   {
     aSections.sort(function(a, b) { return a - b; });
-    this.sections    = aSections    || [0, 1];    
+    this.sections    = aSections    || [0, 1];
     this.leftOpen    = !!bLeftOpen  || false;
     this.rightOpen   = !!bRightOpen || false;
   }
@@ -160,8 +160,9 @@ Math.Interval = function(aSections, bLeftOpen, bRightOpen) {
  * Returns the left border of the interval.
  * 
  * @return mixed
+ *   The left border of the interval
  */
-Math.Interval.prototype.leftBorder = function() {
+Math.Interval.prototype.getLeftBorder = function() {
   return this.sections[0];
 };
 
@@ -169,9 +170,10 @@ Math.Interval.prototype.leftBorder = function() {
  * Returns the right border of the interval.
  * 
  * @return mixed
+ *   The right border of the interval
  */
-Math.Interval.prototype.rightBorder = function() {
-  return this.sections[this.sections.length-1];
+Math.Interval.prototype.getRightBorder = function() {
+  return this.sections[this.sections.length - 1];
 };
 
 /**
@@ -204,7 +206,7 @@ Math.getSubIntervalIndex = function(n, o) {
       {
         var nS = s[start];
         
-        pivot = start + Math.floor((end - start) * (n - nS) / (s[end] - nS)); 
+        pivot = start + Math.floor((end - start) * (n - nS) / (s[end] - nS));
       }
       else
       {
@@ -224,7 +226,7 @@ Math.getSubIntervalIndex = function(n, o) {
         }
         break;
       }
-      else if (n < s[pivot])      
+      else if (n < s[pivot])
       {
         /* continue search left-hand side */
         end = pivot;
@@ -260,10 +262,10 @@ Math.isInInterval = function(n, o) {
     var lo, l, ro, r;
     
     result =
-      (((lo = o.leftOpen) && n > (l = o.leftBorder()))
+      (((lo = o.leftOpen) && n > (l = o.getLeftBorder()))
        || (!lo && n >= l))
       &&
-      (((ro = o.rightOpen) && n < (r = o.rightBorder()))
+      (((ro = o.rightOpen) && n < (r = o.getRightBorder()))
        || (!ro && n <= r));
   }
   
@@ -272,7 +274,7 @@ Math.isInInterval = function(n, o) {
 
 /**
  * @return Array
- */ 
+ */
 Math.getRightOpenIntervals = function() {
   var a = new Array();
   
@@ -302,7 +304,7 @@ Math.getRightOpenIntervals = function() {
  * @param n : number
  * @param a : [Interval]
  * @return number
- *   the index of the first interval in <code>a</code> that contains 
+ *   the index of the first interval in <code>a</code> that contains
  *   <code>n</code>, -1 if there is no (such) interval.
  */
 Math.getIntervalIndex = function(n, a) {
@@ -355,7 +357,7 @@ addProperties(
 Math.gcd = function(a, b) {
   if (isNaN(a) || isNaN(b))
   {
-    return NaN;
+    return Number.NaN;
   }
 
   a = Math.floor(a);
@@ -408,12 +410,12 @@ Math.gcdN = function(a, b) {
  *   <code>0</code> if an argument is <code>0</code>;
  *   <code>NaN</code> if an argument is not a number.
  * @see Math#floor(number)
- * @see #gcd(number, number)
+ * @see Math#gcd(number, number)
  */
 Math.lcm = function(a, b) {
   if (isNaN(a) || isNaN(b))
   {
-    return NaN;
+    return Number.NaN;
   }
     
   if (!a || !b)
@@ -508,6 +510,7 @@ Math.fac = function(n) {
  * @param nBase : number
  * @param iExponent : number
  * @return number
+ *   <var>nBase</var> to the power of <var>iExponent</var>
  */
 Math.powInt = function(nBase, iExponent) {
   var i = iExponent;
@@ -564,10 +567,10 @@ Math.power = function(nBase, nExponent) {
       }
       else
       {
-        result = NaN;
+        result = Number.NaN;
         /* [Exception]<- [Math.MathError] <- [Math.InvalidArgumentError] */
         throwException(new Math.InvalidArgumentError(
-          "power(" + nBase + ", " + nExponent + ")")); 
+          "power(" + nBase + ", " + nExponent + ")"));
       }
     }
     else if (nBase == 0 && nExponent == 0)
@@ -612,7 +615,8 @@ Math.log2 = function(x) {
  *
  * @author (c) 2000  Thomas Lahn &lt;math.js@PointedEars.de&gt;
  * @param x : number
- * @return type number
+ * @return number
+ *   The logarithm of <var>x</var> to the base 10
  */
 Math.log10 = function(x) {
   return Math.logN(x, 10);
@@ -674,7 +678,7 @@ Math.minN = function() {
   return result;
 };
 
-/** 
+/**
  * @return the maximum value passed by its arguments.
  * If an argument is an object (incl. Array objects),
  * the values of its enumerable properties are also
@@ -763,8 +767,9 @@ Math.avgN = function() {
  * @param iRoot : optional number = 2
  *   Root exponent. If not integer, the floor (largest integer
  *   less than the argument) of <code>iRoot</code> is used.
- * @return type number
- */ 
+ * @return number
+ *   The <var>iRoot</var>-th root of <var>n</var>
+ */
 Math.root = function(n, iRoot) {
   return (iRoot % 2 && n < 0 ? -1 : +1)
          * Math.pow(Math.abs(n), 1/Math.floor(iRoot));
@@ -772,17 +777,15 @@ Math.root = function(n, iRoot) {
 
 /**
  * @param n : number
- * @return
- *   The square value of <code>n</code>, i.e.
- *   <code>Math.pow(n, 2)</code>.
- * @type Number
+ * @return number
+ *   <var>n</var> squared, i.e. <code>Math.pow(n, 2)</code>.
  * @author (c) 2003  Thomas Lahn &lt;math.js@PointedEars.de&gt;
- */ 
+ */
 Math.sqr = function(n) {
   return Math.pow(n, 2);
 };
 
-/** 
+/**
  * @param n : number
  * @return type number
  *   The cubic value of <code>n</code>, i.e.
@@ -800,7 +803,7 @@ Math.cub = function(n) {
  *   <code>Math.pow(n, 1/3)</code>, but also works
  *   with negative values of <code>n</code>.
  * @author (c) 2000  Thomas Lahn &lt;math.js@PointedEars.de&gt;
- */ 
+ */
 Math.cubrt = function(n) {
   return root(n, 3);
 };
@@ -815,18 +818,21 @@ Math.cubrt = function(n) {
  */
 
 /**
- * @param x 
- * @param n 
+ * @param x
+ * @param n
  * @return string
  * @deprecated
  */
 function roundDigits_deprecated(x, n) {
-  if (n < 1 || n > 14) return false;
-    /* Impossible to round left to point;
-       Returns non-numeric value if invalid number of digits
-       which causes further calculations to fail (NaN) although
-       they could succeed 
-    */
+  if (n < 1 || n > 14)
+  {
+    return false;
+      /* Impossible to round left to point;
+         Returns non-numeric value if invalid number of digits
+         which causes further calculations to fail (NaN) although
+         they could succeed
+      */
+  }
   
   var e = Math.pow(10, n);
 
@@ -836,11 +842,11 @@ function roundDigits_deprecated(x, n) {
        Use the String(...) function instead.
     */
   
-  if (k.indexOf('.') == -1) k += '.';
+  if (k.indexOf('.') == -1){k += '.';
     /* Sometimes it is not desired to have the decimal point
-       when dealing with integers. The function does not allow 
+       when dealing with integers. The function does not allow
        output without point. A further argument is required.
-    */
+    */}
 
   k += e.toString().substring(1);
     /* See above: Do not use Numeric.toString(...) method.
@@ -877,8 +883,10 @@ function roundDigits_deprecated(x, n) {
  *   is used instead of comma (",") and vice-versa.
  *   Optional. If not provided, use default decimal
  *   separator. If provided, the result is a String value.
- * @return number
- */ 
+ * @return number|string
+ *   <var>n</var> rounded to the number of specified digits, optionally
+ *   with leading zeroes.
+ */
 Math.roundDigits = function(n, iSigDecimals, iForceDecimals,
                             bForceLeadingZero, sDecSeparator)
 {
@@ -925,7 +933,7 @@ Math.roundDigits = function(n, iSigDecimals, iForceDecimals,
       k += ".";
     }
     
-    for (i = k.substr(k.indexOf(".") + 1).length;
+    for (i = k.slice(k.indexOf(".") + 1).length;
          i < iForceDecimals;
          i++)
     {
@@ -949,7 +957,7 @@ Math.roundDigits = function(n, iSigDecimals, iForceDecimals,
     i = k.indexOf(".");
     if (i >= 0)
     {
-      k = k.substring(0, i) + sDecSeparator + k.substr(i + 1);
+      k = k.substring(0, i) + sDecSeparator + k.slice(i + 1);
     }
   }
   
@@ -960,7 +968,7 @@ Math.roundDigits = function(n, iSigDecimals, iForceDecimals,
 /** @subsection Rational arithmetics */
 
 /**
- * Returns the period of a number, i.e. a repeated 
+ * Returns the period of a number, i.e. a repeated
  * substring of its decimals that entirely make up
  * following decimals.
  *
@@ -976,7 +984,7 @@ Math.roundDigits = function(n, iSigDecimals, iForceDecimals,
  * @return string
  *   The period of <code>n</code> as a string;
  *   "0" if there is none.
- */ 
+ */
 Math.getPeriod = function(n, bLoose, iPrecision) {
   var s = String(n);
   for (var i = 3; i < s.length; i++)
@@ -997,7 +1005,8 @@ Math.getPeriod = function(n, bLoose, iPrecision) {
 /**
  * @param fDec : number
  * @return string
- */ 
+ *   The representation of <var>fDec</var> in whole fractions
+ */
 Math.toFraction = function(fDec) {
   /**
    * I:        x = 0.111111111111111      y = 1
@@ -1048,7 +1057,8 @@ Math.dtGrad = 2;
  * @param x : number
  * @param iArgType : number
  * @return number
- */ 
+ *   The sine of <var>x</var>
+ */
 Math.sinX = function(x, iArgType) {
   switch (iArgType)
   {
@@ -1067,7 +1077,8 @@ Math.sinX = function(x, iArgType) {
  * @param x : number
  * @param iArgType : number
  * @return number
- */ 
+ *   The cosine of <var>x</var>
+ */
 Math.cosX = function(x, iArgType) {
   switch (iArgType)
   {
@@ -1086,11 +1097,14 @@ Math.cosX = function(x, iArgType) {
  * @param x : number
  * @param iArgType : number
  * @return number
- *   The tangens of x.  If @link{js#Math.tan()} is
+ *   The tangent of x.  If @link{js#Math.tan()} is
  *   undefined, it uses @link{#sinX()} and @link{#cosX()}
  *   defined above.
- * @requires types#isMethodType() */ 
+ * @requires jsx.object#isMethod()
+ */
 Math.tanX = function(x, iArgType) {
+  var jsx_object = jsx.object;
+  
   switch (iArgType)
   {
     case dtDeg:
@@ -1101,7 +1115,7 @@ Math.tanX = function(x, iArgType) {
       x = x/300 * Math.PI;
   }
   
-  if (isMethodType(typeof Math.tan))
+  if (jsx_object.isMethod(Math, "tan"))
   {
     return Math.tan(x);
   }
@@ -1111,9 +1125,9 @@ Math.tanX = function(x, iArgType) {
   }
 };
 
-if (!isMethod(Math, "tan"))
+if (!jsx.object.isMethod(Math, "tan"))
 {
-  Math.tan = tan;
+  Math.tan = Math.tanX;
 }
 
 
@@ -1134,6 +1148,7 @@ Math.Complex.extend(Number);
  * @param a : Complex
  * @param b : Complex
  * @return Complex
+ *   The complex sum of <var>a</var> and <var>b</var>
  */
 Math.addComplex =
 Math.Complex.prototype.add = function(a, b) {
@@ -1160,12 +1175,13 @@ Math.Complex.prototype.add = function(a, b) {
 
     return new math.Complex(a.re + b.re, a.im + b.im);
   }
-}; 
+};
 
 /**
  * @param a : Complex
  * @param b : Complex
  * @return Complex
+ *   The complex product of <var>a</var> and <var>b</var>
  */
 Math.mulComplex =
 Math.Complex.prototype.mul = function(a, b) {
@@ -1225,12 +1241,12 @@ Math.Complex.prototype.mul = function(a, b) {
  * @return type string
  *   <var>nDec</var> converted to the number system specified
  *   with <var>iBase</var> in lowercase, optionally with leading
- *   zeroes.  Uses Number.toString(<var>iBase</var>) is supported, an 
+ *   zeroes.  Uses Number.toString(<var>iBase</var>) is supported, an
  *   algorithm to convert both the integer and the fractional
  *   part otherwise.
  * @see Global#parseFloat(any)
  * @see Global#parseInt(any)
- */ 
+ */
 Math.dec2base = function(nDec, iBase, iLength) {
   // default values
   if (!nDec)
@@ -1256,13 +1272,13 @@ Math.dec2base = function(nDec, iBase, iLength) {
     var aDigits = new Array();
 
     var i;
-    if (nDec != 0 && iBase != 10) 
+    if (nDec != 0 && iBase != 10)
     {
-      /* 
+      /*
        * No calculation required if number is 0 or target base is decimal
        */
       
-      /* Create array of _required_ digits */    
+      /* Create array of _required_ digits */
       for (i = 0; i < (iBase < 10 ? iBase : 10); i++)
       {
         aDigits[aDigits.length] = i;
@@ -1354,13 +1370,9 @@ Math.rand = function(nLeftBorder, nRightBorder, fRandom) {
 
   if (!fRandom)
   {
-    fRandom =
-      /**
-       * @return number
-       */
-      function() {
-        return Math.random();
-      };
+    fRandom = function() {
+      return Math.random();
+    };
   }
 
   return fRandom() * (nRightBorder - nLeftBorder) + nLeftBorder;
@@ -1400,19 +1412,15 @@ Math.randInt = function(iLeftBorder, iRightBorder, fRandom) {
 
   if (iRightBorder == null || typeof iRightBorder == "undefined")
   {
-    iRightBorder = Number.MAX_VALUE;   
+    iRightBorder = Number.MAX_VALUE;
   }
   iRightBorder = Math.ceil(iRightBorder);
 
   if (! fRandom)
   {
-    fRandom =
-      /**
-       * @return number
-       */
-      function() {
-        return Math.random();
-      };
+    fRandom = function() {
+      return Math.random();
+    };
   }
 
   return Math.round(Math.rand(iLeftBorder, iRightBorder, fRandom));
@@ -1438,7 +1446,7 @@ Math.randInt = function(iLeftBorder, iRightBorder, fRandom) {
  *   If left out, <code>Math.random()</code> is used where
  *   the random number generator is seeded from the current
  *   time.
- * @return
+ * @return mixed
  *   <var>ifChance</var> if the chances are in favour of it,
  *   <var>otherwise</var> if they are against it.
  * @see Math#random()
@@ -1446,13 +1454,9 @@ Math.randInt = function(iLeftBorder, iRightBorder, fRandom) {
 Math.byChance = function(nChance, ifChance, otherwise, fRandom) {
   if (!fRandom)
   {
-    fRandom =
-      /**
-       * @return number
-       */
-      function() {
-        return Math.random();
-      };
+    fRandom = function() {
+      return Math.random();
+    };
   }
 
   return (
@@ -1493,7 +1497,7 @@ Math.binomCoeff = function(iUpper, iLower) {
 /** @section Linear Algebra */
 
 /**
- * @param A 
+ * @param A
  * @return number
  *   the row dimension of <code>A</code>;
  *   1 if <code>A</code> is a scalar,
@@ -1524,7 +1528,7 @@ Math.dimRow = function(A) {
 };
 
 /**
- * @param A 
+ * @param A
  * @return number
  *   The column dimension of <code>A</code>, provided all
  *   rows of <code>A</code> have the same length (as the first one);
@@ -1557,7 +1561,7 @@ Math.dimCol = function(A) {
 };
 
 /**
- * @param A 
+ * @param A
  * @return the square root of the product of A's row dimension
  * and its column dimension.  The return value indicates
  * whether a matrix A is square or not; for square matrices,
@@ -1565,11 +1569,11 @@ Math.dimCol = function(A) {
  * means to determine if two matrices are compatible;
  * if their dimensions differ, they cannot be added to
  * one another.
- * @see matrixAdd() 
+ * @see Math#matrixAdd()
  */
 Math.dim = function(A) {
   return Math.sqrt(Math.dimRow(A) * Math.dimCol(A));
-}
+};
 
 
 /** @subsection Matrix Operations */
@@ -1581,23 +1585,78 @@ Math.dim = function(A) {
  * @param A : optional Array
  */
 Math.Matrix = function(A) {
-  this.matrix = [0];
+  this.data = [0];
 
   if (A)
   {
-    for (var i = A.length; i--;)
+    if (jsx.object.isMethod(A, "slice"))
     {
-      var row = A[i];
-      this.matrix[i] = [];
-      for (var j = row.length; j--;)
+      this.data = A.slice(0);
+    }
+    else
+    {
+      for (var i = A.length; i--;)
       {
-        this.matrix[i][j] = row[j];
+        var row = A[i];
+        this.data[i] = [];
+        for (var j = row.length; j--;)
+        {
+          this.data[i][j] = row[j];
+        }
       }
     }
   }
 };
 
 Math.Matrix.prototype = {
+  constructor: Math.Matrix,
+  
+  putValue: function (x, y, value) {
+    var tmp = this.data;
+
+    for (var i = 0, len = arguments.length; i < len - 2; ++i)
+    {
+      var arg = arguments[i];
+      if (typeof tmp[arg] == "undefined")
+      {
+        tmp[arg] = [];
+      }
+
+      tmp = tmp[arg];
+    }
+    
+    var lastArgs = Array.prototype.slice.call(arguments, i);
+    tmp[lastArgs[0]] = lastArgs[1];
+
+    return lastArgs[1];
+  },
+
+  getValue: function (x, y) {
+    var tmp = this.data;
+
+    for (var i = 0, len = arguments.length; i < len; ++i)
+    {
+      var arg = arguments[i];
+      tmp = tmp[arg];
+
+      if (typeof tmp == "undefined")
+      {
+        break;
+      }
+    }
+
+    return tmp;
+  },
+
+  inc: function (x, y) {
+    var
+      coords = Array.prototype.slice.call(arguments, 0),
+      v = +this.getValue.apply(this, coords);
+
+    return this.putValue.apply(
+      this, coords.concat((isNaN(v) ? 0 : +v) + 1));
+  },
+  
   toString:
     /**
      * Returns the matrix converted to string, i.e.
@@ -1614,7 +1673,7 @@ Math.Matrix.prototype = {
         m = this;
       }
   
-      if ((m = m.matrix))
+      if ((m = m.data))
       {
         var as = [], bHasFormat = (typeof format != "undefined"), maxLen;
         if (bHasFormat)
@@ -1655,11 +1714,12 @@ Math.Matrix.prototype = {
         m = this;
       }
   
-      if ((m = m.matrix))
+      if ((m = m.data))
       {
         m = new Math.Matrix(m);
-        m.matrix = m.matrix.slice(1);
-        for (var m, j = (m = m.matrix).length; j--;)
+        m.data = m.data.slice(1);
+        var j;
+        for (m, j = (m = m.data).length; j--;)
         {
           m[j].splice(i, 1);
         }
@@ -1673,10 +1733,11 @@ Math.Matrix.prototype = {
  * @param a
  * @param b
  * @return Array
+ *   The sum of the matrixes <var>a</var> and <var>b</var>
  */
 Math.matrixAdd = function(a, b) {
   /*
-   * x00 x01 x02   y00 y01 y02   x00+y00 x01+y01 x02+y02 
+   * x00 x01 x02   y00 y01 y02   x00+y00 x01+y01 x02+y02
    * x10 x11 x12 + y10 y11 y12 = x10+y10 x11+y11 x12+y12
    * x20 x21 x22   y20 y21 y22   x20+y20 x21+y21 x22+y22
    */
@@ -1809,13 +1870,13 @@ Math.multiply = function(a, b) {
 /*
  * TODO:
  
-I want the *option* to switch from standard 32-bit doubles to double
+"I want the *option* to switch from standard 32-bit doubles to double
 precision long doubles since it is not always necessary to run at such
 high precision [sometimes I'll trade performance for precision.]
 
 I would like *native* precision handlers (anything scripted
 is considerably slower).
 
-I would like a native fixed point and integer math package.
+I would like a native fixed point and integer math package."
 
- */ 
+ */
