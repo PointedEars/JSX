@@ -32,8 +32,8 @@ if (typeof jsx == "undefined")
 
 jsx.object = {
   /** @version */
-  version:   "0.1.5a.2009071612",
-  copyright: "Copyright \xA9 2004-2009",
+  version:   "0.1.5a.2010042815",
+  copyright: "Copyright \xA9 2004-2010",
   author:    "Thomas Lahn",
   email:     "object.js@PointedEars.de",
   path:      "http://PointedEars.de/scripts/"
@@ -380,6 +380,32 @@ var findNewProperty = jsx.object.findNewProperty = (function () {
 }());
 
 /**
+ * Clears the handler for the proprietary <code>error</code> event.
+ * 
+ * NOTE: This method has previously been provided by {@link debug.js};
+ * optimizations in code reuse moved it here.
+ * 
+ * @return boolean <code>true</code>
+ */
+/*
+ * NOTE: Initialization must come before the initialization of
+ *       setErrorHandler() as it is used in a closure there,
+ *       see Message-ID <2152411.FhMhkbZ0Pk@PointedEars.de>
+ */
+var clearErrorHandler = jsx.clearErrorHandler = function () {
+  if (typeof window != "undefined" && window.onerror)
+  {
+    /*
+     * debug.js 0.99.5.2006041101 BUGFIX:
+     * onerror is defined as a property of window, not of the Global Object
+     */
+    window.onerror = null;
+  }
+
+  return true;
+};
+
+/**
  * Sets the handler for the proprietary <code>error</code> event.
  * 
  * NOTE: This method has previously been provided by {@link debug.js};
@@ -409,7 +435,15 @@ var setErrorHandler = jsx.setErrorHandler = (function () {
       fHandler = jsx_clearErrorHandler;
     }
     
-    if (typeof window != "undefined" && typeof window.onerror != "undefined")
+    if (typeof assertFalse == "function")
+    {
+      assertFalse(typeof fHandler == "undefined", false,
+        "jsx.setErrorHandler(fHandler)");
+    }
+    
+    if (typeof window != "undefined"
+        && typeof window.onerror != "undefined"
+        && typeof fHandler != "undefined")
     {
       /*
        * debug.js 0.99.5.2006041101 BUGFIX:
@@ -422,28 +456,6 @@ var setErrorHandler = jsx.setErrorHandler = (function () {
             && window.onerror == fHandler);
   };
 }());
-
-/**
- * Clears the handler for the proprietary <code>error</code> event.
- * 
- * NOTE: This method has previously been provided by {@link debug.js};
- * optimizations in code reuse moved it here.
- * 
- * @return boolean <code>true</code>
- */
-var clearErrorHandler = jsx.clearErrorHandler = function () {
-  if (typeof window != "undefined" && window.onerror)
-  {
-    /*
-     * debug.js 0.99.5.2006041101 BUGFIX:
-     * onerror is defined as a property of window, not of the Global Object
-     */
-    window.onerror = null;
-  }
-
-  return true;
-};
-
 
 /**
  * Wrapper for a safer <code>try</code>...<code>catch</code>.
@@ -493,7 +505,7 @@ var clearErrorHandler = jsx.clearErrorHandler = function () {
  *   converted to string if not a string, and used as-is otherwise.
  *   For compatibility, the <code>undefined</code> value
  *   is evaluated like the empty string.
- * @return
+ * @return mixed
  *   The result of <code>statements</code>, or the result
  *   of <code>errorHandlers</code> if an error occurred.
  * @author

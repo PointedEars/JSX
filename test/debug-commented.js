@@ -216,6 +216,13 @@ if (typeof assertFalse == "undefined")
    *   If not a string, the value is type-converted to <i>boolean</i>;
    *   the assertion fails if the result of the conversion is
    *   <code>true</code>.
+   * @param bThrow : optional boolean = true
+   *   If <code>true<code> (default), an exception will be thrown if
+   *   the assertion fails, otherwise a warning will be issued to the
+   *   error console in that case.
+   * @param sContext : optional String
+   *   Description of the context in which the assertion was made.
+   *   Ignored if <code><var>bThrow</var> == true</code>.
    * @throws
    *   <code>AssertionError</code> if the assertion fails and this exception
    *   can be thrown.
@@ -224,21 +231,29 @@ if (typeof assertFalse == "undefined")
    *   <code>true</code>, if the assertion is met.
    * @see Global#eval()
    */
-  var assertFalse = function (x) {
+  var assertFalse = function (x, bThrow, sContext) {
     var ox = x;
-    if (typeof x == "string") x = eval(x);
+    if (typeof x == "string")
+    {
+      x = eval(x);
+    }
     
     if (x)
     {
-      (
-        /**
-         * @return undefined
-         */
-        function () {
-          eval('throw new AssertionError('
-               + '"assertFalse(" + (typeof ox == "string" ? ox : "...") + ");");');
-        }
-      )();
+      if (typeof bThrow == "undefined" || bThrow)
+      {
+        (
+          function () {
+            eval('throw new AssertionError('
+                 + '"assertFalse(" + (typeof ox == "string" ? ox : "...") + ");");');
+          }
+        )();
+      }
+      else
+      {
+        jsx.dmsg((sContext ? sContext + ": " : "") + "Assertion failed: "
+          + (typeof ox == "string" ? ox : "Value") + " must be false.", "warn");
+      }
     }
     
     return !!x;
@@ -684,6 +699,10 @@ function uglyfy(s)
   return s.replace(/\s/g, " "); // .replace
 }
 
+
+// DEBUG
+// var rxCode;
+
 /**
  * Applies syntax highlighting on contents of <code>code</code>
  * elements unless their <code>class</code> attribute has the
@@ -696,196 +715,231 @@ function uglyfy(s)
  *   The default is the <code>document</code> node.
  * @see jsx.object#isMethod()
  */
-function synhl(context)
-{
-  if (debug.enabled)
-  {
-    if (isMethod("console", "profile"))
-    {
-      console.profile("synhl()");
-    }
-  }
-  
-  if (!context) context = document;
-  
-  var collCode;
-  if (isMethod(context, "getElementsByTagName")
-      && (collCode = context.getElementsByTagName('code'))
-      && collCode.length)
-  {
-    var
-      bUnicode = ("\uFFFF".length == 1),
-      sElementType = (
-          "[:A-Z_a-z\xC0-\xD6\xD8-\xF6\xF8-\xFF[UCS_START]]"
-          + "[:\\w.\xB7[UCS_START][UCS_NAME]-]*"
-        )
-        .replace(
-          /\[UCS_START\]/g,
-          bUnicode
-            ? "\u0010-\u02FF\u0370-\u037D\u037F-\u1FFF"
-              + "\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF"
-              + "\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD"
-            : "")
-        .replace(
-          /\[UCS_NAME\]/,
-          bUnicode ? "\u0300-\u036F\u203F\u2040" : ""),
-      sOptAttr = "(|\\s+[^>]+)",
-      reservedWords = [
-        "function", "var", "const", "get", "set",
-        "abstract", "class", "final", "import", "interface", "internal",
-          "package", "private", "protected", "public",
-        "boolean", "byte", "char", "decimal", "double", "enum", "float", "int",
-          "long", "sbyte", "short",
-        "new", "null",
-        "typeof", "delete", "instanceof",
-        "i[fn]", "else",
-        "switch", "case", "break", "default",
-        "do", "for( +each)?", "while",
-        "try", "catch", "finally", "throw",
-        "let", "yield",
-        "expando", "hide", "override"
-      ],
-      identifiers = [
-        "(encode|decode)URI(Component)?", "Infinity", "NaN", "undefined",
-        "Object", "prototype", "__defineGetter__", "__defineSetter__",
-          "__iterator__", "__proto__", "constructor", "hasOwnProperty",
-          "isPrototypeOf", "propertyIsEnumerable",
-        "Array", "concat", "every", "indexOf", "join", "length", "pop", "push",
-          "reverse", "shift", "slice", "some", "sort", "splice", "unshift",
-        "Boolean",
-        "Date", "getFullYear", "getMilliseconds", "getUTCDate", "getUTCDay",
-          "getUTCFullYear", "getUTCHours", "getUTCMilliseconds", "getUTCMinutes",
-          "getUTCMonth", "getUTCSeconds", "getVarDate", "setFullYear",
-          "setMilliseconds", "setUTCDate", "setUTCDay", "setUTCFullYear",
-          "setUTCHours", "setUTCMilliseconds", "setUTCMinutes", "setUTCMonth",
-          "setUTCSeconds",
-        "Function", "arguments", "arity", "apply", "call", "callee", "caller",
-          "toSource",
-        "Math", "max", "min",
-        "Number", "MAX_VALUE", "MIN_VALUE", "NEGATIVE_INFINITY",
-          "POSITIVE_INFINITY",
-        "Error", "description", "message", "name", "number", "stack",
-        "RegExp", "compile", "exec", "global", "ignoreCase", "index", "multiline",
-          "source",
-        "String",
-        "close", "next", "send",
-        "Iterator",
-        "ActiveXObject", "Enumerator", "GetObject", "isFinite", "print",
-          "VBArray",
-        "XMLHttpRequest",
-        "document", "write",
-        "window", "clearInterval", "clearTimeout", "setInterval", "setTimeout"
-      ],
-      rxCode = new RegExp(
-          "(//.*|/\\*(.|\\s)*?\\*/)"
-          + "|(&lt;/?script(.|\\r?\\n|\\r)*?&gt;|^script$)"
-          + "|(^|[^<])(/(</[^>]*>|[^/\\\\]|\\\\.)+/)"
-          + "|</?" + sElementType + sOptAttr + ">"
-          + "|(&lt;/?" + sElementType + sOptAttr + "&gt;)"
-          + "|('([^'\\\\]|\\\\.)*'" + '|"([^"\\\\]|\\\\.)*")'
-          + "|(&#?[0-9A-Za-z]+;)"
-          + "|([\\{\\}]|\\b(" + reservedWords.join("|") + ")\\b(?!>))"
-          + "|\\b(" + identifiers.join("|") + ")\\b"
-          + "|([.:\\[\\]\\(\\),;])"
-          + "|\\b(0x[0-9A-Fa-f]+|[0-9]+)\\b",
-        "g"),
-      aReplace = [
-        [ 1, 'comm'],
-        [ 4, 'scr'],
-        [ 7, 'regexp'],
-        [ 9, 'tag'],
-        [11, 'str'],
-        [14, 'entity'],
-        [15, 'rswd'],
-        [18, 'ident'],
-        [21, 'punct'],
-        [22, 'num']
-      ],
+var synhl = (function () {
+  var
+    reservedWords = [
+      /* ES5 keywords */
+      "break", "case", "catch", "continue", "debugger", "default", "delete",
+      "do", "else", "finally", "for( +each)?", "function", "if", "in",
+      "instanceof", "new", "return", "switch", "this", "throw", "try",
+      "typeof", "var", "void", "while", "with",
       
-      fReplace = (function () {
-        var len = aReplace.length;
+      /* ES5 future reserved words */
+      "class", "const", "enum", "export", "extends", "super",
+      
+      /* ES5 future reserved words in strict mode */
+      "implements", "interface", "let", "package", "private", "protected",
+      "public", "static", "yield",
+      
+      /* ES5 special words not specified as reserved */
+      "get", "set", "null", "true", "false", "undefined",
+      
+      /* ES4 additional keywords */
+      "abstract", "final", "import", "internal",
+      
+      /* ES4 additional data types */
+      "boolean", "byte", "char", "decimal", "double", "float", "int",
+      "long", "sbyte", "short",
+      
+      /* JScript keywords */
+      "expando", "hide", "override", "endif"
+    ],
+    
+    identifiers = [
+      "(encode|decode)URI(Component)?", "undefined",
+      "Object", "prototype", "__defineGetter__", "__defineSetter__",
+        "__iterator__", "__proto__", "constructor", "hasOwnProperty",
+        "isPrototypeOf", "propertyIsEnumerable",
+      "Array", "concat", "every", "indexOf", "join", "length", "pop", "push",
+        "reverse", "shift", "slice", "some", "sort", "splice", "unshift",
+      "Boolean",
+      "Date", "getFullYear", "getMilliseconds", "getUTCDate", "getUTCDay",
+        "getUTCFullYear", "getUTCHours", "getUTCMilliseconds", "getUTCMinutes",
+        "getUTCMonth", "getUTCSeconds", "getVarDate", "setFullYear",
+        "setMilliseconds", "setUTCDate", "setUTCDay", "setUTCFullYear",
+        "setUTCHours", "setUTCMilliseconds", "setUTCMinutes", "setUTCMonth",
+        "setUTCSeconds",
+      "Function", "arguments", "arity", "apply", "call", "callee", "caller",
+        "toSource",
+      "Math", "max", "min",
+      "Number", "MAX_VALUE", "MIN_VALUE", "NEGATIVE_INFINITY",
+        "POSITIVE_INFINITY",
+      "Error", "description", "message", "name", "number", "stack",
+      "RegExp", "compile", "exec", "global", "ignoreCase", "index",
+        "multiline", "source",
+      "String",
+      "close", "next", "send",
+      "Iterator",
+      "ActiveXObject", "Enumerator", "GetObject", "isFinite", "print",
+        "VBArray",
+      "XMLHttpRequest",
+      "document", "write",
+      "window", "clearInterval", "clearTimeout", "setInterval", "setTimeout"
+    ],
+    
+    bUnicode = ("\uFFFD".length == 1),
+    
+    sElementType = (
+        "[:\\w[UNICODE_START]]"
+        + "[:\\w[UNICODE_START].\\d[UNICODE_NAME]-]*"
+      )
+      .replace(
+        /\[UNICODE_START\]/g,
+        bUnicode
+          ? "\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D"
+            + "\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF"
+            + "\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD"
+          : "")
+      .replace(
+        /\[UNICODE_NAME\]/,
+        bUnicode ? "\u00B7\u0300-\u036F\u203F-\u2040" : ""),
+    
+    sOptAttr = "(\\s+[^>]+|)",
+    
+    rxCode = new RegExp(
+      "(//.*|/\\*(.|\\s)*?\\*/)"
+      + "|(&lt;/?script(.|\\r?\\n|\\r)*?&gt;|^script$)"
+      + "|(^|[^<])(/(</[^>]*>|[^/\\\\]|\\\\.)+/)"
+      + "|</?" + sElementType + sOptAttr + ">"
+      + "|(&lt;/?" + sElementType + sOptAttr + "&gt;)"
+      + "|('([^'\\\\]|\\\\.)*'" + '|"([^"\\\\]|\\\\.)*")'
+      + "|(&amp;#?[0-9A-Za-z]+;)|&#?[0-9A-Za-z]+;"
+      + "|([\\{\\}]|\\b(" + reservedWords.join("|") + ")\\b(?!>))"
+      + "|\\b(" + identifiers.join("|") + ")\\b"
+      + "|([.:\\[\\]\\(\\),;])"
+      + "|\\b(0x[0-9A-Fa-f]+|[0-9]+|Infinity|NaN)\\b",
+      "g"),
+
+    aReplace = [
+      [ 1, 'comm'],
+      [ 4, 'scr'],
+      [ 7, 'regexp'],
+      [ 9, 'tag'],
+      [11, 'str'],
+      // [14, 'entity'],
+      [15, 'rswd'],
+      [18, 'ident'],
+      [21, 'punct'],
+      [22, 'num']
+    ],
+    
+    fReplace = (function () {
+      var len = aReplace.length;
+      
+      return function (match) {
+        for (var i = 0; i < len; ++i)
+        {
+          var r = aReplace[i];
         
-        return function (match) {
-          for (var i = len; i--;)
+          if (arguments[r[0]])
           {
-            var r = aReplace[i];
-          
-            if (arguments[r[0]])
-            {
-              return '<span class="' + r[1] + '">' + match + '<\/span>';
-            }
-          }
-          
-          return match;
-        }
-      })(),
-      
-      /**
-       * @param node : Node
-       * @param needle : string
-       * @param replacement : string
-       */
-      recursiveReplace = function (node, needle, replacement) {
-        if (node.nodeType == Node.ELEMENT_NODE)
-        {
-          for (var i = 0, cs = node.childNodes, len = cs.length; i < len; i++)
-          {
-            arguments.callee(cs[i], needle, replacement);
+            return '<span class="' + r[1] + '">' + match + '<\/span>';
           }
         }
-        else if (node.nodeType == Node.TEXT_NODE)
+        
+        return match;
+      }
+    }()),
+    
+    /**
+     * @param node : Node
+     * @param needle : string
+     * @param replacement : string
+     */
+    recursiveReplace = function (node, needle, replacement) {
+      if (node.nodeType == Node.ELEMENT_NODE)
+      {
+        for (var i = 0, cs = node.childNodes, len = cs.length; i < len; i++)
         {
-          var v = node.nodeValue;
-          var m = v.match(needle);
-          if (m)
-          {
-            var mLength = m[0].length;
-            var prefix = document.createTextNode(v.substring(0, m.index));
-            var suffix = document.createTextNode(v.substr(m.index + mLength));
-            var infix = document.createTextNode(v.substr(m.index, mLength));
-            var span = document.createElement("span");
-            span.style.color = "red";
-            span.appendChild(infix);
-            var parentNode = node.parentNode;
-            var nextSibling = node.nextSibling;
-            parentNode.removeChild(node);
-            parentNode.insertBefore(suffix, nextSibling);
-            parentNode.insertBefore(span, suffix);
-            parentNode.insertBefore(prefix, span);
-          }
+          arguments.callee(cs[i], needle, replacement);
+        }
+      }
+      else if (node.nodeType == Node.TEXT_NODE)
+      {
+        var v = node.nodeValue;
+        var m = v.match(needle);
+        if (m)
+        {
+          var mLength = m[0].length;
+          var prefix = document.createTextNode(v.substring(0, m.index));
+          var suffix = document.createTextNode(v.substr(m.index + mLength));
+          var infix = document.createTextNode(v.substr(m.index, mLength));
+          var span = document.createElement("span");
+          span.style.color = "red";
+          span.appendChild(infix);
+          var parentNode = node.parentNode;
+          var nextSibling = node.nextSibling;
+          parentNode.removeChild(node);
+          parentNode.insertBefore(suffix, nextSibling);
+          parentNode.insertBefore(span, suffix);
+          parentNode.insertBefore(prefix, span);
+        }
+      }
+    };
+   
+  return function (context) {
+    if (debug.enabled)
+    {
+      if (isMethod("console", "profile"))
+      {
+        console.profile("synhl()");
+      }
+    }
+    
+    if (isMethod(context, "valueOf") && typeof context.valueOf() == "string")
+    {
+      var passedCode = context;
+      context = {
+        getElementsByTagName: function () {
+          return [{innerHTML: passedCode}];
         }
       };
-
-    for (var i = collCode.length; i--;)
+    }
+    else if (!context)
     {
-      var o = collCode[i];
-      if (!/(^\s*|\s+)donthl(\s*$|\s+)/.test(o.className)
-          && typeof o.innerHTML != "undefined")
+      context = document;
+    }
+    
+    var collCode;
+    if (isMethod(context, "getElementsByTagName")
+          && (collCode = context.getElementsByTagName('code'))
+          && collCode.length)
+    {
+      var sNew;
+        
+      for (var i = collCode.length; i--;)
       {
-        var s = o.innerHTML;
-        jsx.tryThis(
-          function () {
-            o.innerHTML = s.replace(rxCode, fReplace);
-          },
-          function () {
-            o.innerHTML = s;
-          });
-      }
-      else
-      {
-        // recursiveReplace(o, ...)
+        var o = collCode[i];
+        if (!/(^\s*|\s+)donthl(\s*$|\s+)/.test(o.className)
+            && typeof o.innerHTML != "undefined")
+        {
+          var s = o.innerHTML;
+          jsx.tryThis(
+            function () {
+              o.innerHTML = sNew = s.replace(rxCode, fReplace);
+            },
+            function () {
+              o.innerHTML = sNew = s;
+            });
+        }
+        else
+        {
+          // recursiveReplace(o, ...)
+        }
       }
     }
-  }
-
-  if (debug.enabled)
-  {
-    if (isMethod("console", "profileEnd"))
+  
+    if (debug.enabled)
     {
-      console.profileEnd();
+      if (isMethod("console", "profileEnd"))
+      {
+        console.profileEnd();
+      }
     }
-  }
-}
+  
+    return sNew;
+  };
+}());
 
 /**
  * Stores references to objects in an array
