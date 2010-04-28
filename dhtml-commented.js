@@ -1064,7 +1064,7 @@ DHTML.prototype.camelize = (function() {
   };
 })();
 
-dom.attrMap = {
+DHTML.prototype.attrMap = {
   alink: "aLink",
   accesskey: "accessKey",
   bgcolor: "bgColor",
@@ -1203,7 +1203,7 @@ DHTML.prototype.setAttr = setAttr;
  *   or empty, the entire computed style is returned.
  * @return CSSStyleDeclaration | currentStyle | string
  */
-dom.getComputedStyle = (function () {
+var _getComputedStyle = (function () {
   var
     hasGCS = jsx.object.isMethod(document, "defaultView", "getComputedStyle"),
     propertyMap = {
@@ -1231,6 +1231,7 @@ dom.getComputedStyle = (function () {
     return (sProperty ? emptyResult : null);
   };
 }());
+DHTML.prototype.getComputedStyle = _getComputedStyle;
 
 /**
  * Adds a CSS class name to the <code>class</code> attribute of
@@ -1244,32 +1245,37 @@ dom.getComputedStyle = (function () {
  *   If the class is there and this argument is <code>false</code>,
  *   exit without changing anything.  The default is <code>false</code>,
  *   which is more efficient.
+ * @return boolean
+ *   <code>true</code> if the class name could be added successfully or
+ *   was already there, <code>false</code> otherwise.
  */
-dom.addClassName =
-  function(o, sClassName, bRemove) {
-    var rx = new RegExp("(^\\s*|\\s+)" + sClassName + "(\\s*$|\\s)");
+var addClassName = function(o, sClassName, bRemove) {
+  var rx = new RegExp("(^\\s*|\\s+)" + sClassName + "(\\s*$|\\s)");
+  
+  if (bRemove)
+  {
+    this.removeClassName(o, sClassName);
+  }
+  else if (rx.test(o.className))
+  {
+    return true;
+  }
+  
+  if (sClassName)
+  {
+    if (/\S/.test(o.className))
+    {
+      o.className += " " + sClassName;
+    }
+    else
+    {
+      o.className = sClassName;
+    }
     
-    if (bRemove)
-    {
-      this.removeClassName(o, sClassName);
-    }
-    else if (rx.test(o.className))
-    {
-      return;
-    }
-    
-    if (sClassName)
-    {
-      if (/\S/.test(o.className))
-      {
-        o.className += " " + sClassName;
-      }
-      else
-      {
-        o.className = sClassName;
-      }
-    }
-  };
+    return rx.test(o.className);
+  }
+};
+DHTML.prototype.addClassName = addClassName;
 
 /**
  * Removes all occurences of a CSS class name from the
@@ -1278,19 +1284,38 @@ dom.addClassName =
  * @param o : Element
  * @param sClass : string
  */
-dom.removeClassName =
-  function(o, sClassName) {
-    var curClassNames = o.className;
-    var newClassNames = curClassNames.replace(
-      new RegExp("(^\\s*|\\s+)" + sClassName + "(\\s*$|(\\s))", "g"),
-      "$3");
-    o.className = newClassNames;
+var removeClassName = function (o, sClassName) {
+  var curClassNames = o.className;
+  var newClassNames = curClassNames.replace(
+    new RegExp("(^\\s*|\\s+)" + sClassName + "(\\s*$|(\\s))", "g"),
+    "$3");
+  o.className = newClassNames;
+
+  if (!newClassNames && jsx.object.isMethod(o, "removeAttribute"))
+  {
+    o.removeAttribute("class");
+  }
+};
+DHTML.prototype.removeClassName = removeClassName;
+
+/**
+ * Schedules code for later execution.
+ * 
+ * @param code : String|Function
+ *   Code to be executed or function to be called.
+ * @param iTimeout : number
+ *   Number of milliseconds after which <var>code</var> should be run.
+ */
+var runLater = function (code, iTimeout) {
+  if (typeof window != "undefined"
+      && jsx_object.isMethod(window, "setTimeout"))
+  {
+    return window.setTimeout(code, iTimeout);
+  }
   
-    if (!newClassNames && jsx.object.isMethod(o, "removeAttribute"))
-    {
-      o.removeAttribute("class");
-    }
-  };
+  return Number.NaN;
+};
+DHTML.prototype.runLater = runLater;
 
 /**
  * Retrieves the value of a style property of an HTMLElement object.
@@ -2505,18 +2530,15 @@ DHTML.prototype.addEventListenerCapture = _addEventListenerCapture;
  *   the user wishes to initiate capture.  Corresponds to the
  *   third parameter of the addEventListener(...) method, is
  *   ignored if that method is not supported by the DOM (object).
- * @return type boolean
+ * @return boolean
  *   <code>true</code> on success, <code>false</code> otherwise.
  *   Since addEventListener(...) returns no value and throws
- *   no exceptions (what a bad design!), it is considered to be
- *   successful always, while attachEvent(...) returns success
- *   or failure, and the new value of the proprietary
+ *   no exceptions, it is considered to be
+ *   successful always, while the new value of the proprietary
  *   event-handling property must match the assigned value for
  *   the method to be successful.
  * @see <a href="dom2-events#Events-EventTarget-removeEventListener">W3C DOM Level 2 Events: EventTarget::removeEventListener()</a>
  * @see <a href="dom2-events#Events-EventTarget-addEventListener">W3C DOM Level 2 Events: EventTarget::addEventListener()</a>
- * @see <a href="msdn#workshop/author/dhtml/reference/methods/detachevent.asp">MSDN Library: detachEvent()</a>
- * @see <a href="msdn#workshop/author/dhtml/reference/methods/attachevent.asp">MSDN Library: attachEvent()</a>
  */
 function _replaceEventListener(o, sEvent, fListener, bUseCapture)
 {
@@ -2548,6 +2570,75 @@ function _replaceEventListener(o, sEvent, fListener, bUseCapture)
   return result;
 }
 DHTML.prototype.replaceEventListener = _replaceEventListener;
+
+/**
+ * Removes the event-handling function (event listener) for a
+ * DOM object as event target.
+ * <ul>
+ *   <li>removeEventListener() and addEventListener(...) methods
+ *   (W3C-DOM Level 2)</li>
+ *   <li>Assignment to event-handling property (MSIE 4+ and others)</li>
+ * </ul>
+ * 
+ * Note that this still relies on the existence of the proprietary
+ * event-handling property that yields a reference to the (first added)
+ * event listener for the respective event.
+ *
+ * @author
+ *   (C) 2010  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ * @param o : DOMObject
+ *   Reference to the DOM object.
+ * @param sEvent : string
+ *   Required string to be used as event identifier.
+ *   `on' is used as its prefix to reference the respective
+ *   proprietary event-handling property.
+ * @param fListener : Function
+ *   Reference to the Function object that provides
+ *   event-handling code.  Is ignored to (re)set the
+ *   proprietary event-handling property if available.
+ * @param bUseCapture : optional boolean
+ *   Optional. If <code>true</code>, the argument indicates that
+ *   the user wished to initiate capture.  Corresponds to the
+ *   third parameter of the removeEventListener(...) method, is
+ *   ignored if that method is not supported by the DOM (object).
+ * @return boolean
+ *   <code>true</code> on success, <code>false</code> otherwise.
+ *   Since removeEventListener(...) returns no value and throws
+ *   no exceptions (what a bad design!), it is considered to be
+ *   successful always, while attachEvent(...) returns success
+ *   or failure, and the new value of the proprietary
+ *   event-handling property must be <code>null</code> for
+ *   the method to be successful.
+ * @see <a href="dom2-events#Events-EventTarget-removeEventListener">W3C DOM Level 2 Events: EventTarget::removeEventListener()</a>
+ * @see <a href="msdn#workshop/author/dhtml/reference/methods/detachevent.asp">MSDN Library: detachEvent()</a>
+ */
+function _removeEventListener(o, sEvent, fListener, bUseCapture)
+{
+  var
+    jsx_object = jsx.object,
+    sHandler = "on" + sEvent;
+
+  if (o && sEvent)
+  {
+    if (jsx_object.isMethod(fListener))
+    {
+      if (jsx_object.isMethod(o, "removeEventListener"))
+      {
+        o.removeEventListener(sEvent, fListener, bUseCapture);
+        return true;
+      }
+    }
+
+    if (jsx_object.isMethod(o, sHandler))
+    {
+      o[sHandler] = null;
+      return (o[sHandler] == null);
+    }
+  }
+
+  return false;
+}
+DHTML.prototype.removeEventListener = _removeEventListener;
 
 /**
  * Returns a reference to a <code>Function</code> that can be used as event listener.
