@@ -26,13 +26,19 @@ function Types()
 var types = new Types();
 
 /* a more compatible approach */
-if (typeof jsx == "undefined") var jsx = new Object();
+if (typeof jsx == "undefined")
+{
+  var jsx = new Object();
+}
 jsx.types = types;
 
 /* allows for de.pointedears.jsx.types */
-if (typeof de == "undefined") var de = new Object();
-if (typeof de.pointedears == "undefined") de.pointedears = new Object();
-if (typeof de.pointedears.jsx == "undefined") de.pointedears.jsx = jsx;
+if (typeof de == "undefined")
+{
+  var de = new Object();
+}
+if (typeof de.pointedears == "undefined"){de.pointedears = new Object();}
+if (typeof de.pointedears.jsx == "undefined"){de.pointedears.jsx = jsx;}
 de.pointedears.jsx.types = types;
 
 /**
@@ -63,7 +69,7 @@ de.pointedears.jsx.types = types;
 /**
  * @param sMsg : optional string
  * @return false
- */ 
+ */
 var TypesException = jsx.types.TypesException = function(sMsg) {
   alert(
     "types.js "
@@ -83,9 +89,9 @@ var TypesException = jsx.types.TypesException = function(sMsg) {
  * Returns <code>true</code> if a property is defined and its value
  * is different from <code>undefined</code>, <code>false</code> otherwise.
  *
- * @param o : optional Object 
+ * @param o : optional Object
  *   Base object; the default is the calling object.
- * @param p : String 
+ * @param p : String
  *   Property name; required.
  * @return boolean
  */
@@ -103,9 +109,9 @@ var isDefined = jsx.types.isDefined = function(o, p) {
  * Returns <code>true</code> if a property is undefined or
  * its value is `undefined', <code>false</code> otherwise.
  *
- * @param o : optional Object 
+ * @param o : optional Object
  *   Base object; the default is the calling object.
- * @param p : String 
+ * @param p : String
  *   Property name; required.
  * @return boolean
  */
@@ -116,7 +122,7 @@ var isUndefined = jsx.types.isUndefined = function(o, p) {
     o = this;
   }
 
-  return (typeof o[p] == "undefined");  
+  return (typeof o[p] == "undefined");
 };
 
 /* Moved to object.js */
@@ -129,7 +135,7 @@ jsx.types.isInstanceOf = jsx.object.isInstanceOf;
  * @requires jsx.object#isInstanceOf
  * @param a : Object
  *   Expression to be determined an array.
- * @return 
+ * @return
  *   <code>true</code> if <code>a</code> is an object
  *   derived from Array, <code>false</code> otherwise.
  *   Returns also <code>false</code> if the language
@@ -170,7 +176,7 @@ var isIterable = jsx.types.isIterable = function(o) {
  * Converts a string using bracket property accessor syntax
  * to one that uses dot property accessor syntax.
  * 
- * @param s : string 
+ * @param s : string
  *   String of the form "root['branch']['leaf']['...']..." or
  *   "root[branch][leaf][...]..." to be converted.  Required.
  * @return string
@@ -180,7 +186,7 @@ var isIterable = jsx.types.isIterable = function(o) {
 var bracketsToDots = jsx.bracketsToDots = function(s) {
   // FIXME: What about non-identifier names?
   return s.replace(/\['?/g, '.').replace(/'?\]/g, '');
-}; 
+};
 
 /**
  * Converts a string using dot property accessor syntax
@@ -246,12 +252,12 @@ var dotsToBrackets = jsx.dotsToBrackets = function(s, bStringsOnly) {
  *   has <code>boolean</code> documented as its type, you
  *   should therefore not use this method to determine its
  *   availability.
- *   
+ * 
  *   Also, if a reference leading to the feature resolves to
  *   a value for that the result of the <code>typeof</code>
- *   operation is <code>"undefined"</code>, testing of further
+ *   operation is <code>"unknown"</code>, testing of further
  *   arguments will stop and <code>true</code> will be returned
- *   because <code>"undefined"</code> indicates a host object's
+ *   because <code>"unknown"</code> indicates a host object's
  *   method in MSHTML and access to the property value causes
  *   a runtime exception; therefore, in this case you can use
  *   the return value of this method only as an indicator that
@@ -261,7 +267,7 @@ var isFeature = jsx.types.isFeature = function(o) {
   if (typeof o != "undefined" && o)
   {
     for (var i = 1, len = arguments.length; i < len; i++)
-    { 
+    {
       var arg = arguments[i];
       
       var t = typeof o[arg], isUnknown;
@@ -269,7 +275,10 @@ var isFeature = jsx.types.isFeature = function(o) {
           || !/^\s*undefined\s*$/i.test(t) && o[arg])
       {
         o = o[arg];
-        if (isUnknown) break;
+        if (isUnknown)
+        {
+          break;
+        }
       }
       else
       {
@@ -279,5 +288,5 @@ var isFeature = jsx.types.isFeature = function(o) {
     }
   }
   
-  return o; 
+  return o;
 };
