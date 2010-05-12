@@ -32,13 +32,14 @@
  * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
  */
 
-/* Refer string.htm file for general documentation. */
-
-if (typeof jsx === "undefined") var jsx = {};
+if (typeof jsx === "undefined")
+{
+  var jsx = {};
+}
 
 jsx.string = {
   /** @version */
-  version:   "1.29.8.2010013105",
+  version:   "1.29.9.2010051216",
   copyright: "Copyright \xA9 1999-2010",
   author:    "Thomas Lahn",
   email:     "string.js@PointedEars.de",
@@ -61,8 +62,16 @@ String.path      = jsx.string.path;
 // String.docURL = jsx.string.docURL;
 
 /* allows for de.pointedears.jsx.string */
-if (typeof de === "undefined") var de = {};
-if (typeof de.pointedears === "undefined") de.pointedears = {};
+if (typeof de === "undefined")
+{
+  var de = {};
+}
+
+if (typeof de.pointedears === "undefined")
+{
+  de.pointedears = {};
+}
+
 de.pointedears.jsx = jsx;
 
 /**
@@ -99,7 +108,7 @@ function StringException(Msg)
  * @param s : optional string
  *   String where " and ' should be escaped.  Ignored if
  *   the function is called as a method of a String object.
- * @return
+ * @return string
  *   The replaced string if String.replace(...)
  *   is supported, the original string otherwise.
  * @type string
@@ -125,8 +134,7 @@ function addSlashes(s)
  * specification in RFC3986.
  * 
  * @param s : string
- * @type string
- * @return
+ * @return string
  *   <code>s</code> escaped, or unescaped if escaping through
  *   <code>encodeURIComponent()</code> or <code>escape()</code>
  *   is not possible.
@@ -140,15 +148,14 @@ var esc = (function() {
           : (jsx.object.isMethod(_global, "escape")
              ? escape
              : function(s) { return s; }));
-})();
+}());
 
 /**
  * Tries hard to unescape a string according to the query component
- * specification in RFC3986.
+ * specification in RFC&nbsp;3986.
  * 
  * @param s : string
- * @type string
- * @return
+ * @return string
  *   <code>s</code> unescaped, or escaped if unescaping through
  *   <code>decodeURIComponent()</code> or <code>unescape()</code>
  *   is not possible.
@@ -162,27 +169,26 @@ var unesc = (function() {
           : (jsx.object.isMethod(_global, "unescape")
              ? unescape
              : function(s) { return s; }));
-})();
+}());
 
 /*
  * Had to abandon addProperties since Konqueror's engine does not support
  * Object literals
  */
 
-if (typeof Number.prototype.toFixed === "undefined")
+if (typeof Number.prototype.toFixed == "undefined")
 {
   /**
    * @param iPrecision
    * @type string
    * @return string
    */
-  Number.prototype.toFixed = function number_toFixed(iPrecision)
-  {
+  Number.prototype.toFixed = function (iPrecision) {
     var
       result = this.toString(),
       dotPos = -1,
       decLen = 0;
-  
+
     if ((dotPos = result.lastIndexOf(".")) > -1)
     {
       decLen = result.length - dotPos - 1;
@@ -201,16 +207,14 @@ if (typeof Number.prototype.toFixed === "undefined")
   };
 }
 
-if (typeof Number.prototype.toUnsigned === "undefined")
+if (typeof Number.prototype.toUnsigned == "undefined")
 {
-  Number.prototype.toUnsigned =
   /**
    * @param iMax : number
    * @type number
    * @return number
    */
-  function number_toUnsigned(iMax)
-  {
+  Number.prototype.toUnsigned = function (iMax) {
     var n = this;
 
     /*
@@ -221,7 +225,9 @@ if (typeof Number.prototype.toUnsigned === "undefined")
      */
     var i;
     if (!isNaN(n) || (i = Math.abs(n)) == 0 || i == Infinity)
+    {
       return 0;
+    }
 
     /*
      * 3. Compute sign(Result(1)) * floor(abs(Result(1))).
@@ -504,7 +510,10 @@ format = sprintf = jsx.string.format = jsx.string.sprintf = function(sFormat) {
               fieldWidth, argFieldWidth, p4, uFieldWidthArg, p6,
               precision, argPrecision, p9, uPrecisionArg,
               memberDelim, convSpecifier) {
-      while (ignoredArgs[i]) i++;
+      while (ignoredArgs[i])
+      {
+        i++;
+      }
       
       if (argFieldWidth)
       {
@@ -522,7 +531,10 @@ format = sprintf = jsx.string.format = jsx.string.sprintf = function(sFormat) {
       }
 
       var v = args[i];
-      if (propertyName) v = v[propertyName];
+      if (propertyName)
+      {
+        v = v[propertyName];
+      }
       
       switch (convSpecifier)
       {
@@ -551,14 +563,24 @@ format = sprintf = jsx.string.format = jsx.string.sprintf = function(sFormat) {
               
             case "o":
               v = v.toString(8);
-              if (flags.indexOf("#") > -1 && v.charAt(0) !== "0") v = "0" + v;
+              if (flags.indexOf("#") > -1 && v.charAt(0) !== "0")
+              {
+                v = "0" + v;
+              }
               break;
               
             case "x":
             case "X":
               v = v.toString(16);
-              if (flags.indexOf("#") > -1 && v !== "0") v = "0x" + v;
-              if (convSpecifier === "X") v = v.toUpperCase();
+              if (flags.indexOf("#") > -1 && v !== "0")
+              {
+                v = "0x" + v;
+              }
+              
+              if (convSpecifier === "X")
+              {
+                v = v.toUpperCase();
+              }
           }
           
           break;
@@ -589,7 +611,10 @@ format = sprintf = jsx.string.format = jsx.string.sprintf = function(sFormat) {
         case "i":
         case "u":
           v = (+v < 0) ? Math.ceil(v) : Math.floor(v);
-          if (convSpecifier === "u") v >>>= 0;
+          if (convSpecifier === "u")
+          {
+            v >>>= 0;
+          }
           break;
 
         case "e":
@@ -630,7 +655,10 @@ format = sprintf = jsx.string.format = jsx.string.sprintf = function(sFormat) {
               exponent -= numLeadingZeroes + 1;
             }
             
-            if (!parseInt(fracPart, 10)) fracPart = "0";
+            if (!parseInt(fracPart, 10))
+            {
+              fracPart = "0";
+            }
                           
             v = sign + sUintPart + "." + fracPart
               + "e" + (exponent >= 0 ? "+" : "") + exponent;
@@ -677,7 +705,11 @@ format = sprintf = jsx.string.format = jsx.string.sprintf = function(sFormat) {
         }
       }
       
-      if (!propertyName) i++;
+      if (!propertyName)
+      {
+        i++;
+      }
+      
       return v;
     });
 };
@@ -700,7 +732,7 @@ format = sprintf = jsx.string.format = jsx.string.sprintf = function(sFormat) {
  *   Character or character sequence to delimit a sequence
  *   of three digits on the left-hand side of the point.
  *   The default is ",".
- * @return
+ * @return string|number
  *   the formatted number as string, <code>NaN</code> on error.
  */
 function format1k(s, s1kDelim)
@@ -760,8 +792,7 @@ function format1k(s, s1kDelim)
  *   not provided or <code>false</code>, it is assumed that
  *   the function is used as method of the String prototype,
  *   applied to a String object or literal.
- * @type number
- * @return
+ * @return number
  *   The hash code of the string, designed for implementing hash
  *   code access to associative arrays which can be implemented
  *   as objects with named properties in JavaScript 1.x.
@@ -814,7 +845,9 @@ function leadingCaps(s)
   }
 
   if (!s)
+  {
     return "";
+  }
 
   return s.charAt(0).toUpperCase() + s.substr(1).toLowerCase();
 }
@@ -826,8 +859,7 @@ function leadingCaps(s)
  * @param n : optional number
  *   Length of the resulting string.  The default is 1,
  *   i.e. if the input string is empty, "0" is returned.
- * @type string
- * @return
+ * @return string
  *   Input string with leading zeros so that
  *   its length is @{(n)}.
  * @see
@@ -951,10 +983,14 @@ function levenshtein(s, t)
   var m = t.length;
   
   if (n == 0)
+  {
     return m;
+  }
   
   if (m == 0)
+  {
     return n;
+  }
   
   /* matrix */
   var d = new Array();
@@ -1054,11 +1090,30 @@ var pad = jsx.string.pad = function(s, n, c, bRight, iStart) {
     s = this;
   }
   
-  if (!n) n = 1;
-  if (!c) c = CH_NBSP;
-  if (typeof s != "string") s = String(s);
-  if (typeof iStart == "undefined") iStart = s.length;
-  if (n <= iStart) return s;
+  if (!n)
+  {
+    n = 1;
+  }
+  
+  if (!c)
+  {
+    c = CH_NBSP;
+  }
+  
+  if (typeof s != "string")
+  {
+    s = String(s);
+  }
+  
+  if (typeof iStart == "undefined")
+  {
+    iStart = s.length;
+  }
+  
+  if (n <= iStart)
+  {
+    return s;
+  }
   
   var a = [];
   var missingLength = n - iStart + 1;
@@ -1140,7 +1195,9 @@ function replaceText(sText, sReplaced, sReplacement, bForceLoop)
     else if (sText.split
              && (a = sText.split(sReplaced))
              && a.join)
+    {
       return a.join(sReplacement);
+    }
     
     var i = sText.indexOf(sReplaced);
 
@@ -1196,16 +1253,24 @@ function replaceText(sText, sReplaced, sReplacement, bForceLoop)
 function serialize(o, options)
 {
   if (typeof options != "object" || !options)
+  {
     options = {};
+  }
     
   if (typeof options.depth == "undefined")
+  {
     options.depth = 0;
+  }
      
   if (typeof options.iIndent == "undefined")
+  {
     options.iIndent = 0;
+  }
     
   if (typeof options.sIndent == "undefined")
+  {
     options.sIndent = "  ";
+  }
   
   var
     a = [],
@@ -1255,7 +1320,9 @@ function serialize(o, options)
   }
   
   if (a.length > 0)
+  {
     return ["{\n", a.join(",\n"), "\n", indent, "}"].join("");
+  }
 
   return String(o);
 }
@@ -1274,7 +1341,9 @@ function strCount(s, substr, bCaseSensitive)
   var result = 0;
 
   if ((!s && !this.toLowerCase) || !substr)
+  {
     return -1;
+  }
   
   if (s && this.toLowerCase)
   {
@@ -1294,7 +1363,9 @@ function strCount(s, substr, bCaseSensitive)
     {
       result = s.match(rxSub);
       if (result && result.length)
+      {
         return result.length;
+      }
 
       return 0;
     }
@@ -1351,10 +1422,9 @@ function strCount(s, substr, bCaseSensitive)
  *   stripped.
  * @param bElements : optional boolean = false
  *   If <code>true</code>, strip elements, i.e. start and end tags.
- * @return
+ * @return string
  *   String where all tags are stripped from.
- * @see
- *   String.replace()
+ * @see String.prototype#replace()
  */
 function stripTags(s, bStripContent, bCaseSensitive, tags, bElements)
 {
@@ -1496,7 +1566,10 @@ function strRepeat(s, n)
     n = !isNaN(s) ? s : 0;
   }
   
-  if (isNaN(n)) return s;
+  if (isNaN(n))
+  {
+    return s;
+  }
   
   if (s)
   {
@@ -1516,8 +1589,7 @@ function strRepeat(s, n)
  *   provided or <code>false</code>, it is assumed that the
  *   function is used as method of the String prototype, applied
  *   to a String object or literal.
- * @type Array
- * @return
+ * @return Array
  *   An array with every character of <code>s</code> an element
  *   of it.
  * @see String.prototype#charAt
@@ -1593,12 +1665,12 @@ function strArrayToCharClass(as)
  *   If not provided or <code>false</code>, it is assumed
  *   that the function is used as method of the String
  *   prototype, applied to a String object or literal.
- * @type Array
- * @return
+ * @return Array
  *   An array where every element is the ASCII character
  *   of <code>s</code> an element of it.
- * @see
- *   strToArray(), String#charCodeAt(), String#split()
+ * @see #strToArray()
+ * @see String.prototype#charCodeAt()
+ * @see String.prototype#split()
  */
 function strToCodeArray(s)
 {
@@ -1690,7 +1762,10 @@ function trimLeft(s)
       var i, a;
       for (i = 0;
            i < s.length && (a = s.charAt(i)) <= " " || a == CH_NBSP;
-           i++);
+           i++)
+      {
+        ;
+      }
       s = s.substring(i);
     }
   }
@@ -1722,7 +1797,10 @@ function trimRight(s)
       var i, a;
       for (i = s.length - 1;
            i >= 0 && (a = s.charAt(i)) <= " " || a == CH_NBSP;
-           i--);
+           i--)
+      {
+        ;
+      }
       s = s.substring(0, i + 1);
     }
   }

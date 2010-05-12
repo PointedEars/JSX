@@ -437,7 +437,7 @@ function time(expr, bPrintResult, loops, repeats)
 
   if (bPrintResult)
   {
-    debugger;
+    // debugger
     result.push(
       "\nEvaluation Results (ms):\n\n\\",
       pad("n|", cnt.toString().length - 1));
