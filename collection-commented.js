@@ -5,7 +5,7 @@
  * 
  * @section Copyright & Disclaimer
  * 
- * @author (C) 2002-2008  Thomas Lahn &lt;collection.js@PointedEars.de&gt;
+ * @author (C) 2002-2010  Thomas Lahn &lt;collection.js@PointedEars.de&gt;
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,11 +23,6 @@
  * MA 02111-1307, USA.
  * 
  * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
- */
-/*
- * This document contains JavaScriptDoc. See
- * http://pointedears.de/scripts/JSdoc/
- * for details.
  */
 
 /**
@@ -58,14 +53,10 @@
  * @param o : optional Object
  *   reference used to fill the collection.
  * @constructor
- * @return undefined
  */
 function Collection(o)
 {
   this.version   = "0.1.2008120823";
-  /**
-   * @partof PointedEars JavaScript Extensions (JSX)
-   */
   this.copyright = "Copyright \xA9 2002-2008";
   this.author    = "Thomas Lahn";
   this.email     = "collection.js@PointedEars.de";
@@ -79,25 +70,25 @@ function Collection(o)
 
 Collection.prototype = Array.prototype;
 jsx.object.addProperties({
-  constructor: Collection, 
+  constructor: Collection,
 
   /**
    * Adds an item to a {@link Collection}.
    * 
-   * @param val 
-   * @param name : optional string 
+   * @param val
+   * @param name : optional string
    *   Reference to an object used to fill the collection.
    * @return CollectionItem
    *   the added item
    */
-  add: function collection_add(val, name) {
+  add: function (val, name) {
     var index = this.items.length;
     this.items[index] = new CollectionItem(val);
   
     if (name && isNaN(name))
     {
       this.items[name] = this.items[index];
-    }  
+    }
   
     return this.items[index];
   },
@@ -105,13 +96,13 @@ jsx.object.addProperties({
   /**
    * @param o : optional Object
    *   reference used to append to the collection.
-   */ 
-  addItems: function collection_addItems(o) {
+   */
+  addItems: function (o) {
     var result = null;
 
     for (var i in o)
     {
-      // omit deleted items
+      /* omit deleted items */
       if (typeof o[i] != "undefined")
       {
         result = this.add(o[i], i);
@@ -126,17 +117,17 @@ jsx.object.addProperties({
    * 
    * @type Array
    */
-  clear: function collection_clear() {
+  clear: function () {
     this.items = [];
     
     if (typeof this.items.map != "function")
     {
-      this.items.map = function(callback, thisObj) {
+      this.items.map = function (callback, thisObj) {
         var a = this;
         
         if (typeof callback == "function")
         {
-          if (!thisObj) thisObj = this;
+          if (!thisObj){thisObj = this;}
           
           a = [];
           for (var i = 0, len = this.length; i < len; i++)
@@ -149,17 +140,17 @@ jsx.object.addProperties({
           (function() {
              eval("throw new TypeError('Collection.prototype.items.map(callback, thisObj):'"
                + "+ ' expected function, got ' + typeof thisObj)");
-           })()
+           }());
         }
     
         return a;
       };
-    }    
+    }
   
     return this.items;
   },
   
-  keys: function collection_keys() {
+  keys: function () {
     var a = [], o = this.items;
     
     for (var k in o)
@@ -170,7 +161,7 @@ jsx.object.addProperties({
     return a;
   },
   
-  values: function collection_values() {
+  values: function () {
     return this.items.map(function(v) { return v; });
   },
   
@@ -179,7 +170,7 @@ jsx.object.addProperties({
    * 
    * @return Iterator
    */
-  iterator: function collection_iterator() {
+  iterator: function () {
     return new Iterator(this.items);
   },
   
@@ -187,8 +178,8 @@ jsx.object.addProperties({
    * @param o : optional Object
    *   reference used to fill the {@link Collection}.
    */
-  set: function collection_set(o) {
-    this.clear(); 
+  set: function (o) {
+    this.clear();
     return this.addItems(o);
   }
 }, jsx.object.ADD_OVERWRITE, Collection.prototype);
@@ -201,7 +192,6 @@ jsx.object.addProperties({
  *   reference used to fill the collection
  * @param val
  *   Value that the object holds
- * @return undefined
  */
 function ValueCollection(o, val)
 {
@@ -215,7 +205,6 @@ ValueCollection.extend(Collection);
  * 
  * @param val
  *   Value of the item
- * @return undefined
  */
 function CollectionItem(val)
 {
@@ -229,47 +218,47 @@ function CollectionItem(val)
  * 
  * @param o : Collection
  *   Iteration target
- * @return undefined
  */
 function Iterator(o)
 {
-  // properties
+  /* properties */
   this.target = o;
   this.prevItem = -1;
   this.currItem = -1;
   this.nextItem = -1;
 }
 
-// prototype methods
+/* prototype methods */
 /**
  * Returns the item previously visited in the iteration.
  * 
  * @return CollectionItem
+ *   The item previously visited in the iteration.
  */
-Iterator.prototype.prev = function iterator_prev() {
-  var result = result;  // undefined
+Iterator.prototype.prev = function () {
+  var result;
   var t = this.target;
 
   if (t)
   {
-    // no need to search if already found by hasPrev()
+    /* no need to search if already found by hasPrev() */
     if (this.prevItem > -1)
     {
       this.currItem = this.prevItem;
       result = t[this.currItem];
     }
     else if (typeof t.length != "undefined")
-    {  
+    {
       if (this.currItem < 1 || this.currItem > t.length - 1)
       {
         this.currItem = t.length;
       }
       
-      // start from next possible item
-      var i = this.currItem - 1;            
+      /* start from next possible item */
+      var i = this.currItem - 1;
 
-      // run through only one time
-      while (i != this.currItem && typeof t[i] == "undefined") 
+      /* run through only one time */
+      while (i != this.currItem && typeof t[i] == "undefined")
       {
         if (--i < 0)
         {
@@ -284,7 +273,7 @@ Iterator.prototype.prev = function iterator_prev() {
         this.nextItem = -1;
         result = i;
       }
-    }          
+    }
   }
   
   return result;
@@ -294,34 +283,34 @@ Iterator.prototype.prev = function iterator_prev() {
  * Returns the item that will next be visited in the iteration.
  * 
  * @return CollectionItem
+ *   The item that will next be visited in the iteration.
  */
-Iterator.prototype.next = function iterator_next() {
+Iterator.prototype.next = function () {
   var
-    // undefined
-    result = result,
+    result,
     t = this.target;
 
   if (t)
   {
-    // no need to search if already found by hasNext()
+    /* no need to search if already found by hasNext() */
     if (this.nextItem > -1)
     {
       this.currItem = this.nextItem;
       result = t[this.currItem];
     }
     else if (typeof t.length != "undefined")
-    {      
+    {
       if (this.currItem < 0
           || this.currItem > t.length - 2)
       {
         this.currItem = -1;
       }
     
-      // start from next possible item
+      /* start from next possible item */
       var i = this.currItem + 1;
       
-      // run through only one time
-      while (i != this.currItem && typeof t[i] == "undefined") 
+      /* run through only one time */
+      while (i != this.currItem && typeof t[i] == "undefined")
       {
         if (++i > t.length - 1)
         {
@@ -336,7 +325,7 @@ Iterator.prototype.next = function iterator_next() {
         this.nextItem = -1;
         result = i;
       }
-    }          
+    }
   }
   
   return result;
@@ -349,8 +338,10 @@ Iterator.prototype.next = function iterator_next() {
  * one item.  Returns <code>false</code> otherwise.
  * 
  * @return boolean
+ *   <code>true</code> if there is a previous item
+ *   in the iteration, <code>false</code> otherwise.
  */
-Iterator.prototype.hasPrev = function iterator_hasPrev() {
+Iterator.prototype.hasPrev = function () {
   var result = false;
   this.prevItem = -1;
   var t = this.target;
@@ -363,11 +354,11 @@ Iterator.prototype.hasPrev = function iterator_hasPrev() {
       this.currItem = t.length;
     }
 
-    // start from next possible item
+    /* start from next possible item */
     var i = this.currItem - 1;
           
-    // run through only one time
-    while (i != this.currItem && typeof t[i] == "undefined") 
+    /* run through only one time */
+    while (i != this.currItem && typeof t[i] == "undefined")
     {
       if (--i < 0)
       {
@@ -392,8 +383,10 @@ Iterator.prototype.hasPrev = function iterator_hasPrev() {
  * one item.  Returns <code>false</code> otherwise.
  * 
  * @return boolean
+ *   <code>true</code> if there is a next item
+ *   in the iteration, <code>false</code> otherwise.
  */
-Iterator.prototype.hasNext = function iterator_hasNext() {
+Iterator.prototype.hasNext = function () {
   var result = false;
   this.nextItem = -1;
   var t = this.target;
@@ -406,11 +399,11 @@ Iterator.prototype.hasNext = function iterator_hasNext() {
       this.currItem = -1;
     }
 
-    // start from next possible item
+    /* start from next possible item */
     var i = this.currItem + 1;
     
-    // run through only one time
-    while (i != this.currItem && typeof t[i] == "undefined") 
+    /* run through only one time */
+    while (i != this.currItem && typeof t[i] == "undefined")
     {
       if (++i > t.length - 1)
       {
@@ -429,13 +422,13 @@ Iterator.prototype.hasNext = function iterator_hasNext() {
 };
 
 /**
- * Removes the current item from the collection. 
+ * Removes the current item from the collection.
  * 
  * @type mixed
  * @return the next item, <code>undefined</code> if there is none.
  */
-Iterator.prototype.remove = function iterator_remove() {
-  var undef = undef;
+Iterator.prototype.remove = function () {
+  var undef;
   delete this.target[this.currItem];
   if (this.hasNext())
   {

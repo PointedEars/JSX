@@ -5,51 +5,47 @@
  * 
  * @idl
  * 
- * interface HTTPResponseListener :: Function
- * {
+ * interface HTTPResponseListener : Function {
  *   boolean HTTPResponseListener(IXMLHttpRequest x);
  *     // Handles the response for the HTTP request initiated with x.send()
  *     // SHOULD return a true-value if successful, a false-value otherwise
- * }
+ * };
  * 
- * interface HTTPMethod
- * {
+ * interface HTTPMethod {
  *   const string GET="GET"
  *   const string POST="POST"
- * }
+ * };
  * 
- * interface HTTPRequestReadyState
- * {
+ * interface HTTPRequestReadyState {
  *   const int COMPLETED=4
- * }
+ * };
  * 
  * interface HTTPStatus {
- *   const RegExp OK_EXPR=/\b(0|2\d\d)\b/
+ *   const RegExp OK_EXPR=/\b(0|2\d\d|1223)\b/
  *   const RegExp FAILED_EXPR=/\b[45]\d\d\b/
- * }
+ * };
  * 
- * interface HTTPRequest
- * {
- *   attribute string                URL
- *                                     setter=setURL(string)
- *                                     default=setURL();
- *   attribute HTTPMethod            method
- *                                     setter=setMethod(string)
- *                                     default=setMethod();
- *   attribute boolean               async
- *                                     setter=setAsync(boolean)
- *                                     default=setAsync();
- *   attribute string                data
- *                                     setter=setData(string)
- *                                     default=setData();
- *   attribute string                requestType
- *                                     setter=setRequestType(string)
- *                                     default=setRequestType();
- *   readonly attribute HTTPRequestReadyState readyState
- *   readonly attribute HTTPStatus            status
- *   attribute HTTPResponseListener   responseListener
- *   attribute HTTPResponseListener   successListener
- *   attribute HTTPResponseListener   errorListener
+ * interface HTTPRequest {
+ *            attribute string                 URL
+ *                                               setter=setURL(string)
+ *                                               default=setURL();
+ *            attribute HTTPMethod             method
+ *                                               setter=setMethod(string)
+ *                                               default=setMethod();
+ *            attribute boolean                async
+ *                                               setter=setAsync(boolean)
+ *                                               default=setAsync();
+ *            attribute string                 data
+ *                                               setter=setData(string)
+ *                                               default=setData();
+ *            attribute string                 requestType
+ *                                               setter=setRequestType(string)
+ *                                               default=setRequestType();
+ *   readonly attribute HTTPRequestReadyState  readyState
+ *   readonly attribute HTTPStatus             status
+ *            attribute HTTPResponseListener   responseListener
+ *            attribute HTTPResponseListener   successListener
+ *            attribute HTTPResponseListener   errorListener
  *
  *   HTTPRequest HTTPRequest();
  *     // URL=document.URL, method="GET", async=true, successListener=null,
@@ -96,7 +92,7 @@
  *   boolean send(string sData, string sURL, string sMethod, boolean bAsync);
  *     // sData=null, URL=sURL||document.URL, method=sMethod||"GET",
  *     // bAsync=true
- * }
+ * };
  * 
  * @end
  */
@@ -128,10 +124,9 @@
  *   The function to handle the response of a request that failed
  *   (default: <code>null</code>).
  * @constructor
- * @type jsx.HTTPRequest
  */
 
-jsx.HTTPRequest = function(sURL, sMethod, bAsync, fSuccessListener, fErrorListener) {
+jsx.HTTPRequest = function (sURL, sMethod, bAsync, fSuccessListener, fErrorListener) {
   /* Enables factory use */
   var me = arguments.callee;
   if (this.constructor !== me)
@@ -242,7 +237,7 @@ jsx.HTTPRequest.prototype = {
    * 
    * @param x : XMLHttpRequest
    */
-  responseListener: function(x) {
+  responseListener: function (x) {
     var C = this.constructor;
   
     if (x.readyState === C.readyState.COMPLETED)
@@ -279,8 +274,12 @@ jsx.HTTPRequest.prototype = {
    *   If <code>true</code>, do not encode the request URI
    *   with {@link jsx.string#escURI()}.
    */
-  setURL: function(sURL, bDontEncode) {
-    if (!bDontEncode && sURL) sURL = escURI(sURL);
+  setURL: function (sURL, bDontEncode) {
+    if (!bDontEncode && sURL)
+    {
+      sURL = escURI(sURL);
+    }
+    
     this.URL = (sURL || document.URL);
   },
 
@@ -293,7 +292,7 @@ jsx.HTTPRequest.prototype = {
    *   If not provided or a false-value, the value
    *   of <code>HTTPRequest.method.GET</code> is used.
    */
-  setMethod: function(sMethod) {
+  setMethod: function (sMethod) {
     this.method =
       sMethod
         ? String(sMethod).toUpperCase()
@@ -309,7 +308,7 @@ jsx.HTTPRequest.prototype = {
    * @param bAsync : optional boolean
    *   If not provided or a true-value, the request will be asynchronous.
    */
-  setAsync: function(bAsync) {
+  setAsync: function (bAsync) {
     this.async = (typeof bAsync != "undefined" ? !!bAsync : true);
   },
   
@@ -330,9 +329,10 @@ jsx.HTTPRequest.prototype = {
    * @param fResponseListener : HTTPResponseListener
    * @throws jsx.InvalidArgumentError
    */
-  setResponseListener: function(fResponseListener) {
+  setResponseListener: function (fResponseListener) {
     /* initialization */
-    if (typeof this.responseListener == "undefined")
+    if (typeof fResponseListener == "undefined"
+        && typeof this.responseListener == "undefined")
     {
       this.responseListener = new jsx.HTTPResponseListener();
       return true;
@@ -364,14 +364,15 @@ jsx.HTTPRequest.prototype = {
    * @param fSuccessListener : HTTPResponseListener
    * @throws jsx.InvalidArgumentError
    */
-  setSuccessListener: function(fSuccessListener) {
+  setSuccessListener: function (fSuccessListener) {
     /* initialization */
-    if (typeof this.successListener == "undefined")
+    if (typeof fSuccessListener == "undefined"
+        && typeof this.successListener == "undefined")
     {
       this.successListener = new jsx.HTTPResponseListener();
       return true;
     }
-    else if (jsx.object.isMethod(fSuccessListener))
+    else if (typeof fSuccessListener == "function")
     {
       this.successListener = fSuccessListener;
       return (this.successListener == fSuccessListener);
@@ -398,8 +399,9 @@ jsx.HTTPRequest.prototype = {
    * @param fErrorListener : HTTPResponseListener
    * @throws jsx.InvalidArgumentError
    */
-  setErrorListener: function(fErrorListener) {
-    if (typeof this.errorListener == "undefined")
+  setErrorListener: function (fErrorListener) {
+    if (typeof fErrorListener == "undefined"
+        && typeof this.errorListener == "undefined")
     {
       this.errorListener = new jsx.HTTPResponseListener();
       return true;
@@ -425,7 +427,7 @@ jsx.HTTPRequest.prototype = {
    *   the property to the empty string.
    * @see HTTPRequest.prototype#resetData()
    */
-  setData: function(sData) {
+  setData: function (sData) {
     this.data = (sData || "");
   },
     
@@ -434,7 +436,7 @@ jsx.HTTPRequest.prototype = {
    * 
    * @see HTTPRequest.prototype#setData()
    */
-  resetData: function() {
+  resetData: function () {
     this.setData();
   },
 
@@ -449,12 +451,16 @@ jsx.HTTPRequest.prototype = {
    *   is <code>false</code>.
    * @return boolean
    */
-  getDataFromForm: function(f, bUseFormMethod) {
+  getDataFromForm: function (f, bUseFormMethod) {
     var result = false, es, len;
 
     if (f && (es = f.elements) && (len = es.length))
     {
-      if (bUseFormMethod) this.method = f.method;
+      if (bUseFormMethod)
+      {
+        this.method = f.method;
+      }
+      
       
       var aData = [];
 
@@ -484,7 +490,7 @@ jsx.HTTPRequest.prototype = {
    *   <code>"application/x-www-form-urlencoded"</code>, if omitted or
    *   a false-value (like "", the empty string).
    */
-  setRequestType: function(sRequestType) {
+  setRequestType: function (sRequestType) {
     this.requestType = sRequestType || "application/x-www-form-urlencoded";
   },
 
@@ -494,12 +500,11 @@ jsx.HTTPRequest.prototype = {
    * a new object if necessary;
    * 
    * @protected
-   * @type XMLHttpRequest|XMLHTTPRequest|Null
-   * @return
+   * @return IXMLHttpRequest
    *   A reference to an XML HTTP Request object or <code>null</code>,
    *   if no such object can be created.
    */
-  _getXHR: function() {
+  _getXHR: function () {
     var
       jsx_global = jsx.global,
       jsx_object = jsx.object,
@@ -547,8 +552,8 @@ jsx.HTTPRequest.prototype = {
     if (!x && jsx_object.isMethod(jsx_global, "XMLHttpRequest"))
     {
       jsx.tryThis(
-        function() { x = new XMLHttpRequest(); },
-        function() { x = null; });
+        function () { x = new XMLHttpRequest(); },
+        function () { x = null; });
     }
     
     /* IceBrowser */
@@ -556,12 +561,16 @@ jsx.HTTPRequest.prototype = {
            && jsx_object.isMethod(window, "createRequest"))
     {
       jsx.tryThis(
-        function() { x = window.createRequest(); },
-        function() { x = null; });
+        function () { x = window.createRequest(); },
+        function () { x = null; });
     }
 
     /* Update cache if unused */
-    if (x && this._xhr === null) this._xhr = x;
+    if (x && this._xhr === null)
+    {
+      this._xhr = x;
+    }
+    
     
     return x;
   },
@@ -595,21 +604,35 @@ jsx.HTTPRequest.prototype = {
    *   and responded with an OK status code, only that the method
    *   could be called successfully.
    */
-  send: function(sData, sURL, sMethod, bAsync) {
+  send: function (sData, sURL, sMethod, bAsync) {
     var
       jsx_object = jsx.object,
       C = this.constructor,
       x = this._getXHR();
 
-    if (!x || !jsx_object.isMethod(x, "open")) return false;
+    if (!x || !jsx_object.isMethod(x, "open"))
+    {
+      return false;
+    }
     
     /* Assume everything goes smoothly from here */
     var result = true;
     
-    if (arguments.length < 1) sData = this.data;
-    if (arguments.length < 2) sURL = this.URL;
-
-    if (arguments.length < 3) sMethod = this.method;
+    if (arguments.length < 1)
+    {
+      sData = this.data;
+    }
+    
+    if (arguments.length < 2)
+    {
+      sURL = this.URL;
+    }
+    
+    if (arguments.length < 3)
+    {
+      sMethod = this.method;
+    }
+    
     var bGET = (sMethod == C.method.GET);
 
     bAsync = (arguments.length > 3) ? !!bAsync : this.async;
@@ -629,7 +652,7 @@ jsx.HTTPRequest.prototype = {
     {
       /* NOTE: Failure to call this method is _not_ considered a fatal error. */
       jsx.tryThis(
-        function() {
+        function () {
           x.setRequestHeader("Content-Type", this.requestType);
         }
       );
@@ -638,7 +661,7 @@ jsx.HTTPRequest.prototype = {
     if (bAsync)
     {
       var me = this;
-      x.onreadystatechange = function() {
+      x.onreadystatechange = function () {
         // alert(x.readyState);
         // alert(x.status);
         
@@ -658,8 +681,8 @@ jsx.HTTPRequest.prototype = {
     }
     
     jsx.tryThis(
-      function() { x.send(bGET ? null : (sData || this.data)); },
-      function() { result = false; this.errorListener(x); });
+      function () { x.send(bGET ? null : (sData || this.data)); },
+      function () { result = false; this.errorListener(x); });
     
     if (!bAsync)
     {
@@ -670,7 +693,7 @@ jsx.HTTPRequest.prototype = {
         
       /* Handle stopped servers */
       jsx.tryThis(
-        function() {
+        function () {
           if (C.status.OK_EXPR.test(x.status)) {
             result = true;
           }
@@ -703,9 +726,9 @@ jsx.HTTPRequest.prototype = {
  * 
  * @param sCode
  * @type Function
- * @return A new <code>HTTPResponseListener</code> object
+ * @constructor
  */
-jsx.HTTPResponseListener = function(sCode) {
+jsx.HTTPResponseListener = function (sCode) {
   return Function("x", sCode || "");
 };
 
