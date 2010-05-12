@@ -32,7 +32,7 @@ if (typeof jsx == "undefined")
 
 jsx.object = {
   /** @version */
-  version:   "0.1.5a.2010042815",
+  version:   "0.1.6.2010051216",
   copyright: "Copyright \xA9 2004-2010",
   author:    "Thomas Lahn",
   email:     "object.js@PointedEars.de",
@@ -545,7 +545,6 @@ var tryThis = jsx.tryThis = (function () {
   };
 }());
 
-
 /**
  * Throws an exception, including an execution context hint if provided,
  * followed by an error message.
@@ -571,7 +570,10 @@ var tryThis = jsx.tryThis = (function () {
 var throwException = jsx.throwThis = (function () {
   var
     jsx_global = jsx.global,
-    jsx_object = jsx.object;
+    jsx_object = jsx.object,
+    f = function (e, i, a) {
+      return typeof e == "string" ? '"' + e + '"' : e;
+    };
   
   return function (errorType, message, context) {
     var sErrorType = errorType;
@@ -605,10 +607,9 @@ var throwException = jsx.throwThis = (function () {
     /* Array for exception constructor's argument list */
     if (jsx_object.isMethod(message, "map"))
     {
-      message = String(message.map(
-        function (e, i, a) {
-          return typeof e == "string" ? '"' + e + '"' : e;
-        })).replace(/\\/g, "\\$&").replace(/\r?\n|\r/g, "\\n");
+      /* NOTE: Opera 5 and 6 require this to be split in two statements */
+      message = String(message.map(f)).replace(/\\/g, "\\$&");
+      message = s.replace(/\r?\n|\r/g, "\\n");
     }
     else
     {
@@ -804,13 +805,18 @@ var isMethod = jsx.object.isMethod = jsx.object.areMethods = (function () {
   var
     rxUnknown = /^\s*unknown\s*$/i,
     rxMethod = /^\s*(function|object)\s*$/i,
+    
     sPropertyAccess = (
         "^\\s*[A-Za-z_UNICODE$][\\wUNICODE$]*"
         + "(\\s*\\.\\.?\s*[A-Za-z_UNICODE$][\\wUNICODE$]*"
-        + "|\\[[^]]+\\])*\\s*$"
+        + "|\\[[\x20-\x7fUNICODE]+\\])*\\s*$"
       )
-      /* Unicode support (from JavaScript 1.3 on) */
-      .replace(/UNICODE/g, ("\uFFFF".length == 1) ? "\\u0080-\\uFFFF" : ""),
+      /*
+       * Unicode support (from JavaScript 1.3 on);
+       * TODO: Distinguish between letters and other characters
+       */
+      .replace(/UNICODE/g, ("\uFFFD".length == 1) ? "\u00A0-\uFFFD" : ""),
+
     rxPropertyAccess = new RegExp(sPropertyAccess);
   
   return function (o, p) {

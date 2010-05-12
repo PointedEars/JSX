@@ -5,7 +5,7 @@ if (typeof RegExp == "undefined")
 {
   var RegExp = new Object();
 }
-/** @version */ RegExp.version = "0.1.2009010602";
+/** @version */ RegExp.version = "0.1.2010051217";
 /**
  * @filename regexp.js
  * @partof   PointedEars' JavaScript Extensions (JSX)
@@ -123,10 +123,25 @@ function regexp_concat()
     if (c && c == RegExp)
     {
       aParts.push(regexp2str(a));
-      if (!oFlags.g && a.global)     oFlags.g = true;
-      if (!oFlags.i && a.ignoreCase) oFlags.i = true;
-      if (!oFlags.m && a.multiline)  oFlags.m = true;
-      if (!oFlags.y && a.sticky)     oFlags.y = true;
+      if (!oFlags.g && a.global)
+      {
+        oFlags.g = true;
+      }
+      
+      if (!oFlags.i && a.ignoreCase)
+      {
+        oFlags.i = true;
+      }
+      
+      if (!oFlags.m && a.multiline)
+      {
+        oFlags.m = true;
+      }
+      
+      if (!oFlags.y && a.sticky)
+      {
+        oFlags.y = true;
+      }
     }
     else
     {
@@ -158,7 +173,10 @@ function regexp_intersect(pattern2, pattern1)
   }
   
   /* Rule out invalid values */
-  if (!pattern2 || pattern2.constructor != RegExp) return null;
+  if (!pattern2 || pattern2.constructor != RegExp)
+  {
+    return null;
+  }
 
   var
     s = this.source.replace(/^\(?([^)]*)\)?$/, "$1"),
@@ -168,13 +186,19 @@ function regexp_intersect(pattern2, pattern1)
   var
     a = s.split("|"),
     o = {};
-  for (var i = 0, len = a.length; i < len; i++) o[a[i]] = true;
+  for (var i = 0, len = a.length; i < len; i++)
+  {
+    o[a[i]] = true;
+  }
 
   /* Register all parts within alternation of pattern2 */
   var
     a2 = s2.split("|"),
     o2 = {};
-  for (i = 0, len = a2.length; i < len; i++) o2[a2[i]] = true;
+  for (i = 0, len = a2.length; i < len; i++)
+  {
+    o2[a2[i]] = true;
+  }
 
   /* Compose the new alternation out of common parts */
   var hOP = (
@@ -200,7 +224,10 @@ function regexp_intersect(pattern2, pattern1)
   a = [];
   for (var p in o)
   {
-    if (hOP(o2, p)) a.push(p);
+    if (hOP(o2, p))
+    {
+      a.push(p);
+    }
   }
 
   return new RegExp("(" + a.join("|") + ")");
@@ -226,7 +253,11 @@ function strRegExpEscape(s)
 }
 String.prototype.regExpEscape = strRegExpEscape;
 
-if (typeof jsx != "object") var jsx = {};
+if (typeof jsx != "object")
+{
+  var jsx = {};
+}
+
 jsx.RegExp = (function() {
   var
     rxUnicodeProperty = /\\[pPX]/,
@@ -239,30 +270,30 @@ jsx.RegExp = (function() {
     if (sExpression.test(rxUnicodeProperty))
     {
       var req = new jsx.HTTPRequest(me.unicodeFilePath, "GET", false,
-        function(x) {
+        function (x) {
+          var lines = x.responseText.split(/\r?\n|\r/);
+        
+          jsxRegExp.characterData.lines = lines;
+        
           jsxRegExp.characterData = {
             cache: {},
             
-            getCharacters: function(property) {
+            getCharacters: function (property) {
               if (jsx_object.getProperty(this.cache, property, false))
               {
-                /* .. */
+                return this.cache[property];
               }
-              else
-              {
-                // this.cache[property] = [for (line in this.lines)]
-              }
+
+              this.cache[property] = this.lines.filter(
+                function (e, i, a) {
+                  return e.split(";")[2] == property;
+                });
             }
           };
-          
-          var lines = x.responseText.split(/\r?\n|\r/);
-          
-          jsxRegExp.characterData.lines = lines;
         });
       req.send();
 
       this.expr = new RegExp(sExpression);
-    
     }
   }
    
@@ -294,8 +325,15 @@ jsx.RegExp = (function() {
   }
   
   return function(expression, sFlags) {
-    if (expression && expression.constructor == RegExp) return expression;
-    if (typeof expression != "string") jsx.throwThis("TypeError");
+    if (expression && expression.constructor == RegExp)
+    {
+      return expression;
+    }
+    
+    if (typeof expression != "string")
+    {
+      jsx.throwThis("TypeError");
+    }
     
     expression = expression.replace(rxEscapes,
       function(m, p1, p2, p3) {
