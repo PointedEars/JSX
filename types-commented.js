@@ -1,45 +1,45 @@
 /**
  * <title>Type Function Library</title>
- */
-
-/**
- * @return undefined
- */
-function Types()
-{
-  this.version = "1.29.8.2009070702";
-/**
+ *
  * @file types.js
  * @partof PointedEars' JavaScript Extensions (JSX)
  * @requires object.js
  * @author
  *   (C) 2001-2009  Thomas Lahn &lt;types.js@PointedEars.de&gt;
  */
-  this.copyright = "Copyright \xA9 1999-2009";
-  this.author    = "Thomas Lahn";
-  this.email     = "types.js@PointedEars.de";
-  this.path      = "http://pointedears.de/scripts/";
-  this.URI       = this.path + "types.js";
-// var typesDocURL = typesPath + "types.htm";
-}
-
-var types = new Types();
 
 /* a more compatible approach */
 if (typeof jsx == "undefined")
 {
-  var jsx = new Object();
+  var jsx = {};
 }
-jsx.types = types;
+
+jsx.types = {
+  version: "1.29.8.2009070702",
+  copyright: "Copyright \xA9 1999-2009",
+  author:    "Thomas Lahn",
+  email:     "types.js@PointedEars.de",
+  path:      "http://pointedears.de/scripts/"
+};
+
+jsx.types.URI = jsx.types.path + "types.js";
+// var typesDocURL = typesPath + "types.htm"
 
 /* allows for de.pointedears.jsx.types */
 if (typeof de == "undefined")
 {
-  var de = new Object();
+  var de = {};
 }
-if (typeof de.pointedears == "undefined"){de.pointedears = new Object();}
-if (typeof de.pointedears.jsx == "undefined"){de.pointedears.jsx = jsx;}
-de.pointedears.jsx.types = types;
+
+if (typeof de.pointedears == "undefined")
+{
+  de.pointedears = {};
+}
+
+if (typeof de.pointedears.jsx == "undefined")
+{
+  de.pointedears.jsx = jsx;
+}
 
 /**
  * This program is free software; you can redistribute it and/or
@@ -60,18 +60,12 @@ de.pointedears.jsx.types = types;
  * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
  */
 
-/*
- * This script file contains JSdoc[tm] comments
- * to create an API documentation of it from them, see
- * <http://PointedEars.de/scripts/JSdoc/> for details.
- */
-
 /**
  * @param sMsg : optional string
- * @return false
+ * @return boolean false
  */
 var TypesException = jsx.types.TypesException = function(sMsg) {
-  alert(
+  window.alert(
     "types.js "
       + types.version
       + "\n"
@@ -135,7 +129,7 @@ jsx.types.isInstanceOf = jsx.object.isInstanceOf;
  * @requires jsx.object#isInstanceOf
  * @param a : Object
  *   Expression to be determined an array.
- * @return
+ * @return boolean
  *   <code>true</code> if <code>a</code> is an object
  *   derived from Array, <code>false</code> otherwise.
  *   Returns also <code>false</code> if the language
@@ -160,8 +154,7 @@ var isArray = jsx.types.isArray = function(a) {
  *   <code>HTMLCollection</code> or
  *   <code>HTMLOptionsCollection</code> interfaces defined in
  *   the W3C DOM Level 2 Specification.
- * @type boolean
- * @return
+ * @return boolean
  *   <code>true</code> if <code>o</code> is an iterable object,
  *   <code>false</code> otherwise.
  */
@@ -184,7 +177,7 @@ var isIterable = jsx.types.isIterable = function(o) {
  *   <var>s</var>.
  */
 var bracketsToDots = jsx.bracketsToDots = function(s) {
-  // FIXME: What about non-identifier names?
+  /* FIXME: What about non-identifier names? */
   return s.replace(/\['?/g, '.').replace(/'?\]/g, '');
 };
 
@@ -242,7 +235,7 @@ var dotsToBrackets = jsx.dotsToBrackets = function(s, bStringsOnly) {
  *   (C) 2008  Thomas Lahn &lt;types.js@PointedEars.de&gt;
  * @param o : Object
  *   Base object
- * @param : string
+ * @params : string
  *   Name(s) of the property/properties that are required for
  *   the feature.  For example, passing "foo" and "bar"
  *   determines whether o["foo"]["bar"] is an available feature.
@@ -266,13 +259,17 @@ var dotsToBrackets = jsx.dotsToBrackets = function(s, bStringsOnly) {
 var isFeature = jsx.types.isFeature = function(o) {
   if (typeof o != "undefined" && o)
   {
+    var
+      rxUnknown = /^\s*unknown\s*$/i,
+      rxUndefined = /^\s*undefined\s*$/i;
+    
     for (var i = 1, len = arguments.length; i < len; i++)
     {
       var arg = arguments[i];
       
       var t = typeof o[arg], isUnknown;
-      if ((isUnknown = /^\s*unknown\s*$/i.test(t))
-          || !/^\s*undefined\s*$/i.test(t) && o[arg])
+      if ((isUnknown = rxUnknown.test(t))
+          || !rxUndefined.test(t) && o[arg])
       {
         o = o[arg];
         if (isUnknown)

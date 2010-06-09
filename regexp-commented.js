@@ -1,12 +1,6 @@
 /**
  * <title>PointedEars' JSX: RegExp Library</title>
- */
-if (typeof RegExp == "undefined")
-{
-  var RegExp = new Object();
-}
-/** @version */ RegExp.version = "0.1.2010051217";
-/**
+ *
  * @filename regexp.js
  * @partof   PointedEars' JavaScript Extensions (JSX)
  *
@@ -14,13 +8,7 @@ if (typeof RegExp == "undefined")
  *
  * @author
  *   (C) 2005, 2008  Thomas Lahn &lt;regexp.js@PointedEars.de&gt;
- */
-RegExp.copyright = "Copyright \xA9 2005";
-RegExp.author    = "Thomas Lahn";
-RegExp.email     = "regexp.js@PointedEars.de";
-RegExp.path      = "http://pointedears.de/scripts/";
-//RegExp.docURL    = RegExp.path + "regexp.htm";
-/**
+ * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -38,19 +26,42 @@ RegExp.path      = "http://pointedears.de/scripts/";
  * 
  * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
  */
-// Refer string.htm file for general documentation.
+
+if (typeof jsx != "object")
+{
+  var jsx = {};
+}
+
+jsx.regexp = {
+  /** @version */
+  version:   "0.1.2010060903",
+  copyright: "Copyright \xA9 2005, 2010",
+  author:    "Thomas Lahn",
+  email:     "regexp.js@PointedEars.de",
+  path:      "http://pointedears.de/scripts/regexp.js"
+};
+
+// jsx.regexp.docURL = jsx.regexp.path + "regexp.htm";
+
+/** @deprecated since 0.1.2010060903, see jsx.regexp */
+RegExp.version   = jsx.regexp.version;
+RegExp.copyright = jsx.regexp.copyright;
+RegExp.author    = jsx.regexp.author;
+RegExp.email     = jsx.regexp.email;
+RegExp.path      = jsx.regexp.path;
+// RegExp.docURL = jsx.regExp.docURL;
 
 /**
  * Returns the string representation of a RegExp object without delimiters.
  * 
  * @param rx
  * @return string
+ *   The string representation of <var>rx</var>
  */
-function regexp2str(rx)
-{
+var regexp2str = jsx.regexp.toString2 = function (rx) {
   // return rx.toString().replace(/[^\/]*\/((\\\/|[^\/])+)\/[^\/]*/, "$1");
   return rx.source || rx.toString().replace(/[^\/]*\/(.+)\/[^\/]*/, "$1");
-}
+};
 RegExp.prototype.toString2 = regexp2str;
 
 /**
@@ -76,10 +87,9 @@ RegExp.prototype.toString2 = regexp2str;
  *   object, the expressions given are concatenated
  *   beginning with the calling object.
  * @return RegExp
- *   A reference to the resulting RegExp.
+ *   A reference to the resulting RegExp
  */
-function regexp_concat()
-{
+var regexp_concat = jsx.regexp.concat = function () {
   var
     aParts = [],
     c = this.constructor;
@@ -150,16 +160,21 @@ function regexp_concat()
   }
 
   return new RegExp(aParts.join(""), oFlags.joinSet());
-}
+};
 RegExp.prototype.concat = regexp_concat;
 
 /**
+ * Returns a reference to a RegExp object that is an alternation of
+ * two regular expressions.
+ * 
  * @param pattern2
  * @param pattern1
  * @return RegExp
+ *   A regular expression which matches the strings that either
+ *   <var>pattern1</var> (or this object) or <var>pattern2</var>
+ *   would match
  */
-function regexp_intersect(pattern2, pattern1)
-{
+var regexp_intersect = jsx.regexp.intersect = function (pattern2, pattern1) {
   if (!pattern1 || pattern1.constructor != RegExp)
   {
     if (this.constructor == RegExp)
@@ -202,9 +217,6 @@ function regexp_intersect(pattern2, pattern1)
 
   /* Compose the new alternation out of common parts */
   var hOP = (
-    /**
-     * @return Function
-     */
     function() {
       if (typeof Object.prototype.hasOwnProperty == "function")
       {
@@ -231,7 +243,7 @@ function regexp_intersect(pattern2, pattern1)
   }
 
   return new RegExp("(" + a.join("|") + ")");
-}
+};
 RegExp.prototype.intersect = regexp_intersect;
 
 /**
@@ -242,132 +254,218 @@ RegExp.prototype.intersect = regexp_intersect;
  * @param s : string
  * @return string
  */
-function strRegExpEscape(s)
-{
+var strRegExpEscape = jsx.regexp.escape = function (s) {
   if (arguments.length < 0 && this.constructor == String)
   {
     s = this;
   }
     
   return s.replace(/[\]\\^$*+?.(){}[]/g, "\\$&");
-}
+};
 String.prototype.regExpEscape = strRegExpEscape;
 
-if (typeof jsx != "object")
-{
-  var jsx = {};
-}
+/**
+ * Creates an extended RegExp object where you can use PCRE-compliant
+ * Unicode character classes using e.g. the \p{…} notation.
+ * 
+ * There are the following possibilities to make Unicode character classes
+ * known to this constructor:
+ * <ol>
+ *   <li>Provide the Unicode Character Database, or parts thereof, as an Object;</li>
+ *   <li>Provide the Unicode Character Database, or parts thereof, as a
+ *       plain text resource that is accessed with XMLHttpRequest;</li>
+ *   <li>Define character classes manually</li>
+ * </ol>
+ * 
+ * <p>
+ * Variant #1 requires you to define a mapping object of the following structure:
+ * </p>
+ * <pre><code>
+ *   jsx.RegExp.characterClasses = {
+ *      ...,
+ *     Sc: "\u20AC...",
+ *     ...
+ *   };
+ * </code></pre>
+ * <p>
+ * The property name is the name of the character class.  The property
+ * value defines which characters belong to that class.  You may use
+ * "-" to specify character ranges, i.e., the range of characters including
+ * the characters having the boundaries as code point, and all characters
+ * that have a code point in-between.  (For a literal "-", you may use "\\-".)
+ * An example file to mirror the Unicode 5.0 Character Database, UnicodeData.js,
+ * is provided with the distribution.  Include it after the file that
+ * declares the constructor (this file) to use it.  If you do not include it,
+ * but use the <code>\p{...}</code> notation, an attempt will be made to
+ * load the file specified by the <code>ucdScriptPath</code> (default:
+ * <code>"/scripts/UnicodeData.js"</code>) using synchronous XHR (see below).
+ * </p>
+ * 
+ * <p>
+ * Variant #2 supports two different methods: Synchronous and asynchronous
+ * request-response handling.  Synchronous request-response handling
+ * requests the (partial) Unicode Character Database from the resource
+ * specified by the <code>ucdTextPath</code> property (default:
+ * <code>"/scripts/UnicodeData.txt"</code>) and halts execution until
+ * a response has been received or the connection timed out.  Asynchronous
+ * request-response handling allows script execution to continue while
+ * the request and response are in progress, but you need to provide a
+ * callback as third argument where actions related to the regular expression
+ * must be performed.  Asynchronous handling is recommended for applications
+ * that need to be responsive to user input.
+ * </p>
+ * 
+ * <p>
+ * Variant #3 can be combined with the other variants.  The constructor
+ * has a defineCharacterClass() method which can be used to define and
+ * redefine character classes.  This allows an extended RegExp object
+ * to support only a subset of Unicode Character Classes, and to support
+ * user-defined character classes.
+ * </p>
+ */
+//jsx.RegExp = (function () {
+//  var
+//    rxUnicodeProperty = /\\[pPX]/,
+//    jsx_object = jsx.object;
+//
+//  function jsxRegExp(sExpression)
+//  {
+//    var me = arguments.callee;
+//
+//    if (sExpression.test(rxUnicodeProperty))
+//    {
+//      var req = new jsx.HTTPRequest(me.unicodeFilePath, "GET", false,
+//        function (x) {
+//          var lines = x.responseText.split(/\r?\n|\r/);
+//
+//          jsxRegExp.characterData.lines = lines;
+//
+//          jsxRegExp.characterData = {
+//            cache: {},
+//
+//            getCharacters: function (property) {
+//              if (jsx_object.getProperty(this.cache, property, false))
+//              {
+//                return this.cache[property];
+//              }
+//
+//              this.cache[property] = this.lines.filter(
+//                function (e, i, a) {
+//                  return e.split(";")[2] == property;
+//                });
+//            }
+//          };
+//        });
+//      req.send();
+//
+//      this.expr = new RegExp(sExpression);
+//    }
+//  }
+//
+//  return jsxRegExp;
+//})();
 
-jsx.RegExp = (function() {
+jsx.RegExp = (function () {
   var
-    rxUnicodeProperty = /\\[pPX]/,
+    rxEscapes = /\\\[|\[([^\]\\]|\\p\{([^\}]+)\}|\\\])+\]|\\([pP])\{([^\}]+)\}/g,
     jsx_object = jsx.object;
-  
-  function jsxRegExp(sExpression)
-  {
-    var me = arguments.callee;
-    
-    if (sExpression.test(rxUnicodeProperty))
-    {
-      var req = new jsx.HTTPRequest(me.unicodeFilePath, "GET", false,
-        function (x) {
-          var lines = x.responseText.split(/\r?\n|\r/);
-        
-          jsxRegExp.characterData.lines = lines;
-        
-          jsxRegExp.characterData = {
-            cache: {},
-            
-            getCharacters: function (property) {
-              if (jsx_object.getProperty(this.cache, property, false))
-              {
-                return this.cache[property];
-              }
 
-              this.cache[property] = this.lines.filter(
-                function (e, i, a) {
-                  return e.split(";")[2] == property;
-                });
-            }
-          };
-        });
-      req.send();
-
-      this.expr = new RegExp(sExpression);
-    }
-  }
-   
-  return jsxRegExp;
-})();
-jsx.RegExp.unicodeFilePath = "UnicodeData.txt";
-
-jsx.RegExp = (function() {
-  var
-    rxEscapes = /\\([ae]|c([A-Z])|[pP]([A-Za-z]|\{([^\}]+)\}))/g,
-    escapeMap = {
-      /* BEL */
-      a: "\\u0007",
-      
-      /* ESC */
-      e: "\\u001B"
-    },
-    unicodeMap = {
-      Letter: "A-Za-z"
-    },
-    shortcutMap = [
-      ["L", "Letter"]
-    ];
-  
-  for (var i = shortcutMap.length; i--;)
-  {
-    var pair = shortcutMap[i];
-    unicodeMap[pair[0]] = unicodeMap[pair[1]];
-  }
-  
   return function(expression, sFlags) {
+    var
+      me = arguments.callee,
+      characterClasses = me.characterClasses;
+    
     if (expression && expression.constructor == RegExp)
     {
-      return expression;
+      expression = expression.source;
     }
     
-    if (typeof expression != "string")
+    var t = typeof expression;
+    if (t != "string")
     {
-      jsx.throwThis("TypeError");
+      if (arguments.length < 1)
+      {
+        expression = "";
+      }
+      else
+      {
+        expression = String(expression);
+      }
     }
+    
+    var originalSource = expression;
     
     expression = expression.replace(rxEscapes,
-      function(m, p1, p2, p3) {
-        var result = m;
-        
-        switch (p1)
+      function (m, p1, classInBrackets, propertySpecifier,
+                 classOutOfBrackets) {
+        if (!(classInBrackets || classOutOfBrackets))
         {
-          case "a":
-          case "e":
-            result = escapeMap[p1];
-            break;
-                      
-          case "p":
-          case "P":
-            result = unicodeMap[p1] || unicodeMap[p4];
+          return m;
+        }
+      
+        if (!characterClasses)
+        {
+          var req = new jsx.HTTPRequest(me.ucdScriptPath, "GET", false,
+            function (x) {
+              eval(x.responseText);
+            });
+          req.send();
+          
+          characterClasses = me.characterClasses;
+          
+          if (!characterClasses)
+          {
+            req.setURL(me.ucdTextPath);
+            req.setSuccessListener(function (x) {
+              me.ucdText = x.responseText.split(/\r?\n|\r/);
+              
+              /* TODO */
+            });
+            req.send();
+          }
+        }
+
+        var result = jsx_object.getProperty(
+          characterClasses, classInBrackets || classOutOfBrackets);
+        
+        if (classOutOfBrackets)
+        {
+          result = "[" + (propertySpecifier == "P" ? "^" : "") + result + "]";
+        }
+        else
+        {
+          /* TODO */
+//          if (m.test(/^\[\\[pP]\{([^\}]+)\}\]$/))
+//            {
+//            return "[" + (propertySpecifier == "P" ? "^" : "") + result + "]";
+//          }
             
-            if (p1 === "P")
-            {
-              result = "^" + result;
-            }
-            
-            result = "[" + result + "]";
-            break;
-            
-          default:
-            result = "\\u00" + (p2.charCodeAt(0) - 64).toString(16);
+          jsx.throwThis("TypeError",
+            "FIXME: Cannot expand property-based escape sequence in"
+            + " character class");
         }
         
         return result;
       });
     
-    return new RegExp(expression, sFlags);
+    var rx = new RegExp(expression, sFlags);
+    rx.originalSource = originalSource;
+    
+    return rx;
   };
 })();
+
+jsx.RegExp.ucdScriptPath = "/scripts/UnicodeData.js";
+jsx.RegExp.ucdTextPath = "/scripts/UnicodeData.txt";
+
+jsx.RegExp.defineCharacterClasses = function (o) {
+  var me = arguments.callee;
+  
+  for (var p in o)
+  {
+    me.characterClasses[p] = o[p];
+  }
+};
 
 /* test case */
 //
