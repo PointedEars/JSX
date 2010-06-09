@@ -678,7 +678,7 @@ var getFeature = jsx.object.getFeature = function (o) {
  *   Expression to be determined a <var>Prototype</var> object.
  * @param Prototype : Object
  *   Function object to be determined the prototype of a.
- * @return
+ * @return boolean
  *   <code>true</code> if <code>a</code> is an object derived
  *   from <var>Prototype</var>, <code>false</code> otherwise.
  */
@@ -690,12 +690,24 @@ var isInstanceOf = jsx.object.isInstanceOf = function (a, Prototype) {
 };
 
 /**
+ * Returns the name of a function if it has one, or the empty string.
+ * 
+ * @param aFunction : Function|String
+ * @return string
+ *   The name of a function if it has one; the empty string otherwise.
+ */
+var getFunctionName = jsx.object.getFunctionName = function (aFunction) {
+  return (typeof aFunction.name != "undefined" && aFunction.name)
+    || (String(aFunction).match(/function\s+(\w+)/) || [, ""])[1];
+};
+
+/**
  * Gets the stack trace of the calling execution context
  * 
  * Based on getStackTrace() from jsUnit 2.2alpha of 2006-03-24
  * 
- * @returns
- * @type String
+ * @return string
+ *   The stack trace of the calling execution context, if available.
  */
 var getStackTrace = jsx.getStackTrace = function () {
   function parseErrorStack(excp)
@@ -732,17 +744,6 @@ var getStackTrace = jsx.getStackTrace = function () {
     return stack;
   }
   
-  function getFunctionName(aFunction)
-  {
-    var regexpResult = String(aFunction).match(/function (\s*)(\w*)/);
-    if (regexpResult && regexpResult.length >= 2 && regexpResult[2])
-    {
-      return regexpResult[2];
-    }
-    
-    return 'anonymous';
-  }
-
   var result = '';
 
   if (typeof arguments.caller != 'undefined')
@@ -750,7 +751,8 @@ var getStackTrace = jsx.getStackTrace = function () {
     /* JScript and older JavaScript */
     for (var a = arguments.caller; a != null; a = a.caller)
     {
-      result += '> ' + getFunctionName(a.callee) + '\n';
+      result += '> ' + (jsx.object.getFunctionName(a.callee) || "anonymous")
+        + '\n';
       if (a.caller == a)
       {
         result += '*';

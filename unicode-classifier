@@ -1,0 +1,72 @@
+#!/bin/bash
+
+awk -F ';' 'length($1) < 5 { print $3,$1; }' UnicodeData.txt | sort |
+  awk '
+    BEGIN {
+      printf "jsx.RegExp.characterClasses = {"
+    }
+
+    {
+      class = $1;
+      codePoint = $2;
+      num = strtonum("0x" codePoint);
+
+#     printf "\n\nclass = \"%s\"\n", class
+#     printf "prevClass = \"%s\"\n", prevClass
+#     printf "codePoint = \"%s\"\n", codePoint
+#     printf "prevCodePoint = \"%s\"\n", prevCodePoint
+#     printf "num = \"%s\"\n", num
+#     printf "startRange = \"%s\"\n", startRange
+
+      if (class != prevClass)
+      {
+        if (num != prevNum + 1)
+        {
+          if (startRange)
+          {
+            printf "-\\u" prevCodePoint;
+          }
+        }
+
+        if (prevClass)
+        {
+          printf "\",";
+        }
+
+        printf "\n  " class ": \"\\u" codePoint;
+
+        startRange = 0;
+      }
+      else
+      {
+        if (num != prevNum + 1)
+        {
+          if (startRange)
+          {
+            printf "-\\u" prevCodePoint;
+
+            startRange = 0;
+          }
+
+          printf "\\u" codePoint;
+        }
+        else
+        {
+          startRange = 1
+        }
+      }
+
+      prevClass = class;
+      prevCodePoint = codePoint;
+      prevNum = num;
+    }
+
+    END {
+      if (startRange)
+      {
+        printf "-\\u" prevCodePoint;
+      }
+
+      printf "\"\n};";
+    }'
+
