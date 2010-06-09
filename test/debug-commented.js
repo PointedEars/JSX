@@ -862,8 +862,8 @@ var synhl = (function () {
         {
           var mLength = m[0].length;
           var prefix = document.createTextNode(v.substring(0, m.index));
-          var suffix = document.createTextNode(v.substr(m.index + mLength));
-          var infix = document.createTextNode(v.substr(m.index, mLength));
+          var suffix = document.createTextNode(v.slice(m.index + mLength));
+          var infix = document.createTextNode(v.slice(m.index, mLength));
           var span = document.createElement("span");
           span.style.color = "red";
           span.appendChild(infix);
@@ -900,31 +900,41 @@ var synhl = (function () {
       context = document;
     }
     
-    var collCode;
-    if (isMethod(context, "getElementsByTagName")
-          && (collCode = context.getElementsByTagName('code'))
-          && collCode.length)
+    if (jsx.object.isMethod(jsx, "xpath", "evaluate"))
+    {
+      var collCode = jsx.xpath.evaluate(
+        '//code[not(contains(concat(" ", @class, " "), " donthl "))]',
+        context);
+    }
+    
+    var useXPath = false;
+    if ((collCode && (useXPath = true)
+          || (isMethod(context, "getElementsByTagName")
+               && (collCode = context.getElementsByTagName('code'))))
+        && collCode.length)
     {
       var sNew;
         
       for (var i = collCode.length; i--;)
       {
         var o = collCode[i];
-        if (!/(^\s*|\s+)donthl(\s*$|\s+)/.test(o.className)
-            && typeof o.innerHTML != "undefined")
+        if (useXPath || !/(^\s*|\s+)donthl(\s*$|\s+)/.test(o.className))
         {
-          var s = o.innerHTML;
-          jsx.tryThis(
-            function () {
-              o.innerHTML = sNew = s.replace(rxCode, fReplace);
-            },
-            function () {
-              o.innerHTML = sNew = s;
-            });
-        }
-        else
-        {
-          // recursiveReplace(o, ...)
+          if (typeof o.innerHTML != "undefined")
+          {
+            var s = o.innerHTML;
+            jsx.tryThis(
+              function () {
+                o.innerHTML = sNew = s.replace(rxCode, fReplace);
+              },
+              function () {
+                o.innerHTML = sNew = s;
+              });
+          }
+          else
+          {
+            // recursiveReplace(o, ...)
+          }
         }
       }
     }

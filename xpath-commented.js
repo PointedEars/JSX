@@ -2,7 +2,7 @@
  * <title>PointedEars' XPath Library</title>
  * @partof
  *   PointedEars JavaScript Extensions (JSX)
- * @requires types.js
+ * @requires object.js
  * @recommends exception.js
  *
  * @section Copyright & Disclaimer
@@ -36,11 +36,6 @@
  * for details.
  */
 
-if (typeof _global == "undefined")
-{
-  var _global = this;
-}
-
 if (typeof XPathResult == "undefined")
 {
   this.XPathResult = {
@@ -60,110 +55,111 @@ if (typeof XPathResult == "undefined")
 /**
  * @return undefined|XPath
  */
-function XPath() {
-  // if called as a factory
-  if (this == _global)
+jsx.XPath = function () {
+  /* if called as a factory */
+  if (this == jsx.global)
   {
     return new XPath();
   }
-}
+};
 
-XPath.prototype = {
-  constructor: XPath,
+jsx.XPath.prototype = {
+  constructor: jsx.XPath,
   evaluate:
     /**
      * @return Result of the XPath expression
      * @type number|string|boolean|Array|
      */
-    function(expression, contextNode, namespaceResolver, resultType, oResult) {
-      var result;
-                   
-      if (isMethod(document, "evaluate"))
-      {
-        if (!contextNode) contextNode = document;
-        
-        result = document.evaluate(expression,
-          contextNode,
-          namespaceResolver || this.getDefaultNSResolver(contextNode),
-          /^[0-9]$/.test(resultType) ? resultType : 0,
-          oResult || null);
-  
-        if (result)
-        {
-          var found = [];
-          
-          switch (result.resultType)
-          {
-            case XPathResult.NUMBER_TYPE:
-              result = typeof result.numberValue != "undefined"
-                      && result.numberValue;
-              break;
-              
-            case XPathResult.STRING_TYPE:
-              result = typeof result.stringValue != "undefined"
-                      && result.stringValue;
-              break;
-              
-            case XPathResult.BOOLEAN_TYPE:
-              result = typeof result.booleanValue != "undefined"
-                      && result.booleanValue;
-              break;
-              
-            case XPathResult.UNORDERED_NODE_ITERATOR_TYPE:
-            case XPathResult.ORDERED_NODE_ITERATOR_TYPE:
-              if (isMethod(result, "iterateNext"))
-              {
-                while ((res = result.iterateNext()))
-                {
-                  found.push(res);
-                }
-                
-                result = found;
-              }
-              break;
-              
-            case XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE:
-            case XPathResult.ORDERED_NODE_SNAPSHOT_TYPE:
-              if (typeof result.snapshotLength != "undefined"
-                  && isMethod(result, "snapshotItem"))
-              {
-                for (var i = 0, len = result.snapshotLength; i < len; i++)
-                {
-                  found.push(result.snapshotItem(i));
-                }
+    (function () {
+      var jsx_object = jsx.object;
       
-                result = found;
-              }
-              break;
-              
-            case XPathResult.ANY_UNORDERED_NODE_TYPE:
-            case XPathResult.FIRST_ORDERED_NODE_TYPE:
-              if (typeof result.singleNodeValue != "undefined")
-              {
-                result = result.singleNodeValue;
-              }
-              break;
+      return function(expression, contextNode, namespaceResolver, resultType,
+                        oResult) {
+        var result;
+                     
+        if (jsx_object.isMethod(document, "evaluate"))
+        {
+          if (!contextNode){contextNode = document;}
+          
+          result = document.evaluate(expression,
+            contextNode,
+            namespaceResolver || this.getDefaultNSResolver(contextNode),
+            /^[0-9]$/.test(resultType) ? resultType : 0,
+            oResult || null);
+    
+          if (result)
+          {
+            var found = [];
             
-            default:
-              if (typeof throwException == "function")
-              {
-                jsx.throwException("xpath.InvalidImplementationException");
-              }
-  
-              result = null;
+            switch (result.resultType)
+            {
+              case XPathResult.NUMBER_TYPE:
+                result = typeof result.numberValue != "undefined"
+                        && result.numberValue;
+                break;
+                
+              case XPathResult.STRING_TYPE:
+                result = typeof result.stringValue != "undefined"
+                        && result.stringValue;
+                break;
+                
+              case XPathResult.BOOLEAN_TYPE:
+                result = typeof result.booleanValue != "undefined"
+                        && result.booleanValue;
+                break;
+                
+              case XPathResult.UNORDERED_NODE_ITERATOR_TYPE:
+              case XPathResult.ORDERED_NODE_ITERATOR_TYPE:
+                if (jsx_object.isMethod(result, "iterateNext"))
+                {
+                  while ((res = result.iterateNext()))
+                  {
+                    found.push(res);
+                  }
+                  
+                  result = found;
+                }
+                break;
+                
+              case XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE:
+              case XPathResult.ORDERED_NODE_SNAPSHOT_TYPE:
+                if (typeof result.snapshotLength != "undefined"
+                    && jsx_object.isMethod(result, "snapshotItem"))
+                {
+                  for (var i = 0, len = result.snapshotLength; i < len; i++)
+                  {
+                    found.push(result.snapshotItem(i));
+                  }
+        
+                  result = found;
+                }
+                break;
+                
+              case XPathResult.ANY_UNORDERED_NODE_TYPE:
+              case XPathResult.FIRST_ORDERED_NODE_TYPE:
+                if (typeof result.singleNodeValue != "undefined")
+                {
+                  result = result.singleNodeValue;
+                }
+                break;
+              
+              default:
+                jsx.throwThis("xpath.InvalidImplementationError");
+                result = null;
+            }
           }
         }
-      }
-  
-      return result;
-    },
+    
+        return result;
+      };
+    }()),
   
   getDefaultNSResolver:
     /**
      * @return NSResolver|null
      */
     function(contextNode) {
-      return (isMethod(document, "createNSResolver")
+      return (jsx.object.isMethod(document, "createNSResolver")
         ? document.createNSResolver(
             (contextNode.ownerDocument == null
               ? contextNode.documentElement
@@ -171,8 +167,8 @@ XPath.prototype = {
         : null);
   },
   
-  InvalidImplementationException: function() {}
+  InvalidImplementationError: (function() {}).extend(jsx.Error)
 };
 
-var xpath = new XPath();
+var xpath = new jsx.XPath();
 jsx.xpath = xpath;

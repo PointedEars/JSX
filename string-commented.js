@@ -143,11 +143,33 @@ function addSlashes(s)
  * @author Copyright (c) 2006-2008 Thomas Lahn <cljs@PointedEars.de>
  */
 var esc = (function() {
-  return (jsx.object.isMethod(_global, "encodeURIComponent")
+  var
+    jsx_global = jsx.global,
+    jsx_object = jsx.object;
+  
+  return (jsx_object.isMethod(jsx_global, "encodeURIComponent")
           ? encodeURIComponent
-          : (jsx.object.isMethod(_global, "escape")
+          : (jsx_object.isMethod(jsx_global, "escape")
              ? escape
              : function(s) { return s; }));
+}());
+
+/**
+ * Tries hard to make a string a URI or URI-reference according to RFC 3986.
+ * 
+ * @param s
+ * @return string
+ *   <code>s</code> escaped, or unescaped if escaping through
+ *   <code>encodeURI()</code> or is not possible.
+ */
+var escURI = (function (s) {
+  var
+    jsx_global = jsx.global,
+    jsx_object = jsx.object;
+
+  return (jsx_object.isMethod(jsx_global, "encodeURI")
+          ? encodeURI
+          : function(s) { return s; });
 }());
 
 /**
@@ -164,9 +186,13 @@ var esc = (function() {
  * @author Copyright (c) 2006-2008 Thomas Lahn <cljs@PointedEars.de>
  */
 var unesc = (function() {
-  return (jsx.object.isMethod(_global, "decodeURIComponent")
+  var
+    jsx_global = jsx.global,
+    jsx_object = jsx.object;
+
+  return (jsx_object.isMethod(jsx_global, "decodeURIComponent")
           ? decodeURIComponent
-          : (jsx.object.isMethod(_global, "unescape")
+          : (jsx_object.isMethod(jsx_global, "unescape")
              ? unescape
              : function(s) { return s; }));
 }());
@@ -253,6 +279,47 @@ if (typeof Number.prototype.toUnsigned == "undefined")
 //    }
   };
 }
+
+/**
+ * Parses a string of characters into a Number value.  It replaces the
+ * built-in function in that it supports fractional parts on non-decimal
+ * representations, and uses the built-in for decimal representations.
+ * 
+ * @param s : String
+ *   String representation to be parsed
+ * @param iBase : Number
+ *   Numeric base of the representation, from 2 to 35.  If not provided,
+ *   after trimming leading white-space the prefix "0x" or "0X" designates
+ *   base 16 (hexadecimal).
+ * @return number
+ */
+var parseFloat = jsx.string.parseFloat = (function () {
+  var origPF = parseFloat;
+  
+  return function (s, iBase) {
+    if ((!iBase || iBase === 10) && origPF)
+    {
+      return origPF(s);
+    }
+
+    var
+      i = (/^\s*\./.test(s) ? 0 : parseInt(s, iBase)),
+      chars = (iBase < 10
+        ? "0-" + String.fromCharCode(47 + iBase)
+        : "\\d"
+          + (iBase > 10
+              ? "a"
+                + (iBase > 11
+                    ? "-" + String.fromCharCode(86 + iBase)
+                    : "")
+            : "")),
+      f = (s.match(new RegExp("\\.([" + chars + "]{1,198})", "i")) || [, "0"])[1];
+    
+    
+    return i + (/^\s*-/.test(s) ? -1 : 1)
+      * parseInt(f, iBase) / Math.pow(iBase, f.length);
+  };
+}());
 
 // * Returns a string of values according to a format string.
 // *
