@@ -17,8 +17,8 @@ var Map = (function() {
    * @param v  Value to be stored
    * @private
    */
-  function _Value(v) {
-    
+  function _Value(v)
+  {
     /**
      * Stored value
      */
@@ -26,7 +26,7 @@ var Map = (function() {
   }
   
    /**
-    * @param v : mixed 
+    * @param v : mixed
     * @return <code>true</code> if <var>v</var> was created using
     *   {@link _Value}, otherwise <code>false</code>
     */
@@ -55,7 +55,7 @@ var Map = (function() {
       _size = 0;
       
       _hasOwnProperty = function(o, p) {
-        return jsx.object.isMethod(_items, "hasOwnProperty")
+        return jsx.object.isMethod(o, "hasOwnProperty")
           ? o.hasOwnProperty(p)
           : typeof o[p] != "undefined";
       },
@@ -132,9 +132,16 @@ var Map = (function() {
      * @public
      */
     this.setMaxAliasLength = function(len) {
-      if (typeof len != "number") len = parseInt(len, 10);
+      if (typeof len != "number")
+      {
+        len = parseInt(len, 10);
+      }
       
-      if (isNaN(len) || len < 1) jsx.throwThis(Map.InvalidLengthError);
+      if (isNaN(len) || len < 1)
+      {
+        jsx.throwThis(Map.InvalidLengthError);
+      }
+      
       _maxAliasLength = len;
       
       return _maxAliasLength === len;
@@ -176,7 +183,10 @@ var Map = (function() {
       var v = _items[_getSafeKey(key)];
       if (!v)
       {
-        if (arguments.length > 1) return defaultValue;
+        if (arguments.length > 1)
+        {
+          return defaultValue;
+        }
         
         jsx.throwThis(Map.KeyError, key);
       }
@@ -213,7 +223,11 @@ var Map = (function() {
       var v = new _Value(value);
       var prevValue = _items[k];
       
-      if (!prevValue) _size++;
+      if (!prevValue)
+      {
+        _size++;
+      }
+      
       _items[k] = v;
       
       return prevValue && prevValue.value;
@@ -243,7 +257,10 @@ var Map = (function() {
       }
     };
     
-    if (arguments.length > 0) this.putAll(m);
+    if (arguments.length > 0)
+    {
+      this.putAll(m);
+    }
   
     /**
      * Removes the mapping for the specified key from this map if present
@@ -298,7 +315,10 @@ var Map = (function() {
       {
         var o = _items[p];
         
-        if (_Value.isInstance(o) && o.value === value) return true;
+        if (_Value.isInstance(o) && o.value === value)
+        {
+          return true;
+        }
       }
       
       return false;
@@ -325,7 +345,10 @@ var Map = (function() {
       
       for (var p in _items)
       {
-        if (_Value.isInstance(_items[p])) a.push(p);
+        if (_Value.isInstance(_items[p]))
+        {
+          a.push(p);
+        }
       }
       
       return a;
@@ -344,7 +367,10 @@ var Map = (function() {
       {
         var o = _items[p];
         
-        if (_Value.isInstance(o)) a.push(o.value);
+        if (_Value.isInstance(o))
+        {
+          a.push(o.value);
+        }
       }
       
       return a;
@@ -366,7 +392,10 @@ var Map = (function() {
       {
         var o = _items[p];
         
-        if (_Value.isInstance(o)) a.push([p, o.value]);
+        if (_Value.isInstance(o))
+        {
+          a.push([p, o.value]);
+        }
       }
       
       return a;

@@ -2808,7 +2808,7 @@ function loadScript(sURI, sType, sLanguage, bReload)
     result = false;
     
   if (typeof me.registry != "undefined"
-      && jsx_object.getProperty(me.registry, sURI)
+      && jsx_object.getProperty(me.registry, sURI, false)
       && !bReload)
   {
     return true;
