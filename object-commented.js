@@ -363,7 +363,7 @@ var findNewProperty = jsx.object.findNewProperty = (function () {
     
     while (s.length < iLength)
     {
-      for (var i = "a".charCodeAt(0); i <= "z".charCodeAt(0); i++)
+      for (var i = "a".charCodeAt(0), max = "z".charCodeAt(0); i <= max; ++i)
       {
         var c = String.fromCharCode(i);
         if (!jsx_object._hasOwnProperty(o, s + c + "_"))
@@ -781,7 +781,7 @@ var getStackTrace = jsx.getStackTrace = function () {
 /**
  * Determines whether an object is, or several objects are, likely to be callable
  * 
- * <em>Not thread-safe:</em> calls from different global execution
+ * <em>Not thread-safe:</em> Calls from different global execution
  * contexts must use their own object.js include if this method
  * is used.  See the {@link #isMethod.evalStrings} property below.
  * 
@@ -1049,7 +1049,7 @@ if (jsx.object.isMethod(this, "eval"))
        */
       apply: (function () {
         var
-          jsx_object = jsx_object,
+          jsx_object = jsx.object,
           jsx_global = jsx.global;
         
         return function (thisArg, argArray) {
