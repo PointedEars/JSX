@@ -4,7 +4,7 @@
  * 
  * @partof PointedEars' JavaScript Extensions (JSX)
  * @author
- *   (C) 2004-2009  Thomas Lahn &lt;object.js@PointedEars.de&gt;
+ *   (C) 2004-2010  Thomas Lahn &lt;object.js@PointedEars.de&gt;
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,7 +32,7 @@ if (typeof jsx == "undefined")
 
 jsx.object = {
   /** @version */
-  version:   "0.1.6.2010051216",
+  version:   "0.1.6.2010061903",
   copyright: "Copyright \xA9 2004-2010",
   author:    "Thomas Lahn",
   email:     "object.js@PointedEars.de",
@@ -248,7 +248,6 @@ var inheritFrom = jsx.object.inheritFrom = (function () {
     return new Dummy();
   };
 }());
-
 
 /**
  * Creates a duplicate (clone) of an object
@@ -785,13 +784,25 @@ var getStackTrace = jsx.getStackTrace = function () {
  * contexts must use their own object.js include if this method
  * is used.  See the {@link #isMethod.evalStrings} property below.
  * 
- * @author (C) 2003-2009  Thomas Lahn &lt;object.js@PointedEars.de&gt;
+ * @author (C) 2003-2010  Thomas Lahn &lt;object.js@PointedEars.de&gt;
  * @param o : Object
  *   Reference to the object which should be tested for a method,
  *   or checked for being a method if no further arguments are provided.
+ * 
+ *   <em>NOTE: If you pass a primitive value for this argument, the properties
+ *   of the object created from that value are considered.  In particular,
+ *   if you pass a string value containing a <i>MemberExpression</i>,
+ *   the properties of the corresponding <code>String</code> instance
+ *   are considered, not of the object that the <i>MemberExpression</i>
+ *   might refer to.  If you need to use such a string to refer to an object
+ *   (e.g., if you do not know whether it is safe to refer to the object),
+ *   use the return value of
+ *   {@link jsx#tryThis jsx.tryThis("<var>MemberExpression</var>")}
+ *   as argument to this method instead.</em>
+ * 
  * @params : optional string
  *   Path of the property to be determined a method, i.e. a reference to
- *   a callable object object assigned as property of another object.
+ *   a callable object assigned as property of another object.
  *   Use a string argument for each component of the path, e.g.
  *   the argument list <code>(o, "foo", "bar")</code> for testing whether
  *   <code>o.foo.bar</code> is a method.
@@ -806,20 +817,7 @@ var getStackTrace = jsx.getStackTrace = function () {
 var isMethod = jsx.object.isMethod = jsx.object.areMethods = (function () {
   var
     rxUnknown = /^\s*unknown\s*$/i,
-    rxMethod = /^\s*(function|object)\s*$/i,
-    
-    sPropertyAccess = (
-        "^\\s*[A-Za-z_UNICODE$][\\wUNICODE$]*"
-        + "(\\s*\\.\\.?\s*[A-Za-z_UNICODE$][\\wUNICODE$]*"
-        + "|\\[[\x20-\x7fUNICODE]+\\])*\\s*$"
-      )
-      /*
-       * Unicode support (from JavaScript 1.3 on);
-       * TODO: Distinguish between letters and other characters
-       */
-      .replace(/UNICODE/g, ("\uFFFD".length == 1) ? "\u00A0-\uFFFD" : ""),
-
-    rxPropertyAccess = new RegExp(sPropertyAccess);
+    rxMethod = /^\s*(function|object)\s*$/i;
   
   return function (o, p) {
     var len = arguments.length;
@@ -844,44 +842,6 @@ var isMethod = jsx.object.isMethod = jsx.object.areMethods = (function () {
       return false;
     }
       
-    /*
-     * Refined support for strings; evaluating them always would
-     * preclude String objects from being tested for methods.
-     * Try to warn if a primitive string value is passed and the
-     * required flag is not set (default).
-     */
-    if (t === "string")
-    {
-      if (arguments.callee.evalStrings)
-      {
-        /* Only consider strings that could be property accessors (incl. E4X) */
-        if (rxPropertyAccess.test(o))
-        {
-          o = jsx.tryThis(o);
-          if (rxUnknown.test(typeof o) || !o)
-          {
-            return false;
-          }
-        }
-        else
-        {
-          jsx.dmsg(
-            "jsx.object.isMethod: string does not look like"
-              + " a property access; using it as-is",
-            "info");
-        }
-      }
-      else
-      {
-        /* FIXME: Remove bogus entries from stack trace */
-        jsx.dmsg(
-          "jsx.object.isMethod: '" + o + "': Evaluation of strings requires"
-            + " .evalStrings == true"
-            + "\n\nStack trace:\n\n" + ((new jsx.Error()).stack || "N/A"),
-          "warn");
-      }
-    }
-    
     for (var i = 1; i < len; i++)
     {
       var
@@ -923,14 +883,6 @@ var isMethod = jsx.object.isMethod = jsx.object.areMethods = (function () {
     return true;
   };
 }());
-
-/**
- * Set this flag to <code>true</code> to allow evaluation
- * of primitive strings as first argument.  Allows for
- * isMethod("foo", "bar") without testing the type of `foo' first.
- * The default is <code>false</code>.
- */
-isMethod.evalStrings = false;
 
 /**
  * Determines if the passed value could be the result of <code>typeof <var>callable</var></code>
@@ -1066,19 +1018,10 @@ if (jsx.object.isMethod(this, "eval"))
           {
             o[p] = thisArg || this;
 
-            if (jsx_object.isMethod(Array, "prototype", "map", "call"))
+            var a = new Array();
+            for (var i = 0, len = argArray.length; i < len; i++)
             {
-              var a = Array.prototype.map.call(argArray, function (e, a, i) {
-                return "argArray[" + i + "]";
-              });
-            }
-            else
-            {
-              a = new Array();
-              for (var i = 0, len = argArray.length; i < len; i++)
-              {
-                a[i] = "argArray[" + i + "]";
-              }
+              a[i] = "argArray[" + i + "]";
             }
       
             eval("o[p](" + a + ")");
@@ -1141,27 +1084,13 @@ if (jsx.object.isMethod(this, "eval"))
        */
       construct: (function () {
         var
-          jsx_object = jsx.object,
-          fMapper = function (e, i, a) {
-            return "argArray[" + i + "]";
-          };
+          jsx_object = jsx.object;
 
         return function (argArray) {
-          if (jsx_object.isMethod(argArray, "map"))
+          var a = new Array();
+          for (var i = 0, len = argArray.length; i < len; ++i)
           {
-            var a = argArray.map(fMapper);
-          }
-          else if (jsx_object.isMethod(Array, "prototype", "map", "call"))
-          {
-            a = Array.prototype.map.call(argArray, fMapper);
-          }
-          else
-          {
-            a = new Array();
-            for (var i = 0, len = argArray.length; i < len; i++)
-            {
-              a[i] = "argArray[" + i + "]";
-            }
+            a[i] = "argArray[" + i + "]";
           }
                  
           return eval("new this(" + a + ")");
