@@ -14,7 +14,7 @@
  *
  * @author
  *   (C) 2001      SELFHTML e.V. <stefan.muenz@selfhtml.org> et al.,
- *       2002-2009 Thomas Lahn <dhtml.js@PointedEars.de>,
+ *       2002-2010 Thomas Lahn <dhtml.js@PointedEars.de>,
  *       2004      Ulrich Kritzner <droeppez@web.de> (loadScript),
  *       2005      MozillaZine Knowledge Base contributors (DOM XPath):
  *                 Eric H. Jung <grimholtz@yahoo.com> et al.
@@ -82,9 +82,9 @@
 
 function DHTML()
 {
-  this.version   = "0.9.7a.2009070814";
+  this.version   = "0.9.7a.2010061719";
 // var dhtmlDocURL = dhtmlPath + "dhtml.htm";
-  this.copyright = "Copyright \xA9 2002-2009";
+  this.copyright = "Copyright \xA9 2002-2010";
   this.author    = "Thomas Lahn";
   this.email     = "dhtml.js@PointedEars.de";
   this.path      = "http://pointedears.de/scripts/";
