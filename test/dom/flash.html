@@ -1,0 +1,25 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+  "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>DOM Test Case: Cross-browser Flash movies</title>
+    <script type="text/javascript" src="../../object.js"></script>
+    <script type="text/javascript" src="../../dhtml.js"></script>
+    <script type="text/javascript" src="../../flash.js"></script>
+  </head>
+
+  <body !onload="jsx.dom.fixFlash()">
+    <h1>DOM Test Case: Cross-browser Flash movies</h1>
+    <object width="640" height="385"
+            data="http://www.youtube.com/v/swoOX7vnuv4&color1=0xb1b1b1&color2=0xd0d0d0&hl=en_US&feature=player_embedded&fs=1"
+            type="application/x-shockwave-flash">
+      <param
+        name="movie"
+        value="http://www.youtube.com/v/swoOX7vnuv4&color1=0xb1b1b1&color2=0xd0d0d0&hl=en_US&feature=player_embedded&fs=1"
+        >
+      <param name="allowFullScreen" value="true">
+      <param name="allowScriptAccess" value="always">
+    </object>
+  </body>
+</html>

@@ -122,7 +122,7 @@ Object.COPY_ENUM_DEEP = jsx.object.COPY_ENUM_DEEP;
 Object.COPY_INHERIT   = jsx.object.COPY_INHERIT;
 
 /**
- * Prints debugging messages to the script console
+ * Prints debug messages to the script console.
  * 
  * NOTE: This method has previously been provided by
  * {@link debug.js}; optimizations in code reuse
@@ -130,8 +130,11 @@ Object.COPY_INHERIT   = jsx.object.COPY_INHERIT;
  *
  * @param sMsg : string
  *   Message to be printed
- * @param sType : string
- *   Type of the message.  Values include "
+ * @param sType : optional string = "log"
+ *   Type of the message.  Supported values include
+ *   <code>"log"</code> (default), <code>"info"</code>, <code>"warn"</code>,
+ *   and <code>"debug"</code>.  If a script console does not support
+ *   a message type, the default value is used.
  */
 var printfire = jsx.dmsg = (function () {
   var
@@ -1101,17 +1104,24 @@ if (jsx.object.isMethod(this, "eval"))
 }
 
 /**
- * Includes the prototype object of another object
- * in the prototype chain of objects created with
- * the calling Function object.
+ * Includes the prototype object of another object in the prototype
+ * chain of objects created with the calling Function object.
  * 
- * Used with constructors to establish prototype-based
- * inheritance (much like class-based inheritance in Java).
- * Be sure to call the parent's constructor explicitly then within
+ * Used with constructors to establish multi-level prototype-based
+ * inheritance (much like class-based inheritance in Java).  To that end,
+ * this method adds a <code>_super</code> property to the function to refer
+ * to <var>Constructor</var>, the constructorof the parent prototype.
+ * Likewise, instances constructed with the resulting function have a
+ * <code>_super</code> property to refer to their constructor.
+ * NOTE: Because of this, you need to use the constructor's
+ * <code>_super</code> property if you, want to refer to the parent's
+ * constructor in the instance's
+ * constructor; using the instance's <code>_super</code> property
+ * would result in infinite recursion, and ultimately a stack overflow.
+ * You may call the parent's constructor explicitly within
  * the constructor of the child, using the
  * <code>arguments.callee._super.call()</code> method (or calling it
- * explicitly as a method of the inheriting prototype), else changes
- * in the parent will not affect the child.
+ * explicitly as a method of the inheriting prototype).
  * 
  * @param Constructor : Function
  *   Constructor from which prototype object should be
