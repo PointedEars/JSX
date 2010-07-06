@@ -20,6 +20,11 @@
  * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * Fixes Shockwave Flash movies embedded with the <code>OBJECT</code>
+ * element so that they work in ActiveX/COM-supporting browsers
+ * (most notably IE/MSHTML).
+ */
 jsx.dom.flash.fix = (function () {
   var
     jsx_object = jsx.object,
