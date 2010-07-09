@@ -330,7 +330,7 @@ jsx.RegExp = (function () {
     rxEscapes = /\\\[/.concat(
       "|\\[((", /[^\]\\]+/, "|", rxPropertyEscapes, "|", /\\./, ")+)\\]",
       "|", rxPropertyEscapes),
-    jsx_object = jsx.object;
+    jsx_object = jsx.object,
 
     fEscapeMapper = function (match, classRanges, p3, p4, p5,
                                standalonePropSpec, standaloneClass) {
