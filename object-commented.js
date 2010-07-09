@@ -4,24 +4,20 @@
  * 
  * @partof PointedEars' JavaScript Extensions (JSX)
  * @author
- *   (C) 2004-2010  Thomas Lahn &lt;object.js@PointedEars.de&gt;
+ *   (C) 2004-2010  Thomas Lahn &lt;js@PointedEars.de&gt;
  * 
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License (GPL) for more details.
- *
- * You should have received a copy of the GNU GPL along with this
- * program (COPYING file); if not, go to [1] or write to the Free
- * Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
- *
- * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* a more compatible approach */
@@ -32,10 +28,10 @@ if (typeof jsx == "undefined")
 
 jsx.object = {
   /** @version */
-  version:   "0.1.6.2010061903",
+  version:   "0.2.0.2010070915",
   copyright: "Copyright \xA9 2004-2010",
   author:    "Thomas Lahn",
-  email:     "object.js@PointedEars.de",
+  email:     "js@PointedEars.de",
   path:      "http://PointedEars.de/scripts/"
 };
 
@@ -239,9 +235,9 @@ var addProperties = jsx.object.addProperties = (function () {
  * Lets one object inherit from another
  *
  * @param o : optional Object
- *   Object from which to inherit.
+ *   Object from which to inherit
  * @return Object
- *   Reference to the child object.
+ *   Inheriting (child) object
  */
 var inheritFrom = jsx.object.inheritFrom = (function () {
   function Dummy() {}
@@ -259,8 +255,7 @@ var inheritFrom = jsx.object.inheritFrom = (function () {
  *   Use the {@link Object#COPY_ENUM Object.COPY_*}
  *   properties to specify the level of cloning.
  * @param oSource : optional Object
- *   Reference to the object to be cloned.
- *   If omitted, the calling object is cloned.
+ *   Object to be cloned.  If omitted, the calling object is cloned.
  * @return Object
  *   A reference to the clone.
  */
@@ -497,13 +492,13 @@ var setErrorHandler = jsx.setErrorHandler = (function () {
  * 
  * @param statements
  *   Value to be evaluated as a <i>StatementList</i>.
- *   Called if a <code>Function</code> object reference, converted
+ *   Called if a <code>Function</code>, converted
  *   to string if not a string, and used as-is otherwise.
  *   For compatibility, the <code>undefined</code> value
  *   is evaluated like the empty string.
  * @param errorHandlers
  *   Value to be evaluated as a <i>StatementList</i> in case of an
- *   exception.  Called if a <code>Function</code> object reference,
+ *   exception.  Called if a <code>Function</code>,
  *   converted to string if not a string, and used as-is otherwise.
  *   For compatibility, the <code>undefined</code> value
  *   is evaluated like the empty string.
@@ -557,7 +552,7 @@ var tryThis = jsx.tryThis = (function () {
  * @param errorType : string
  *   Identifier of the constructor for the error type.
  *   Use a false-value (e.g., <code>""</code> or <code>null</code>)
- *   to throw an unqualified exception).
+ *   to throw an unqualified exception.
  * @param sMessage : string|Array
  *   Error message to be displayed.  If an <code>Array</code>,
  *   it is passed as argument list to the constructor for the error type
@@ -781,37 +776,34 @@ var getStackTrace = jsx.getStackTrace = function () {
 };
 
 /**
- * Determines whether an object is, or several objects are, likely to be callable
- * 
- * <em>Not thread-safe:</em> Calls from different global execution
- * contexts must use their own object.js include if this method
- * is used.  See the {@link #isMethod.evalStrings} property below.
+ * Determines whether an object is, or several objects are,
+ * likely to be callable.
  * 
  * @author (C) 2003-2010  Thomas Lahn &lt;object.js@PointedEars.de&gt;
- * @param o : Object
- *   Reference to the object which should be tested for a method,
- *   or checked for being a method if no further arguments are provided.
- * 
- *   <em>NOTE: If you pass a primitive value for this argument, the properties
- *   of the object created from that value are considered.  In particular,
- *   if you pass a string value containing a <i>MemberExpression</i>,
- *   the properties of the corresponding <code>String</code> instance
- *   are considered, not of the object that the <i>MemberExpression</i>
- *   might refer to.  If you need to use such a string to refer to an object
- *   (e.g., if you do not know whether it is safe to refer to the object),
- *   use the return value of
+ * @param o : Object which should be tested for a method, or checked
+ *   for being a method if no further arguments are provided.
+ *   <p>
+ *   <em>NOTE: If you pass a primitive value for this argument,
+ *   the properties of the object created from that value are considered.
+ *   In particular, if you pass a string value containing
+ *   a <i>MemberExpression</i>, the properties of the corresponding
+ *   <code>String</code> instance are considered, not of the object that
+ *   the <i>MemberExpression</i> might refer to.  If you need to use such
+ *   a string to refer to an object (e.g., if you do not know whether it
+ *   is safe to refer to the object), use the return value of
  *   {@link jsx#tryThis jsx.tryThis("<var>MemberExpression</var>")}
  *   as argument to this method instead.</em>
- * 
+ *   </p>
  * @params : optional string
  *   Path of the property to be determined a method, i.e. a reference to
  *   a callable object assigned as property of another object.
  *   Use a string argument for each component of the path, e.g.
  *   the argument list <code>(o, "foo", "bar")</code> for testing whether
  *   <code>o.foo.bar</code> is a method.
- *   If the last argument is an Array object reference, all elements of
- *   this array are used for property names.  This allows for testing several
- *   properties of the same object with one call.
+ *   If the last argument is an {@link Array}, all elements of
+ *   this array are used for property names; e.g.
+ *   <code>(o, "foo", ["bar", "baz"])</code>.  This allows for testing
+ *   several properties of the same object with one call.
  * @return boolean
  *   <code>true</code> if all arguments refer to methods,
  *   <code>false</code> otherwise.
@@ -888,11 +880,12 @@ var isMethod = jsx.object.isMethod = jsx.object.areMethods = (function () {
 }());
 
 /**
- * Determines if the passed value could be the result of <code>typeof <var>callable</var></code>
- * 
+ * Determines if the passed value could be the result of
+ * <code>typeof <var>callable</var></code>.
+ * <p>
  * NOTE: This method has previously been provided by {@link types.js};
  * optimizations in code reuse moved it here.
- *
+ * </p>
  * @param s : optional string
  *   String to be determined a method type, i.e. "object" or "unknown" in
  *   MSHTML, "function" otherwise.  The type must have been retrieved with
@@ -1106,23 +1099,25 @@ if (jsx.object.isMethod(this, "eval"))
 /**
  * Includes the prototype object of another object in the prototype
  * chain of objects created with the calling Function object.
- * 
+ * <p>
  * Used with constructors to establish multi-level prototype-based
  * inheritance (much like class-based inheritance in Java).  To that end,
  * this method adds a <code>_super</code> property to the function to refer
- * to <var>Constructor</var>, the constructorof the parent prototype.
+ * to <var>Constructor</var>, the constructor of the parent prototype.
  * Likewise, instances constructed with the resulting function have a
  * <code>_super</code> property to refer to their constructor.
+ * </p><p>
  * NOTE: Because of this, you need to use the constructor's
- * <code>_super</code> property if you, want to refer to the parent's
- * constructor in the instance's
- * constructor; using the instance's <code>_super</code> property
- * would result in infinite recursion, and ultimately a stack overflow.
- * You may call the parent's constructor explicitly within
- * the constructor of the child, using the
+ * <code>_super</code> property if you want to refer to the parent's
+ * constructor in the instance's constructor; using the instance's
+ * <code>_super</code> property would result in infinite recursion,
+ * and ultimately a stack overflow.  You may call the parent's constructor
+ * explicitly within the constructor of the child, using the
  * <code>arguments.callee._super.call()</code> method (or calling it
- * explicitly as a method of the inheriting prototype).
- * 
+ * explicitly as a method of the inheriting prototype); in prototype
+ * methods, use <code><var>Constructor</var>._super.prototype.method.call()</code>
+ * or refer to the parent constructor directly.
+ * </p>
  * @param Constructor : Function
  *   Constructor from which prototype object should be
  *   inherited.
@@ -1136,33 +1131,41 @@ if (jsx.object.isMethod(this, "eval"))
  *   if successful; <code>null</code> otherwise.
  */
 Function.prototype.extend = (function () {
-  function Dummy() {}
+  var jsx_object = jsx.object;
   
-  function iterator()
-  {
-    jsx.dmsg("for (var p in o.iterator()) { f(); } is inefficient,"
-      + " consider using o.forEach(f, ...) instead", "warn");
-    
-    var o = new Object();
-    
-    for (var p2 in this)
+  var iterator = (function () {
+    /* Optimize if ECMAScript 5 features were available */
+    if (jsx_object.isMethod(jsx.tryThis("Object"), "defineProperties"))
     {
-      switch (p2)
-      {
-        case "_super":
-        case "constructor":
-        case "userDefined":
-        case "iterator":
-        case "forEach":
-          break;
-        
-        default:
-          o[p2] = true;
-      }
+      return function (o) {
+        return o;
+      };
     }
-
-    return o;
-  }
+    
+    return function () {
+      jsx.dmsg("for (var p in o.iterator()) { f(); } is inefficient,"
+        + " consider using o.forEach(f, ...) instead", "warn");
+      
+      var o = new Object();
+      
+      for (var p2 in this)
+      {
+        switch (p2)
+        {
+          case "_super":
+          case "constructor":
+          case "iterator":
+          case "forEach":
+            break;
+          
+          default:
+            o[p2] = true;
+        }
+      }
+  
+      return o;
+    };
+  }());
   
   function forEach(fCallback, thisObj)
   {
@@ -1182,7 +1185,6 @@ Function.prototype.extend = (function () {
       {
         case "_super":
         case "constructor":
-        case "userDefined":
         case "iterator":
         case "forEach":
           break;
@@ -1217,8 +1219,7 @@ Function.prototype.extend = (function () {
       return null;
     }
   
-    Dummy.prototype = Constructor.prototype;
-    this.prototype = new Dummy();
+    this.prototype = jsx_object.inheritFrom(Constructor.prototype);
     
     if (oProtoProps)
     {
@@ -1240,6 +1241,26 @@ Function.prototype.extend = (function () {
      */
     this.prototype.iterator = iterator;
     
+    /* Optimize iteration if ECMAScript 5 features are available */
+    if (jsx_object.isMethod(jsx.tryThis("Object"), "defineProperties"))
+    {
+      var
+        userDefProtoProps = ["_super", "constructor", "iterator"],
+        oDescriptors = {},
+        proto = this.prototype;
+
+      for (var i = userDefProtoProps.length; i--;)
+      {
+        var p = userDefProtoProps[i];
+        oDescriptors[p] = {
+          value: proto[p],
+          enumerable: false
+        };
+      }
+
+      Object.defineProperties(proto, oDescriptors);
+    }
+
     if (!jsx.object.isMethod(this.prototype, "forEach"))
     {
       /**
@@ -1252,6 +1273,15 @@ Function.prototype.extend = (function () {
        * @throws TypeError
        */
       this.prototype.forEach = forEach;
+
+      /* Optimize iteration if ECMAScript 5 features are available */
+      if (jsx_object.isMethod(jsx.tryThis("Object"), "defineProperty"))
+      {
+        Object.defineProperty(this.prototype, "forEach", {
+          value: this.prototype.forEach,
+          enumerable: false
+        });
+      }
     }
     
     return this;
