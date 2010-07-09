@@ -1,1 +1,0 @@
-/LCARS/doc/JavaScript/ECMAScript/UnicodeData.txt
