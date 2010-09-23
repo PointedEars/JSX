@@ -13,7 +13,8 @@ a:link:hover, a:visited:hover {
 }
 
 code {
-  font-family: Consolas, Inconsolata, monospace;
+  /* Inconsolata is borken in Safari 5.0 on Wine */
+  font-family: Consolas, monospace;
 }
 
 /* HTML language elements */
@@ -27,7 +28,6 @@ code {
   color: black;
   font-weight: bold;
   font-style: italic;
-  font-family: Consolas, Inconsolata, monospace;
 }
 
 .tag, .tagname {
@@ -65,21 +65,18 @@ code {
   background-color: #fff;
   color: #999;
   font-style: italic;
-  font-family: Consolas, Inconsolata, monospace;
 }
 
 .ident {
   background-color: white;
   color: black;
   font-weight: bold;
-  font-family: Consolas, Inconsolata, monospace;
 }
 
 .rswd {
   background-color: #fff;
   color: #009;
   font-weight: bold;
-  font-family: Consolas, Inconsolata, monospace;
 }
 
 .regexp {
@@ -89,28 +86,23 @@ code {
 
 var {
   font-style: italic;
-  font-family: Consolas, Inconsolata, monospace;
 }
 
 .str {
   font-style: italic;
-  font-family: Consolas, Inconsolata, monospace;
 }
 
 .num {
   background-color: white;
   color: red;
-  font-family: Consolas, Inconsolata, monospace;
 }
 
 .punct {
   background-color: inherit;
   color: blue;
-  font-family: Consolas, Inconsolata, monospace;
 }
 
 .punct2 {
   background-color: #fff;
   color: #090;
-  font-family: Consolas, Inconsolata, monospace;
 }
