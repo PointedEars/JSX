@@ -561,7 +561,7 @@ de.pointedears.jsx.dom = de.pointedears.jsx.dhtml = dom;
  *
  * @param sMsg : optional string = ""
  *   Error message to be displayed.
- * @return type boolean
+ * @return boolean
  */
 function DHTMLException(sMsg)
 {
@@ -737,7 +737,7 @@ DHTML.prototype.getElem = getElem;
  * @param bHTML : optional boolean
  *   If <code>true</code>, returns the HTML content instead of
  *   the text content in case the latter cannot be retrieved.
- * @return type string
+ * @return string
  *  A string with the content of the element; a null-string if
  *  no such element object exists or if the DOM does not provide
  *  retrieval of the element's content.
@@ -845,7 +845,7 @@ DHTML.prototype.setCont = setCont;
  *   http://pointedears.de/scripts/dhtml.js
  * @param oNode : Node
  *   Reference to the document node.
- * @return type string
+ * @return string
  *   The text content of @{(oNode)}.
  */
 function getTextContent(oNode)
@@ -899,7 +899,7 @@ DHTML.prototype.getTextContent = getTextContent;
  * @param oNode : Node
  *   Reference to the document node.
  * @param sContent : string
- * @return type boolean
+ * @return boolean
  *   <code>true</code> if successful, <code<false</code> otherwise.
  */
 function setTextContent(oNode, sContent)
@@ -1249,7 +1249,8 @@ DHTML.prototype.getComputedStyle = _getComputedStyle;
  *   <code>true</code> if the class name could be added successfully or
  *   was already there, <code>false</code> otherwise.
  */
-var addClassName = function(o, sClassName, bRemove) {
+function addClassName(o, sClassName, bRemove)
+{
   var rx = new RegExp("(^\\s*|\\s+)" + sClassName + "(\\s*$|\\s)");
   
   if (bRemove)
@@ -1274,7 +1275,7 @@ var addClassName = function(o, sClassName, bRemove) {
     
     return rx.test(o.className);
   }
-};
+}
 DHTML.prototype.addClassName = addClassName;
 
 /**
@@ -1308,7 +1309,7 @@ DHTML.prototype.removeClassName = removeClassName;
  */
 var runLater = function (code, iTimeout) {
   if (typeof window != "undefined"
-      && jsx_object.isMethod(window, "setTimeout"))
+      && jsx.object.isMethod(window, "setTimeout"))
   {
     return window.setTimeout(code, iTimeout);
   }
@@ -1516,7 +1517,7 @@ DHTML.prototype.setStyleProperty = setStyleProperty;
  *   longer reserved.
  *
  *   If this argument is omitted, the current property value is returned.
- * @return type boolean
+ * @return boolean
  *   When retrieving: <code>true</code> if visible, <code>false</code>
  *   otherwise; when setting: <code>true</code> if successful,
  *   <code>false</code> otherwise.
@@ -1609,7 +1610,7 @@ DHTML.prototype.visible = visible;
  *   Specifies if the <code>title</code> property should be set to
  *   the same value as the <code>value</code> property.  The default
  *   is <code>false</code>.
- * @return type boolean
+ * @return boolean
  *   If <var>bSetTitle</var> evaluates to <code>false</code>
  *   or omitted:
  *
@@ -1642,7 +1643,7 @@ DHTML.prototype.setValue = setValue;
 /**
  * @param imgID : number|string
  * @param state : optional number
- * @return type boolean
+ * @return boolean
  */
 function hoverImg(imgID, state)
 {
@@ -1710,7 +1711,7 @@ DHTML.prototype.getCheckedRadio = getCheckedRadio;
  *   Reference to a HTMLSelectElement object.
  * @param bAllowReload : boolean
  *   If <code>true</code>, reloads the document.
- * @return type boolean
+ * @return boolean
  *   <code>true</code> if successful, <code>false</code>
  *   otherwise.
  */
@@ -1764,7 +1765,7 @@ DHTML.prototype.removeOptions = removeOptions;
  *   otherwise the option is appended as last item.
  * @param sValue : optional string
  *   Optional value of the new HTMLOptionElement object.
- * @return type object
+ * @return object
  *   A reference to the new option if successful,
  *   <code>null</code> otherwise.
  */
@@ -2102,7 +2103,7 @@ var serializeForm = (function() {
  *   Passing a start tag even works if the UA is not MSIE,
  *   as attributes and values given are parsed from left to
  *   right into the corresponding element object properties.
- * @return type object
+ * @return object
  *   A reference to a new <code>Element</code> object with the
  *   <code>nodeName</code> property set to <code>sTagName</code>,
  *   and the <code>localName</code>, <code>prefix</code>,
@@ -2348,10 +2349,10 @@ function getAbsPos(o)
  * the event listener not referring to the event target then.
  *
  * @author
- *   (C) 2004-2009  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   (C) 2004-2010  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   <a href="http://pointedears.de/scripts/dhtml.js">dhtml.js</a>
- * @param o : DOMObject
+ * @param o : Object
  *   Reference to the DOM object.
  * @param sEvent : string
  *   Required string to be used as event identifier.
@@ -2363,7 +2364,7 @@ function getAbsPos(o)
  *   event-handling code.  Use <code>null</code> to
  *   detach the event listener if, and only if, the
  *   proprietary event handler property is available.
- * @return type Object
+ * @return Object
  *   A reference to the added listener on success,
  *   <code>null</code> otherwise.
  *   Since addEventListener(...) returns no value and throws
@@ -2403,7 +2404,7 @@ function _addEventListener(o, sEvent, fListener)
 
       var oldListener = o[sHandler];
 
-      if (!oldListener || typeof oldListener.listenerList == "undefined")
+      if (!oldListener || typeof oldListener._listeners == "undefined")
       {
         var newListener = function(e) {
           if (!e)
@@ -2413,34 +2414,37 @@ function _addEventListener(o, sEvent, fListener)
                  && window.event);
           }
 
-          var list = arguments.callee.listenerList;
+          var
+            listeners = arguments.callee._listeners,
+            fpCall = Function.prototype.call;
 
-          for (var i = 0, len = list.length; i < len; i++)
+          for (var i = 0, len = listeners.length; i < len; i++)
           {
             /* May be undefined because _replaceEventListener() was applied */
-            if (jsx_object.isMethod(list[i]))
+            if (jsx_object.isMethod(listeners[i]))
             {
-              /* Host object's methods may not implement call() */
-              Function.prototype.call.call(list[i], this, e);
+              /* Host object's methods need not implement call() */
+              fpCall.call(listeners[i], this, e);
             }
           }
         };
 
-        newListener.listenerList = [];
+        newListener._listeners = [];
 
         if (oldListener)
         {
-          /* We don't want dependencies, so no Array.prototype.push() call */
-          var list = newListener.listenerList;
-          list[list.length] = oldListener;
+          /* Avoid dependencies, so no Array.prototype.push() call */
+          listeners = newListener._listeners;
+          listeners[listeners.length] = oldListener;
         }
 
         oldListener = newListener;
       }
 
-      list = oldListener.listenerList;
-      list[list.length] = fListener;
+      listeners = oldListener._listeners;
+      listeners[listeners.length] = fListener;
 
+      /* TODO: Why this way? */
       o[sHandler] = oldListener;
 
       result = (o[sHandler] == oldListener) && oldListener || null;
@@ -2479,7 +2483,7 @@ DHTML.prototype.addEventListener = _addEventListener;
  *   event-handling code.  Use <code>null</code> to
  *   remove the event handler if, and only if, the
  *   proprietary event-handling property is available.
- * @return type boolean
+ * @return boolean
  *   <code>true</code> on success, <code>false</code> otherwise.
  * @see <a href="dom2-events#Events-EventTarget-addEventListener">W3C DOM Level 2 Events: EventTarget::addEventListener()</a>
  */
@@ -2572,7 +2576,7 @@ function _replaceEventListener(o, sEvent, fListener, bUseCapture)
 DHTML.prototype.replaceEventListener = _replaceEventListener;
 
 /**
- * Removes the event-handling function (event listener) for a
+ * Removes an event-handling function (event listener) for a
  * DOM object as event target.
  * <ul>
  *   <li>removeEventListener() and addEventListener(...) methods
@@ -2615,6 +2619,7 @@ DHTML.prototype.replaceEventListener = _replaceEventListener;
 function _removeEventListener(o, sEvent, fListener, bUseCapture)
 {
   var
+    result = false,
     jsx_object = jsx.object,
     sHandler = "on" + sEvent;
 
@@ -2631,12 +2636,30 @@ function _removeEventListener(o, sEvent, fListener, bUseCapture)
 
     if (jsx_object.isMethod(o, sHandler))
     {
-      o[sHandler] = null;
-      return (o[sHandler] == null);
+      var
+        handler = o[sHandler],
+        listeners = handler._listeners;
+      
+      if (listeners)
+      {
+        for (var i = listeners.length; i--;)
+        {
+          if (listeners[i] == fListener)
+          {
+            delete listeners[i];
+            result = (typeof listeners[i] == "undefined");
+          }
+        }
+      }
+      else
+      {
+        handler = o[sHandler] = null;
+        result = (handler == null);
+      }
     }
   }
 
-  return false;
+  return result;
 }
 DHTML.prototype.removeEventListener = _removeEventListener;
 
@@ -2894,7 +2917,7 @@ DHTML.prototype.loadScript = loadScript;
  *   {@link dom2-core#Element Element} object from which to retrieve
  *   descendant elements.  If omitted or evaluated to
  *   <code>false</code>, it is tried to use the calling object.
- * @return type Collection
+ * @return Collection
  *   A reference to a {@link #Collection} object containing
  *   the descendant elements of <var>o</var> or the calling
  *   {@link dom2-core#Document Document}/{@link dom2-core#Element Element}
