@@ -8,35 +8,32 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2001-2009  Thomas Lahn &lt;debug.js@PointedEars.de&gt;
- */
-var debug = {
-  version:   /** @version */ "0.99.8.2008103119",
-  copyright: "Copyright \xA9 1999-2008",
-  author:    "Thomas Lahn",
-  email:     "debug.js@PointedEars.de",
-  path:      "http://pointedears.de/scripts/test/",
-  enabled:   false
-};
-debug.docURL = debug.path + "../debug.htm";
-/**
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public Licnse
- * as published by the Free Software Foundation; either version 2
+ *   (C) 2001-2010  Thomas Lahn &lt;js@PointedEars.de&gt;
+ * 
+ * This program is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 3
  * of the License, or (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License (GPL) for more details.
- *
- * You should have received a copy of the GNU GPL along with this
- * program (COPYING file); if not, go to [1] or write to the Free
- * Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
- *
- * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+jsx.debug = {
+  version:   /** @version */ "0.99.9.2010071614",
+  copyright: "Copyright \xA9 1999-2010",
+  author:    "Thomas Lahn",
+  email:     "js@PointedEars.de",
+  path:      "http://pointedears.de/scripts/test/",
+  enabled:   false
+};
+
+// debug.docURL = debug.path + "../debug.htm";
 
 /* reference to the Global Object */
 var sGlobal = "_global";
@@ -54,10 +51,10 @@ function DebugException(msg)
 {
   alert(
     "debug.js "
-      + debug.version + "\n"
-      + debug.copyright
-      + "  " + debug.author
-      + " <" + debug.email + ">\n\n"
+      + jsx.debug.version + "\n"
+      + jsx.debug.copyright
+      + "  " + jsx.debug.author
+      + " <" + jsx.debug.email + ">\n\n"
       + msg);
   return false;
 }
@@ -67,10 +64,22 @@ function DebugException(msg)
 if (typeof test == "undefined")
 {
   /**
+   * Returns a value depending on whether an expression evaluates to
+   * a true-value or a false-value.
+   * 
    * @param expression
+   *   Expression to be evaluated.  Parsed as a <i>Program</i> if a
+   *   <code>String</code>.
    * @param trueValue
+   *   The value to be returned if <var>expression</var> evaluates to
+   *   a true-value; the default is the empty string.
    * @param falseValue
+   *   The value to be returned if <var>expression</var> evaluates to
+   *   a false-value; the default is the empty string.
    * @return mixed
+   *   <var>trueValue</var> if <var>expression</var> evaluates to
+   *   a true-value; <var>falseValue</var> otherwise.
+   * @see Global#eval(String)
    */
   var test = function (expression, trueValue, falseValue) {
     var sDefault = "";
@@ -183,7 +192,7 @@ if (typeof assertTrue == "undefined")
    * @return boolean
    *   <code>false</code>, if the assertion fails and no exception can be thrown;
    *   <code>true</code>, if the assertion is met.
-   * @see Global#eval(string)
+   * @see Global#eval(String)
    */
   var assertTrue = function (x) {
     var ox = x;
@@ -217,7 +226,7 @@ if (typeof assertFalse == "undefined")
    *   the assertion fails if the result of the conversion is
    *   <code>true</code>.
    * @param bThrow : optional boolean = true
-   *   If <code>true<code> (default), an exception will be thrown if
+   *   If <code>true</code> (default), an exception will be thrown if
    *   the assertion fails, otherwise a warning will be issued to the
    *   error console in that case.
    * @param sContext : optional String
@@ -229,7 +238,7 @@ if (typeof assertFalse == "undefined")
    * @return boolean
    *   <code>false</code>, if the assertion fails and no exception can be thrown;
    *   <code>true</code>, if the assertion is met.
-   * @see Global#eval()
+   * @see Global#eval(String)
    */
   var assertFalse = function (x, bThrow, sContext) {
     var ox = x;
@@ -589,7 +598,7 @@ function getError(e)
  *   If <code>true</code>, returns the value instead of displaying it.
  * @param bDontEval : boolean
  *   If <code>true</code>, does not evaluate arguments but uses their value.
- * @requires types#isArray()
+ * @requires jsx.types#isArray()
  * @return string
  *   Serialization of the value(s)
  */
@@ -706,17 +715,24 @@ function uglyfy(s)
 /**
  * Applies syntax highlighting on contents of <code>code</code>
  * elements unless their <code>class</code> attribute has the
- * value "donthl".  Requires support for the (currently
- * proprietary) <code>innerHTML</code> property of element
- * objects.
+ * value "donthl", or on the given context if provided.
+ * 
+ * Requires support for the (currently proprietary)
+ * <code>innerHTML</code> property of element objects
+ * if no arguments are provided or if a {@link Node}
+ * argument is provided.
  *
- * @param context : Node
- *   Reference to the context node.
- *   The default is the <code>document</code> node.
+ * @param context : Node|String
+ *   Reference to the context node or a text string to be
+ *   syntax-highlighted. The default is the <code>document</code>
+ *   node.
  * @see jsx.object#isMethod()
  */
 var synhl = (function () {
   var
+    jsx_debug = jsx.debug,
+    jsx_object = jsx.object,
+    jsx_xpath = jsx.xpath,
     reservedWords = [
       /* ES5 keywords */
       "break", "case", "catch", "continue", "debugger", "default", "delete",
@@ -878,7 +894,7 @@ var synhl = (function () {
     };
    
   return function (context) {
-    if (debug.enabled)
+    if (jsx_debug.enabled)
     {
       if (isMethod("console", "profile"))
       {
@@ -886,7 +902,8 @@ var synhl = (function () {
       }
     }
     
-    if (isMethod(context, "valueOf") && typeof context.valueOf() == "string")
+    if (jsx_object.isMethod(context, "valueOf")
+        && typeof context.valueOf() == "string")
     {
       var passedCode = context;
       context = {
@@ -900,9 +917,9 @@ var synhl = (function () {
       context = document;
     }
     
-    if (jsx.object.isMethod(jsx, "xpath", "evaluate"))
+    if (jsx_object.isMethod(jsx_xpath, "evaluate"))
     {
-      var collCode = jsx.xpath.evaluate(
+      var collCode = jsx_xpath.evaluate(
         '//code[not(contains(concat(" ", @class, " "), " donthl "))]',
         context);
     }
@@ -939,14 +956,14 @@ var synhl = (function () {
       }
     }
   
-    if (debug.enabled)
+    if (jsx_debug.enabled)
     {
-      if (isMethod("console", "profileEnd"))
+      if (jsx_object.isMethod("console", "profileEnd"))
       {
         console.profileEnd();
       }
     }
-  
+    
     return sNew;
   };
 }());
@@ -2015,7 +2032,7 @@ jsx.object.addProperties({
   },
   ObjectInfo.prototype);
 
-var sDefaultInspectorPath = debug.path + "ObjectInspector/obj-insp.html";
+var sDefaultInspectorPath = jsx.debug.path + "ObjectInspector/obj-insp.html";
 var sNoObj = "[Not an object]";
 var CH_NBSP = unescape("%A0");
 
@@ -2328,9 +2345,9 @@ function getObjInfo(sObject, aWhat, sStyle, sHeader, sFooter, sInspectorPath)
       if (bFormatAsHTML)
       {
         sFooter =
-          '<code><a href="' + debug.docURL + '" target="_blank"'
+          '<code><a href="' + jsx.debug.docURL + '" target="_blank"'
           + ' title="Show documentation for JSX:objinfo.js."'
-          + '>JSX:objinfo.js<\/a>:<a href="' + debug.docURL + '#getObjInfo"'
+          + '>JSX:objinfo.js<\/a>:<a href="' + jsx.debug.docURL + '#getObjInfo"'
           + ' target="_blank"'
           + ' title="Show documentation for JSX:debug.js:getObjInfo(...)"'
           + '>getObjInfo<\/a>(...)<\/code><br>';
@@ -2339,23 +2356,23 @@ function getObjInfo(sObject, aWhat, sStyle, sHeader, sFooter, sInspectorPath)
       {
         sFooter = "JSX:debug.js:getObjInfo(...)\n";
       }
-      sFooter += "Library version " + debug.version;
+      sFooter += "Library version " + jsx.debug.version;
       sFooter += (bFormatAsHTML ? "<br>" : "\n");
-      sFooter += debug.copyright
+      sFooter += jsx.debug.copyright
         + (bFormatAsHTML ? "&nbsp;&nbsp;" : "  ")
-        + debug.author
+        + jsx.debug.author
         + " ";
       if (bFormatAsHTML)
       {
         sFooter = replaceText(sFooter, "\xA9", "&copy;");
         sFooter +=
-          '&lt;<a href="mailto:' + debug.email
+          '&lt;<a href="mailto:' + jsx.debug.email
             + '%20%28Thomas%20\'PointedEars\'%20Lahn%20%29"'
             + ' title="E-mail the author of this fabulous script ;-)'
-            + ' E-mail client required.">' + debug.email + '<\/a>&gt;';
+            + ' E-mail client required.">' + jsx.debug.email + '<\/a>&gt;';
       }
       else
-        sFooter += "<" + debug.email + ">"
+        sFooter += "<" + jsx.debug.email + ">"
   }
 
   if (sFooter != "")
