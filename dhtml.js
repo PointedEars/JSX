@@ -154,58 +154,56 @@ function DHTML()
      * @param i : optional number
      * @return Element|Layer|null|undefined
      */
-    this.getElemByName = this.gEBN = (
-      function() {
-        function dummy()
-        {
-          return null;
-        }
-        
-        if (typeof document == "undefined")
-        {
-          return dummy;
-        }
-        
-        if (jsx.object.isMethod(document, "getElementsByName"))
-        {
-          /* W3C DOM Level 2 HTML */
-          return function(s, i) {
-            var result = document.getElementsByName(s);
-            if (result && !isNaN(i) && i > -1)
-            {
-              result = result[i];
-            }
-            return result;
-          };
-        }
-        else if (hasDocumentAll)
-        {
-          /* IE4 DOM */
-          return function(s, i) {
-            var result = document.all(s);
-            if (result && !isNaN(i) && i > -1)
-            {
-              result = result[i];
-            }
-            return result;
-          };
-        }
-        else if ((hasDocumentLayers = (typeof document.layers == "object")))
-        {
-          /* NN4 DOM */
-          return function(s, i) {
-            var result = document.layers[s];
-            if (result && !isNaN(i) && i > -1)
-            {
-              result = result[i];
-            }
-            return result;
-          };
-        }
-        
+    this.getElemByName = this.gEBN = (function() {
+      function dummy()
+      {
+        return null;
+      }
+      
+      if (typeof document == "undefined")
+      {
         return dummy;
       }
-    )();
+      
+      if (jsx.object.isMethod(document, "getElementsByName"))
+      {
+        /* W3C DOM Level 2 HTML */
+        return function(s, i) {
+          var result = document.getElementsByName(s);
+          if (result && !isNaN(i) && i > -1)
+          {
+            result = result[i];
+          }
+          return result;
+        };
+      }
+      else if (hasDocumentAll)
+      {
+        /* IE4 DOM */
+        return function(s, i) {
+          var result = document.all(s);
+          if (result && !isNaN(i) && i > -1)
+          {
+            result = result[i];
+          }
+          return result;
+        };
+      }
+      else if ((hasDocumentLayers = (typeof document.layers == "object")))
+      {
+        /* NN4 DOM */
+        return function(s, i) {
+          var result = document.layers[s];
+          if (result && !isNaN(i) && i > -1)
+          {
+            result = result[i];
+          }
+          return result;
+        };
+      }
+      
+      return dummy;
+    }());
 
     var hasGetElementsByTagName;
 
@@ -213,265 +211,249 @@ function DHTML()
      * @return NodeList|Element|null|undefined
      * TODO
      */
-    this.getElemByTagName = this.gEBTN = (
-      function() {
-        var jsx_object = jsx.object;
-        
-        if (jsx_object.isMethod(jsx, "xpath", "evaluate"))
-        {
-          /* W3C DOM Level 3 XPath */
-          /**
-           * @param s : string
-           * @param i : optional number
-           * @param contextNode : optional Element
-           * @return XPathResult|null
-           */
-          return function(s, i, contextNode) {
-            if (!s)
-            {
-              s = '*';
-            }
-            
-            if (arguments.length > 2 && typeof i != "number")
-            {
-              var tmp = contextNode;
-              contextNode = i;
-              i = tmp;
-            }
+    this.getElemByTagName = this.gEBTN = (function() {
+      var jsx_object = jsx.object;
+      
+      if (jsx_object.isMethod(jsx, "xpath", "evaluate"))
+      {
+        /* W3C DOM Level 3 XPath */
+        /**
+         * @param s : string
+         * @param i : optional number
+         * @param contextNode : optional Element
+         * @return XPathResult|null
+         */
+        return function(s, i, contextNode) {
+          if (!s)
+          {
+            s = '*';
+          }
+          
+          if (arguments.length > 2 && typeof i != "number")
+          {
+            var tmp = contextNode;
+            contextNode = i;
+            i = tmp;
+          }
 
-            var result = jsx.xpath.evaluate('.//' + s, contextNode || null,
-              null, XPathResult.ORDERED_NODE_ITERATOR_TYPE);
-            
-            if (result)
-            {
-              if (!isNaN(i) && i > -1)
-              {
-                result = result[i];
-              }
-            }
-
-            return result;
-          };
-        }
-        else if ((hasGetElementsByTagName =
-                    typeof document != "undefined"
-                    && jsx_object.isMethod(document, "getElementsByTagName")))
-        {
-          /* W3C DOM Level 2 Core */
-          /**
-           * @param s : string
-           * @param i : optional number
-           * @param contextNode : optional Element
-           * @return NodeList|Element|null
-           */
-          return function(s, i, contextNode) {
-            if (!s)
-            {
-              s = '*';
-            }
-            
-            if (arguments.length > 2 && typeof i != "number")
-            {
-              var tmp = contextNode;
-              contextNode = i;
-              i = tmp;
-            }
-            else
-            {
-              contextNode = document;
-            }
-            
-            if (contextNode != document
-                && !jsx.object.isMethod(contextNode, "getElementsByTagName"))
-            {
-              return null;
-            }
-            
-            var result = contextNode.getElementsByTagName(s);
-            if (result && !isNaN(i) && i > -1)
+          var result = jsx.xpath.evaluate('.//' + s, contextNode || null,
+            null, XPathResult.ORDERED_NODE_ITERATOR_TYPE);
+          
+          if (result)
+          {
+            if (!isNaN(i) && i > -1)
             {
               result = result[i];
             }
-            
-            return result;
-          };
-        }
-        else if (hasDocumentAll && isMethod(document.all, "tags"))
-        {
-          /**
-           * @param s : string
-           * @param i : optional number
-           * @param contextNode : optional Element
-           * @return NodeList|Element
-           */
-          return function(s, i, contextNode) {
-            if (arguments.length > 2 && typeof i != "number")
-            {
-              var tmp = contextNode;
-              contextNode = i;
-              i = tmp;
-            }
-            else
-            {
-              contextNode = document;
-            }
-            
-            if (contextNode != document
-                && !jsx.object.isMethod(contextNode, "all", "tags"))
-            {
-              return null;
-            }
-            
-            var result = contextNode.all.tags(s);
-            if (result && !isNaN(i) && i > -1)
-            {
-              result = result[i];
-            }
-            
-            return result;
-          };
-        }
-        else
-        {
-          /**
-           * @return Null
-           */
-          return function() {
-            return null;
-          };
-        }
+          }
+
+          return result;
+        };
       }
-    )();
+      else if ((hasGetElementsByTagName =
+                  typeof document != "undefined"
+                  && jsx_object.isMethod(document, "getElementsByTagName")))
+      {
+        /* W3C DOM Level 2 Core */
+        /**
+         * @param s : string
+         * @param i : optional number
+         * @param contextNode : optional Element
+         * @return NodeList|Element|null
+         */
+        return function(s, i, contextNode) {
+          if (!s)
+          {
+            s = '*';
+          }
+          
+          if (arguments.length > 2 && typeof i != "number")
+          {
+            var tmp = contextNode;
+            contextNode = i;
+            i = tmp;
+          }
+          else
+          {
+            contextNode = document;
+          }
+          
+          if (contextNode != document
+              && !jsx.object.isMethod(contextNode, "getElementsByTagName"))
+          {
+            return null;
+          }
+          
+          var result = contextNode.getElementsByTagName(s);
+          if (result && !isNaN(i) && i > -1)
+          {
+            result = result[i];
+          }
+          
+          return result;
+        };
+      }
+      else if (hasDocumentAll && isMethod(document.all, "tags"))
+      {
+        /**
+         * @param s : string
+         * @param i : optional number
+         * @param contextNode : optional Element
+         * @return NodeList|Element
+         */
+        return function(s, i, contextNode) {
+          if (arguments.length > 2 && typeof i != "number")
+          {
+            var tmp = contextNode;
+            contextNode = i;
+            i = tmp;
+          }
+          else
+          {
+            contextNode = document;
+          }
+          
+          if (contextNode != document
+              && !jsx.object.isMethod(contextNode, "all", "tags"))
+          {
+            return null;
+          }
+          
+          var result = contextNode.all.tags(s);
+          if (result && !isNaN(i) && i > -1)
+          {
+            result = result[i];
+          }
+          
+          return result;
+        };
+      }
+      else
+      {
+        /**
+         * @return Null
+         */
+        return function() {
+          return null;
+        };
+      }
+    }());
 
     /**
      * @param i
      * @return Element|Layer|null|undefined
      */
-    this.getElemByIndex = this.gEBIdx = (
-      function() {
-        function dummy()
-        {
-          return null;
-        }
-        
-        if (typeof document == "undefined")
-        {
-          return dummy;
-        }
-        
-        if (hasGetElementsByTagName)
-        {
-          return function(i) {
-            return (result = document.getElementsByTagName('*')[i]);
-          };
-        }
-        else if (hasDocumentAll)
-        {
-          return function(i) {
-            return document.all(i);
-          };
-        }
-        else if (hasDocumentLayers)
-        {
-          return function(i) {
-            return document.layers[i];
-          };
-        }
-
+    this.getElemByIndex = this.gEBIdx = (function() {
+      function dummy()
+      {
+        return null;
+      }
+      
+      if (typeof document == "undefined")
+      {
         return dummy;
       }
-    )();
+      
+      if (hasGetElementsByTagName)
+      {
+        return function(i) {
+          return (result = document.getElementsByTagName('*')[i]);
+        };
+      }
+      else if (hasDocumentAll)
+      {
+        return function(i) {
+          return document.all(i);
+        };
+      }
+      else if (hasDocumentLayers)
+      {
+        return function(i) {
+          return document.layers[i];
+        };
+      }
+
+      return dummy;
+    }());
   }
 
   /**
-   * @param s
+   * @param sClassName
    * @return Array
    */
-  this.getElemByClassName = this.gEBCN = function(s) {
-    var
-      coll = this.getElemByTagName(),
-      result = new Array(),
-      splice = (
-        /**
-         * @return Function
-         */
-        function() {
-          var jsx_object = jsx.object;
-           
-          if (jsx_object.isMethod(jsx.global, "array_splice"))
-          {
-            return array_splice;
-          }
-          else if (typeof Array != "undefined"
-                   && jsx_object.isMethod(Array, "prototype", "splice"))
-          {
-            return function(a, start, del, ins) {
-              ins = Array.prototype.slice.call(arguments, 3);
-              return Array.prototype.splice.apply(a, [start, del].concat(ins));
-            };
-          }
-          else
-          {
-            return function(a, start, del, ins) {
-              var aDeleted = new Array();
-              
-              for (var i = start + del, len = a.length; i < len; i++)
-              {
-                aDeleted[aDeleted.length] = a[i - del];
-                a[i - del] = a[i];
-              }
-              
-              a.length = len - del;
-              
-              for (i = 3, len = arguments.length; i < len; i++)
-              {
-                a[a.length] = arguments[i];
-              }
-              
-              return aDeleted;
-            };
-          }
-        }
-      )();
-
-    if (coll)
-    {
-      /* FIXME: allow arbitrary order (use Array for repeated filtering) */
-      var classes = s.split(/[ \t\f\u200B\r\n]+/);
-      for (var i = 0, len = classes.length; i < len; i++)
-      {
-        var c = classes[i];
-        if (!/\S/.test(c))
+  this.getElemByClassName = this.gEBCN = (function() {
+    var splice = (
+      /**
+       * @return Function
+       */
+      function() {
+        var jsx_object = jsx.object;
+         
+        if (jsx_object.isMethod(jsx.global, "array_splice"))
         {
-          var rx = new RegExp(
-            "(^|[ \\t\\f\\u200B\\r\\n]+)" + c + "($|[ \\t\\f\\u200B\\r\\n]+)");
+          return array_splice;
+        }
+        else if (typeof Array != "undefined"
+                 && jsx_object.isMethod(Array, "prototype", "splice"))
+        {
+          return function(a, start, del, ins) {
+            var proto = Array.prototype; 
+            ins = proto.slice.call(arguments, 3);
+            return proto.splice.apply(a, [start, del].concat(ins));
+          };
+        }
+        else
+        {
+          return function(a, start, del, ins) {
+            var aDeleted = new Array();
+            
+            for (var i = start + del, len = a.length; i < len; i++)
+            {
+              aDeleted[aDeleted.length] = a[i - del];
+              a[i - del] = a[i];
+            }
+            
+            a.length = len - del;
+            
+            for (i = 3, len = arguments.length; i < len; i++)
+            {
+              a[a.length] = arguments[i];
+            }
+            
+            return aDeleted;
+          };
+        }
+      }
+    ());
+
+    return function(sClassName) {
+      var
+        aElements = this.getElemByTagName(),
+        result = new Array();
+  
+      if (aElements)
+      {
+        var sWhiteSpace = "[ \\t\\f\\u200B\\r\\n]+";
+        
+        /*
+         * NOTE: There are many more elements than potential class names, so loop
+         * through those only once
+         */
+        for (var i = 0, len = aElements.length; i < len; ++i)
+        {
+          var element = aElements[i];
           
-          if (i == 0)
+          if (new RegExp("(^|" + sWhiteSpace + ")" + sClassName + "($|" + sWhiteSpace + ")")
+              .test(element.className))
           {
-            for (var j = 0, len = coll.length; i < len; i++)
-            {
-              if (rx.test(coll[j].className))
-              {
-                result[result.length] = coll[j];
-              }
-            }
-          }
-          else
-          {
-            for (j = result.length; j--;)
-            {
-              if (!rx.test(result[j].className))
-              {
-                splice(result, j, 1);
-              }
-            }
+            result[result.length] = element;
           }
         }
       }
-    }
-
-    return result;
-  };
+  
+      return result;
+    };
+  }());
 
   /*
    * Apart from isNS4DOM, none of these object-inference properties is used
@@ -847,6 +829,7 @@ DHTML.prototype.setCont = setCont;
  *   Reference to the document node.
  * @return string
  *   The text content of @{(oNode)}.
+ * @todo Duplicate of getCont(..., false)?
  */
 function getTextContent(oNode)
 {
@@ -2243,8 +2226,6 @@ dom.HTMLSerializer = (
           startTag = "<" + t,
           content = [],
           endTag = "";
-        
-        
         
         for (var i = 0, c = node.childNodes, len = c && c.length; i < len; i++)
         {
