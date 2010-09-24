@@ -168,7 +168,8 @@ var printfire = jsx.dmsg = (function () {
       
       if (jsx_object.isMethod(console, sType))
       {
-        console[sType].call(console, sMsg);
+        /* MSHTML's console methods do not implement call() */
+        Function.prototype.call.call(console[sType], console, sMsg);
         return true;
       }
     }
@@ -1277,10 +1278,20 @@ Function.prototype.extend = (function () {
       /* Optimize iteration if ECMAScript 5 features are available */
       if (jsx_object.isMethod(jsx.tryThis("Object"), "defineProperty"))
       {
-        Object.defineProperty(this.prototype, "forEach", {
-          value: this.prototype.forEach,
-          enumerable: false
-        });
+        jsx.tryThis(
+          function() {
+            Object.defineProperty(this.prototype, "forEach", {
+              value: this.prototype.forEach,
+              enumerable: false
+            });
+          },
+          function() {
+            /* IE 8 goes here */
+            jsx.dmsg(
+              'Borken implementation: typeof Object.defineProperty == "function"'
+              + ' but calling it throws exception', 'warn');
+          }
+        );
       }
     }
     
