@@ -1289,7 +1289,7 @@ Function.prototype.extend = (function () {
             /* IE 8 goes here */
             jsx.dmsg(
               'Borken implementation: typeof Object.defineProperty == "function"'
-              + ' but calling it throws exception', 'warn');
+              + ' but call throws exception', 'warn');
           }
         );
       }
