@@ -6,6 +6,23 @@
  * @requires object.js
  * @author
  *   (C) 2001-2009  Thomas Lahn &lt;types.js@PointedEars.de&gt;
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public Licnse
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License (GPL) for more details.
+ *
+ * You should have received a copy of the GNU GPL along with this
+ * program (COPYING file); if not, go to [1] or write to the Free
+ * Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+ * MA 02111-1307, USA.
+ * 
+ * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
  */
 
 /* a more compatible approach */
@@ -40,25 +57,6 @@ if (typeof de.pointedears.jsx == "undefined")
 {
   de.pointedears.jsx = jsx;
 }
-
-/**
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public Licnse
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License (GPL) for more details.
- *
- * You should have received a copy of the GNU GPL along with this
- * program (COPYING file); if not, go to [1] or write to the Free
- * Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
- * 
- * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
- */
 
 /**
  * @param sMsg : optional string

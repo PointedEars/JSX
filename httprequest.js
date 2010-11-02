@@ -98,12 +98,12 @@
  */
 
 /**
- * Creates a new HTTPRequest object.
+ * Creates a new <code>HTTPRequest</code> object.
  * 
  * You can set up response listeners per argument (see below), or
  * {@link jsx.HTTPRequest.prototype#setResponseListener setResponseListener()},
  * {@link jsx.HTTPRequest.prototype#setSuccessListener setSuccessListener()},
- * and {@link jsx.HTTPRequest.prototype#setErrorListener setErrorListener()},
+ * and {@link jsx.HTTPRequest.prototype#setErrorListener setErrorListener()};
  * then call {@link jsx.HTTPRequest.prototype#send send()} to submit
  * the request.
  * 
@@ -351,17 +351,19 @@ jsx.HTTPRequest.prototype = {
   },
 
   /**
-   * Defines the response Listener method to be used for handling
+   * Defines a response listener method to be used for handling
    * successful requests.
    * 
-   * A <code>HTTPRequest</code> object is always initialized with
-   * an inherited dummy success Listener that does nothing, if you
-   * do not specify one.  Once initialized, passing a reference
-   * to a non-callable object as argument throws an
+   * An <code>HTTPRequest</code> object is always initialized with
+   * an inherited dummy success listener (a {@link jsx.HTTPResponseListener}
+   * instance) that does nothing, if you do not specify one.  Once initialized,
+   * passing a reference to a non-callable object as argument throws an
    * {@link jsx#InvalidArgumentError InvalidArgumentError}
    * exception.
    * 
    * @param fSuccessListener : HTTPResponseListener
+   * @return boolean <code>true</code> if the listener could be successfully
+   *   set or changed; <code>false</code> on error, unless an exception is thrown.
    * @throws jsx.InvalidArgumentError
    */
   setSuccessListener: function (fSuccessListener) {
@@ -538,6 +540,9 @@ jsx.HTTPRequest.prototype = {
       /*@if (@_jscript_version >= 5)
           try
           {
+            // TODO: Try this first?
+            // new ActiveXObject("Msxml2.XMLHTTP");
+            
             // MSXML 3.0-
             x = new ActiveXObject("Microsoft.XMLHTTP");
           }
