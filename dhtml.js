@@ -377,10 +377,6 @@ function DHTML()
     }());
   }
 
-  /**
-   * @param sClassName
-   * @return Array
-   */
   this.getElemByClassName = this.gEBCN = (function() {
     var splice = (
       /**
@@ -426,6 +422,10 @@ function DHTML()
       }
     ());
 
+    /**
+     * @param sClassName
+     * @return Array
+     */
     return function(sClassName) {
       var
         aElements = this.getElemByTagName(),
@@ -2648,8 +2648,8 @@ DHTML.prototype.removeEventListener = _removeEventListener;
  * Returns a reference to a <code>Function</code> that can be used as event listener.
  * Differences between DOM implementations are smoothed out as much as
  * possible (e.g., the first argument of that function will be a reference
- * to the Event instance regardless if the DOM implementation passes it,
- * and you can use the <code>target</code> property even though
+ * to the <code>Event</code> instance regardless if the DOM implementation passes it,
+ * and you can use the <code>target</code> property even if
  * the DOM implementation supports <code>srcElement</code> instead.)
  * 
  * @param f : Callable
