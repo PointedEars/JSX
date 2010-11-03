@@ -1278,19 +1278,22 @@ Function.prototype.extend = (function () {
       /* Optimize iteration if ECMAScript 5 features are available */
       if (jsx_object.isMethod(jsx.tryThis("Object"), "defineProperty"))
       {
+        var me = this;
         jsx.tryThis(
           function() {
-            Object.defineProperty(this.prototype, "forEach", {
-              value: this.prototype.forEach,
+            Object.defineProperty(me.prototype, "forEach", {
+              value: me.prototype.forEach,
               enumerable: false
             });
           },
-          function() {
+          function(e) {
             /* IE 8 goes here */
             jsx.dmsg(
-              'Borken implementation: typeof Object.defineProperty == "function"'
-              + ' but call throws exception', 'warn');
-          }
+              'Borken implementation: Object.defineProperty is a method'
+              + ' but [[Call]](this.prototype, "forEach") throws exception ("'
+              + e.name + ': ' + e.message + '")',
+              'warn');
+          }s
         );
       }
     }
