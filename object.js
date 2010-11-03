@@ -515,14 +515,15 @@ var setErrorHandler = jsx.setErrorHandler = (function () {
 var tryThis = jsx.tryThis = (function () {
   /**
    * @param s Value to be stringified
-   * @param sIdent Identifier of the value to be stringified
+   * @param sCall : String
+   *   CallStatement that should be used instead of the value
    * @return string Stringified version of <code>s</code>
    */
-  function stringify(s, sIdent)
+  function stringify(s, sCall)
   {
     if (typeof s == "function")
     {
-      s = sIdent || "(" + s + "())";
+      s = sCall;
     }
     else if (typeof s == "undefined")
     {
