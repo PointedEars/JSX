@@ -96,12 +96,6 @@ function DHTML()
   {
     var hasDocumentAll = false;
 
-    /**
-     * @return
-     *   Reference to a {@link HTMLElement} object representing
-     *   the element with the given ID.
-     * @type HTMLElement|null
-     */
     this.getElementById = this.getElemById = this.getEBI = this.gEBI = (
       function() {
         if (typeof document == "undefined")
@@ -116,32 +110,29 @@ function DHTML()
         if (jsx_object.isMethod(document, "getElementById"))
         {
           /**
-           * @param s : string
-           * @return Element|null
+           * @param sId : String
+           * @return any
+           *   Reference to an {@link Element} object representing
+           *   the element with the given ID, <code>null</code> or
+           *   <code>undefined</code> if there is no such element.
+           *   The return value varies among DOM implementations
+           *   if there is more than one matching element (invalid markup).
            */
-          return function(s) {
+          return function(sId) {
             /* wrapper method required to avoid "invalid op. on prototype" exception */
-            return document.getElementById(s);
+            return document.getElementById(sId);
           };
         }
         else if ((hasDocumentAll = jsx_object.isMethod(document, "all")))
         {
-          /**
-           * @param s : string
-           * @return Element|null
-           */
-          return function(s) {
-            return document.all(s);
+          return function(sId) {
+            return document.all(sId);
           };
         }
         else
         {
-          /**
-           * @param s
-           * @return Element|undefined
-           */
-          return function(s) {
-            return document[s];
+          return function(sId) {
+            return document[sId];
           };
         }
       }
@@ -149,11 +140,6 @@ function DHTML()
 
     var hasDocumentLayers = false;
 
-    /**
-     * @param s : string
-     * @param i : optional number
-     * @return Element|Layer|null|undefined
-     */
     this.getElemByName = this.gEBN = (function() {
       function dummy()
       {
@@ -168,11 +154,16 @@ function DHTML()
       if (jsx.object.isMethod(document, "getElementsByName"))
       {
         /* W3C DOM Level 2 HTML */
-        return function(s, i) {
-          var result = document.getElementsByName(s);
-          if (result && !isNaN(i) && i > -1)
+        /**
+         * @param sName : String
+         * @param index : optional Number
+         * @return Element|Layer|null|undefined
+         */
+        return function(sName, index) {
+          var result = document.getElementsByName(sName);
+          if (result && !isNaN(index) && index > -1)
           {
-            result = result[i];
+            result = result[index];
           }
           return result;
         };
@@ -180,11 +171,11 @@ function DHTML()
       else if (hasDocumentAll)
       {
         /* IE4 DOM */
-        return function(s, i) {
-          var result = document.all(s);
-          if (result && !isNaN(i) && i > -1)
+        return function(sName, index) {
+          var result = document.all(sName);
+          if (result && !isNaN(index) && index > -1)
           {
-            result = result[i];
+            result = result[index];
           }
           return result;
         };
@@ -192,11 +183,11 @@ function DHTML()
       else if ((hasDocumentLayers = (typeof document.layers == "object")))
       {
         /* NN4 DOM */
-        return function(s, i) {
-          var result = document.layers[s];
-          if (result && !isNaN(i) && i > -1)
+        return function(sName, index) {
+          var result = document.layers[sName];
+          if (result && !isNaN(index) && index > -1)
           {
-            result = result[i];
+            result = result[index];
           }
           return result;
         };
@@ -207,10 +198,6 @@ function DHTML()
 
     var hasGetElementsByTagName;
 
-    /**
-     * @return NodeList|Element|null|undefined
-     * TODO
-     */
     this.getElemByTagName = this.gEBTN = (function() {
       var jsx_object = jsx.object;
       
@@ -218,32 +205,35 @@ function DHTML()
       {
         /* W3C DOM Level 3 XPath */
         /**
-         * @param s : string
-         * @param i : optional number
-         * @param contextNode : optional Element
-         * @return XPathResult|null
+         * @param sTagName : String
+         * @param index : optional Number
+         * @param oContextNode : optional Element
+         * @return Array|Element
+         *   An <code>Array</code> of references to objects representing
+         *   matching elements, or one reference to such an object if
+         *   <var>index</var> was provided.
          */
-        return function(s, i, contextNode) {
-          if (!s)
+        return function(sTagName, index, oContextNode) {
+          if (!sTagName)
           {
-            s = '*';
+            sTagName = '*';
           }
           
           if (arguments.length > 2 && typeof i != "number")
           {
-            var tmp = contextNode;
-            contextNode = i;
-            i = tmp;
+            var tmp = oContextNode;
+            oContextNode = index;
+            index = tmp;
           }
 
-          var result = jsx.xpath.evaluate('.//' + s, contextNode || null,
+          var result = jsx.xpath.evaluate('.//' + sTagName, oContextNode || null,
             null, XPathResult.ORDERED_NODE_ITERATOR_TYPE);
           
           if (result)
           {
-            if (!isNaN(i) && i > -1)
+            if (!isNaN(index) && index > -1)
             {
-              result = result[i];
+              result = result[index];
             }
           }
 
@@ -256,38 +246,42 @@ function DHTML()
       {
         /* W3C DOM Level 2 Core */
         /**
-         * @param s : string
-         * @param i : optional number
-         * @param contextNode : optional Element
+         * @param sTagName : String
+         * @param index : optional Number
+         * @param oContextNode : optional Element
          * @return NodeList|Element|null
+         *   An <code>NodeList</code> of references to objects representing
+         *   matching elements, or one reference to such an object if
+         *   <var>index</var> was provided; <code>null</code> if there
+         *   is no matching element.
          */
-        return function(s, i, contextNode) {
-          if (!s)
+        return function(sTagName, index, oContextNode) {
+          if (!sTagName)
           {
-            s = '*';
+            sTagName = '*';
           }
           
           if (arguments.length > 2 && typeof i != "number")
           {
-            var tmp = contextNode;
-            contextNode = i;
-            i = tmp;
+            var tmp = oContextNode;
+            oContextNode = index;
+            index = tmp;
           }
           else
           {
-            contextNode = document;
+            oContextNode = document;
           }
           
-          if (contextNode != document
-              && !jsx.object.isMethod(contextNode, "getElementsByTagName"))
+          if (oContextNode != document
+              && !jsx.object.isMethod(oContextNode, "getElementsByTagName"))
           {
             return null;
           }
           
-          var result = contextNode.getElementsByTagName(s);
-          if (result && !isNaN(i) && i > -1)
+          var result = oContextNode.getElementsByTagName(sTagName);
+          if (result && !isNaN(index) && index > -1)
           {
-            result = result[i];
+            result = result[index];
           }
           
           return result;
@@ -296,33 +290,37 @@ function DHTML()
       else if (hasDocumentAll && isMethod(document.all, "tags"))
       {
         /**
-         * @param s : string
-         * @param i : optional number
-         * @param contextNode : optional Element
-         * @return NodeList|Element
+         * @param sTagName : String
+         * @param index : optional Number
+         * @param oContextNode : optional Element
+         * @return NodeList|Element|undefined
+         *   An <code>NodeList</code> of references to objects representing
+         *   matching elements, or one reference to such an object if
+         *   <var>index</var> was provided; <code>null</code>
+         *   if there is no matching element.
          */
-        return function(s, i, contextNode) {
+        return function(sTagName, index, oContextNode) {
           if (arguments.length > 2 && typeof i != "number")
           {
-            var tmp = contextNode;
-            contextNode = i;
-            i = tmp;
+            var tmp = oContextNode;
+            oContextNode = index;
+            index = tmp;
           }
           else
           {
-            contextNode = document;
+            oContextNode = document;
           }
           
-          if (contextNode != document
-              && !jsx.object.isMethod(contextNode, "all", "tags"))
+          if (oContextNode != document
+              && !jsx.object.isMethod(oContextNode, "all", "tags"))
           {
             return null;
           }
           
-          var result = contextNode.all.tags(s);
-          if (result && !isNaN(i) && i > -1)
+          var result = oContextNode.all.tags(sTagName);
+          if (result && !isNaN(index) && index > -1)
           {
-            result = result[i];
+            result = result[index];
           }
           
           return result;
@@ -330,19 +328,12 @@ function DHTML()
       }
       else
       {
-        /**
-         * @return Null
-         */
         return function() {
           return null;
         };
       }
     }());
 
-    /**
-     * @param i
-     * @return Element|Layer|null|undefined
-     */
     this.getElemByIndex = this.gEBIdx = (function() {
       function dummy()
       {
@@ -356,20 +347,32 @@ function DHTML()
       
       if (hasGetElementsByTagName)
       {
-        return function(i) {
-          return (result = document.getElementsByTagName('*')[i]);
+        /**
+         * @param index : Number
+         * @return Element|null|undefined
+         */
+        return function(index) {
+          return (result = document.getElementsByTagName('*')[index]);
         };
       }
       else if (hasDocumentAll)
       {
-        return function(i) {
-          return document.all(i);
+        /**
+         * @param index : Number
+         * @return Element|null|undefined
+         */
+        return function(index) {
+          return document.all(index);
         };
       }
       else if (hasDocumentLayers)
       {
-        return function(i) {
-          return document.layers[i];
+        /**
+         * @param index : Number
+         * @return Layer|null|undefined
+         */
+        return function(index) {
+          return document.layers[index];
         };
       }
 
@@ -379,9 +382,6 @@ function DHTML()
 
   this.getElemByClassName = this.gEBCN = (function() {
     var splice = (
-      /**
-       * @return Function
-       */
       function() {
         var jsx_object = jsx.object;
          
@@ -393,7 +393,7 @@ function DHTML()
                  && jsx_object.isMethod(Array, "prototype", "splice"))
         {
           return function(a, start, del, ins) {
-            var proto = Array.prototype; 
+            var proto = Array.prototype;
             ins = proto.slice.call(arguments, 3);
             return proto.splice.apply(a, [start, del].concat(ins));
           };
@@ -423,8 +423,12 @@ function DHTML()
     ());
 
     /**
+     * Retrieves all elements matching certain CSS class names
+     * 
      * @param sClassName
      * @return Array
+     *   An <code>Array</code> of references to objects representing
+     *   matching elements
      */
     return function(sClassName) {
       var
@@ -541,11 +545,12 @@ de.pointedears.jsx.dom = de.pointedears.jsx.dhtml = dom;
  * Shows an exception alert and allows for
  * displaying a stack trace.
  *
- * @param sMsg : optional string = ""
+ * @param sMessage : optional string = ""
  *   Error message to be displayed.
  * @return boolean
+ *   Always <code>false</code>
  */
-function DHTMLException(sMsg)
+function DHTMLException(sMessage)
 {
   /* Prevent exceptions from "bubbling" on (keyboard) event */
   if (!jsx.dhtml.allowExceptionMsg)
@@ -568,7 +573,7 @@ function DHTMLException(sMsg)
       + jsx.dhtml.author + " <" + jsx.dhtml.email + ">\n"
       + 'The latest version can be obtained from:\n'
       + "<" + jsx.dhtml.URI + ">\n\n"
-      + sMsg + "\n"
+      + sMessage + "\n"
       + "__________________________________________________________\n"
       + "Stack trace"
       + (stackTrace
@@ -711,10 +716,10 @@ DHTML.prototype.getElem = getElem;
  * Retrieves the content of an HTMLElement object.
  *
  * @author
- *   (C) 2003-2005  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   (C) 2003-2005, 2010  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @param o : HTMLElement
+ * @param oElement : HTMLElement
  *   Element which content is to be retrieved.
  * @param bHTML : optional boolean
  *   If <code>true</code>, returns the HTML content instead of
@@ -724,36 +729,36 @@ DHTML.prototype.getElem = getElem;
  *  no such element object exists or if the DOM does not provide
  *  retrieval of the element's content.
  */
-function getCont(o, bHTML)
+function getCont(oElement, bHTML)
 {
   var sResult = "";
 
-  if (o)
+  if (oElement)
   {
     /* W3C DOM Level 2 Core */
-    if (typeof o.firstChild != "undefined")
+    if (typeof oElement.firstChild != "undefined")
     {
-      if (typeof o.firstChild.nodeType != "undefined"
-          && o.firstChild.nodeType ==
+      if (typeof oElement.firstChild.nodeType != "undefined"
+          && oElement.firstChild.nodeType ==
             /* W3C-DOM 2 o.firstChild.TEXT_NODE constant is N/A in IE and O7 */
-            ((typeof o.firstChild.TEXT_NODE != "undefined"
-              && o.firstChild.TEXT_NODE)
+            ((typeof oElement.firstChild.TEXT_NODE != "undefined"
+              && oElement.firstChild.TEXT_NODE)
              || 3))
       {
-        sResult = o.firstChild.nodeValue;
+        sResult = oElement.firstChild.nodeValue;
       }
     }
     else
     {
-      if (typeof o.innerText != "undefined")
+      if (typeof oElement.innerText != "undefined")
       {
-        sResult = o.innerText;
+        sResult = oElement.innerText;
       }
 
-      if ((bHTML || typeof o.innerText == "undefined")
-          && typeof o.innerHTML != "undefined")
+      if ((bHTML || typeof oElement.innerText == "undefined")
+          && typeof oElement.innerHTML != "undefined")
       {
-        sResult = o.innerHTML;
+        sResult = oElement.innerHTML;
       }
     }
   }
@@ -766,10 +771,10 @@ DHTML.prototype.getCont = getCont;
  * Specifies the content of an HTMLElement object.
  *
  * @author
- *   (C) 2003-2005  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   (C) 2003-2005, 2010  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @param o : HTMLElement
+ * @param oElement : HTMLElement
  *   Element which content is to be changed.
  * @param sNodeValue : string
  *   New content of the element.
@@ -777,39 +782,39 @@ DHTML.prototype.getCont = getCont;
  *   <code>true</code> if successful, <code>false</code>
  *   otherwise.
  */
-function setCont(o, sNodeValue)
+function setCont(oElement, sNodeValue)
 {
-  if (o)
+  if (oElement)
   {
     /* DOM Level 2 Core */
-    if (typeof o.firstChild != "undefined")
+    if (typeof oElement.firstChild != "undefined")
     {
-      o.firstChild.nodeValue = sNodeValue;
+      oElement.firstChild.nodeValue = sNodeValue;
       return true;
     }
-    else if (typeof o.nodeValue != "undefined")
+    else if (typeof oElement.nodeValue != "undefined")
     {
-      o.nodeValue = sNodeValue;
+      oElement.nodeValue = sNodeValue;
       return true;
     }
 
     /* IE4 DOM */
-    else if (typeof o.innerText != "undefined")
+    else if (typeof oElement.innerText != "undefined")
     {
-      o.innerText = sNodeValue;
+      oElement.innerText = sNodeValue;
       return true;
     }
 
     /* NS4 DOM */
     else if (jsx.dhtml.isNS4DOM
-             && o.document
-             && o.document.open
-             && o.document.write
-             && o.document.close)
+             && oElement.document
+             && oElement.document.open
+             && oElement.document.write
+             && oElement.document.close)
     {
-      o.document.open();
-      o.document.write(sNodeValue);
-      o.document.close();
+      oElement.document.open();
+      oElement.document.write(sNodeValue);
+      oElement.document.close();
       return true;
     }
   }
@@ -827,11 +832,14 @@ DHTML.prototype.setCont = setCont;
  *   http://pointedears.de/scripts/dhtml.js
  * @param oNode : Node
  *   Reference to the document node.
+ * @param bGetHTML : optional boolean
+ *   If <code>true</code>, returns the HTML content instead of
+ *   the text content in case the latter cannot be retrieved.
  * @return string
  *   The text content of @{(oNode)}.
  * @todo Duplicate of getCont(..., false)?
  */
-function getTextContent(oNode)
+function getContent(oNode, bGetHTML)
 {
   var text = "";
 
@@ -870,7 +878,7 @@ function getTextContent(oNode)
 
   return text;
 }
-DHTML.prototype.getTextContent = getTextContent;
+DHTML.prototype.getContent = getContent;
 
 /**
  * Sets the text content of a document node.
@@ -925,33 +933,33 @@ DHTML.prototype.setTextContent = setTextContent;
  * that matches certain criteria.
  *
  * @author
- *   (C) 2003, 2008  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
- * @param o
+ *   (C) 2003, 2008, 2010  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ * @param oElement : HTMLElement
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
  * @param sAttrName : string
  *   Name of the attribute from which the value
  *   should be retrieved.
- * @return
+ * @return any
  *   The value of the object if <code>sType</code> is "id",
  *   or if it is "name" or "tagname" and <code>index</code>
  *   is specified;
  *   a null-string if no matching object exists or if the DOM
  *   does not provide retrieval of the attribute's values.
  */
-function getAttr(o, sAttrName)
+function getAttr(oElement, sAttrName)
 {
   var result = "";
 
-  if (o)
+  if (oElement)
   {
-    if (jsx.object.isMethod(o, "getAttribute"))
+    if (jsx.object.isMethod(oElement, "getAttribute"))
     {
-      result = o.getAttribute(sAttrName);
+      result = oElement.getAttribute(sAttrName);
     }
     else if (jsx.dhtml.isNS4DOM)
     {
-      result = o[sAttrName];
+      result = oElement[sAttrName];
     }
   }
 
@@ -959,10 +967,6 @@ function getAttr(o, sAttrName)
 }
 DHTML.prototype.getAttr = getAttr;
 
-/**
- * @param s
- * @return string
- */
 DHTML.prototype.camelize = (function() {
   var jsx_object = jsx.object;
   
@@ -1032,16 +1036,22 @@ DHTML.prototype.camelize = (function() {
     return p1.toUpperCase();
   }
   
-  return function(s) {
+  /**
+   * @param sProperty : String
+   * @return string
+   *   <var>sProperty</var> with all hyphen-minuses followed by a
+   *   Latin-1 letter replaced by the letter's uppercase counterpart
+   */
+  return function(sProperty) {
     var p;
-    if ((p = cache.get(s, false)))
+    if ((p = cache.get(sProperty, false)))
     {
       return p;
     }
     else
     {
-      var s2 = s.replace(/-([a-z])/gi, f);
-      cache.put(s, s2);
+      var s2 = sProperty.replace(/-([a-z])/gi, f);
+      cache.put(sProperty, s2);
       return s2;
     }
   };
@@ -1107,7 +1117,7 @@ DHTML.prototype.attrMap = {
  * @param attrValue
  *   Value of the attribute to be set.  The value is
  *   converted to number if it can be interpreted as such.
- * @return
+ * @return any
  *   The value of the attribute of the element object;
  *   a null-string if no matching object exists or if the DOM
  *   does not provide retrieval of the attribute's values.
@@ -1131,8 +1141,11 @@ function setAttr(o, sAttrName, attrValue)
 
       strToValue =
         /**
+         * Converts a string, if possible, to a number
+         * 
          * @param s
          * @return string|number
+         *   The converted value
          */
         function(s) {
           s = s.replace(/^["']|["']$/g, "");
@@ -1308,24 +1321,24 @@ DHTML.prototype.runLater = runLater;
  *   (C) 2005  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @argument o : HTMLElement
+ * @param oElement : HTMLElement
  *   Reference to the element object which style is to be modified.
- * @argument sPropertyName : string
+ * @param sPropertyName : String
  *   Name of the style property of which the value should be retrieved.
  *   If "display", and there is no
  *   <code>style[<var>sPropertyName</var>]</code> property,
  *   "visibility" is used instead (fallback for the NN4 DOM).
- * @return
+ * @return string|null
  *   <code>null</code> if no matching object exists or if the
  *   DOM does not provide for retrieval of the property value.
  */
-function getStyleProperty(o, sPropertyName)
+function getStyleProperty(oElement, sPropertyName)
 {
-  if (o)
+  if (oElement)
   {
     sPropertyName = jsx.dhtml.camelize(sPropertyName);
 
-    if (typeof o.style != "undefined")
+    if (typeof oElement.style != "undefined")
     {
       /* handle the `float' property */
       var tested = false;
@@ -1333,23 +1346,23 @@ function getStyleProperty(o, sPropertyName)
       if (sPropertyName == "float")
       {
         /* W3C DOM Level 2 CSS */
-        if (typeof o.style.cssFloat != "undefined")
+        if (typeof oElement.style.cssFloat != "undefined")
         {
           sPropertyName = "cssFloat";
           tested = true;
         }
 
         /* MSHTML DOM */
-        else if (typeof o.style.styleFloat != "undefined")
+        else if (typeof oElement.style.styleFloat != "undefined")
         {
           sPropertyName = "styleFloat";
           tested = true;
         }
       }
 
-      if (tested || typeof o.style[sPropertyName] != "undefined")
+      if (tested || typeof oElement.style[sPropertyName] != "undefined")
       {
-        return o.style[sPropertyName];
+        return oElement.style[sPropertyName];
       }
     }
     else
@@ -1359,9 +1372,9 @@ function getStyleProperty(o, sPropertyName)
         sPropertyName = "visibility";
       }
 
-      if (typeof o[sPropertyName] != "undefined")
+      if (typeof oElement[sPropertyName] != "undefined")
       {
-        return o[sPropertyName];
+        return oElement[sPropertyName];
       }
     }
   }
@@ -1377,21 +1390,21 @@ DHTML.prototype.getStyleProperty = getStyleProperty;
  *   (C) 2006  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @param o : HTMLElement
+ * @param oElement : HTMLElement
  *   Reference to the element object which style property is to be retrieved.
  * @param sPropertyName : string
  *   Name of the style property which is to be checked.
  *   If "display", and there is no
  *   <code>style[<var>sPropertyName</var>]</code> property,
  *   "visibility" is used instead (fallback for the NN4 DOM).
- * @return
+ * @return boolean
  *   <code>false</code> if no matching object exists or if the
  *   DOM does not provide for retrieval of the property value;
  *   <code>true</code> otherwise.
  */
-function hasStyleProperty(o, sPropertyName)
+function hasStyleProperty(oElement, sPropertyName)
 {
-  return (jsx.dhtml.getStyleProperty(o, sPropertyName) != null);
+  return (jsx.dhtml.getStyleProperty(oElement, sPropertyName) != null);
 }
 DHTML.prototype.hasStyleProperty = hasStyleProperty;
 
@@ -1402,7 +1415,7 @@ DHTML.prototype.hasStyleProperty = hasStyleProperty;
  *   (C) 2003-2008  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @param o : HTMLElement
+ * @param oElement : HTMLElement
  *   Reference to the element object which style is to be modified.
  * @param sPropertyName : string
  *   Name of the style property of which the value should be set.
@@ -1415,21 +1428,20 @@ DHTML.prototype.hasStyleProperty = hasStyleProperty;
  *   Alternative value to be set if the the style property is a property of
  *   the object itself instead of its `style' property.  Fallback for the
  *   NN4 DOM.
- * @return
+ * @return boolean
  *   <code>false</code> if no such object exists, the
  *   DOM does not provide for setting the property value,
  *   or if the assignment failed (invalid value).
  *   CAVEAT: Some property values are normalized by the API when read;
  *   test before using the return value as a discriminator.
- * @type boolean
  */
-function setStyleProperty(o, sPropertyName, propValue, altValue)
+function setStyleProperty(oElement, sPropertyName, propValue, altValue)
 {
-  if (o)
+  if (oElement)
   {
     sPropertyName = jsx.dhtml.camelize(sPropertyName);
 
-    if (typeof o.style != "undefined")
+    if (typeof oElement.style != "undefined")
     {
       /* handle the `float' property */
       var isStyleFloat = false;
@@ -1437,28 +1449,28 @@ function setStyleProperty(o, sPropertyName, propValue, altValue)
       if (sPropertyName == "float")
       {
         /* W3C DOM Level 2 CSS */
-        if (typeof o.style.cssFloat != "undefined")
+        if (typeof oElement.style.cssFloat != "undefined")
         {
           sPropertyName = "cssFloat";
           isStyleFloat = true;
         }
 
         /* MSHTML DOM */
-        else if (typeof o.style.styleFloat != "undefined")
+        else if (typeof oElement.style.styleFloat != "undefined")
         {
           sPropertyName = "styleFloat";
           isStyleFloat = true;
         }
       }
 
-      if (isStyleFloat || typeof o.style[sPropertyName] != "undefined")
+      if (isStyleFloat || typeof oElement.style[sPropertyName] != "undefined")
       {
         /*
          * NOTE: Shortcut evaluation changed behavior;
          * result of assignment is *right-hand side* operand
          */
-        o.style[sPropertyName] = propValue;
-        return (String(o.style[sPropertyName]).toLowerCase()
+        oElement.style[sPropertyName] = propValue;
+        return (String(oElement.style[sPropertyName]).toLowerCase()
                 == String(propValue).toLowerCase());
       }
     }
@@ -1469,11 +1481,11 @@ function setStyleProperty(o, sPropertyName, propValue, altValue)
         sPropertyName = "visibility";
       }
 
-      if (typeof o[sPropertyName] != "undefined")
+      if (typeof oElement[sPropertyName] != "undefined")
       {
         var newValue = (altValue || propValue);
-        o[sPropertyName] = newValue;
-        return (String(o[sPropertyName]).toLowerCase()
+        oElement[sPropertyName] = newValue;
+        return (String(oElement[sPropertyName]).toLowerCase()
           == String(newValue).toLowerCase());
       }
     }
@@ -1490,7 +1502,7 @@ DHTML.prototype.setStyleProperty = setStyleProperty;
  *   (C) 2004-2006  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @param o : HTMLElement
+ * @param oElement : HTMLElement
  *   Reference to the DOM object to be rendered or not.
  * @param bShow : boolean
  *   Renders the object referenced by <code>o</code> if
@@ -1504,23 +1516,23 @@ DHTML.prototype.setStyleProperty = setStyleProperty;
  *   When retrieving: <code>true</code> if visible, <code>false</code>
  *   otherwise; when setting: <code>true</code> if successful,
  *   <code>false</code> otherwise.
- * @see #visible()
+ * @see #visible
  */
-function display(o, bShow)
+function display(oElement, bShow)
 {
   var result;
 
-  if (o)
+  if (oElement)
   {
     if (arguments.length > 1)
     {
-      result = jsx.dhtml.setStyleProperty(o, "display",
+      result = jsx.dhtml.setStyleProperty(oElement, "display",
         bShow ? ""     : "none",
         bShow ? "show" : "hide");
     }
     else
     {
-      result = /^(\s*|show)$/.test(jsx.dhtml.getStyleProperty(o, "display"));
+      result = /^(\s*|show)$/.test(jsx.dhtml.getStyleProperty(oElement, "display"));
     }
   }
 
@@ -1535,38 +1547,37 @@ DHTML.prototype.display = display;
  *   (C) 2004-2006  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @param o : HTMLElement
+ * @param oElement : HTMLElement
  *   Reference to the DOM object to be either shown or hidden.
- * @param bVisible: optional boolean
+ * @param bVisible : optional Boolean
  *   Shows the object referenced by <code>o</code> if <code>true</code>,
  *   hides it if <code>false</code>.  Note that hiding an element is
  *   different from not rendering it, as the space it takes up is still
  *   reserved.
  *
  *   If this argument is omitted, the current property value is returned.
- * @return
+ * @return boolean
  *   When retrieving: <code>true</code> if visible, <code>false</code>
  *   otherwise; when setting: <code>true</code> if successful,
  *   <code>false</code> otherwise.
- * @type boolean
- * @see #display()
+ * @see #display
  */
-function visible(o, bVisible)
+function visible(oElement, bVisible)
 {
   var result;
 
-  if (o)
+  if (oElement)
   {
     if (arguments.length > 1)
     {
-      result = jsx.dhtml.setStyleProperty(o, "visibility",
+      result = jsx.dhtml.setStyleProperty(oElement, "visibility",
         bVisible ? "visible" : "hidden",
         bVisible ? "show" : "hide");
     }
     else
     {
       result = /^(visible|show)$/.test(
-        jsx.dhtml.getStyleProperty(o, "visibility"));
+        jsx.dhtml.getStyleProperty(oElement, "visibility"));
     }
   }
 
@@ -1624,9 +1635,11 @@ function setValue(oInput, sValue, bSetTitle)
 DHTML.prototype.setValue = setValue;
 
 /**
- * @param imgID : number|string
- * @param state : optional number
+ * @param imgID : Number|String
+ * @param state : optional Number
  * @return boolean
+ *   The return value of {@link #setStyleProperty} for setting the
+ *   borderColor of the image
  */
 function hoverImg(imgID, state)
 {
@@ -1846,13 +1859,13 @@ DHTML.prototype.selectRadioBtn = selectRadioBtn;
  * Disables a form element or a collection of form elements.
  *
  * @author
- *   (C) 2003  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   (C) 2003, 2010  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @argument HTMLElement|HTML(Options)Collection oElementGroup
+ * @param oElementGroup : HTMLElement|HTML(Options)Collection
  *   Reference to the <code>HTMLElement</code> or to
  *   the <code>HTML(Options)Collection</code> object.
- * @optional number|string index
+ * @param index : optional Number|String
  *   Optional number or string to specify
  *   one element within the collection.
  */
@@ -1878,7 +1891,7 @@ DHTML.prototype.disableElementGroup = disableElementGroup;
  *
  * @param oForm : HTMLFormElement
  *   Reference to the <code>form</code> element object.
- * @param string|HTMLElement
+ * @params String|HTMLElement
  *   Names/IDs of the elements or references
  *   to the element objects to disable/enable.
  * @param bDisable : optional boolean
@@ -1928,10 +1941,6 @@ function disableElements(oForm)
 }
 DHTML.prototype.disableElements = disableElements;
 
-/**
- * @param f
- * @return string
- */
 var serializeForm = (function() {
   var
     rxSubmit = /(^|\s)(submit|image)(\s|$)/i,
@@ -1939,14 +1948,22 @@ var serializeForm = (function() {
     rxFileReset = /^\s*(file|reset)\s*$/i,
     rxObject = /^\s*object\s*$/i;
   
-  return function(f) {
+  /**
+   * @param form : HTMLFormElement
+   * @param submitButton : optional HTMLInputElement
+   *   Reference to the submit button that should be successful.
+   *   By default, only the first submit button is successful.
+   * @return string
+   *   The serialization of this form
+   */
+  return function(form, submitButton) {
     /**
-     * @param o
+     * @param control : HTMLSelectElement|HTMLInputElement|HTMLTextAreaElement|HTMLButtonElement
      */
-    function serializeControl(o)
+    function serializeControl(control)
     {
       /* HTML 4.01: Controls that are disabled cannot be successful. */
-      if (o.disabled)
+      if (control.disabled)
       {
         return;
       }
@@ -1954,10 +1971,10 @@ var serializeForm = (function() {
       /*
        * If a form contains more than one submit button,
        * only the activated submit button is successful.
-       * (here: the first one)
+       * (here: the first one or the specified one)
        */
-      var isSubmit = rxSubmit.test(o.type);
-      if (!gotSubmit || !isSubmit)
+      var isSubmit = rxSubmit.test(control.type);
+      if ((!gotSubmit && !submitButton || control != submitButton) || !isSubmit)
       {
         if (isSubmit)
         {
@@ -1971,26 +1988,26 @@ var serializeForm = (function() {
          * the control is not successful and neither the name nor any
          * values are submitted to the server when the form is submitted.
          */
-        var m = rxSelect.exec(o.type);
+        var m = rxSelect.exec(control.type);
         if (m)
         {
           /* select-one */
           if (m[3])
           {
-            if (o.selectedIndex > -1)
+            if (control.selectedIndex > -1)
             {
               /*
                * MSHTML 6 is buggy with <option>foo</option>;
                * always provide a `value' attribute!
                */
-              items.add(o.name, o.options[o.selectedIndex].value);
+              items.add(control.name, control.options[control.selectedIndex].value);
             }
           }
           
           /* select */
           else if (m[2])
           {
-            for (var i = 0, opts = o.options, len = opts && opts.length; i < len; i++)
+            for (var i = 0, opts = control.options, len = opts && opts.length; i < len; i++)
             {
               var opt = opts[i];
               if (opt.selected)
@@ -1999,7 +2016,7 @@ var serializeForm = (function() {
                  * MSHTML 6 is buggy with <option>foo</option>;
                  * always provide a `value' attribute!
                  */
-                items.add(o.name, opt.value);
+                items.add(control.name, opt.value);
               }
             }
           }
@@ -2010,17 +2027,17 @@ var serializeForm = (function() {
          * For radio buttons that share the same value of the
          * name attribute, only the "on" radio button may be successful.
          */
-        else if (!rxFileReset.test(o.type)
-                  && !(rxObject.test(o.tagName) && o.declare)
-                  && !/^\s*(checkbox|radio)\s*$/i.test(o.type)
-                  || o.checked)
+        else if (!rxFileReset.test(control.type)
+                  && !(rxObject.test(control.tagName) && control.declare)
+                  && !/^\s*(checkbox|radio)\s*$/i.test(control.type)
+                  || control.checked)
         {
-          items.add(o.name, o.value);
+          items.add(control.name, control.value);
         }
       }
     }
         
-    var es = getFeature(f, "elements");
+    var es = getFeature(form, "elements");
     if (!es)
     {
       return "";
@@ -2078,7 +2095,7 @@ var serializeForm = (function() {
  * only the element type, and adding properties later.
  *
  * @author
- *   (C) 2004, 2006  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   &copy; 2004, 2006, 2010  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
  * @param sTag : string
@@ -2130,13 +2147,13 @@ function createElement(sTag)
 }
 DHTML.prototype.createElement = createElement;
 
-function html2nodes(s)
+function html2nodes(sHTML)
 {
   var m,
     rx = /(<([^\s>]+)(\s+[^>]*)?>)|([^<]+)/g,
     node = document.createElement("html");
 
-  while ((m = rx.exec(s)))
+  while ((m = rx.exec(sHTML)))
   {
     if (m[1])
     {
@@ -2216,20 +2233,20 @@ dom.HTMLSerializer = (
       }
     };
     
-    return function(node, bIncludeProprietary) {
+    return function(oNode, bIncludeProprietary) {
       var me = arguments.callee;
     
-      if (node.tagName)
+      if (oNode.tagName)
       {
         var
-          t = node.tagName.toLowerCase(),
+          t = oNode.tagName.toLowerCase(),
           startTag = "<" + t,
           content = [],
           endTag = "";
         
-        for (var i = 0, c = node.childNodes, len = c && c.length; i < len; i++)
+        for (var i = 0, c = oNode.childNodes, len = c && c.length; i < len; i++)
         {
-          content.push(me(node, bIncludeProprietary));
+          content.push(me(oNode, bIncludeProprietary));
         }
         
         if (typeof elemInfo[t] != "undefined" && !elemInfo[t].empty)
@@ -2241,25 +2258,25 @@ dom.HTMLSerializer = (
       }
       else
       {
-        return node.textContent;
+        return oNode.textContent;
       }
     };
   })()
 });
 
-function getFirstChild(o)
+function getFirstChild(oNode)
 {
   var result = null;
 
-  if (o)
+  if (oNode)
   {
-    if (o.firstChild)
+    if (oNode.firstChild)
     {
-      result = o.firstChild;
+      result = oNode.firstChild;
     }
-    else if (o.document && o.document.all)
+    else if (oNode.document && oNode.document.all)
     {
-      result = o.document.all(0);
+      result = oNode.document.all(0);
     }
   }
 
@@ -2267,19 +2284,19 @@ function getFirstChild(o)
 }
 DHTML.prototype.getFirstChild = getFirstChild;
 
-function getParent(o)
+function getParent(oNode)
 {
   var result = null;
 
-  if (o)
+  if (oNode)
   {
-    if (o.parentNode)
+    if (oNode.parentNode)
     {
-      result = o.parentNode;
+      result = oNode.parentNode;
     }
-    else if (o.parentElement)
+    else if (oNode.parentElement)
     {
-      result = o.parentElement;
+      result = oNode.parentElement;
     }
   }
 
@@ -2287,7 +2304,7 @@ function getParent(o)
 }
 DHTML.prototype.getParent = getParent;
 
-function getAbsPos(o)
+function getAbsPos(oNode)
 {
   var result = new Object();
   result.x = result.y = 0;
@@ -2295,20 +2312,20 @@ function getAbsPos(o)
     return "{x: " + this.x + ", y: " + this.y + "}";
   };
 
-  if (o.offsetParent)
+  if (oNode.offsetParent)
   {
-    while (o.offsetParent)
+    while (oNode.offsetParent)
     {
-      result.x += o.offsetLeft;
-      result.y += o.offsetTop;
-      o = o.offsetParent;
+      result.x += oNode.offsetLeft;
+      result.y += oNode.offsetTop;
+      oNode = oNode.offsetParent;
     }
   }
-  else if (typeof o.x != "undefined"
-           && typeof o.y != "undefined")
+  else if (typeof oNode.x != "undefined"
+           && typeof oNode.y != "undefined")
   {
-    result.x += o.x;
-    result.y += o.y;
+    result.x += oNode.x;
+    result.y += oNode.y;
   }
 
   return result;
@@ -2333,7 +2350,7 @@ function getAbsPos(o)
  *   (C) 2004-2010  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   <a href="http://pointedears.de/scripts/dhtml.js">dhtml.js</a>
- * @param o : Object
+ * @param oNode : Object
  *   Reference to the DOM object.
  * @param sEvent : string
  *   Required string to be used as event identifier.
@@ -2357,18 +2374,18 @@ function getAbsPos(o)
  * @see <a href="dom2-events#Events-EventTarget-addEventListener">W3C DOM Level 2 Events: EventTarget::addEventListener</a>
  * @see <a href="msdn#workshop/author/dhtml/reference/methods/attachevent.asp">MSDN Library: attachEvent()</a>
  */
-function _addEventListener(o, sEvent, fListener)
+function _addEventListener(oNode, sEvent, fListener)
 {
   var
     jsx_object = jsx.object,
     result = false,
     sHandler = "on" + sEvent;
 
-  if (o && sEvent && jsx_object.isMethod(fListener))
+  if (oNode && sEvent && jsx_object.isMethod(fListener))
   {
-    if (jsx_object.isMethod(o, "addEventListener"))
+    if (jsx_object.isMethod(oNode, "addEventListener"))
     {
-      o.addEventListener(sEvent, fListener, false);
+      oNode.addEventListener(sEvent, fListener, false);
       result = fListener;
     }
     else
@@ -2383,7 +2400,7 @@ function _addEventListener(o, sEvent, fListener)
        * http://www.quirksmode.org/blog/archives/2005/08/addevent_consid.html
        */
 
-      var oldListener = o[sHandler];
+      var oldListener = oNode[sHandler];
 
       if (!oldListener || typeof oldListener._listeners == "undefined")
       {
@@ -2426,9 +2443,9 @@ function _addEventListener(o, sEvent, fListener)
       listeners[listeners.length] = fListener;
 
       /* TODO: Why this way? */
-      o[sHandler] = oldListener;
+      oNode[sHandler] = oldListener;
 
-      result = (o[sHandler] == oldListener) && oldListener || null;
+      result = (oNode[sHandler] == oldListener) && oldListener || null;
     }
   }
 
@@ -2449,10 +2466,10 @@ DHTML.prototype.addEventListener = _addEventListener;
  * </ul>
  * 
  * @author
- *   (C) 2007-2009 Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   (C) 2007-2010 Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @param o : DOMObject
+ * @param oNode : Node
  *   Reference to the DOM object.
  * @param sEvent : string
  *   Required string to be used as event identifier.
@@ -2468,11 +2485,11 @@ DHTML.prototype.addEventListener = _addEventListener;
  *   <code>true</code> on success, <code>false</code> otherwise.
  * @see <a href="dom2-events#Events-EventTarget-addEventListener">W3C DOM Level 2 Events: EventTarget::addEventListener()</a>
  */
-function _addEventListenerCapture(o, sEvent, fListener)
+function _addEventListenerCapture(oNode, sEvent, fListener)
 {
-  if (o && sEvent && jsx.object.isMethod(fListener))
+  if (oNode && sEvent && jsx.object.isMethod(fListener))
   {
-    o.addEventListener(sEvent, fListener, true);
+    oNode.addEventListener(sEvent, fListener, true);
     return true;
   }
 
@@ -2496,10 +2513,10 @@ DHTML.prototype.addEventListenerCapture = _addEventListenerCapture;
  * event listener for the respective event.
  *
  * @author
- *   (C) 2007-2009  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   (C) 2007-2010  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @param o : DOMObject
+ * @param oNode : Node
  *   Reference to the DOM object.
  * @param sEvent : string
  *   Required string to be used as event identifier.
@@ -2525,30 +2542,30 @@ DHTML.prototype.addEventListenerCapture = _addEventListenerCapture;
  * @see <a href="dom2-events#Events-EventTarget-removeEventListener">W3C DOM Level 2 Events: EventTarget::removeEventListener()</a>
  * @see <a href="dom2-events#Events-EventTarget-addEventListener">W3C DOM Level 2 Events: EventTarget::addEventListener()</a>
  */
-function _replaceEventListener(o, sEvent, fListener, bUseCapture)
+function _replaceEventListener(oNode, sEvent, fListener, bUseCapture)
 {
   var
     jsx_object = jsx.object,
     result = false,
     sHandler = "on" + sEvent;
 
-  if (o && sEvent && jsx_object.isMethod(fListener))
+  if (oNode && sEvent && jsx_object.isMethod(fListener))
   {
-    if (jsx_object.areMethods(o, ["removeEventListener", "addEventListener"]))
+    if (jsx_object.areMethods(oNode, ["removeEventListener", "addEventListener"]))
     {
-      if (jsx_object.isMethod(o[sHandler]))
+      if (jsx_object.isMethod(oNode[sHandler]))
       {
-        var fOldListener = o[sHandler];
-        o.removeEventListener(sEvent, fOldListener, !!bUseCapture);
+        var fOldListener = oNode[sHandler];
+        oNode.removeEventListener(sEvent, fOldListener, !!bUseCapture);
       }
 
-      o.addEventListener(sEvent, fListener, !!bUseCapture);
+      oNode.addEventListener(sEvent, fListener, !!bUseCapture);
       result = true;
     }
     else
     {
-      o[sHandler] = fListener;
-      result = (o[sHandler] == fListener);
+      oNode[sHandler] = fListener;
+      result = (oNode[sHandler] == fListener);
     }
   }
 
@@ -2571,7 +2588,7 @@ DHTML.prototype.replaceEventListener = _replaceEventListener;
  *
  * @author
  *   (C) 2010  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
- * @param o : DOMObject
+ * @param oNode : Node
  *   Reference to the DOM object.
  * @param sEvent : string
  *   Required string to be used as event identifier.
@@ -2597,28 +2614,28 @@ DHTML.prototype.replaceEventListener = _replaceEventListener;
  * @see <a href="dom2-events#Events-EventTarget-removeEventListener">W3C DOM Level 2 Events: EventTarget::removeEventListener()</a>
  * @see <a href="msdn#workshop/author/dhtml/reference/methods/detachevent.asp">MSDN Library: detachEvent()</a>
  */
-function _removeEventListener(o, sEvent, fListener, bUseCapture)
+function _removeEventListener(oNode, sEvent, fListener, bUseCapture)
 {
   var
     result = false,
     jsx_object = jsx.object,
     sHandler = "on" + sEvent;
 
-  if (o && sEvent)
+  if (oNode && sEvent)
   {
     if (jsx_object.isMethod(fListener))
     {
-      if (jsx_object.isMethod(o, "removeEventListener"))
+      if (jsx_object.isMethod(oNode, "removeEventListener"))
       {
-        o.removeEventListener(sEvent, fListener, bUseCapture);
+        oNode.removeEventListener(sEvent, fListener, bUseCapture);
         return true;
       }
     }
 
-    if (jsx_object.isMethod(o, sHandler))
+    if (jsx_object.isMethod(oNode, sHandler))
     {
       var
-        handler = o[sHandler],
+        handler = oNode[sHandler],
         listeners = handler._listeners;
       
       if (listeners)
@@ -2634,7 +2651,7 @@ function _removeEventListener(o, sEvent, fListener, bUseCapture)
       }
       else
       {
-        handler = o[sHandler] = null;
+        handler = oNode[sHandler] = null;
         result = (handler == null);
       }
     }
@@ -2655,6 +2672,7 @@ DHTML.prototype.removeEventListener = _removeEventListener;
  * @param f : Callable
  *   Reference to the object that contains the actual listener code
  * @return Function
+ *   A reference to a <code>Function</code> that can be used as event listener.
  */
 function _createEventListener(f)
 {
@@ -2800,7 +2818,7 @@ jsx.dhtml.preventDefault = function(e) {
  *   <code>src</code> attribute to be added; if <code>false</code>
  *   (default), the attempt to load a script that has already been loaded
  *   fails silently.
- *  @return
+ *  @return boolean
  *    <code>false</code> if the script could not be loaded,
  *    <code>true</code> otherwise.
  */
@@ -2962,13 +2980,15 @@ function getElementsByTabIndex(o)
 }
 DHTML.prototype.getElementsByTabIndex = getElementsByTabIndex;
 
-if (jsx.types.isFeature("HTMLDocument", "prototype")
+if (typeof jsx.types != "undefined"
+    && jsx.types.isFeature("HTMLDocument", "prototype")
     && !jsx.object.isMethod(HTMLDocument.prototype, "getElementsByTabIndex"))
 {
   HTMLDocument.prototype.getElementsByTabIndex = dom.getElementsByTabIndex;
 }
 
-if (jsx.types.isFeature("HTMLElement", "prototype")
+if (typeof jsx.types != "undefined"
+    && jsx.types.isFeature("HTMLElement", "prototype")
     && !jsx.object.isMethod(HTMLElement.prototype, "getElementsByTabIndex"))
 {
   HTMLElement.prototype.getElementsByTabIndex = dom.getElementsByTabIndex;
