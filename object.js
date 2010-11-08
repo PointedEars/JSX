@@ -1294,7 +1294,7 @@ Function.prototype.extend = (function () {
               + ' but [[Call]](this.prototype, "forEach") throws exception ("'
               + e.name + ': ' + e.message + '")',
               'warn');
-          }s
+          }
         );
       }
     }
