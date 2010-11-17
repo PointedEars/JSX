@@ -82,7 +82,7 @@
 
 function DHTML()
 {
-  this.version   = "0.9.7a.2010061719";
+  this.version   = "0.9.7a.2010111511";
 // var dhtmlDocURL = dhtmlPath + "dhtml.htm";
   this.copyright = "Copyright \xA9 2002-2010";
   this.author    = "Thomas Lahn";
@@ -2688,61 +2688,72 @@ function _createEventListener(f)
       e = window.event;
     }
 
-    /* NOTE: Cannot inherit from Event objects, so values need to be copied */
-    var e2 = {
-      getProperty: function(p) {
-        return e[p];
-      },
-      
-      target: (typeof e.target != "undefined")
-        ? e.target
-        : (typeof e.srcElement != "undefined")
-            ? e.srcElement
-            : null,
-      
-      stopPropagation: (function(e) {
-        if (jsx_object.isMethod(e, "stopPropagation"))
-        {
-          return function() {
-            e.stopPropagation();
-          };
-        }
-        else if (typeof e.cancelBubble != "undefined")
-        {
-          return function() {
-            e.cancelBubble = true;
-          };
-        }
-      })(e),
-      
-      preventDefault: (function(e) {
-        if (jsx_object.isMethod(e, "preventDefault"))
-        {
-          return function() {
-            return e.preventDefault();
-          };
-        }
-        else if (typeof e.returnValue != "undefined")
-        {
-          return function() {
-            e.returnValue = false;
-          };
-        }
-      })(e),
-      
-      initEvent: (function() {
-        if (jsx_object.isMethod(e, "initEvent"))
-        {
-          return function(eventTypeArg, canBubbleArg, cancelableArg) {
-            return e.initEvent(eventTypeArg, canBubbleArg, cancelableArg);
-          };
-        }
-        else
-        {
-          return function() {};
-        }
-      })()
+    /*
+     * NOTE: Should not augment host objects, and cannot inherit from Events,
+     * so values need to be copied
+     */
+    var e2 = {originalEvent: e};
+    var properties = ["type", "charCode", "keyCode",
+                      "shiftKey", "ctrlKey", "altKey", "metaKey"];
+    for (var i = properties.length; i--;)
+    {
+      var property = properties[i]; 
+      e2[property] = e[property];
+    }
+    
+    /* FIXME: addProperties() does not work well with host objects */
+    e2.getProperty = function(p) {
+      return e[p];
     };
+
+    e2.target = (typeof e.target != "undefined")
+              ? e.target
+              : (typeof e.srcElement != "undefined")
+                  ? e.srcElement
+                  : null,
+  
+    e2.stopPropagation = (function(e) {
+      if (jsx_object.isMethod(e, "stopPropagation"))
+      {
+        return function() {
+          e.stopPropagation();
+        };
+      }
+      else if (typeof e.cancelBubble != "undefined")
+      {
+        return function() {
+          e.cancelBubble = true;
+        };
+      }
+    })(e);
+
+    e2.preventDefault = (function(e) {
+      if (jsx_object.isMethod(e, "preventDefault"))
+      {
+        return function() {
+          return e.preventDefault();
+        };
+      }
+      else if (typeof e.returnValue != "undefined")
+      {
+        return function() {
+          e.returnValue = false;
+        };
+      }
+    })(e);
+    
+    e2.initEvent = (function() {
+      if (jsx_object.isMethod(e, "initEvent"))
+      {
+        return function(eventTypeArg, canBubbleArg, cancelableArg) {
+          return e.initEvent(eventTypeArg, canBubbleArg, cancelableArg);
+        };
+      }
+      else
+      {
+        return function() {};
+      }
+    })();
 
     return f(e2);
   }
