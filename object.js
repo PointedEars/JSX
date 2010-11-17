@@ -28,7 +28,7 @@ if (typeof jsx == "undefined")
 
 jsx.object = {
   /** @version */
-  version:   "0.2.0.2010070915",
+  version:   "0.2.0.2010111614",
   copyright: "Copyright \xA9 2004-2010",
   author:    "Thomas Lahn",
   email:     "js@PointedEars.de",
@@ -223,10 +223,12 @@ var addProperties = jsx.object.addProperties = (function () {
     {
       if (typeof oOwner[p] == "undefined" || (iFlags & ADD_OVERWRITE))
       {
-        oOwner[p] = jsx_object.clone(
-          iFlags & (COPY_ENUM_DEEP | COPY_INHERIT),
-          oSource[p]);
-        oOwner[p].userDefined = true;
+        jsx.tryThis(function() { 
+          oOwner[p] = jsx_object.clone(
+            iFlags & (COPY_ENUM_DEEP | COPY_INHERIT),
+            oSource[p]);
+          oOwner[p].userDefined = true;
+        });
       }
     }
   };
@@ -293,11 +295,11 @@ var clone = jsx.object.clone = (function () {
         {
           if (iLevel && typeof oSource[i] == "object")
           {
-            o2[i] = me(iLevel, oSource[i]);
+            jsx.tryThis(function() { o2[i] = me(iLevel, oSource[i]); });
           }
           else
           {
-            o2[i] = oSource[i];
+            jsx.tryThis(function() { o2[i] = oSource[i]; });
           }
         }
       }
@@ -306,11 +308,11 @@ var clone = jsx.object.clone = (function () {
       {
         if (iLevel && typeof oSource[i] == "object")
         {
-          o2[i] = me(iLevel, oSource[i]);
+          jsx.tryThis(function() { o2[i] = me(iLevel, oSource[i]); });
         }
         else
         {
-          o2[i] = oSource[i];
+          jsx.tryThis(function() { o2[i] = oSource[i]; });
         }
       }
       
