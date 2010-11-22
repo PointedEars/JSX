@@ -653,19 +653,20 @@ jsx.HTTPRequest.prototype = {
             : ""),
       bAsync);
 
+    var me = this;
+    
     if (jsx_object.isMethod(x, "setRequestHeader"))
     {
       /* NOTE: Failure to call this method is _not_ considered a fatal error. */
       jsx.tryThis(
         function () {
-          x.setRequestHeader("Content-Type", this.requestType);
+          x.setRequestHeader("Content-Type", me.requestType);
         }
       );
     }
   
     if (bAsync)
     {
-      var me = this;
       x.onreadystatechange = function () {
         // alert(x.readyState);
         // alert(x.status);
@@ -686,8 +687,8 @@ jsx.HTTPRequest.prototype = {
     }
     
     jsx.tryThis(
-      function () { x.send(bGET ? null : (sData || this.data)); },
-      function () { result = false; this.errorListener(x); });
+      function () { x.send(bGET ? null : (sData || me.data)); },
+      function () { result = false; me.errorListener(x); });
     
     if (!bAsync)
     {
