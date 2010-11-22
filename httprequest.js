@@ -125,7 +125,6 @@
  *   (default: <code>null</code>).
  * @constructor
  */
-
 jsx.HTTPRequest = function (sURL, sMethod, bAsync, fSuccessListener, fErrorListener) {
   /* Enables factory use */
   var me = arguments.callee;
@@ -388,11 +387,12 @@ jsx.HTTPRequest.prototype = {
   },
   
   /**
-   * Defines the response Listener method to be used for handling
+   * Defines the response listener method to be used for handling
    * unsuccessful requests.
    * 
-   * A <code>HTTPRequest</code> object is always initialized with
-   * an inherited dummy error Listener that does nothing, if you
+   * An <code>HTTPRequest</code> object is always initialized with
+   * an inherited dummy error listener that does nothing (a
+   * {@link jsx.HTTPResponseListener} instance), if you
    * do not specify one.  Once initialized, passing a reference
    * to a non-callable object as argument throws an
    * {@link jsx#InvalidArgumentError InvalidArgumentError}
@@ -485,8 +485,8 @@ jsx.HTTPRequest.prototype = {
   /**
    * Sets the Content-Type for the HTTP request.  The default is
    * "application/x-www-form-urlencoded" to indicate form submission,
-   * which is what Web browsers, although this media type is currently
-   * (June 2006 CE) not registered with IANA, send as default then.
+   * which is what Web browsers send as default then, although this
+   * media type is currently not registered with IANA.
    * 
    * @param sRequestType : string
    *   <code>"application/x-www-form-urlencoded"</code>, if omitted or
@@ -667,23 +667,26 @@ jsx.HTTPRequest.prototype = {
   
     if (bAsync)
     {
-      x.onreadystatechange = function () {
-        // alert(x.readyState);
-        // alert(x.status);
-        
-        // console.log("readyState = %i, status = %i", x.readyState, x.status);
-        // console.log(C.status.OK_EXPR);
-        
-        if (jsx_object.isMethod(me.responseListener))
-        {
-          me.responseListener(x);
-        }
-        
-        if (x.readyState == C.readyState.COMPLETED)
-        {
-        	x = null;
-        }
-      };
+      x.onreadystatechange = (function(x2) {
+        return function () {
+          // alert(x.readyState);
+          // alert(x.status);
+          
+          // console.log("readyState = %i, status = %i", x.readyState, x.status);
+          // console.log(C.status.OK_EXPR);
+          
+          if (jsx_object.isMethod(me.responseListener))
+          {
+            me.responseListener(x2);
+          }
+          
+          /* Let the garbage collector handle this per the closure */
+//          if (x2.readyState == C.readyState.COMPLETED)
+//          {
+//            x2 = null;
+//          }
+        };
+      }(x));
     }
     
     jsx.tryThis(
@@ -707,7 +710,7 @@ jsx.HTTPRequest.prototype = {
       );
 
       /* TODO: Is this error-prone? */
-      x = null;
+//      x = null;
     }
     
     return result;
