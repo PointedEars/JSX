@@ -1204,19 +1204,21 @@ var _getComputedStyle = (function () {
     hasGCS = jsx.object.isMethod(document, "defaultView", "getComputedStyle"),
     propertyMap = {
       "float": hasGCS ? "cssFloat" : "styleFloat"
-    };
+    },
+    jsx_object = jsx.object,
+    jsx_dom = jsx.dom;
   
-  return function(o, sPseudoEl, sProperty) {
-    if (hasGCS || typeof o.currentStyle != "undefined")
+  return function(oElement, sPseudoEl, sProperty) {
+    if (hasGCS || typeof oElement.currentStyle != "undefined")
     {
       var compStyle = (hasGCS
-        ? document.defaultView.getComputedStyle(o, sPseudoEl || null)
-        : o.currentStyle);
+        ? document.defaultView.getComputedStyle(oElement, sPseudoEl || null)
+        : oElement.currentStyle);
       
       return (sProperty
         ? compStyle[
-            jsx.string.hyphenatedToCamelCase(
-              jsx.object.getProperty(propertyMap, sProperty, sProperty))
+            jsx_dom.camelize(
+              jsx_object.getProperty(propertyMap, sProperty, sProperty))
           ]
         : compStyle);
     }
@@ -2697,7 +2699,7 @@ function _createEventListener(f)
                       "shiftKey", "ctrlKey", "altKey", "metaKey"];
     for (var i = properties.length; i--;)
     {
-      var property = properties[i]; 
+      var property = properties[i];
       e2[property] = e[property];
     }
     
