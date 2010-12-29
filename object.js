@@ -1,10 +1,9 @@
 /**
- * <title>Basic Object Library</title>
+ * @fileOverview <title>Basic Object Library</title>
  * @file object.js
  * 
  * @partof PointedEars' JavaScript Extensions (JSX)
- * @author
- *   (C) 2004-2010  Thomas Lahn &lt;js@PointedEars.de&gt;
+ * @author (C) 2004-2010 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
  * 
  * This program is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,25 +36,52 @@ jsx.object = {
 
 // jsx.object.docURL = jsx.object.path + "object.htm";
 
-/** @deprecated since 0.1.5a.2009011819, see jsx.object */
+/**
+ * @deprecated since 0.1.5a.2009011819, see jsx.object
+ */
 Object.version   = jsx.object.version;
+
+/**
+ * @deprecated since 0.1.5a.2009011819
+ */
 Object.copyright = jsx.object.copyright;
+
+/**
+ * @deprecated since 0.1.5a.2009011819
+ */
 Object.author    = jsx.object.author;
+
+/**
+ * @deprecated since 0.1.5a.2009011819
+ */
 Object.email     = jsx.object.email;
+
+/**
+ * @deprecated since 0.1.5a.2009011819
+ */
 Object.path      = jsx.object.path;
 // Object.docURL = jsx.object.docURL;
 
 /* allows for de.pointedears.jsx.object */
 if (typeof de == "undefined")
 {
+  /**
+   * @namespace
+   */
   var de = {};
 }
 
 if (typeof de.pointedears == "undefined")
 {
+  /**
+   * @namespace
+   */
   de.pointedears = {};
 }
 
+/**
+ * @namespace
+ */
 de.pointedears.jsx = jsx;
 
 if (typeof _global == "undefined")
@@ -88,6 +114,14 @@ jsx.global = _global;
  *   Used by {@link #addProperties()} to overwrite existing
  *   properties.
  */
+/**
+ * @author pelinux
+ *
+ */
+/**
+ * @author pelinux
+ *
+ */
 jsx.object.ADD_OVERWRITE = 1;
 
 /**
@@ -113,8 +147,20 @@ jsx.object.COPY_INHERIT = 4;
 
 /** @deprecated since 0.1.5a.2009011819 */
 Object.ADD_OVERWRITE  = jsx.object.ADD_OVERWRITE;
+
+/**
+ * @deprecated since 0.1.5a.2009011819
+ */
 Object.COPY_ENUM      = jsx.object.COPY_ENUM;
+
+/**
+ * @deprecated since 0.1.5a.2009011819
+ */
 Object.COPY_ENUM_DEEP = jsx.object.COPY_ENUM_DEEP;
+
+/**
+ * @deprecated since 0.1.5a.2009011819
+ */
 Object.COPY_INHERIT   = jsx.object.COPY_INHERIT;
 
 /**
@@ -124,6 +170,7 @@ Object.COPY_INHERIT   = jsx.object.COPY_INHERIT;
  * {@link debug.js}; optimizations in code reuse
  * moved it here.
  *
+ * @function
  * @param sMsg : string
  *   Message to be printed
  * @param sType : optional string = "log"
@@ -186,6 +233,7 @@ var printfire = jsx.dmsg = (function () {
 /**
  * Adds/replaces properties of an object
  *
+ * @function
  * @param oSource : Object
  *   Object specifying the properties to be added/replaced.
  *   The name of each property serves as the name for the
@@ -223,7 +271,7 @@ var addProperties = jsx.object.addProperties = (function () {
     {
       if (typeof oOwner[p] == "undefined" || (iFlags & ADD_OVERWRITE))
       {
-        jsx.tryThis(function() { 
+        jsx.tryThis(function() {
           oOwner[p] = jsx_object.clone(
             iFlags & (COPY_ENUM_DEEP | COPY_INHERIT),
             oSource[p]);
@@ -237,6 +285,7 @@ var addProperties = jsx.object.addProperties = (function () {
 /**
  * Lets one object inherit from another
  *
+ * @function
  * @param o : optional Object
  *   Object from which to inherit
  * @return Object
@@ -254,6 +303,7 @@ var inheritFrom = jsx.object.inheritFrom = (function () {
 /**
  * Creates a duplicate (clone) of an object
  *
+ * @function
  * @param iLevel : optional number
  *   Use the {@link Object#COPY_ENUM Object.COPY_*}
  *   properties to specify the level of cloning.
@@ -330,6 +380,7 @@ var clone = jsx.object.clone = (function () {
 /**
  * Returns the name of an unused property for an object.
  * 
+ * @function
  * @param o : Object
  * @param iLength : number
  *   Maximum property name length up to which an unused name
@@ -411,6 +462,7 @@ var clearErrorHandler = jsx.clearErrorHandler = function () {
  * NOTE: This method has previously been provided by {@link debug.js};
  * and {@link types.js}; optimizations in code reuse moved it here.
  * 
+ * @function
  * @param fHandler : Callable
  * @return boolean
  *   <code>true</code> if the error handler could be assigned to
@@ -493,6 +545,7 @@ var setErrorHandler = jsx.setErrorHandler = (function () {
  * NOTE: This method has previously been provided by {@link exception.js};
  * optimizations in code reuse moved it here.
  * 
+ * @function
  * @param statements
  *   Value to be evaluated as a <i>StatementList</i>.
  *   Called if a <code>Function</code>, converted
@@ -553,6 +606,7 @@ var tryThis = jsx.tryThis = (function () {
  * NOTE: This method has previously been provided by {@link exception.js};
  * optimizations in code reuse moved it here.
  *
+ * @function
  * @param errorType : string
  *   Identifier of the constructor for the error type.
  *   Use a false-value (e.g., <code>""</code> or <code>null</code>)
@@ -655,6 +709,7 @@ var getFeature = jsx.object.getFeature = function (o) {
 /**
  * Emulates the <code>instanceof</code> operator (JavaScript 1.5) compatible to JavaScript 1.1
  * for <strong>one</strong> inheritance level.
+ * 
  * Example:
  * <pre><code>
  *   var o = new Object();
@@ -703,14 +758,18 @@ var getFunctionName = jsx.object.getFunctionName = function (aFunction) {
 };
 
 /**
- * Gets the stack trace of the calling execution context
+ * Gets the stack trace of the calling execution context.
  * 
- * Based on getStackTrace() from jsUnit 2.2alpha of 2006-03-24
+ * Based on getStackTrace() from jsUnit 2.2alpha of 2006-03-24.
  * 
  * @return string
  *   The stack trace of the calling execution context, if available.
  */
 var getStackTrace = jsx.getStackTrace = function () {
+  /**
+   * @private
+   * @param excp
+   */
   function parseErrorStack(excp)
   {
     var stack = [];
@@ -783,7 +842,8 @@ var getStackTrace = jsx.getStackTrace = function () {
  * Determines whether an object is, or several objects are,
  * likely to be callable.
  * 
- * @author (C) 2003-2010  Thomas Lahn &lt;object.js@PointedEars.de&gt;
+ * @author (C) 2003-2010  <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
+ * @function
  * @param o : Object which should be tested for a method, or checked
  *   for being a method if no further arguments are provided.
  *   <p>
@@ -993,7 +1053,8 @@ if (jsx.object.isMethod(this, "eval"))
        * Applies a method of another object in the context
        * of a different object (the calling object).
        *
-       * @prototype method
+       * @memberOf Function#prototype
+       * @function
        * @param thisArg : object
        *   Reference to the calling object.
        * @param argArray : Array
@@ -1035,8 +1096,9 @@ if (jsx.object.isMethod(this, "eval"))
        * Calls (executes) a method of another object in the
        * context of a different object (the calling object).
        *
-       * @argument object thisArg
-       *   Reference to the calling object.  SHOULD
+       * @memberOf Function#prototype
+       * @param thisArg : Object
+       *   Reference to the calling object.  SHOULD NOT
        *   be a host object, since augmentation is required.
        * @arguments _ _
        *   Arguments for the object.
@@ -1078,9 +1140,10 @@ if (jsx.object.isMethod(this, "eval"))
        * but, by contrast, allows for passing an arbitrary number of
        * arguments per the array's elements.
        * 
-       * @param argArray : Array
-       * @type Object
-       * @return the newly constructed object
+       * @memberOf Function#prototype
+       * @function
+       * @param {Array} argArray
+       * @return Object the newly constructed object
        */
       construct: (function () {
         var
@@ -1122,6 +1185,8 @@ if (jsx.object.isMethod(this, "eval"))
  * methods, use <code><var>Constructor</var>._super.prototype.method.call()</code>
  * or refer to the parent constructor directly.
  * </p>
+ * 
+ * @function
  * @param Constructor : Function
  *   Constructor from which prototype object should be
  *   inherited.
@@ -1130,7 +1195,7 @@ if (jsx.object.isMethod(this, "eval"))
  *   properties.  Of those, the <code>_super</code>,
  *   <code>constructor</code>, and <code>userDefined</code>
  *   properties are ignored as they are used internally.
- * @return Object
+ * @return Function
  *   A reference to the constructor of the extended prototype object
  *   if successful; <code>null</code> otherwise.
  */
@@ -1310,6 +1375,7 @@ jsx.object.addProperties(
     /**
      * Maps one array to another
      * 
+     * @memberOf Array.prototype
      * @param f : Callable
      * @param oThis : optional Object
      * @return The original array with <var>f</var> applied to each element.
@@ -1342,6 +1408,8 @@ jsx.object.addProperties(
 /**
  * General exception
  * 
+ * @constructor
+ * @extends Error
  * @param sMsg : string
  */
 var Exception = jsx.Error = function (sMsg) {
@@ -1383,6 +1451,12 @@ var Exception = jsx.Error = function (sMsg) {
     }
   });
 
+/**
+ * Invalid argument
+ * 
+ * @constructor
+ * @extends jsx#Error
+ */
 jsx.InvalidArgumentError = function (sReason, sGot, sExpected) {
   arguments.callee._super.call(this,
     (sReason || "Invalid argument(s)")
@@ -1393,8 +1467,9 @@ jsx.InvalidArgumentError = function (sReason, sGot, sExpected) {
 /**
  * Object-related exception
  * 
+ * @constructor
  * @param s
- * @extends jsx.Error
+ * @extends jsx#Error
  */
 jsx.object.ObjectError = function (s) {
   arguments.callee._super.call(this, s);
@@ -1403,8 +1478,9 @@ jsx.object.ObjectError = function (s) {
 /**
  * Property-related exception
  * 
+ * @constructor
  * @param s
- * @extends jsx.object.ObjectError
+ * @extends jsx.object#ObjectError
  */
 jsx.object.PropertyError = function (s) {
   arguments.callee._super.call(
