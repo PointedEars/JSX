@@ -36,8 +36,9 @@ function SystemTime_decHours(iUnits)
     : this.hours--);
 
    if (this.dayCount)
-     while (this.hours < 0)
-       this.hours += 24;
+  {
+    while (this.hours < 0){this.hours += 24;}
+  }
       
    return this.hours;
 }
@@ -94,8 +95,9 @@ function SystemTime_incHours(iUnits)
     : this.hours++);
 
   if (this.dayCount)
-    while (this.hours > 23)
-      this.hours -= 24;
+  {
+    while (this.hours > 23){this.hours -= 24;}
+  }
       
   return this.hours;
 }
@@ -161,15 +163,16 @@ function SystemTime_fromData(iHours, iMinutes, iSeconds, iSec100, bDayCount)
         if (argnum > 3)
         {
           this.sec100 = Math.floor(Math.abs(Number(iSec100)));
-          if (argnum > 4)
-            this.dayCount = bDayCount;
+          if (argnum > 4){this.dayCount = bDayCount;}
         }
       }
     }
     return true;
   }
   else
+  {
     return false;
+  }
 }
 
 function SystemTime_fromString(s)
@@ -193,20 +196,16 @@ function SystemTime_fromString(s)
 function SystemTime_toString(bShowHours, bShowSeconds, bShowSec100)
 {
   var sSec100 = String(this.sec100);
-  while (sSec100.length < 3)
-    sSec100 = "0" + sSec100;
+  while (sSec100.length < 3){sSec100 = "0" + sSec100;}
 
   var sSeconds = String(this.seconds);
-  if (this.seconds < 10)
-    sSeconds = "0" + sSeconds;
+  if (this.seconds < 10){sSeconds = "0" + sSeconds;}
 
   var sMinutes = String(this.minutes);
-  if (this.minutes < 10)
-    sMinutes = "0" + sMinutes;
+  if (this.minutes < 10){sMinutes = "0" + sMinutes;}
 
   var sHours = String(this.hours);
-  if (this.hours < 10)
-    sHours = "0" + sHours;
+  if (this.hours < 10){sHours = "0" + sHours;}
 
   var argnum = SystemTime_toString.arguments.length;
   var result =
@@ -273,8 +272,12 @@ function TZdescr(iGMToffsetMins, sDescr)
 function DateNames_getTZdescr(iGMToffsetMins)
 {
   for (var i = 0; i < this.aTZdescr.length; i++)
+  {
     if (this.aTZdescr[i].iGMToffsetMins == iGMToffsetMins)
+    {
       return this.aTZdescr[i].sDescr;
+    }
+  }
 
   return "";
 }
@@ -313,30 +316,33 @@ function getDateFmt(dDate, sFormat, oDateNames)
 {
   var iArgNum = getDateFmt.arguments.length;
   if (iArgNum < 1)
+  {
     return false;
+  }
   if (iArgNum < 2 || sFormat.length == 0)
+  {
     return String(dDate);
+  }
 
   var ooDateNames;
-  if (iArgNum < 3)
-    // Default (english) weekdays, month labels and timezone descriptions
-    oDateNames =
-      new DateNames(
-        new Array("Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"),
-        new Array("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"),
-        new Array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday",
-          "Friday", "Saturday"),
-        new Array("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug",
-          "Sep", "Oct", "Nov", "Dec"),
-        new Array("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug",
-          "Sep", "Oct", "Nov", "Dec"),
-        new Array("January", "February", "March", "April", "May", "June",
-          "July", "August", "September", "October", "November", "December"),
-        new Array(
-          new TZdescr(-60, "WET"),
-          new TZdescr(0, "GMT"),
-          new TZdescr(60, "CET"),
-          new TZdescr(120, "CEST/EET")));
+  if (iArgNum < 3){// Default (english) weekdays, month labels and timezone descriptions
+  oDateNames =
+    new DateNames(
+      new Array("Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"),
+      new Array("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"),
+      new Array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday",
+        "Friday", "Saturday"),
+      new Array("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug",
+        "Sep", "Oct", "Nov", "Dec"),
+      new Array("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug",
+        "Sep", "Oct", "Nov", "Dec"),
+      new Array("January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"),
+      new Array(
+        new TZdescr(-60, "WET"),
+        new TZdescr(0, "GMT"),
+        new TZdescr(60, "CET"),
+        new TZdescr(120, "CEST/EET")));}
           
   var sShortWeekday = oDateNames.aShortWeekdayNames[dDate.getDay()];
   var sMedWeekday = oDateNames.aMedWeekdayNames[dDate.getDay()];
@@ -346,8 +352,7 @@ function getDateFmt(dDate, sFormat, oDateNames)
   var sLongMonth = oDateNames.aLongMonthNames[dDate.getMonth()];
 
   var iYear = dDate.getYear();
-  if (iYear < 1000)
-    iYear += 1900;
+  if (iYear < 1000){iYear += 1900;}
 
   var sLongYear =
     (dDate.getFullYear
@@ -360,10 +365,7 @@ function getDateFmt(dDate, sFormat, oDateNames)
   var sMins = String(dDate.getMinutes());
   var sSecs = String(dDate.getSeconds());
   var sSecs1000;
-  if (dDate.getMilliseconds)
-    sSecs1000 = String(dDate.getMilliseconds());
-  else
-    sSecs1000 = "0";
+  if (dDate.getMilliseconds){sSecs1000 = String(dDate.getMilliseconds());} else {sSecs1000 = "0";}
   var sTZmins = String(-dDate.getTimezoneOffset());
   var iTZhours = Math.floor(-dDate.getTimezoneOffset() / 60);
   var iTZmins = ((-dDate.getTimezoneOffset() / 60) + iTZhours) * 60;
@@ -465,9 +467,9 @@ var oDateNames_de =
       "Freitag", "Samstag"),
     new Array("Jan", "Feb", "Mrz", "Apr", "Mai", "Jun", "Jul", "Aug",
       "Sep", "Okt", "Nov", "Dez"),
-    new Array("Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug",
+    new Array("Jan", "Feb", "MÃ¤r", "Apr", "Mai", "Jun", "Jul", "Aug",
       "Sep", "Okt", "Nov", "Dez"),
-    new Array("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli",
+    new Array("Januar", "Februar", "MÃ¤rz", "April", "Mai", "Juni", "Juli",
       "August", "September", "Oktober", "November", "Dezember"),
     new Array(
       new TZdescr(-60, "WEZ"),
@@ -487,8 +489,7 @@ function isValidDate(iYear, iMonth, iDate)
       (d.getFullYear // prefer 4-digit year
         ? d.getFullYear()
         : d.getYear());
-    if (!d.getFullYear && y < 1900) // Y2K workaround
-      y += 1900;
+    if (!d.getFullYear && y < 1900){y += 1900;}
   }
 
   /*
@@ -498,4 +499,53 @@ function isValidDate(iYear, iMonth, iDate)
    */
   return (
     d && y == iYear && d.getMonth() == iMonth && d.getDate() == iDate);
+}
+
+/**
+ * Computes the dates when it is switched to and from Daylight Saving Time
+ * 
+ * @param {int} iYear
+ *   The year for which DST change dates should be computed.  The default
+ *   is the current year.
+ * @return Array
+ */
+function getDSTChangeDates(iYear)
+{
+  var result = [];
+  
+  /* Date when it is switched to DST */
+  var
+    year = iYear || new Date().getFullYear(),
+    dLeft = new Date(year, 0, 1),
+    dRight = new Date(new Date(year + 1, 0, 1) - 1);
+  
+  /* See if there is any change in time zone at all */
+  while (dRight > +dLeft + 1
+          && dLeft.getTimezoneOffset() == dRight.getTimezoneOffset())
+  {
+    dRight = new Date(Math.floor((+dLeft + +dRight) / 2));
+  }
+  
+  if (dLeft.getTimezoneOffset() == dRight.getTimezoneOffset())
+  {
+    return [null, null];
+  }
+  
+  while (dRight > +dLeft + 1)
+  {
+    console.log("outer: ", dLeft, dRight);
+    while (dLeft.getTimezoneOffset() != dRight.getTimezoneOffset())
+    {
+      var lastRight = dRight;
+      dRight = new Date(Math.floor((+dLeft + +dRight) / 2));
+      console.log("inner: ", dLeft, dRight);
+    }
+
+    dLeft = dRight;
+    dRight = lastRight;
+  }
+  
+  result.push(dRight);
+  
+  return result;
 }
