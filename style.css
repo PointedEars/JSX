@@ -6,8 +6,21 @@ body {
   color: black;
 }
 
+h1 {
+  margin-bottom: 0;
+}
+
+p.subtitle {
+  margin-top: 0;
+  margin-bottom: 1em;
+}
+
+p.subtitle span {
+  font-style: italic;
+}
+
 a:link:hover, a:visited:hover {
-  background-color: inherit;
+  background-color: transparent;
   color: red;
   text-decoration: none;
 }
@@ -19,62 +32,62 @@ code {
 
 /* HTML language elements */
 .text {
-  background-color: white;
+  background-color: transparent;
   color: black;
 }
 
 .entity {
-  background-color: white;
+  background-color: transparent;
   color: black;
   font-weight: bold;
   font-style: italic;
 }
 
 .tag, .tagname {
-  background-color: white;
+  background-color: transparent;
   color: navy;
 }
 
 .img {
-  background-color: white;
+  background-color: transparent;
   color: purple;
 }
 
 .object {
-  background-color: white;
+  background-color: transparent;
   color: maroon;
 }
 
 .attrval {
-  background-color: white;
+  background-color: transparent;
   color: blue;
 }
 
 .scr {
-  background-color: #fff;
+  background-color: transparent;
   color: #900;
 }
 
 .a {
-  background-color: #fff;
+  background-color: transparent;
   color: #090;
 }
 
 /* JavaScript language elements */
 .comm {
-  background-color: #fff;
+  background-color: transparent;
   color: #999;
   font-style: italic;
 }
 
 .ident {
-  background-color: white;
+  background-color: transparent;
   color: black;
   font-weight: bold;
 }
 
 .rswd {
-  background-color: #fff;
+  background-color: transparent;
   color: #009;
   font-weight: bold;
 }
@@ -93,16 +106,16 @@ var {
 }
 
 .num {
-  background-color: white;
+  background-color: transparent;
   color: red;
 }
 
 .punct {
-  background-color: inherit;
+  background-color: transparent;
   color: blue;
 }
 
 .punct2 {
-  background-color: #fff;
+  background-color: transparent;
   color: #090;
 }
