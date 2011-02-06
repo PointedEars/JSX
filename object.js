@@ -163,6 +163,10 @@ Object.COPY_ENUM_DEEP = jsx.object.COPY_ENUM_DEEP;
  */
 Object.COPY_INHERIT   = jsx.object.COPY_INHERIT;
 
+jsx.MSG_INFO = "info";
+jsx.MSG_WARN = "warn";
+jsx.MSG_DEBUG = "debug";
+
 /**
  * Prints debug messages to the script console.
  * 
@@ -229,6 +233,26 @@ var printfire = jsx.dmsg = (function () {
     return false;
   };
 }());
+
+/**
+ * Issues an info message, if possible.
+ * 
+ * @param {String} sMsg  Message
+ * @see jsx#dmsg
+ */
+jsx.info = function(sMsg) {
+  return jsx.dmsg(sMsg, jsx.MSG_INFO);
+};
+
+/**
+ * Issues a warning message, if possible.
+ * 
+ * @param {String} sMsg  Message
+ * @see jsx#dmsg
+ */
+jsx.warn = function(sMsg) {
+  return jsx.dmsg(sMsg, jsx.MSG_WARN);
+};
 
 /**
  * Adds/replaces properties of an object
@@ -315,6 +339,7 @@ var inheritFrom = jsx.object.inheritFrom = (function () {
 var clone = jsx.object.clone = (function () {
   var
     jsx_object = jsx.object,
+    COPY_ENUM = jsx_object.COPY_ENUM,
     COPY_ENUM_DEEP = jsx_object.COPY_ENUM_DEEP,
     COPY_INHERIT = jsx_object.COPY_INHERIT;
   
@@ -322,7 +347,7 @@ var clone = jsx.object.clone = (function () {
     if (typeof iLevel == "object")
     {
       oSource = iLevel;
-      iLevel = 0;
+      iLevel = COPY_ENUM;
     }
   
     if (!oSource)
@@ -334,9 +359,15 @@ var clone = jsx.object.clone = (function () {
   
     if (!iLevel || (iLevel & COPY_ENUM_DEEP))
     {
-      /* TODO: For objects, valueOf() only copies the object reference */
+      /*
+       * NOTE: For objects, valueOf() only copies the object reference,
+       *       so we are creating a new Object instance here.
+       * TODO: Create an object that best matches the type of the original.
+       */
       var i,
-        o2 = oSource.valueOf();
+        o2 = (typeof oSource == "object" && oSource)
+           ? new Object()
+           : oSource.valueOf();
   
       /* just in case "var i in ..." does not copy the array elements */
       if (typeof Array != "undefined" && o2.constructor == Array)
@@ -664,7 +695,7 @@ var throwException = jsx.throwThis = (function () {
     {
       /* NOTE: Opera 5 and 6 require this to be split in two statements */
       message = String(message.map(f)).replace(/\\/g, "\\$&");
-      message = s.replace(/\r?\n|\r/g, "\\n");
+      message = message.replace(/\r?\n|\r/g, "\\n");
     }
     else
     {
@@ -762,7 +793,7 @@ var getFunctionName = jsx.object.getFunctionName = function (aFunction) {
  * 
  * Based on getStackTrace() from jsUnit 2.2alpha of 2006-03-24.
  * 
- * @return string
+ * @return {string}
  *   The stack trace of the calling execution context, if available.
  */
 var getStackTrace = jsx.getStackTrace = function () {
