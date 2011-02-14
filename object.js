@@ -3,7 +3,7 @@
  * @file object.js
  * 
  * @partof PointedEars' JavaScript Extensions (JSX)
- * @author (C) 2004-2010 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
+ * @author (C) 2004-2011 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
  * 
  * This program is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -237,7 +237,7 @@ var printfire = jsx.dmsg = (function () {
 /**
  * Issues an info message, if possible.
  * 
- * @param {String} sMsg  Message
+ * @param sMsg : String  Message
  * @see jsx#dmsg
  */
 jsx.info = function(sMsg) {
@@ -247,7 +247,7 @@ jsx.info = function(sMsg) {
 /**
  * Issues a warning message, if possible.
  * 
- * @param {String} sMsg  Message
+ * @param sMsg : String  Message
  * @see jsx#dmsg
  */
 jsx.warn = function(sMsg) {
@@ -307,11 +307,70 @@ var addProperties = jsx.object.addProperties = (function () {
 }());
 
 /**
+ * Defines getters and setters for the properties of an object, if possible.
+ * 
+ * Uses {@link Object.prototype#__defineGetter__} and
+ * {@link Object.prototype#__defineSetter__} (JavaScript only) as fallback.
+ * 
+ * @param oTarget : Object
+ *   The object for which properties getters and setters should be defined.
+ * @param oProperties : Object
+ *   Definition of the getters and setters for each property.  Must be of
+ *   the form
+ * <code><pre>{
+ *   propertyName: {
+ *     get: function() {…},
+ *     set: function(newValue) {…}
+ *   },
+ *   …
+ * }
+ *   </pre></code> as specified in the ECMAScript Language Specification,
+ *   Edition 5 Final, section 15.2.3.7.
+ * @param sContext : String
+ *   The context in which the property definition was attempted.
+ *   Included in the info message in case getters and setters could not be
+ *   defined.
+ */
+jsx.object.defineProperties = function(oTarget, oProperties, sContext) {
+  jsx.tryThis(
+    function() {
+      Object.defineProperties(oTarget, oProperties);
+    },
+    function() {
+      jsx.tryThis(
+        function() {
+          for (var propertyName in oProperties)
+          {
+            var propertyValue = oProperties[propertyName];
+            
+            /* NOTE: Allow specified values to fail */
+            if (typeof propertyValue.get != "undefined")
+            {
+              oTarget.__defineGetter__(propertyName, propertyValue.get);
+            }
+            
+            if (typeof propertyValue.set != "undefined")
+            {
+              oTarget.__defineSetter__(propertyName, propertyValue.set);
+            }
+          }
+        },
+        function() {
+          jsx.info((sContext ? sContext + ": " : "")
+            + "Could not define special properties."
+            + " Please use explicit getters and setters instead.");
+        }
+      );
+    }
+  );
+};
+
+/**
  * Lets one object inherit from another
  *
  * @function
  * @param o : optional Object
- *   Object from which to inherit
+ *   Object from which to inherit.  The default is <code>Object.prototype</code>.
  * @return Object
  *   Inheriting (child) object
  */
@@ -319,7 +378,7 @@ var inheritFrom = jsx.object.inheritFrom = (function () {
   function Dummy() {}
   
   return function (o) {
-    Dummy.prototype = o;
+    Dummy.prototype = o || Object.prototype;
     return new Dummy();
   };
 }());
@@ -341,7 +400,17 @@ var clone = jsx.object.clone = (function () {
     jsx_object = jsx.object,
     COPY_ENUM = jsx_object.COPY_ENUM,
     COPY_ENUM_DEEP = jsx_object.COPY_ENUM_DEEP,
-    COPY_INHERIT = jsx_object.COPY_INHERIT;
+    COPY_INHERIT = jsx_object.COPY_INHERIT,
+    createTypedObject = function(oOriginal) {
+      if (oOriginal.constructor)
+      {
+        return jsx_object.inheritFrom(oOriginal.constructor.prototype);
+      }
+      else
+      {
+        return new Object();
+      }
+    };
   
   return function (iLevel, oSource) {
     if (typeof iLevel == "object")
@@ -361,12 +430,12 @@ var clone = jsx.object.clone = (function () {
     {
       /*
        * NOTE: For objects, valueOf() only copies the object reference,
-       *       so we are creating a new Object instance here.
-       * TODO: Create an object that best matches the type of the original.
+       *       so we are creating an instance that inherits from the
+       *       original's prototype, if possible.
        */
       var i,
         o2 = (typeof oSource == "object" && oSource)
-           ? new Object()
+           ? createTypedObject(oSource)
            : oSource.valueOf();
   
       /* just in case "var i in ..." does not copy the array elements */
@@ -589,7 +658,7 @@ var setErrorHandler = jsx.setErrorHandler = (function () {
  *   converted to string if not a string, and used as-is otherwise.
  *   For compatibility, the <code>undefined</code> value
  *   is evaluated like the empty string.
- * @return mixed
+ * @return any
  *   The result of <code>statements</code>, or the result
  *   of <code>errorHandlers</code> if an error occurred.
  * @author
@@ -1173,8 +1242,8 @@ if (jsx.object.isMethod(this, "eval"))
        * 
        * @memberOf Function#prototype
        * @function
-       * @param {Array} argArray
-       * @return Object the newly constructed object
+       * @param argArray : Array
+       * @return {Object} the newly constructed object
        */
       construct: (function () {
         var
@@ -1226,7 +1295,7 @@ if (jsx.object.isMethod(this, "eval"))
  *   properties.  Of those, the <code>_super</code>,
  *   <code>constructor</code>, and <code>userDefined</code>
  *   properties are ignored as they are used internally.
- * @return Function
+ * @return {Function}
  *   A reference to the constructor of the extended prototype object
  *   if successful; <code>null</code> otherwise.
  */
@@ -1409,7 +1478,8 @@ jsx.object.addProperties(
      * @memberOf Array.prototype
      * @param f : Callable
      * @param oThis : optional Object
-     * @return The original array with <var>f</var> applied to each element.
+     * @return {Array}
+     *   The original array with <var>f</var> applied to each element.
      */
     map: function (f, oThis) {
       var jsx_object = jsx.object;
