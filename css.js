@@ -140,12 +140,12 @@ CSSSelectorList.prototype.findSimpleSelector = function(sSelector) {
 //    .replace(/\{unicode\}/g,       "\\\\[0-9a-f]{1,6}(\\r\\n|[ \\t\\r\\n\\f])?")
 //    .replace(/\{combinator\}/g,      "(\\+\\s*|\\>\\s*|\\s+)");
 
-//  try 
+//  try
 //  {
 //    x = y;
 //  }
 //  catch (e)
-//  {    
+//  {
 //    alert("TODO in \n" + e.stack + "\n" + s);
 //  }
 
@@ -166,13 +166,13 @@ CSSSelectorList.prototype.findSimpleSelector = function(sSelector) {
 /**
  * Shows or hides elements with a certain class name.
  * 
- * @param sClassName : string
+ * @param {string} sClassName
  *   Class name of the elements to be hidden/shown.
- * @param bShow : optional boolean
- *   If <code>false</code>, elements will be
+ * @param {boolean} bShow (optional)
+ *   If <code>false</code> (default), elements will be
  *   hidden, otherwise shown.
  * @requires dhtml.js
- * @return boolean
+ * @return {boolean}
  *   <code>true</code> if successful, <code>false</code> otherwise.
  */
 function showByClassName(sClassName, bShow)
@@ -215,24 +215,27 @@ function showByClassName(sClassName, bShow)
  * The <code>Color</code> prototype encapsulates
  * color data given in RGB format.
  *
- * @param iRed : number|string 
+ * @param iRed {Number|Color|String}
  *   Red value or RGB color.  Supported formats for RGB color are:
  *   <code>rgb(<var>r</var>, <var>g</var>, <var>b</var>)</code>,
- *   <code>#rgb</code> and <code>#rrggbb</code>.
- * @param iGreen : optional number
+ *   <code>#rgb</code> and <code>#rrggbb</code>.  If a <code>Color</code>,
+ *   its red component is used.
+ * @param iGreen {Number|Color}
+ *   Green value (optional).  If both <code>iRed</code> and this argument
+ *   are <code>Color</code>s, this arguments's green component is used.
+ * @param iBlue {Number|Color}
+ *   Blue value (optional).  If both <code>iRed</code> and this argument
+ *   are <code>Color</code>s, this arguments's blue component is used.
+ * @property {Number} red
+ *   Red value
+ * @property {Number} green
  *   Green value.
- * @param iBlue : optional number
+ * @property {Number} blue
  *   Blue value.
- * @property red : number 
- *   Red value.
- * @property green : number 
- *   Green value.
- * @property blue : number 
- *   Blue value.
- * @return undefined
+ * @return Color
  */
 function Color(iRed, iGreen, iBlue)
-{  
+{
   this.set(iRed, iGreen, iBlue);
 }
 
@@ -240,13 +243,13 @@ function Color(iRed, iGreen, iBlue)
  * Sets the color values from Red, Green and Blue values or a
  * RGB value.
  * 
- * @param iRed : number|string 
+ * @param iRed {number|Color|string}
  *   Red value or RGB color.  Supported formats
- *   for RGB color are the same as for @{#Color()}.
- * @param iGreen : optional number 
- *   Green value.
- * @param iBlue : optional number
- *   Blue value.
+ *   for RGB color are the same as for {@link #Color}.
+ * @param iGreen {number|Color}
+ *   Green value (optional)
+ * @param iBlue {number|Color}
+ *   Blue value (optional)
  * @return Color
  */
 Color.prototype.set = function(iRed, iGreen, iBlue) {
@@ -259,9 +262,28 @@ Color.prototype.set = function(iRed, iGreen, iBlue) {
     }
     else
     {
-      this.red = iRed;
-      if (typeof iGreen != 'undefined') this.green = iGreen;
-      if (typeof iBlue  != 'undefined') this.blue  = iBlue;
+      if (jsx.object.isInstanceOf(iRed, Color))
+      {
+        this.setRed(iRed.red);
+
+        if (jsx.object.isInstanceOf(iGreen, Color)
+            && jsx.object.isInstanceOf(iBlue, Color))
+        {
+          this.setGreen(iGreen.green);
+          this.setBlue(iBlue.blue);
+        }
+        else
+        {
+          this.setGreen(iRed.green);
+          this.setBlue(iRed.blue);
+        }
+      }
+      else
+      {
+        this.setRed(iRed);
+        this.setGreen(iGreen);
+        this.setBlue(iBlue);
+      }
     }
   }
   
@@ -271,11 +293,38 @@ Color.prototype.set = function(iRed, iGreen, iBlue) {
 };
 
 /**
+ * @private
+ * @param {String} sComponent
+ * @param {Number} value
+ */
+Color.prototype._setComponent = function(sComponent, value) {
+  if (isNaN(value))
+  {
+    return jsx.throwThis("jsx.InvalidArgumentError",
+      ["Invalid component value", String(value), "number"]);
+  }
+  
+  this[sComponent] = parseInt(value);
+};
+
+Color.prototype.setRed = function(value) {
+  this._setComponent("red", value);
+};
+
+Color.prototype.setGreen = function(value) {
+  this._setComponent("green", value);
+};
+
+Color.prototype.setBlue = function(value) {
+  this._setComponent("blue", value);
+};
+
+/**
  * Returns the difference between two colors.
  * 
- * @param color2 : Color
- * @param color1 : optional Color
- * @return 
+ * @param {Color} color2
+ * @param {Color} color1 (optional)
+ * @return {Object}
  *   The difference between the current color (A)
  *   and another color (B) as a tuple (object) consisting
  *   of the differences between each RGB color component
@@ -290,7 +339,7 @@ Color.prototype.set = function(iRed, iGreen, iBlue) {
  *   Note that since each component value of the result
  *   may be negative, the result is normalized through
  *   {@link Color.prototype#fix} if its properties are
- *   used for creating a Color object.()
+ *   used for creating a Color object.
  * @type {red, green, blue}
  */
 Color.prototype.diff = function(color2, color1) {
@@ -298,7 +347,7 @@ Color.prototype.diff = function(color2, color1) {
   {
     if (this.constructor == Color)
     {
-      color1 = this;      
+      color1 = this;
     }
     else
     {
@@ -324,12 +373,12 @@ Color.prototype.diff = function(color2, color1) {
  * @return Color
  */
 Color.prototype.fix = function() {
-  if (this.red   <   0) this.red   =   0;
-  if (this.red   > 255) this.red   = 255;
-  if (this.green <   0) this.green =   0;
-  if (this.green > 255) this.green = 255;
-  if (this.blue  <   0) this.blue  =   0;
-  if (this.blue  > 255) this.blue  = 255;
+  if (this.red   <   0) { this.red   =   0; }
+  if (this.red   > 255) { this.red   = 255; }
+  if (this.green <   0) { this.green =   0; }
+  if (this.green > 255) { this.green = 255; }
+  if (this.blue  <   0) { this.blue  =   0; }
+  if (this.blue  > 255) { this.blue  = 255; }
   
   return this;
 };
@@ -350,16 +399,32 @@ Color.prototype.inc = function(iRed, iGreen, iBlue) {
     
     case Object:
     case Color:
-      if (typeof iRed.green != "undefined") iGreen = iRed.green;
-      if (typeof iRed.blue != "undefined")  iBlue  = iRed.blue;
+      if (typeof iRed.green != "undefined")
+      {
+        iGreen = iRed.green;
+      }
+      
+      if (typeof iRed.blue != "undefined")
+      {
+        iBlue  = iRed.blue;
+      }
+      
       iRed = iRed.red;
       break;
       
     case Array:
-      if (typeof iRed[1] != "undefined") iGreen = iRed[1];
-      if (typeof iRed[2] != "undefined") iBlue  = iRed[2];
+      if (typeof iRed[1] != "undefined")
+      {
+        iGreen = iRed[1];
+      }
+      
+      if (typeof iRed[2] != "undefined")
+      {
+        iBlue  = iRed[2];
+      }
+      
       iRed = iRed[0];
-      break;      
+      break;
   }
 
   this.red   += (parseInt(iRed, 10) || 0);
@@ -388,9 +453,9 @@ Color.prototype.setRGB = function(v) {
     /* rgb(...) */
     if (m[2])
     {
-      this.red   = m[3];
-      this.green = m[4];
-      this.blue  = m[5];
+      this.setRed(m[3]);
+      this.setGreen(m[4]);
+      this.setBlue(m[5]);
     }
     /* #xxxxxx */
     else if (m[6])
@@ -436,12 +501,12 @@ Color.prototype.getMono = function() {
  * an RGB value and returns a monochrome version of the color
  * as an object.
  * 
- * @param iRed : number|string 
+ * @param iRed : number|string
  *   Red value or RGB color.  Supported formats
  *   for RGB color are the same as for @{#Color()}.
- * @param iGreen : optional number 
+ * @param iGreen : optional number
  *   Green value.
- * @param iBlue : optional number 
+ * @param iBlue : optional number
  *   Blue value.
  * @return Color
  */
@@ -531,7 +596,7 @@ Color.prototype.getHSV = function() {
       
       for (var i = arguments.length; i--;)
       {
-        if (result < arguments[i]) result = arguments[i];
+        if (result < arguments[i]){result = arguments[i];}
       }
 
       return result;
@@ -546,7 +611,7 @@ Color.prototype.getHSV = function() {
       
       for (var i = arguments.length; i--;)
       {
-        if (result > arguments[i]) result = arguments[i];
+        if (result > arguments[i]){result = arguments[i];}
       }
 
       return result;
@@ -582,7 +647,7 @@ Color.prototype.getHSV = function() {
     }
   }
   
-  if (h < 0) h = h + 360;
+  if (h < 0){h = h + 360;}
 
   if (max == 0)
   {
@@ -760,11 +825,11 @@ function makeMono()
  *        with name p is returned; it is a string if the
  *        property is supported;
  *     b) if p was not passed, the corresponding style object
- *        is returned 
+ *        is returned
  * 
  *   If the UA supports neither of the above, `undefined' is
  *   returned.
- * @type string|CSSStyleDeclaration|currentStyle 
+ * @type string|CSSStyleDeclaration|currentStyle
  */
 function _getComputedStyle(o, p)
 {
