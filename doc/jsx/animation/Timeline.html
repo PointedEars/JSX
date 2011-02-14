@@ -1,0 +1,120 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+  "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>jsx.animation.Timeline  &#8212; JSX API Documentation</title>
+    <link rel="stylesheet" href="../../../style.css" type="text/css">
+    <link rel="stylesheet" href="../../style.css" type="text/css">
+  </head>
+
+  <body>
+    <h1>jsx.animation.Timeline</h1>
+    <ul>
+      <li><code>Object</code>
+        <ul>
+          <li><code>jsx.animation.Timeline</code></li>
+        </ul></li>
+    </ul>
+        
+    <p>A <code class="ident">Timeline</code> consists of
+       <a href="KeyFrame"><code>KeyFrames</code></a> and can have subordered
+       timelines ("child timelines").  Unless specified otherwise, the time
+       offset of an item in one timeline depends on the previous item in
+       that timeline.</p>
+       
+    <pre>
+Timeline:    ---Action0------Action1------Action2-----Action3->
+</pre>
+    <p>A <code>Timeline</code> may be standalone or part an
+       <a href="Animation"><code>Animation</code></a>, specified by the
+       <code>Animation</code>'s <code>timelines</code> property,
+       which allows it to be played parallel to other timelines:</p>
+    <pre>
+Animation ---.
+Timeline 1:  :--Action0------Action1------Action2-----Action3->
+Timeline 2:  `----------Action0------Action1-------Action2---->
+</pre>
+    <p>An item in a timeline can also be a <code>Timeline</code> itself
+       ("child timeline"), in which case the time offset of the child
+       timeline depends on the previous action in the parent timeline,
+       however the time offset of the next action in the parent is
+       independent of the child.  In that case, the child timeline
+       affects the same target object as its parent unless specified
+       otherwise.</p>
+    <pre>
+Animation ---.
+Timeline 1:  :---Action0------+----------Action1a------------->
+Timeline 1a: |                `---Action1a:0---Action1a:1----->
+Timeline 2:  `-------Action0------Action1-------Action2------->
+</pre>
+
+    <p>There is no explicit limit as to how deep timelines may be nested.
+       However, for playing the frames of the animation each timeline's
+       play() method must call the play() method of its child timelines.
+       As a result, nesting depth is limited implicitly by the available
+       stack space or limits imposed by the ECMAScript implementation,
+       whichever comes first.  Further, the more timelines are nested,
+       the more operations need be performed at approximately the same time;
+       this can slow down the entire animation considerably and lead to
+       considerably higher CPU load.</p>
+      
+    <h2>Prototype Properties</h2>
+    <dl>
+      <dt><code><var>MIN_FRAME_LENGTH</var>
+        <span class="punct">:</span>&nbsp;number</code></dt>
+        <dd></dd>
+
+      <dt><code><var>MIN_TIMEOUT</var> <span
+        class="punct">:</span>&nbsp;number</code></dt>
+        <dd></dd>
+        
+      <dt><code><var>autoReverse</var>
+        <span class="punct">:</span>&nbsp;boolean
+        <span class="punct">=</span> <span clasS="rswd">false</span></code></dt>
+        <dd>Defines whether this animation reverses direction on alternating
+            cycles.  If <code>true</code>, the animation will proceed forward
+            on the first cycle, then reverses on the second cycle, and so on.
+            Otherwise, animation will loop such that each cycle proceeds
+            forward from the initial
+            <a href="KeyFrame"><code>KeyFrame</code></a>.</dd>
+    </dl>
+    
+    <h2>Constructor</h2>
+    <p><code><span class="ident">jsx<span class="punct">.</span>animation<span
+      class="punct">.</span>Animation</span><span
+      class="punct">(</span><var>oParams</var>
+      <span class="punct">:</span>&nbsp;<span class="ident">Object</span><span
+      class="punct">)</span></code></p>
+    <h3>Arguments</h3>
+    <dl>
+      <dt><code><var>oParams</var> <span class="punct">:</span>&nbsp;<span class="ident">Object</span></code></dt>
+        <dd></dd>
+    </dl>
+    <h3>Throws</h3>
+    <dl>
+      <dt><code class="ident">jsx<span class="punct">.</span>InvalidArgumentError</code></dt>
+        <dd>if no parameters were specified</dd>
+    </dl>
+    
+    <h2>Methods</h2>
+    <dl>
+      <dt><h3><code><span class="ident">play</span><span class="punct">()</span></code></h3></dt>
+        <dd><p>Plays the animation by playing all of its <a href="Timeline"><code>Timelines</code></a>.</p>
+          <h4>Throws</h4>
+          <dl>
+            <dt><code class="ident">jsx<span class="punct">.</span>animation<span
+              class="punct">.</span>NoTimelineError</code></dt>
+              <dd>if no <code>Timelines</code> have been defined</dd>
+          </dl></dd>
+      <dt><h3><code><span class="ident">stop</span><span class="punct">()</span></code></h3></dt>
+        <dd><p>Stops the animation by stopping all of its <a href="Timeline"><code>Timelines</code></a>.</p>
+          <h4>Throws</h4>
+          <dl>
+            <dt><code class="ident">jsx<span class="punct">.</span>animation<span
+              class="punct">.</span>NoTimelineError</code></dt>
+              <dd>if no <code>Timelines</code> have been defined</dd>
+          </dl></dd>
+    </dl>
+  </body>
+</html>
