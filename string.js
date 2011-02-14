@@ -1460,6 +1460,95 @@ function strCount(s, substr, bCaseSensitive)
 }
 
 /**
+ * Compares strings against each other, with the default possibility of
+ * taking Unicode compositing sequences into account.
+ * 
+ * @param s1
+ * @param s2
+ * @param compositeAware
+ *   If <code>true</code> (default), composited characters are taken
+ *   into account.  Otherwise strings are compared character-by-character.
+ * @returns {Boolean}
+ *   <code>true</code> if the strings are equal, <code>false</code> otherwise
+ */
+function strCompare(s1, s2, compositeAware)
+{
+  if (this.constructor == String)
+  {
+    compositeAware = s2;
+    s2 = s1;
+    s1 = this;
+    var compositeLength = 2;
+  }
+  else
+  {
+    compositeLength = 3;
+  }
+  
+  if (arguments.length < compositeLength)
+  {
+    compositeAware = true;
+  }
+  
+  var equivalenceMap = {
+    "\u00e0": "\u0061\u0300"
+  };
+
+  for (var i = 0, j = 0, len = s1.length; i < len; ++i, ++j)
+  {
+    var ch1 = s1.charAt(i), ch2 = s2.charAt(j);
+    if (ch1 != ch2)
+    {
+      if (!compositeAware)
+      {
+        return false;
+      }
+      
+      /*
+       * When the characters at the same position are not equal, see if
+       * there is a composite character sequence for each character …
+       */
+      var ch1Equivalent = equivalenceMap[ch1] || null;
+      if (ch1Equivalent)
+      {
+        /*
+         * If yes, check if there is a composite sequence in the second
+         * string starting at that index.
+         */
+        if (ch2.substring(j, ch1Equivalent.length) === ch1Equivalent)
+        {
+          /*
+           * If yes, advance the index for the second string so that
+           * the next check starts after that sequence.
+           */
+          j += ch1Equivalent.length - 1;
+        }
+        else
+        {
+          return false;
+        }
+      }
+      else
+      {
+        /* Same for a potential composite sequence in the first string */
+        var ch2Equivalent = equivalenceMap[ch2] || null;
+        if (ch2Equivalent && ch1.substring(i, i + ch2Equivalent.length) === ch2Equivalent)
+        {
+          i += ch2Equivalent.length - 1;
+        }
+        else
+        {
+          return false;
+        }
+      }
+    }
+  }
+  
+  return true;
+}
+String.prototype.equals = strCompare;
+
+/**
  * Strips <code>&lt;tags&gt;</code> and optionally the
  * content between start and respective end tags from
  * a string.  Uses RegExp if supported.
