@@ -1,0 +1,90 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+  "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>jsx.animation.Animation  &#8212; JSX API Documentation</title>
+    <link rel="stylesheet" href="../../../style.css" type="text/css">
+    <link rel="stylesheet" href="../../style.css" type="text/css">
+  </head>
+
+  <body>
+    <h1>jsx.animation.Animation</h1>
+    <ul>
+      <li><code>Object</code>
+        <ul>
+          <li><code>jsx.animation.Animation</code></li>
+        </ul></li>
+    </ul>
+    
+    <p>An <code class="ident">Animation</code> is a set of one or more
+      <a href="Timeline"><code>Timelines</code></a> being played in parallel
+      when the animation is played.  Each <code>Timeline</code> is supposed
+      to animate another target object (but that is not required).</p>
+      
+    <h2>Prototype Properties</h2>
+    <dl>
+      <dt><code><var>target</var> <span class="punct">:</span>&nbsp;<span
+        class="ident">Object</span> <span class="punct">=</span>
+        <span class="rswd">null</span></code></dt>
+        <dd></dd>
+        
+      <dt><code><var>timelines</var> <span class="punct">:</span>&nbsp;<span
+        class="ident">Array</span> <span class="punct">= []</span></code></dt>
+        <dd></dd>
+    </dl>
+    
+    <h2>Constructor</h2>
+    <p><code><span class="ident">jsx<span class="punct">.</span>animation<span
+      class="punct">.</span>Animation</span><span
+      class="punct">(</span><var>oParams</var>
+      <span class="punct">:</span>&nbsp;<span class="ident">Object</span><span
+      class="punct">)</span></code></p>
+    <h3>Arguments</h3>
+    <dl>
+      <dt><code><var>oParams</var> <span class="punct">:</span>&nbsp;<span class="ident">Object</span></code></dt>
+        <dd>The parameters of this animation.  Supported parameters, to
+            be defined as properties of <code><var>oParams</var></code>,
+            include:
+            <dl>
+              <dt><code><var>target</var>
+                <span class="punct">:</span>&nbsp;<span
+                class="ident">Object</span></code></dt>
+                <dd>Reference specifiying the object to animate.
+                    If specified, the timelines of this animation
+                    automatically inherit its target; if not
+                    specified for the animation, each timeline of an
+                    animation MUST specify its target.</dd>
+              <dt><code><var>timelines</var>
+                :&nbsp;<span class="ident">Array</span></code></dt>
+                <dd><a href="Timeline"><code>Timelines</code></a>
+                    of this animation (required)</dd>
+            </dl></dd>
+    </dl>
+    <h3>Throws</h3>
+    <dl>
+      <dt><code class="ident">jsx<span class="punct">.</span>InvalidArgumentError</code></dt>
+        <dd>if no parameters were specified</dd>
+    </dl>
+    
+    <h2>Methods</h2>
+    <dl>
+      <dt><h3><code><span class="ident">play</span><span class="punct">()</span></code></h3></dt>
+        <dd><p>Plays the animation by playing all of its <a href="Timeline"><code>Timelines</code></a>.</p>
+          <h4>Throws</h4>
+          <dl>
+            <dt><code class="ident">jsx<span class="punct">.</span>animation<span
+              class="punct">.</span>NoTimelineError</code></dt>
+              <dd>if no <code>Timelines</code> have been defined</dd>
+          </dl></dd>
+      <dt><h3><code><span class="ident">stop</span><span class="punct">()</span></code></h3></dt>
+        <dd><p>Stops the animation by stopping all of its <a href="Timeline"><code>Timelines</code></a>.</p>
+          <h4>Throws</h4>
+          <dl>
+            <dt><code class="ident">jsx<span class="punct">.</span>animation<span
+              class="punct">.</span>NoTimelineError</code></dt>
+              <dd>if no <code>Timelines</code> have been defined</dd>
+          </dl></dd>
+    </dl>
+  </body>
+</html>
