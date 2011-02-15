@@ -74,6 +74,16 @@ jsx.animation.Animation = function(oParams) {
       this[param] = oParams[param];
     }
   }
+  
+  var timelines = this.timelines;
+  for (var i = timelines.length; i--;)
+  {
+    var timeline = timelines[i];
+    if (!timeline.target)
+    {
+      timeline.target = this.target;
+    }
+  }
 };
 
 /**
@@ -108,7 +118,7 @@ jsx.animation.Animation.prototype = {
     
     for (var i = 0, len = timelines.length; i < len; ++i)
     {
-      timelines[i].play(this.target);
+      timelines[i].play();
     }
   },
   
@@ -184,6 +194,7 @@ jsx.animation.NoKeyFramesError = function() {
  * this can slow down the entire animation considerably and lead to
  * considerably higher CPU load.
  * </p>
+ * @function
  * @constructor
  * @param oParams : Object
  * @throws jsx.InvalidArgumentError if no parameters were specified
@@ -192,7 +203,7 @@ jsx.animation.Timeline = (function() {
   var
     jsx_object = jsx.object,
     keyFrameComparator = function(a, b) {
-      return a.time - b.time;
+      return a.compareTo(b);
     };
   
   return function(oParams) {
@@ -238,31 +249,60 @@ jsx.animation.Timeline = (function() {
     /* Sort keyFrames by time */
     var keyFrames = this.keyFrames;
     keyFrames.sort(keyFrameComparator);
-    
-    if (this.autoReverse)
-    {
-      if (keyFrames.length > 0)
-      {
-        /* Add mirrored keyframes */
-        var lastKeyFrame = Array.get(keyFrames, -1);
-        for (var i = keyFrames.length - 2; i > -1; --i)
-        {
-          var keyFrameToClone = keyFrames[i];
-          var keyFrameClone = jsx_object.clone(jsx_object.COPY_ENUM_DEEP, keyFrameToClone);
-          keyFrameClone.time = 2 * lastKeyFrame.time - keyFrameToClone.time;
-          keyFrames.push(keyFrameClone);
-        }
-      }
-    }
+        
+//    if (this.autoReverse)
+//    {
+//      if (keyFrames.length > 0)
+//      {
+//        /* Add mirrored keyframes */
+//        var lastKeyFrame = Array.get(keyFrames, -1);
+//        for (var i = keyFrames.length - 2; i > -1; --i)
+//        {
+//          var keyFrameToClone = keyFrames[i];
+//          var keyFrameClone = jsx_object.clone(jsx_object.COPY_ENUM_DEEP, keyFrameToClone);
+//          keyFrameClone.time = 2 * lastKeyFrame.time - keyFrameToClone.time;
+//          keyFrames.push(keyFrameClone);
+//        }
+//      }
+//    }
   };
 }());
 
+jsx.animation.Timeline.INDEFINITE = Number.POSITIVE_INFINITY;
 jsx.animation.Timeline.MIN_TIMEOUT = 10;
 jsx.animation.Timeline.MIN_FRAME_LENGTH = jsx.animation.Timeline.MIN_TIMEOUT + 1;
+jsx.animation.Timeline.types = {
+  NUMBER:     0,
+  LENGTH:     1,
+  PERCENTAGE: 2,
+  URI:        3,
+  COUNTER:    4,
+  COLOR:      5,
+  STRING:     6
+};
+jsx.animation.Timeline.propertyInfo = {
+  left:   {type: jsx.animation.Timeline.types.LENGTH, correspondsTo: "top"},
+  top:    {type: jsx.animation.Timeline.types.LENGTH, correspondsTo: "left"},
+  right:  {type: jsx.animation.Timeline.types.LENGTH, correspondsTo: "bottom"},
+  bottom: {type: jsx.animation.Timeline.types.LENGTH, correspondsTo: "right"},
+  width:  {type: jsx.animation.Timeline.types.LENGTH, correspondsTo: "height"},
+  height: {type: jsx.animation.Timeline.types.LENGTH, correspondsTo: "width"},
+  color:  {type: jsx.animation.Timeline.types.COLOR},
+  backgroundColor:    {type: jsx.animation.Timeline.types.COLOR},
+  "background-color": {type: jsx.animation.Timeline.types.COLOR}
+};
 
 jsx.animation.Timeline.prototype = {
   constructor: jsx.animation.Timeline,
+  
+  /**
+   * @type Object
+   */
   target: null,
+  
+  /**
+   * @type Array[KeyFrame]
+   */
   keyFrames: [],
   
   /**
@@ -280,11 +320,11 @@ jsx.animation.Timeline.prototype = {
    * are played before the second frame.
    */
   frameLength: jsx.animation.Timeline.MIN_FRAME_LENGTH,
-  
+
   /**
    * Defines the number of cycles in this animation. The repeatCount may be
    * <code>INDEFINITE</code> for animations that repeat indefinitely, but
-   * must otherwise be &lte; 0.
+   * must otherwise be &le; 0.
    */
   repeatCount: 1,
     
@@ -292,7 +332,7 @@ jsx.animation.Timeline.prototype = {
    * Indicates the current direction/speed at which the <code>Timeline</code>
    * is being played, in frames per second.
    * 
-   * @return {Number}
+   * @return Number
    */
   getCurrentRate: function() {
     return (this._playing) ? this.getFramerate() : 0.0;
@@ -329,125 +369,53 @@ jsx.animation.Timeline.prototype = {
    * limited, meaning the <code>Timeline</code> will play at an optimal
    * framerate for the underlying platform.
    * 
+   * @function
    * @param framerate : Number
    *   The maximum framerate at which this <code>Timeline</code> will play,
    *   in frames per second.  Framerates above 90 fps that result in
    *   a frame length shorter than 11 ms are normalized.
-   * @return {Number}
+   * @return Number
    *   The effective maximum framerate, in frames per second
    */
-  setFramerate: function(framerate) {
-    if (this._playing)
-    {
-      jsx.info("Cannot change framerate while playing");
-      return false;
-    }
+  setFramerate: (function() {
+    var jsx_animation_Timeline = jsx.animation;
     
-    var frameLength = 1000 / framerate;
-    if (frameLength < jsx.animation.Timeline.MIN_FRAME_LENGTH)
-    {
-      jsx.info("Requested framerate of " + framerate + " fps (frame length of "
-        + frameLength + " ms) was normalized to ca. "
-        + (1000 / jsx.animation.Timeline.MIN_FRAME_LENGTH) + " fps ("
-        + jsx.animation.Timeline.MIN_FRAME_LENGTH + " ms)");
-      frameLength = jsx.animation.Timeline.MIN_FRAME_LENGTH;
-    }
-    
-    this.frameLength = frameLength;
-    
-    return frameLength;
-  },
-
-  /**
-   * Plays this {@link jsx.animation#Timeline Timeline}
-   * 
-   * @function
-   * @param target : Object
-   *   Target object (optional).  Is usually only provided
-   *   if this <code>Timeline</code> is part of an
-   *   {@link #jsx.animation.Animation Animation}.
-   */
-  play: (function() {
-    var
-      jsx_object = jsx.object,
-      jsx_dom = jsx.dom,
-      types = {
-        NUMBER:     0,
-        LENGTH:     1,
-        PERCENTAGE: 2,
-        URI:        3,
-        COUNTER:    4,
-        COLOR:      5,
-        STRING:     6
-      },
-      
-      propertyInfo = {
-        left:   {type: types.LENGTH, correspondsTo: "top"},
-        top:    {type: types.LENGTH, correspondsTo: "left"},
-        right:  {type: types.LENGTH, correspondsTo: "bottom"},
-        bottom: {type: types.LENGTH, correspondsTo: "right"},
-        width:  {type: types.LENGTH, correspondsTo: "height"},
-        height: {type: types.LENGTH, correspondsTo: "width"},
-        color:  {type: types.COLOR},
-        backgroundColor:    {type: types.COLOR},
-        "background-color": {type: types.COLOR}
-      },
-
-      getPropertySetter = function(target, values, bDontPlay, oTimeline) {
-        return function() {
-          var setToRelative = false;
-          
-          for (var property in values)
-          {
-            if (property == "style")
-            {
-              var style = values.style;
-              for (var styleProperty in style)
-              {
-                var thisPropertyInfo = propertyInfo[styleProperty];
-                if (thisPropertyInfo && thisPropertyInfo.type == types.LENGTH)
-                {
-                  if (!setToRelative
-                      && typeof style.position == "undefined"
-                      && jsx_dom.getComputedStyle(target, null, "position") == "static")
-                  {
-                    target.style.position = "relative";
-                    setToRelative = true;
-                  }
-                  
-                  jsx_dom.setStyleProperty(target, styleProperty, style[styleProperty] + "px");
-                }
-                else
-                {
-                  target.style[styleProperty] = style[styleProperty];
-                }
-              }
-            }
-            else
-            {
-              target[property] = values[property];
-            }
-          }
-          
-          if (bDontPlay)
-          {
-            oTimeline._playing = false;
-          }
-        };
-      };
-    
-    return function(target) {
-      this._playing = true;
-
-      if (target)
+    return function(framerate) {
+      if (this._playing)
       {
-        this.target = target;
+        jsx.info("Cannot change framerate while playing");
+        return false;
       }
       
-      /* First clear all remaining timeouts */
-      this.stop();
-    
-      var dt = this.frameLength;
+      var frameLength = 1000 / framerate;
+      if (frameLength < jsx_animation_Timeline.MIN_FRAME_LENGTH)
+      {
+        jsx.info("Requested framerate of " + framerate + " fps (frame length of "
+          + frameLength + " ms) was normalized to ca. "
+          + (1000 / jsx_animation_Timeline.MIN_FRAME_LENGTH) + " fps ("
+          + jsx_animation_Timeline.MIN_FRAME_LENGTH + " ms)");
+        frameLength = jsx_animation_Timeline.MIN_FRAME_LENGTH;
+      }
+      
+      this.frameLength = frameLength;
+      
+      return frameLength;
+    };
+  }()),
+  
+  /**
+   * Instructs the <code>Timeline</code> to evaluate all
+   * <code>KeyValue.value()</code>s in the <code>Timeline</code>.
+   * 
+   * @function
+   */
+  evaluateKeyValues: (function() {
+    var
+      jsx_dom = jsx.dom,
+      jsx_object = jsx.object,
+      jsx_animation_Timeline = jsx.animation.Timeline;
+
+    return function() {
       for (var i = 1, len = this.keyFrames.length; i < len; ++i)
       {
         var nextKeyFrame = this.keyFrames[i];
@@ -472,10 +440,10 @@ jsx.animation.Timeline.prototype = {
               }
               
               var propertyType = jsx_object.getProperty(
-                propertyInfo, stylePropertyName, {type: null}).type;
+                jsx_animation_Timeline.propertyInfo, stylePropertyName, {type: null}).type;
               switch (propertyType)
               {
-                case types.LENGTH:
+                case jsx_animation_Timeline.types.LENGTH:
                   if (isNaN(oldStylePropertyValue))
                   {
                     oldStylePropertyValue = parseFloat(oldStylePropertyValue);
@@ -496,7 +464,7 @@ jsx.animation.Timeline.prototype = {
                   }
                   break;
               
-                case types.COLOR:
+                case jsx_animation_Timeline.types.COLOR:
                   if (!jsx_object.isInstanceOf(oldStylePropertyValue, Color))
                   {
                     oldStylePropertyValue = new Color(oldStylePropertyValue);
@@ -540,10 +508,86 @@ jsx.animation.Timeline.prototype = {
             newPropertyValue[propertyName] = oldPropertyValue[propertyName];
           }
         }
+      }
+    };
+  }()),
 
+  /**
+   * Plays this <code>Timeline</code>
+   * 
+   * @function
+   */
+  play: (function() {
+    var
+      jsx_object = jsx.object,
+      jsx_dom = jsx.dom,
+      jsx_animation_Timeline = jsx.animation.Timeline,
+      getPropertySetter = function(target, values, bDontPlay, oTimeline) {
+        return function() {
+          var setToRelative = false;
+          
+          for (var property in values)
+          {
+            if (property == "style")
+            {
+              var style = values.style;
+              for (var styleProperty in style)
+              {
+                var thisPropertyInfo = jsx_animation_Timeline.propertyInfo[styleProperty];
+                if (thisPropertyInfo && thisPropertyInfo.type == jsx_animation_Timeline.types.LENGTH)
+                {
+                  if (!setToRelative
+                      && typeof style.position == "undefined"
+                      && jsx_dom.getComputedStyle(target, null, "position") == "static")
+                  {
+                    target.style.position = "relative";
+                    setToRelative = true;
+                  }
+                  
+                  jsx_dom.setStyleProperty(target, styleProperty, style[styleProperty] + "px");
+                }
+                else
+                {
+                  target.style[styleProperty] = style[styleProperty];
+                }
+              }
+            }
+            else
+            {
+              target[property] = values[property];
+            }
+          }
+          
+          if (bDontPlay)
+          {
+            oTimeline._playing = false;
+          }
+        };
+      };
+    
+    return function() {
+      this._playing = true;
+
+      /* First clear all remaining timeouts */
+      this.stop();
+      
+      if (!this._keyValuesEvaluated)
+      {
+        this.evaluateKeyValues();
+        this._keyValuesEvaluated = true;
+      }
+    
+      for (var i = 1, len = this.keyFrames.length; i < len; ++i)
+      {
+        var nextKeyFrame = this.keyFrames[i];
+        var previousKeyFrame = this.keyFrames[i - 1];
+        var previousValues = previousKeyFrame.values;
+        var nextValues = nextKeyFrame.values;
+        
         /* Display the previous keyframe, then play the tween */
 
         /* TODO: What if the number of frames is not integer? */
+        var dt = this.frameLength;
         var numFrames = (nextKeyFrame.time - previousKeyFrame.time) / dt;
         
         var frameValues = jsx_object.clone(jsx_object.COPY_ENUM_DEEP, previousValues);
@@ -553,6 +597,7 @@ jsx.animation.Timeline.prototype = {
         {
           for (var property in frameValues)
           {
+            var interpolate = nextKeyFrame.interpolate;
             if (property == "style")
             {
               var previousStyle = previousValues.style;
@@ -561,20 +606,34 @@ jsx.animation.Timeline.prototype = {
               
               for (var styleProperty in frameStyle)
               {
-                frameStyle[styleProperty] = nextKeyFrame.interpolator(
+                interpolate = nextKeyFrame.interpolate;
+                var nextStyleValue = nextStyle[styleProperty];
+                if (jsx_object.isInstanceOf(nextStyleValue, jsx.animation.KeyValue))
+                {
+                  nextStyleValue = nextStyleValue.value;
+                  interpolate = nextStyleValue.interpolate;
+                }
+                
+                frameStyle[styleProperty] = interpolate(
                   previousStyle[styleProperty],
-                  nextStyle[styleProperty],
-                  currentFrame / numFrames
-                );
+                  nextStyleValue,
+                  currentFrame / numFrames);
               }
             }
             else
             {
-              frameValues[property] = nextKeyFrame.interpolator(
+              var nextValue = nextValues[property];
+              
+              if (jsx_object.isInstanceOf(nextValue, jsx.animation.KeyValue))
+              {
+                nextValue = nextValue.value;
+                interpolate = nextValue.interpolate;
+              }
+              
+              frameValues[property] = interpolate(
                 previousValues[property],
-                nextValues[property],
-                currentFrame / numFrames
-              );
+                nextValue,
+                currentFrame / numFrames);
             }
           }
           
@@ -617,17 +676,28 @@ jsx.animation.Timeline.prototype = {
 };
 
 /**
- * A <code>KeyFrame</code> defines which properties an animated object
- * should have at a given moment in time relative to the {@link #Timeline}
- * it is defined for.  It is used as a reference point to compute the frame
- * of the {@link jsx.animation#Timeline Timeline} between it and other
- * <code>Keyframe</code>s.
+ * A <code>Frame</code> defines target values at a specified point in time
+ * for a set of properties of the target object of a
+ * {@link jsx.animation#Timeline Timeline}.
  * 
+ * <p>
+ * This type is usually used only internally to compute the frames between
+ * a set of given {@link jsx.animation#KeyFrame KeyFrames}.
+ * </p><p>
+ * By contrast to <code>KeyFrame</code>s, inserting a <code>Frame</code>
+ * into a <code>Timeline</code> does not cause computation of additional
+ * <code>Frame</code>s with regard to adjacent <code>Keyframe</code>s.
+ * You can do so if you need full control over the <code>Timeline</code>,
+ * for example if you want an object to "jump" from one screen area to a
+ * more distant one instead of producing a gradual change of its coordinates,
+ * or if you want to use a set of <code>Frame</code>s or <code>Frame</code>-
+ * compatible objects that are the result of computation by another framework.
+ * </p>
  * @constructor
  * @param oParams
  * @throws jsx.InvalidArgumentError if no parameters were specified
  */
-jsx.animation.KeyFrame = function(oParams) {
+jsx.animation.Frame = function(oParams) {
   if (!oParams)
   {
     jsx.throwThis("jsx.InvalidArgumentError", ["Not enough arguments", typeof oParams, "Object"]);
@@ -680,6 +750,12 @@ jsx.animation.KeyFrame = function(oParams) {
   }
 };
 
+jsx.animation.Frame.prototype = {
+  constructor: jsx.animation.Frame,
+  time: 0,
+  values: {}
+};
+
 /**
  * Namespace for a set of functions that take a <var>startValue</var> and
  * endValue along with fraction between 0.0 and 1.0 and returns another value,
@@ -722,9 +798,75 @@ jsx.animation.Interpolator = {
   }())
 };
 
-jsx.animation.KeyFrame.prototype = {
-  constructor: jsx.animation.Frame,
-  time: 0,
-  values: {},
-  interpolator: jsx.animation.Interpolator.LINEAR
+/**
+ * A <code>KeyFrame</code> is a special {@link jsx.animation#Frame Frame} that
+ * defines target values at a specified point in time for a set of properties
+ * that are interpolated along a {@link jsx.animation#Timeline Timeline}.
+ * 
+ * The developer controls the interpolation of a set of properties for the
+ * interval between successive key frames by providing a target value and
+ * an {@link jsx.animation#Interpolator Interpolator} associated with each
+ * property, or that of the KeyFrame itself which is used for all properties
+ * defined for the <code>KeyFrame</code> unless specified otherwise.  The
+ * properties are interpolated such that they will reach their target value
+ * at the specified time.  An <var>action</var> function is invoked on each
+ * <code>KeyFrame</code> if one is specified.
+ * 
+ * @constructor
+ * @param oParams
+ * @throws jsx.InvalidArgumentError if no parameters were specified
+ */
+jsx.animation.KeyFrame = function(oParams) {
+  arguments.callee._super.call(this, oParams);
+};
+
+jsx.animation.KeyFrame.extend(jsx.animation.Frame, {
+  /**
+   * A comparison function used to sort KeyFrames by their specified
+   * reference time.
+   * 
+   * @param o : KeyFrame
+   * @return number
+   *   An Integer value<br>
+   *     > 0 if specified <code>KeyFrame</code> timing is ahead of this<br>
+   *     = 0 if they have the same timing<br>
+   *     &lt; 0 if specified <code>KeyFrame</code> timing is behind this
+   */
+  compareTo: function(o) {
+    return this.time - o.time;
+  },
+  
+  /**
+   * @function
+   */
+  interpolate: jsx.animation.Interpolator.LINEAR
+});
+
+jsx.animation.KeyValue = function(oParams) {
+  if (!oParams)
+  {
+    jsx.throwThis("jsx.InvalidArgumentError", ["Not enough arguments", typeof oParams, "Object"]);
+  }
+  
+  for (var paramName in this)
+  {
+    var param = oParams[paramName];
+    if (typeof param != "undefined")
+    {
+      this[paramName] = param;
+    }
+  }
+};
+
+jsx.animation.KeyValue.prototype = {
+  constructor: jsx.animation.KeyValue,
+  
+  /**
+   * {@link jsx.animation#Interpolator} to be used for calculating the
+   * key value along the particular interval.  By default,
+   * {@link jsx.animation#Interpolator.LINEAR} is used.
+   */
+  interpolate: jsx.animation.Interpolator.LINEAR,
+
+  value: null
 };
