@@ -59,16 +59,26 @@ Timeline 2:  `-------Action0------Action1-------Action2------->
        this can slow down the entire animation considerably and lead to
        considerably higher CPU load.</p>
       
-    <h2>Prototype Properties</h2>
+    <h2>Static Properties</h2>
     <dl>
+      <dt><code><var>INDEFINITE</var>
+        <span class="punct">:</span>&nbsp;number <span class="punct">=</span>
+          Number.POSITIVE_INFINITY</code></dt>
+        <dd></dd>
+
       <dt><code><var>MIN_FRAME_LENGTH</var>
-        <span class="punct">:</span>&nbsp;number</code></dt>
+        <span class="punct">:</span>&nbsp;number <span class="punct">=</span>
+          <span class="num">11</span></code></dt>
         <dd></dd>
 
       <dt><code><var>MIN_TIMEOUT</var> <span
-        class="punct">:</span>&nbsp;number</code></dt>
+        class="punct">:</span>&nbsp;number <span class="punct">=</span>
+          <span class="num">10</span></code></dt>
         <dd></dd>
+    </dl>
         
+    <h2>Prototype Properties</h2>
+    <dl>
       <dt><code><var>autoReverse</var>
         <span class="punct">:</span>&nbsp;boolean
         <span class="punct">=</span> <span clasS="rswd">false</span></code></dt>
@@ -78,11 +88,39 @@ Timeline 2:  `-------Action0------Action1-------Action2------->
             Otherwise, animation will loop such that each cycle proceeds
             forward from the initial
             <a href="KeyFrame"><code>KeyFrame</code></a>.</dd>
+      
+      <dt><code><var>frameLength</var> <span
+        class="punct">:</span>&nbsp;number <span class="punct">=</span>
+        jsx.animation.Timeline.MIN_FRAME_LENGTH</code></dt>
+        <dd>Length of a frame in milliseconds (ms).  The default value is
+            <code>MIN_FRAME_LENGTH</code> so that frames at 0&nbsp;ms
+            normalized to <code>MIN_TIMEOUT</code> are played before
+            the second frame.</dd>
+
+      <dt><code><var>keyFrames</var> <span
+        class="punct">:</span>&nbsp;<span class="ident">Array</span>[<a
+        href="KeyFrame"><span class="ident">KeyFrame</span></a>]
+        <span class="punct">=</span> <span class="punct">[]</span></code></dt>
+        <dd></dd>
+
+      <dt><code><var>repeatCount</var> <span
+        class="punct">:</span>&nbsp;number <span class="punct">=</span>
+        <span class="num">1</span></code></dt>
+        <dd>Defines the number of cycles in this animation. The
+            <code><var>repeatCount</var></code> may be <code>INDEFINITE</code>
+            for animations that repeat indefinitely, but must otherwise be
+            &le; 0.</dd>
+
+      <dt><code><var>target</var>
+        <span class="punct">:</span>&nbsp;<span
+        class="ident">Object</span> <span class="punct">=</span>
+        <span class="rswd">null</span></code></dt>
+        <dd>Target object</dd>
     </dl>
     
     <h2>Constructor</h2>
     <p><code><span class="ident">jsx<span class="punct">.</span>animation<span
-      class="punct">.</span>Animation</span><span
+      class="punct">.</span>Timeline</span><span
       class="punct">(</span><var>oParams</var>
       <span class="punct">:</span>&nbsp;<span class="ident">Object</span><span
       class="punct">)</span></code></p>
@@ -99,22 +137,23 @@ Timeline 2:  `-------Action0------Action1-------Action2------->
     
     <h2>Methods</h2>
     <dl>
-      <dt><h3><code><span class="ident">play</span><span class="punct">()</span></code></h3></dt>
-        <dd><p>Plays the animation by playing all of its <a href="Timeline"><code>Timelines</code></a>.</p>
-          <h4>Throws</h4>
+      <dt><h3><code><span class="ident">play</span><span
+        class="punct">(</span><var>target</var>  <span
+        class="punct">:</span>&nbsp;<span class="ident">Object</span></code><span
+        class="punct">)</span></code></h3></dt>
+        <dd><p>Plays this <code>Timeline</code>.</p>
+          <h4>Arguments</h4>
           <dl>
-            <dt><code class="ident">jsx<span class="punct">.</span>animation<span
-              class="punct">.</span>NoTimelineError</code></dt>
-              <dd>if no <code>Timelines</code> have been defined</dd>
+            <dt><code><var>target</var>
+              <span class="punct">:</span>&nbsp;<span
+              class="ident">Object</span></code></dt>
+              <dd>Target object (optional).  Is usually only provided
+                  if this <code>Timeline</code> is part of an
+                  <a href="Animation"><code>Animation</code></a>.</dd>
           </dl></dd>
+
       <dt><h3><code><span class="ident">stop</span><span class="punct">()</span></code></h3></dt>
-        <dd><p>Stops the animation by stopping all of its <a href="Timeline"><code>Timelines</code></a>.</p>
-          <h4>Throws</h4>
-          <dl>
-            <dt><code class="ident">jsx<span class="punct">.</span>animation<span
-              class="punct">.</span>NoTimelineError</code></dt>
-              <dd>if no <code>Timelines</code> have been defined</dd>
-          </dl></dd>
+        <dd>Prevents the <code>Timeline</code> from continuing to play.</dd>
     </dl>
   </body>
 </html>
