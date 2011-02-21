@@ -75,6 +75,42 @@ Timeline 2:  `-------Action0------Action1-------Action2------->
         class="punct">:</span>&nbsp;number <span class="punct">=</span>
           <span class="num">10</span></code></dt>
         <dd></dd>
+
+      <dt><code><var>types</var> <span
+        class="punct">:</span>&nbsp;<span class="ident">Object</span></code></dt>
+        <dd>Supported CSS data types.  Properties include:
+          <dl>
+            <dt><code>NUMBER</code></dt>
+              <dd>Numeric scalar value</dd>
+
+            <dt><code>LENGTH</code></dt>
+              <dd>Length given relative in <code>em</code> (width of the
+                M&nbsp;square) or <code>ex</code> (height of the x square),
+                or absolute in <code>in</code> (inches), <code>cm</code>
+                (centimeters), <code>mm</code> (millimeters), <code>pt</code>
+                (points), <code>pc</code> (picas), or <code>px</code>
+                (pixels).</dd>
+
+            <dt><code>PERCENTAGE</code></dt>
+              <dd>Length given in percentage</dd>
+
+            <dt><code>URI</code></dt>
+              <dd>Uniform Resource Identifier or URI-reference (see RFC 3986),
+                  enclosed in <code>url(…)</code></dd>
+
+            <dt><code>COUNTER</code></dt>
+              <dd>CSS counter</dd>
+
+            <dt><code>COLOR</code></dt>
+              <dd>Color in RGB(A) or HSV format</dd>
+
+            <dt><code>STRING</code></dt>
+              <dd>String of Unicode characters</dd>
+          </dl></dd>
+          
+      <dt><code><var>propertyInfo</var></code></dt>
+        <dd>Provides information about the type of a CSS property and its relation
+            to other CSS properties</dd>
     </dl>
         
     <h2>Prototype Properties</h2>
