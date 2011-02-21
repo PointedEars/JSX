@@ -219,7 +219,7 @@ function DHTML()
             sTagName = '*';
           }
           
-          if (arguments.length > 2 && typeof i != "number")
+          if (arguments.length > 2 && typeof index != "number")
           {
             var tmp = oContextNode;
             oContextNode = index;
@@ -261,19 +261,19 @@ function DHTML()
             sTagName = '*';
           }
           
-          if (arguments.length > 2 && typeof i != "number")
+          if (arguments.length > 2 && typeof index != "number")
           {
             var tmp = oContextNode;
             oContextNode = index;
             index = tmp;
           }
-          else
+
+          if (!oContextNode)
           {
             oContextNode = document;
           }
           
-          if (oContextNode != document
-              && !jsx.object.isMethod(oContextNode, "getElementsByTagName"))
+          if (!jsx.object.isMethod(oContextNode, "getElementsByTagName"))
           {
             return null;
           }
@@ -300,19 +300,19 @@ function DHTML()
          *   if there is no matching element.
          */
         return function(sTagName, index, oContextNode) {
-          if (arguments.length > 2 && typeof i != "number")
+          if (arguments.length > 2 && typeof index != "number")
           {
             var tmp = oContextNode;
             oContextNode = index;
             index = tmp;
           }
-          else
+          
+          if (!oContextNode)
           {
             oContextNode = document;
           }
           
-          if (oContextNode != document
-              && !jsx.object.isMethod(oContextNode, "all", "tags"))
+          if (!jsx.object.isMethod(oContextNode, "all", "tags"))
           {
             return null;
           }

@@ -271,15 +271,82 @@ jsx.animation.Timeline = (function() {
 jsx.animation.Timeline.INDEFINITE = Number.POSITIVE_INFINITY;
 jsx.animation.Timeline.MIN_TIMEOUT = 10;
 jsx.animation.Timeline.MIN_FRAME_LENGTH = jsx.animation.Timeline.MIN_TIMEOUT + 1;
+
+/**
+ * Supported CSS data types.  Properties include:
+ *        <dl>
+ *          <dt><code>NUMBER</code></dt>
+ *            <dd></dd>
+ *
+ *          <dt><code>LENGTH</code></dt>
+ *            <dd></dd>
+ *
+ *          <dt><code>PERCENTAGE</code></dt>
+ *            <dd></dd>
+ *
+ *          <dt><code>URI</code></dt>
+ *            <dd>Uniform Resource Identifier or URI-reference (see RFC 3986),
+ *                enclosed in <code>url(…)</code></dd>
+ *
+ *          <dt><code>COUNTER</code></dt>
+ *            <dd>CSS counter</dd>
+ *
+ *          <dt><code>COLOR</code></dt>
+ *            <dd>Color in RGB(A) or HSV format</dd>
+ *
+ *          <dt><code>STRING</code></dt>
+ *            <dd>Unicode string</dd>
+ *        </dl>
+ *
+ * @namespace
+ */
 jsx.animation.Timeline.types = {
+  /**
+   * Numeric scalar value
+   */
   NUMBER:     0,
+  
+  /**
+   * Length given relative in <code>em</code> (width of the
+   * M&nbsp;square) or <code>ex</code> (height of the x square),
+   * or absolute in <code>in</code> (inches), <code>cm</code>
+   * (centimeters), <code>mm</code> (millimeters), <code>pt</code>
+   * (points), <code>pc</code> (picas), or <code>px</code>
+   * (pixels).
+   */
   LENGTH:     1,
+  
+  /**
+   * Length given in percentage of the parent
+   */
   PERCENTAGE: 2,
+  
+  /**
+   * Uniform Resource Identifier or URI-reference (see RFC 3986),
+   * enclosed in <code>url(…)</code>.
+   */
   URI:        3,
+  
+  /**
+   * CSS counter
+   */
   COUNTER:    4,
+  
+  /**
+   * Color given in RGB(A) or HSV format
+   */
   COLOR:      5,
+  
+  /**
+   * String of Unicode characters
+   */
   STRING:     6
 };
+
+/**
+ * Provides information about the type of a CSS property and its relation
+ * to other CSS properties
+ */
 jsx.animation.Timeline.propertyInfo = {
   left:   {type: jsx.animation.Timeline.types.LENGTH, correspondsTo: "top"},
   top:    {type: jsx.animation.Timeline.types.LENGTH, correspondsTo: "left"},

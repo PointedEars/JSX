@@ -113,7 +113,10 @@ if (typeof test2 == "undefined")
   {
     var out = new Array(), result;
     
-    if (sExpression) out.push(sExpression);
+    if (sExpression)
+    {
+      out.push(sExpression);
+    }
   
     setErrorHandler();
     eval(new Array(
@@ -196,7 +199,10 @@ if (typeof assertTrue == "undefined")
    */
   var assertTrue = function (x) {
     var ox = x;
-    if (typeof x == "string") x = eval(x);
+    if (typeof x == "string")
+    {
+      x = eval(x);
+    }
     
     if (!x)
     {
@@ -294,8 +300,15 @@ if (typeof assertArrayEquals == "undefined")
    * @see Global#eval()
    */
   var assertArrayEquals = function (expecteds, actuals) {
-    if (typeof expecteds == "string") expecteds = eval(expecteds);
-    if (typeof actuals == "string") actuals = eval(actuals);
+    if (typeof expecteds == "string")
+    {
+      expecteds = eval(expecteds);
+    }
+    
+    if (typeof actuals == "string")
+    {
+      actuals = eval(actuals);
+    }
     
     if (expecteds == null && actuals == null)
     {
@@ -815,7 +828,7 @@ var synhl = (function () {
     rxCode = new RegExp(
       "(//.*|/\\*(.|\\s)*?\\*/)"
       + "|(&lt;/?script(.|\\r?\\n|\\r)*?&gt;|^script$)"
-      + "|(^|[^<])(/(</[^>]*>|[^/\\\\]|\\\\.)+/)"
+      + "|(^|[^<])(/(</[^>]*>|[^/\\\\\\[]|\\\\.|\\[[^\\]]*\\])+/)"
       + "|</?" + sElementType + sOptAttr + ">"
       + "|(&lt;/?" + sElementType + sOptAttr + "&gt;)"
       + "|('([^'\\\\]|\\\\.)*'" + '|"([^"\\\\]|\\\\.)*")'
@@ -854,7 +867,7 @@ var synhl = (function () {
         }
         
         return match;
-      }
+      };
     }()),
     
     /**
@@ -990,7 +1003,7 @@ function Owners(aOwners)
  * provide an identifier for the property with <code>iID</code>
  * and an array of references to the owner objects with
  * <code>aoOwners</code>.
- *
+ * <p>
  * If you provide the latter, the constructor function will
  * utilize <code>inArray()</code>, trying to determine if the
  * object/property references one of owners
@@ -1012,7 +1025,7 @@ function Owners(aOwners)
  * to count non-enumerable properties of a property; it seemed
  * ineffective to copypaste the ObjectInfo(...) code into this
  * constructor, thus the cross-calling.)
- *
+ * </p><p>
  * For reasons of backwards compatibility the object also provides
  * the `referencesOwner' property to specify if it references
  * its direct owner and allows for passing an object reference
@@ -1020,7 +1033,7 @@ function Owners(aOwners)
  * specify that owner object.  To determine if
  * <code>aoOwners</code> is an Owners object or not, the
  * <code>isInstanceOf()</code> method is required.
- *
+ * </p>
  * @param sName : string
  *   Name of the property.
  * @param sValue
@@ -2372,7 +2385,9 @@ function getObjInfo(sObject, aWhat, sStyle, sHeader, sFooter, sInspectorPath)
             + ' E-mail client required.">' + jsx.debug.email + '<\/a>&gt;';
       }
       else
-        sFooter += "<" + jsx.debug.email + ">"
+      {
+        sFooter += "<" + jsx.debug.email + ">";
+      }
   }
 
   if (sFooter != "")
