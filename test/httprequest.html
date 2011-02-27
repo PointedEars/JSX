@@ -1,0 +1,50 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>JSX:HTTPRequest Test Case</title>
+    <script type="text/javascript" src="../object.js"></script>
+    <script type="text/javascript" src="../types.js"></script>
+    <script type="text/javascript" src="../string.js"></script>
+    <script type="text/javascript" src="../httprequest.js"></script>
+    <script type="text/javascript" src="../xpath.js"></script>
+    <script type="text/javascript">
+      function makeRequest(s)
+      {
+        var req = new jsx.HTTPRequest("http://localhost/scripts/tmp/jQuery/test.xml");
+        if (req)
+        {
+          req.setSuccessListener(
+            
+            function (x) {
+              var doc = x.responseXML;
+              var nodes = jsx.xpath.evaluate("//def:bla", doc,
+                jsx.xpath.createCustomNSResolver({
+                  def: "foo",
+                  res: "http://www.ebasetech.com/LADRA_COPYMOVE_TERM_OP/Response"
+                }));
+              for (var i = 0, len = nodes.length; i < len; ++i)
+              {
+                window.alert(nodes[i].tagName);
+              }
+              // window.alert(
+              //   format(
+              //     "readyState: %n\nstatus: %n\nresponseText:\n%s",
+              //      x.readyState, x.status, x.responseText));
+              // window.alert(x.getResponseHeader("Content-Type")); 
+            });
+          req.send();
+        }
+      }
+    </script>
+  </head>
+  
+  <body>
+    <form action="">
+      <input name="URI" />
+      <input type="button"
+             value="Test" onclick="makeRequest(this.form.elements['URI'].value);" />
+    </form>
+  </body>
+</html>
