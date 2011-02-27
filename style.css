@@ -27,7 +27,7 @@ a:link:hover, a:visited:hover {
 
 code {
   /* Inconsolata is borken in Safari 5.0 on Wine */
-  font-family: Consolas, monospace;
+  font-family: Inconsolata, Consolas, monospace;
 }
 
 /* HTML language elements */
