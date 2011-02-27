@@ -1,6 +1,6 @@
 /**
  * @fileOverview <title>Basic Object Library</title>
- * @file object.js
+ * @file $Id$
  * 
  * @partof PointedEars' JavaScript Extensions (JSX)
  * @author (C) 2004-2011 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
@@ -27,13 +27,13 @@ if (typeof jsx == "undefined")
 
 jsx.object = {
   /** @version */
-  version:   "0.2.0.2010111614",
-  copyright: "Copyright \xA9 2004-2010",
+  version:   "0.2.$Revision$ ($Date$)",
+  copyright: "Copyright \xA9 2004-2011",
   author:    "Thomas Lahn",
   email:     "js@PointedEars.de",
   path:      "http://PointedEars.de/scripts/"
 };
-
+  
 // jsx.object.docURL = jsx.object.path + "object.htm";
 
 /**
@@ -1409,6 +1409,7 @@ Function.prototype.extend = (function () {
      * @deprecated
      */
     this.prototype.iterator = iterator;
+    var me = this;
     
     /* Optimize iteration if ECMAScript 5 features are available */
     if (jsx_object.isMethod(jsx.tryThis("Object"), "defineProperties"))
@@ -1427,7 +1428,15 @@ Function.prototype.extend = (function () {
         };
       }
 
-      Object.defineProperties(proto, oDescriptors);
+      jsx.tryThis(
+        function() {
+          Object.defineProperties(proto, oDescriptors);
+        },
+        function(e) {
+          jsx.warn(jsx_object.getFunctionName(me) + ".extend("
+            + jsx_object.getFunctionName(Constructor) + ", "
+            + oProtoProps + "): " + e.name + ': ' + e.message);
+        });
     }
 
     if (!jsx.object.isMethod(this.prototype, "forEach"))
@@ -1446,7 +1455,6 @@ Function.prototype.extend = (function () {
       /* Optimize iteration if ECMAScript 5 features are available */
       if (jsx_object.isMethod(jsx.tryThis("Object"), "defineProperty"))
       {
-        var me = this;
         jsx.tryThis(
           function() {
             Object.defineProperty(me.prototype, "forEach", {
