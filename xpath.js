@@ -1,29 +1,26 @@
 /**
  * <title>PointedEars' XPath Library</title>
  * @file $Id$
- * @partof PointedEars JavaScript Extensions (JSX)
  * @requires object.js
  *
  * @section Copyright & Disclaimer
  *
  * @author (C) 2008‒2011  Thomas Lahn <js@PointedEars.de>
  * 
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * @partof PointedEars' JavaScript Extensions (JSX)
+ * 
+ * JSX is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
+ * JSX is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License (GPL) for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU GPL along with this
- * program (COPYING file); if not, go to [1] or write to the Free
- * Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
- * 
- * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
+ * You should have received a copy of the GNU General Public License
+ * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
  */
 /*
  * Refer xpath.js.diff for changes to the last version,
@@ -73,12 +70,20 @@ jsx.xpath = {
    * 
    * @function
    * @param expression : String
-   *   XPath expression
+   *   XPath expression.  You may use a namespace prefix starting with "_"
+   *   to indicate a default namespace of the context node (that XPath
+   *   usually cannot resolve directly).  You then need to provide a custom
+   *   namespace resolver, like one created with
+   *   {@link jsx.xpath#createCustomNSResolver}, to return the namespace
+   *   URI for those prefixes.  This workaround is necessary because MSXML
+   *   XPath for JScript does not require or support a custom namespace
+   *   resolver for elements in the default namespace, and those virtual
+   *   prefixes must be trimmed from the expression by this method beforehand.
    * @param contextNode : Node
    *   Context node
    * @param namespaceResolver : Function
    *   Namespace resolver.  If not provided, a default namespace
-   *   resolver will be created using {@link jsx.xpath#createDefaultNSResolver()}.
+   *   resolver will be created using {@link jsx.xpath#createDefaultNSResolver}.
    *   Is ignored if MSXML is used, as MSXML for JScript supports only
    *   the default namespace resolver.
    * @param resultType : Number
@@ -119,7 +124,7 @@ jsx.xpath = {
         }
         else if (jsx_object.isMethod(contextNode, "selectNodes"))
         {
-          result = contextNode.selectNodes(expression);
+          result = contextNode.selectNodes(expression.replace(/_\w+:/g, ""));
           resultType = XPathResult.ORDERED_NODE_ITERATOR_TYPE;
         }
             
@@ -208,7 +213,7 @@ jsx.xpath = {
    * or <code>null</code>.
    * 
    * Note that despite its name a default namespace resolver cannot
-   * resolve elements in the default namespace.  Use
+   * resolve elements in a default namespace.  Use
    * {@link jsx.xpath#createCustomNSResolver()} to create such a resolver
    * instead.
    * 
@@ -238,7 +243,8 @@ jsx.xpath = {
    * Creates and returns a custom namespace resolver.  This method exists primarily
    * to facilitate the matching of elements that are in the default namespace,
    * XPath defines QNames without prefix to match only elements in the null
-   * namespace.
+   * namespace.  See also the description of the <var>expression</var> argument
+   * of {@link jsx.xpath#evaluate} for details.
    * 
    * @param namespaces : Object
    *   Namespace declarations.  The property names are the namespace prefixes,

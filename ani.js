@@ -103,7 +103,7 @@ jsx.animation.Animation.prototype = {
   timelines: [],
   
   /**
-   * Plays the animation by playng all of its
+   * Plays the animation by playing all of its
    * {@link jsx.animation#Timeline Timelines}.
    * 
    * @throws jsx.animation#NoTimelineError
@@ -480,7 +480,8 @@ jsx.animation.Timeline.prototype = {
     var
       jsx_dom = jsx.dom,
       jsx_object = jsx.object,
-      jsx_animation_Timeline = jsx.animation.Timeline;
+      jsx_animation_Timeline = jsx.animation.Timeline,
+      Color = jsx.css.Color;
 
     return function() {
       for (var i = 1, len = this.keyFrames.length; i < len; ++i)
@@ -845,7 +846,9 @@ jsx.animation.Interpolator = {
    *   <var>startValue</var> + (<var>endValue</var> − <var>startValue</var>) × <var>fraction</var>
    */
   LINEAR: (function() {
-    var jsx_object = jsx.object;
+    var
+      jsx_object = jsx.object,
+      Color = jsx.css.Color;
 
     return function(startValue, endValue, fraction) {
       if (jsx_object.isInstanceOf(startValue, Color)
