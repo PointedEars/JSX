@@ -19,11 +19,12 @@
             
             function (x) {
               var doc = x.responseXML;
-              var nodes = jsx.xpath.evaluate("//def:bla", doc,
+              //window.alert(doc.selectNodes("//res:OUTPUT//res:UNDO_COUNT/text()").tagName);
+              var nodes = jsx.xpath.evaluate("//_:baz", doc,
                 jsx.xpath.createCustomNSResolver({
-                  def: "foo",
+                  _: "bar",
                   res: "http://www.ebasetech.com/LADRA_COPYMOVE_TERM_OP/Response"
-                }));
+                }, doc));
               for (var i = 0, len = nodes.length; i < len; ++i)
               {
                 window.alert(nodes[i].tagName);

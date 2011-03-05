@@ -1,25 +1,25 @@
 /**
  * <title>Unicode Properties Support Library</title>
  * @file UnicodeData.js
- * @partof PointedEars' JavaScript Extensions (JSX)
- * @author
- *   (C) 2010  Thomas Lahn &lt;js@PointedEars.de&gt;
+ * @author (C) 2010, 2011  Thomas Lahn &lt;js@PointedEars.de&gt;
  * 
- * This program is free software: you can redistribute it and/or modify
+ * @partof PointedEars' JavaScript Extensions (JSX)
+ * 
+ * JSX is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
+ *
+ * JSX is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-jsx.RegExp.propertyClasses = {
+jsx.regexp.RegExp.propertyClasses = {
   Cc: "\\u0000-\\u001F\\u007F-\\u009F",
   Cf: "\\u00AD\\u0600-\\u0603\\u06DD\\u070F\\u17B4-\\u17B5\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u2064\\u206A-\\u206F\\uFEFF\\uFFF9-\\uFFFB",
   Co: "\\uE000\\uF8FF",
