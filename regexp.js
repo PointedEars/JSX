@@ -1,51 +1,50 @@
 /**
  * <title>PointedEars' JSX: RegExp Library</title>
- *
  * @filename regexp.js
- * @partof   PointedEars' JavaScript Extensions (JSX)
- *
+ * @version $Id$
+ * 
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2005-2010  Thomas Lahn &lt;js@PointedEars.de&gt;
+ *   (C) 2005‒2011  Thomas Lahn &lt;js@PointedEars.de&gt;
  * 
- * This program is free software: you can redistribute it and/or modify
+ * @partof PointedEars' JavaScript Extensions (JSX)
+ * 
+ * JSX is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
+ *
+ * JSX is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 if (typeof jsx != "object")
 {
+  /**
+   * @namespace
+   */
   var jsx = {};
 }
 
+/**
+ * @namespace
+ */
 jsx.regexp = {
   /** @version */
-  version:   "0.1.9.2010070915",
-  copyright: "Copyright \xA9 2005-2010",
+  version:   "0.1.$Revision$",
+  copyright: "Copyright \xA9 2005-2011",
   author:    "Thomas Lahn",
   email:     "js@PointedEars.de",
   path:      "http://pointedears.de/scripts/"
 };
 
 // jsx.regexp.docURL = jsx.regexp.path + "regexp.htm";
-
-/** @deprecated since 0.1.2010060903, see jsx.regexp */
-RegExp.version   = jsx.regexp.version;
-RegExp.copyright = jsx.regexp.copyright;
-RegExp.author    = jsx.regexp.author;
-RegExp.email     = jsx.regexp.email;
-RegExp.path      = jsx.regexp.path;
-// RegExp.docURL = jsx.regExp.docURL;
 
 /**
  * Returns the string representation of a {@link RegExp} without delimiters.
@@ -312,19 +311,21 @@ String.prototype.regExpEscape = strRegExpEscape;
  * 
  * <p>
  * Variant #3 can be combined with the other variants.  The constructor
- * has a defineCharacterClass() method which can be used to define and
+ * has a definePropertyClasses() method which can be used to define and
  * redefine property classes.  This allows an extended RegExp object
  * to support only a subset of Unicode Character Classes, and to support
  * user-defined character classes.
  * </p>
  * 
+ * @function
+ * @constructor
  * @param expression : String|RegExp
  * @param sFlags : String
  * @return RegExp
  *   A regular expression with the property class escape sequences expanded
  *   according to the specified data, with the specified flags set.
  */
-jsx.RegExp = (function () {
+jsx.regexp.RegExp = (function () {
   var
     rxPropertyEscapes = /\\([pP])\{([^\}]+)\}/g,
     rxEscapes = /\\\[/.concat(
@@ -340,7 +341,7 @@ jsx.RegExp = (function () {
       }
 
       var
-        me = jsx.RegExp,
+        me = jsx.regexp.RegExp,
         propertyClasses = me.propertyClasses;
     
       if (!propertyClasses)
@@ -520,16 +521,16 @@ jsx.RegExp = (function () {
   };
 })();
 
-jsx.RegExp.ucdScriptPath = "/scripts/UnicodeData.js";
-jsx.RegExp.ucdTextPath = "/scripts/UnicodeData.txt";
+jsx.regexp.RegExp.ucdScriptPath = "/scripts/UnicodeData.js";
+jsx.regexp.RegExp.ucdTextPath = "/scripts/UnicodeData.txt";
 
-jsx.RegExp.definePropertyClasses = function (o) {
+jsx.regexp.RegExp.definePropertyClasses = function (o) {
   for (var p in o)
   {
     this.propertyClasses[p] = o[p];
   }
 };
 
-jsx.RegExp.deletePropertyClass = function (p) {
+jsx.regexp.RegExp.deletePropertyClass = function (p) {
   return (delete this.propertyClasses[p]);
 };

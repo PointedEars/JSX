@@ -1,167 +1,176 @@
 /**
  * <title>PointedEars' CSS Library</title>
- * @version 0.1.2009041509
- * @partof PointedEars' JavaScript Extensions (JSX)
+ * @version $Id$
  * @requires collection.js
  * 
  * @section Copyright & Disclaimer
  * 
- * @author (C) 2005, 2009  Thomas Lahn &lt;css.js@PointedEars.de&gt;
+ * @author (C) 2005‒2011  Thomas Lahn &lt;css.js@PointedEars.de&gt;
  * 
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * @partof PointedEars' JavaScript Extensions (JSX)
+ * 
+ * JSX is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
+ * JSX is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License (GPL) for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU GPL along with this
- * program (COPYING file); if not, go to [1] or write to the Free
- * Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
- * 
- * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
+ * You should have received a copy of the GNU General Public License
+ * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var CSSversion = "0.1.1.2007031314";
-if (typeof css == "undefined")
+if (typeof jsx == "undefined")
 {
-  var css = {version: CSSversion};
+  /**
+   * @namespace
+   */
+  var jsx = {};
 }
-else
-{
-  css.version = CSSversion;
-}
+
+/**
+ * @namespace
+ */
+jsx.css = {
+  version: "0.1.$Rev$"
+};
 
 /**
  * A <code>CSSSelectorList</code> object encapsulates
  * all CSS selectors linked to from a document in a
  * {@link Collection}.
  *
+ * @constructor
  * @param oDocument : optional Object
  *   Object reference to override the default
  *   <code>document</code> object reference.
- * @return undefined
+ * @return jsx.css.SelectorList
  */
-function CSSSelectorList(oDocument)
-{
+jsx.css.SelectorList = function(oDocument) {
   this._super();
   this.document = oDocument || document;
   this.get();
-}
-CSSSelectorList.extend(Collection);
+};
 
-/**
- * Populates the collection with the selectors
- * of the document.
- *
- * @param oDocument : optional Object
- *   Object reference to override the default
- *   <code>document</code> object reference.
- * @return undefined
- */
-CSSSelectorList.prototype.get = function(oDocument) {
-  if (oDocument)
-  {
-    this.document = oDocument;
-  }
+jsx.css.SelectorList.extend(Collection, {
+  /**
+   * @type Document
+   */
+  document: null,
   
-  this.clear();
-  
-  var d, oSheets;
-  if ((d = this.document) && (oSheets = d.styleSheets))
-  {
-    for (var i = 0, oRules; i < oSheets.length; i++)
+  /**
+   * Populates the collection with the selectors
+   * of the document.
+   *
+   * @param oDocument : optional Object
+   *   Object reference to override the default
+   *   <code>document</code> object reference.
+   * @return undefined
+   */
+  get: function(oDocument) {
+    if (oDocument)
     {
-      if ((oRules = oSheets[i].cssRules || oSheets[i].rules))
+      this.document = oDocument;
+    }
+    
+    this.clear();
+    
+    var d, oSheets;
+    if ((d = this.document) && (oSheets = d.styleSheets))
+    {
+      for (var i = 0, oRules; i < oSheets.length; i++)
       {
-        for (var j = 0; j < oRules.length; j++)
+        if ((oRules = oSheets[i].cssRules || oSheets[i].rules))
         {
-          this.add(oRules[j], oRules[j].selectorText);
+          for (var j = 0; j < oRules.length; j++)
+          {
+            this.add(oRules[j], oRules[j].selectorText);
+          }
         }
       }
+      
+      return true;
     }
-    return true;
-  }
-  
-  return false;
-};
-
-/**
- * Returns a reference to the selector
- * containing a simple selector.
- *
- * @param sSelector : String
- *   Simple selector
- * @return CSSStyleRule | Null
- */
-CSSSelectorList.prototype.findSimpleSelector = function(sSelector) {
-  var s =
-    "{simple_selector}({combinator}{simple_selector}*)*"
-    .replace(
-      /\{simple_selector\}/g,
-      '(element_name(#|class|attrib|pseudo)*'
-      + '|(#|class|attrib|pseudo)+)');
-
-//    .replace(/element_name/g,        "(IDENT|\\*)")
-//    .replace(/class/g,               "\\.IDENT")
-//    .replace(/attrib/g,              "\\[\\s*IDENT\\s*([~\\|]="
-//                                     + "\\s*(IDENT|STRING)\\s*)?\\]")
-//    .replace(/pseudo/g,              ":(IDENT|FUNCTION\\s*IDENT?\\s*\\))")
-//    .replace(/FUNCTION/g,            "IDENT\\(\\s*expr\\)\\s*")
-//    .replace(/\{expr\}/g,            'Term(OperatorTerm)*')
-//    .replace(/\{Operator\}/g,        "(/\\s*|,\\s*|/\\*([^*]|\\*[\\/])*\\/)")
-//    .replace(/\{Term\}/g,            ["([+-]?",
-//                                      "(NUMBER%?\\s*|LENGTH\\s*",
-//                                      "|ANGLE\\s*|TIME\\s*",
-//                                      "|FREQ\\s*|IDENT\\(\\s*expr\\)\\s*)",
-//                                      "|STRING\\s*|IDENT\\s*|URI\\s*|hexcolor)"]
-//                                      .join(''))
-//    .replace(/ANGLE/g,               'NUMBER(deg|g?rad)')
-//    .replace(/TIME/g,                'NUMBERm?s')
-//    .replace(/FREQ/g,                'NUMBERk?Hz')
-//    .replace(/LENGTH/g,              'NUMBER([cm]m|e[mx]|in|p[ctx])')
-//    .replace(/NUMBER/g,              '([0-9]+|[0-9]*\\.[0-9]+)')
-//    .replace(/URI/g,                 "url\\(\\s*(STRING|URL)\\s*\\)")
-//    .replace(/STRING/g,              '({string1}|{string2})')
-//    .replace(/URL/g,                 '([!#$%&*-~]|{nonascii}|{escape})*')
-//    .replace(/hexcolor/g,            '#([0-9a-fA-F]{3}){1,2}')
-//    .replace(/IDENT/g,               "{nmstart}{nmchar}*\\s*")
-//    .replace(/\{nmstart\}/g,         '([_a-z{nonascii}]|{escape})')
-//    .replace(/\{nmchar\}/g,          '([_a-zA-Z0-9{nonascii}-]|{escape})')
-//    .replace(/\{string1\}/g, "\"([\t !#$%&(-~]|\\{nl}|'|[{nonascii}]|{escape})*\"")
-//    .replace(/\{string2\}/g, "'([\t !#$%&(-~]|\\{nl}|\"|[{nonascii}]|{escape})*'")
-//    .replace(/\{nl\}/g,              "(\\n|\\r\\n|\\r|\\f)")
-//    .replace(/\{nonascii\}/g,        "\\x80-\\xFF")
-//    .replace(/\{escape\}/g,          "({unicode}|\\\\[ -~\\x80-\\xFF])")
-//    .replace(/\{unicode\}/g,       "\\\\[0-9a-f]{1,6}(\\r\\n|[ \\t\\r\\n\\f])?")
-//    .replace(/\{combinator\}/g,      "(\\+\\s*|\\>\\s*|\\s+)");
-
-//  try
-//  {
-//    x = y;
-//  }
-//  catch (e)
-//  {
-//    alert("TODO in \n" + e.stack + "\n" + s);
-//  }
-
-  // var rxSimpleSelector = new RegExp(s);
     
-  var i = this.iterator();
-  while ((s = i.next()))
-  {
-    if ((new RegExp(sSelector)).test(s.selectorText))
-    {
-      return s;
-    }
-  }
+    return false;
+  },
   
-  return null;
-};
+  /**
+   * Returns a reference to the selector
+   * containing a simple selector.
+   *
+   * @param sSelector : String
+   *   Simple selector
+   * @return CSSStyleRule | Null
+   */
+  findSimpleSelector: function(sSelector) {
+    var s =
+      "{simple_selector}({combinator}{simple_selector}*)*"
+      .replace(
+        /\{simple_selector\}/g,
+        '(element_name(#|class|attrib|pseudo)*'
+        + '|(#|class|attrib|pseudo)+)');
+  
+  //    .replace(/element_name/g,        "(IDENT|\\*)")
+  //    .replace(/class/g,               "\\.IDENT")
+  //    .replace(/attrib/g,              "\\[\\s*IDENT\\s*([~\\|]="
+  //                                     + "\\s*(IDENT|STRING)\\s*)?\\]")
+  //    .replace(/pseudo/g,              ":(IDENT|FUNCTION\\s*IDENT?\\s*\\))")
+  //    .replace(/FUNCTION/g,            "IDENT\\(\\s*expr\\)\\s*")
+  //    .replace(/\{expr\}/g,            'Term(OperatorTerm)*')
+  //    .replace(/\{Operator\}/g,        "(/\\s*|,\\s*|/\\*([^*]|\\*[\\/])*\\/)")
+  //    .replace(/\{Term\}/g,            ["([+-]?",
+  //                                      "(NUMBER%?\\s*|LENGTH\\s*",
+  //                                      "|ANGLE\\s*|TIME\\s*",
+  //                                      "|FREQ\\s*|IDENT\\(\\s*expr\\)\\s*)",
+  //                                      "|STRING\\s*|IDENT\\s*|URI\\s*|hexcolor)"]
+  //                                      .join(''))
+  //    .replace(/ANGLE/g,               'NUMBER(deg|g?rad)')
+  //    .replace(/TIME/g,                'NUMBERm?s')
+  //    .replace(/FREQ/g,                'NUMBERk?Hz')
+  //    .replace(/LENGTH/g,              'NUMBER([cm]m|e[mx]|in|p[ctx])')
+  //    .replace(/NUMBER/g,              '([0-9]+|[0-9]*\\.[0-9]+)')
+  //    .replace(/URI/g,                 "url\\(\\s*(STRING|URL)\\s*\\)")
+  //    .replace(/STRING/g,              '({string1}|{string2})')
+  //    .replace(/URL/g,                 '([!#$%&*-~]|{nonascii}|{escape})*')
+  //    .replace(/hexcolor/g,            '#([0-9a-fA-F]{3}){1,2}')
+  //    .replace(/IDENT/g,               "{nmstart}{nmchar}*\\s*")
+  //    .replace(/\{nmstart\}/g,         '([_a-z{nonascii}]|{escape})')
+  //    .replace(/\{nmchar\}/g,          '([_a-zA-Z0-9{nonascii}-]|{escape})')
+  //    .replace(/\{string1\}/g, "\"([\t !#$%&(-~]|\\{nl}|'|[{nonascii}]|{escape})*\"")
+  //    .replace(/\{string2\}/g, "'([\t !#$%&(-~]|\\{nl}|\"|[{nonascii}]|{escape})*'")
+  //    .replace(/\{nl\}/g,              "(\\n|\\r\\n|\\r|\\f)")
+  //    .replace(/\{nonascii\}/g,        "\\x80-\\xFF")
+  //    .replace(/\{escape\}/g,          "({unicode}|\\\\[ -~\\x80-\\xFF])")
+  //    .replace(/\{unicode\}/g,       "\\\\[0-9a-f]{1,6}(\\r\\n|[ \\t\\r\\n\\f])?")
+  //    .replace(/\{combinator\}/g,      "(\\+\\s*|\\>\\s*|\\s+)");
+  
+  //  try
+  //  {
+  //    x = y;
+  //  }
+  //  catch (e)
+  //  {
+  //    alert("TODO in \n" + e.stack + "\n" + s);
+  //  }
+  
+    // var rxSimpleSelector = new RegExp(s);
+      
+    var i = this.iterator();
+    while ((s = i.next()))
+    {
+      if ((new RegExp(sSelector)).test(s.selectorText))
+      {
+        return s;
+      }
+    }
+    
+    return null;
+  }
+});
 
 /**
  * Shows or hides elements with a certain class name.
@@ -179,7 +188,7 @@ function showByClassName(sClassName, bShow)
 {
   var selectorList, selector;
   if (typeof CSSSelectorList != "undefined"
-      && (selectorList = new CSSSelectorList())
+      && (selectorList = new jsx.css.SelectorList())
       && (selector =
             selectorList.findSimpleSelector("\\." + sClassName)))
   {
@@ -234,10 +243,9 @@ function showByClassName(sClassName, bShow)
  *   Blue value.
  * @return Color
  */
-function Color(iRed, iGreen, iBlue)
-{
+jsx.css.Color = function(iRed, iGreen, iBlue) {
   this.set(iRed, iGreen, iBlue);
-}
+};
 
 /**
  * Sets the color values from Red, Green and Blue values or a
@@ -252,7 +260,7 @@ function Color(iRed, iGreen, iBlue)
  *   Blue value (optional)
  * @return Color
  */
-Color.prototype.set = function(iRed, iGreen, iBlue) {
+jsx.css.Color.prototype.set = function(iRed, iGreen, iBlue) {
   if (typeof iRed != 'undefined')
   {
     /* rgb(...) or /#xxx(xxx)?/ */
@@ -262,12 +270,12 @@ Color.prototype.set = function(iRed, iGreen, iBlue) {
     }
     else
     {
-      if (jsx.object.isInstanceOf(iRed, Color))
+      if (jsx.object.isInstanceOf(iRed, jsx.css.Color))
       {
         this.setRed(iRed.red);
 
-        if (jsx.object.isInstanceOf(iGreen, Color)
-            && jsx.object.isInstanceOf(iBlue, Color))
+        if (jsx.object.isInstanceOf(iGreen, jsx.css.Color)
+            && jsx.object.isInstanceOf(iBlue, jsx.css.Color))
         {
           this.setGreen(iGreen.green);
           this.setBlue(iBlue.blue);
@@ -291,13 +299,13 @@ Color.prototype.set = function(iRed, iGreen, iBlue) {
   
   return this;
 };
-
+  
 /**
  * @private
  * @param {String} sComponent
  * @param {Number} value
  */
-Color.prototype._setComponent = function(sComponent, value) {
+jsx.css.Color.prototype._setComponent = function(sComponent, value) {
   if (isNaN(value))
   {
     return jsx.throwThis("jsx.InvalidArgumentError",
@@ -306,19 +314,19 @@ Color.prototype._setComponent = function(sComponent, value) {
   
   this[sComponent] = parseInt(value);
 };
-
-Color.prototype.setRed = function(value) {
+  
+jsx.css.Color.prototype.setRed = function(value) {
   this._setComponent("red", value);
 };
-
-Color.prototype.setGreen = function(value) {
+  
+jsx.css.Color.prototype.setGreen = function(value) {
   this._setComponent("green", value);
 };
-
-Color.prototype.setBlue = function(value) {
+  
+jsx.css.Color.prototype.setBlue = function(value) {
   this._setComponent("blue", value);
 };
-
+  
 /**
  * Returns the difference between two colors.
  * 
@@ -342,10 +350,10 @@ Color.prototype.setBlue = function(value) {
  *   used for creating a Color object.
  * @type {red, green, blue}
  */
-Color.prototype.diff = function(color2, color1) {
-  if (color1.constructor != Color)
+jsx.css.Color.prototype.diff = function(color2, color1) {
+  if (color1.constructor != jsx.css.Color)
   {
-    if (this.constructor == Color)
+    if (this.constructor == jsx.css.Color)
     {
       color1 = this;
     }
@@ -364,7 +372,7 @@ Color.prototype.diff = function(color2, color1) {
     blue:  color2.blue  - color1.blue
   };
 };
-
+  
 /**
  * Fixes RGB values, i.e. brings them into range
  * if they are out of range, and returns the new value.
@@ -372,7 +380,7 @@ Color.prototype.diff = function(color2, color1) {
  * 
  * @return Color
  */
-Color.prototype.fix = function() {
+jsx.css.Color.prototype.fix = function() {
   if (this.red   <   0) { this.red   =   0; }
   if (this.red   > 255) { this.red   = 255; }
   if (this.green <   0) { this.green =   0; }
@@ -382,7 +390,7 @@ Color.prototype.fix = function() {
   
   return this;
 };
-
+  
 /**
  * Increase/decrease one or more RGB components of a color.
  * 
@@ -391,14 +399,14 @@ Color.prototype.fix = function() {
  * @param iBlue
  * @return Color
  */
-Color.prototype.inc = function(iRed, iGreen, iBlue) {
+jsx.css.Color.prototype.inc = function(iRed, iGreen, iBlue) {
   switch (iRed.constructor)
   {
     case String:
-      iRed = new Color(iRed);
+      iRed = new jsx.css.Color(iRed);
     
     case Object:
-    case Color:
+    case jsx.css.Color:
       if (typeof iRed.green != "undefined")
       {
         iGreen = iRed.green;
@@ -433,7 +441,7 @@ Color.prototype.inc = function(iRed, iGreen, iBlue) {
   
   return this.fix();
 };
-
+  
 /**
  * Sets the color values from a RGB value.
  * 
@@ -441,7 +449,7 @@ Color.prototype.inc = function(iRed, iGreen, iBlue) {
  *   RGB value as supported by @{#Color()}.
  * @return Color
  */
-Color.prototype.setRGB = function(v) {
+jsx.css.Color.prototype.setRGB = function(v) {
   var m;
 
   if ((m =
@@ -485,17 +493,17 @@ Color.prototype.setRGB = function(v) {
 
   return this;
 };
-
+  
 /**
  * Returns the monochrome version of a color as an object.
  * 
  * @return Color
  */
-Color.prototype.getMono = function() {
+jsx.css.Color.prototype.getMono = function() {
   var v = this.getHSV().value;
-  return new Color(v, v, v);
+  return new jsx.css.Color(v, v, v);
 };
-
+  
 /**
  * Sets the color values from Red, Green and Blue values or
  * an RGB value and returns a monochrome version of the color
@@ -510,7 +518,7 @@ Color.prototype.getMono = function() {
  *   Blue value.
  * @return Color
  */
-Color.prototype.setMono = function(iRed, iGreen, iBlue) {
+jsx.css.Color.prototype.setMono = function(iRed, iGreen, iBlue) {
   this.set(iRed, iGreen, iBlue);
   
   var c = this.getMono();
@@ -520,7 +528,7 @@ Color.prototype.setMono = function(iRed, iGreen, iBlue) {
 
   return this;
 };
-
+  
 /**
  * Returns the next similar color to the represented color on the
  * 214-color Web-safe palette, i.e. a color where each sRGB component
@@ -529,7 +537,7 @@ Color.prototype.setMono = function(iRed, iGreen, iBlue) {
  * 
  * @return Color
  */
-Color.prototype.getWebSafe = function() {
+jsx.css.Color.prototype.getWebSafe = function() {
   function getNearestSafeValue(v)
   {
     if (v >= 0xFF)
@@ -563,13 +571,13 @@ Color.prototype.getWebSafe = function() {
     return -1;
   }
 
-  return new Color(
+  return new jsx.css.Color(
     getNearestSafeValue(this.red),
     getNearestSafeValue(this.green),
     getNearestSafeValue(this.blue));
 };
-
-Color.prototype.setWebSafe = function(iRed, iGreen, iBlue) {
+  
+jsx.css.Color.prototype.setWebSafe = function(iRed, iGreen, iBlue) {
   this.set(iRed, iGreen, iBlue);
   
   var c = this.getWebSafe();
@@ -579,15 +587,15 @@ Color.prototype.setWebSafe = function(iRed, iGreen, iBlue) {
 
   return this;
 };
-
+  
 /**
  * Returns the color in the sRGB color space as an object
  * identifying the coordinates of that color in the
  * HSV/HSB (Hue, Saturation, Value/Brightness) color space.
  * 
- * @return Object
+ * @return Object {hue, saturation, value}
  */
-Color.prototype.getHSV = function() {
+jsx.css.Color.prototype.getHSV = function() {
   /* We need the maximum value out of three */
   if (Math.max(1, 2, 3) != 3)
   {
@@ -662,7 +670,7 @@ Color.prototype.getHSV = function() {
   
   return {hue: h, saturation: s, value: v};
 };
-
+  
 /**
  * Returns a <code>Color</code> object, identifying a color in the
  * sRGB color space, defined by given coordinates for that color
@@ -678,11 +686,11 @@ Color.prototype.getHSV = function() {
  *   Brightness value, from 0.0 to 1.0 (0 to 100%).
  * @return Color
  */
-Color.prototype.HSVtoRGB = function(h, s, v) {
+jsx.css.Color.prototype.HSVtoRGB = function(h, s, v) {
   /* Cf. http://en.wikipedia.org/wiki/HSV_color_space#Transformation_between_HSV_and_RGB */
   if (s == 0.0)
   {
-    return new Color(v * 255, v * 255, v * 255);
+    return new jsx.css.Color(v * 255, v * 255, v * 255);
   }
 
   var
@@ -720,10 +728,10 @@ Color.prototype.HSVtoRGB = function(h, s, v) {
       break;
   }
   
-  return new Color(r * 255, g * 255, b * 255);
+  return new jsx.css.Color(r * 255, g * 255, b * 255);
 };
-
-Color.prototype.toHex = function() {
+  
+jsx.css.Color.prototype.toHex = function() {
   var
     r = leadingZero(this.red.toString(16), 2),
     g = leadingZero(this.green.toString(16), 2),
@@ -746,21 +754,21 @@ Color.prototype.toHex = function() {
  * <code>rgb(<var>r</var>,<var>g</var>,<var>b</var>)</code>
  * representation supported by CSS.
  * 
+ * @function
  * @return string
  */
-Color.prototype.toRGBString =
-Color.prototype.toString = function() {
+jsx.css.Color.prototype.toString = jsx.css.Color.toRGBString = function() {
   return ['rgb(', this.red, ',', this.green, ',', this.blue, ')'].join('');
 };
-
-/**
- * Returns the color as a string
- * <code>{red: <var>r</var>, green: <var>g</var>, blue: <var>b</var>}</code>
- * representation as supported by e.g. JSON.
- * 
- * @return string
- */
-Color.prototype.toObjectString = function color_toObjectString() {
+  
+  /**
+   * Returns the color as a string
+   * <code>{red: <var>r</var>, green: <var>g</var>, blue: <var>b</var>}</code>
+   * representation as supported by e.g. JSON.
+   * 
+   * @return string
+   */
+jsx.css.Color.prototype.toObjectString = function() {
   return [
     '{red: ', this.red, ', green: ', this.green, ', blue: ', this.blue, '}'
   ].join('');
@@ -774,10 +782,10 @@ Color.prototype.toObjectString = function color_toObjectString() {
 function makeMono()
 {
   var
-    sl = new CSSSelectorList(),
+    sl = new jsx.css.SelectorList(),
     oIt = sl.iterator(),
     s,
-    c = new Color(),
+    c = new jsx.css.Color(),
     a = ['backgroundColor', 'borderColor', 'borderTopColor',
          'borderRightColor', 'borderBottomColor', 'borderLeftColor',
          'outlineColor', 'color'],
@@ -857,8 +865,7 @@ function _getComputedStyle(o, p)
 
   return s;
 }
-var currentStyle = _getComputedStyle;
-css.getComputedStyle = currentStyle;
+jsx.css.getComputedStyle = _getComputedStyle;
 
 function isHidden(o)
 {
