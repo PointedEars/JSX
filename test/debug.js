@@ -3,25 +3,26 @@
  *
  * @filename debug.js
  * @requires object.js, types.js, array.js (for #Properties)
- * @partof   PointedEars' JavaScript Extensions (JSX)
  *
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2001-2010  Thomas Lahn &lt;js@PointedEars.de&gt;
+ *   (C) 2001‒2011  Thomas Lahn &lt;js@PointedEars.de&gt;
  * 
- * This program is free software: you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation, either version 3
- * of the License, or (at your option) any later version.
+ * @partof PointedEars' JavaScript Extensions (JSX)
  * 
- * This program is distributed in the hope that it will be useful,
+ * JSX is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JSX is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 jsx.debug = {

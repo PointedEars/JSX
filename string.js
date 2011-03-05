@@ -2,34 +2,31 @@
  * <title>PointedEars' JSX: String Library</title>
  * @file string.js
  *
- * @partof   PointedEars' JavaScript Extensions (JSX)
  * @requires object.js
  *
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2001-2010  Thomas Lahn &lt;string.js@PointedEars.de&gt;
+ *   (C) 2001-2011  Thomas Lahn &lt;string.js@PointedEars.de&gt;
  * @author
  *   Parts Copyright (C) 2003<br>
  *   Dietmar Meier &lt;meier@innoline-systemtechnik.de&gt;<br>
  *   Martin Honnen &lt;Martin.Honnen@gmx.de&gt;
  * 
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * @partof PointedEars' JavaScript Extensions (JSX)
+ * 
+ * JSX is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
+ * JSX is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License (GPL) for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU GPL along with this
- * program (COPYING file); if not, go to [1] or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA  02110-1301, USA.
- * 
- * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
+ * You should have received a copy of the GNU General Public License
+ * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 if (typeof jsx === "undefined")
