@@ -346,7 +346,7 @@ jsx.regexp.RegExp = (function () {
     
       if (!propertyClasses)
       {
-        var req = new jsx.HTTPRequest(me.ucdScriptPath, "GET", false,
+        var req = new jsx.net.http.Request(me.ucdScriptPath, "GET", false,
           function (x) {
             eval(x.responseText);
           });
