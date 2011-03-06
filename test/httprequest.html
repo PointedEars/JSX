@@ -7,12 +7,12 @@
     <script type="text/javascript" src="../object.js"></script>
     <script type="text/javascript" src="../types.js"></script>
     <script type="text/javascript" src="../string.js"></script>
-    <script type="text/javascript" src="../httprequest.js"></script>
+    <script type="text/javascript" src="../http.js"></script>
     <script type="text/javascript" src="../xpath.js"></script>
     <script type="text/javascript">
       function makeRequest(s)
       {
-        var req = new jsx.HTTPRequest("http://localhost/scripts/tmp/jQuery/test.xml");
+        var req = new jsx.net.http.Request("http://localhost/scripts/tmp/jQuery/test.xml");
         if (req)
         {
           req.setSuccessListener(

@@ -1,8 +1,37 @@
 /**
+ * @fileOverview <title>HTTP Library</title>
+ * @file $Id$
  * @requires
  *   object.js for jsx.object#isMethod(),
  *   string.js for #esc(), #escURI()
  * 
+ * @author (C) 2004-2011 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
+ * 
+ * @partof PointedEars' JavaScript Extensions (JSX)
+ * 
+ * JSX is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JSX is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+if (typeof jsx.net == "undefined")
+{
+  /**
+   * @namespace
+   */
+  jsx.net = {};
+}
+
+/**
  * @idl
  * 
  * interface HTTPResponseListener : Function {
@@ -43,7 +72,7 @@
  *                                               default=setRequestType();
  *   readonly attribute HTTPRequestReadyState  readyState
  *   readonly attribute HTTPStatus             status
- *            attribute HTTPResponseListener   responseListener
+ *            attribute HTTPResponseListener   _responseListener
  *            attribute HTTPResponseListener   successListener
  *            attribute HTTPResponseListener   errorListener
  *
@@ -97,49 +126,51 @@
  * @end
  */
 
-/**
- * Creates a new <code>HTTPRequest</code> object.
- * 
- * You can set up response listeners per argument (see below), or
- * {@link jsx.HTTPRequest.prototype#setResponseListener setResponseListener()},
- * {@link jsx.HTTPRequest.prototype#setSuccessListener setSuccessListener()},
- * and {@link jsx.HTTPRequest.prototype#setErrorListener setErrorListener()};
- * then call {@link jsx.HTTPRequest.prototype#send send()} to submit
- * the request.
- * 
- * @param sURL : optional string=document.URL
- *   Request URL.  The default is the URL of the sending resource.
- * @param sMethod : optional string=jsx.HTTPRequest.method.GET
- *   Request method.  Use the <code>jsx.HTTPRequest.method.GET</code>
- *   (default) and <code>.POST</code> properties to avoid problems
- *   caused by case mismatch, and other typos.
- * @param bAsync : optional boolean=true
- *   Pass <code>true</code> to make an asynchronous request (default),
- *   that is, a request that is processed in the background and does
- *   not interrupt user operation.
- * @param fSuccessListener : optional jsx.HTTPResponseListener=null
- *   The function to handle the response of a successful request
- *   (default: <code>null</code>).
- * @param fErrorListener : optional jsx.HTTPResponseListener=null
- *   The function to handle the response of a request that failed
- *   (default: <code>null</code>).
- * @constructor
- */
-jsx.HTTPRequest = function (sURL, sMethod, bAsync, fSuccessListener, fErrorListener) {
-  /* Enables factory use */
-  var me = arguments.callee;
-  if (this.constructor !== me)
-  {
-    return me.construct(arguments);
-  }
+jsx.net.http = {
+  /** @version */
+  version:   "0.1.$Revision$ ($Date$)",
+  copyright: "Copyright \xA9 2004-2011",
+  author:    "Thomas Lahn",
+  email:     "js@PointedEars.de",
+  path:      "http://PointedEars.de/scripts/",
   
-  this.setURL(sURL, true);
-  this.setMethod(sMethod);
-  this.setAsync(bAsync);
-  this.setSuccessListener(fSuccessListener);
-  this.setErrorListener(fErrorListener);
-  this.setData();
-  this.setRequestType();
+  /**
+   * Creates a new <code>Request</code> object.
+   * 
+   * You can set up response listeners per argument (see below), or
+   * {@link jsx.net.http.Request.prototype#setResponseListener setResponseListener()},
+   * {@link jsx.net.http.Request.prototype#setSuccessListener setSuccessListener()},
+   * and {@link jsx.net.http.Request.prototype#setErrorListener setErrorListener()};
+   * then call {@link jsx.net.http.Request.prototype#send send()} to submit
+   * the request.
+   * 
+   * @param sURL : optional string=document.URL
+   *   Request URL.  The default is the URL of the sending resource.
+   * @param sMethod : optional string=jsx.net.http.Request.method.GET
+   *   Request method.  Use the <code>jsx.net.http.Request.method.GET</code>
+   *   (default) and <code>.POST</code> properties to avoid problems
+   *   caused by case mismatch, and other typos.
+   * @param bAsync : optional boolean=true
+   *   Pass <code>true</code> to make an asynchronous request (default),
+   *   that is, a request that is processed in the background and does
+   *   not interrupt user operation.
+   * @param fSuccessListener : optional jsx.net.http.ResponseListener=null
+   *   The function to handle the response of a successful request
+   *   (default: <code>null</code>).
+   * @param fErrorListener : optional jsx.net.http.ResponseListener=null
+   *   The function to handle the response of a request that failed
+   *   (default: <code>null</code>).
+   * @constructor
+   */
+  Request: function (sURL, sMethod, bAsync, fSuccessListener, fErrorListener) {
+    this.setURL(sURL, true);
+    this.setMethod(sMethod);
+    this.setAsync(bAsync);
+    this.setSuccessListener(fSuccessListener);
+    this.setErrorListener(fErrorListener);
+    this.setData();
+    this.setRequestType();
+  }
 };
 
 jsx.object.addProperties(
@@ -219,10 +250,10 @@ jsx.object.addProperties(
       HTTP_VER_NOT_SUPP: 505
     }
   },
-  jsx.HTTPRequest);
+  jsx.net.http.Request);
 
-jsx.HTTPRequest.prototype = {
-  constructor: jsx.HTTPRequest,
+jsx.net.http.Request.prototype = {
+  constructor: jsx.net.http.Request,
   
   /**
    * Cached XHR object
@@ -234,34 +265,37 @@ jsx.HTTPRequest.prototype = {
   /**
    * Method to be called onreadystatechange
    * 
+   * @private
+   * @function
    * @param x : XMLHttpRequest
    */
-  responseListener: function (x) {
-    var C = this.constructor;
-  
-    if (x.readyState === C.readyState.COMPLETED)
-    {
-      var
-        jsx_object = jsx.object,
-        oStatus = C.status,
-        reqStatus = x.status;
-      
-      if (oStatus.OK_EXPR.test(reqStatus))
+  _responseListener: (function() {
+    var
+      Request = jsx.net.http.Request,
+      jsx_object = jsx.object,
+      oStatus = Request.status;
+    
+    return function (x) {
+      if (x.readyState === Request.readyState.COMPLETED)
       {
-        if (jsx_object.isMethod(this.successListener))
+        var reqStatus = x.status;
+        if (oStatus.OK_EXPR.test(reqStatus))
         {
-          this.successListener(x);
+          if (jsx_object.isMethod(this.successListener))
+          {
+            this.successListener(x);
+          }
+        }
+        else if (oStatus.FAILED_EXPR.test(reqStatus))
+        {
+          if (jsx_object.isMethod(this.errorListener))
+          {
+            this.errorListener(x);
+          }
         }
       }
-      else if (oStatus.FAILED_EXPR.test(reqStatus))
-      {
-        if (jsx_object.isMethod(this.errorListener))
-        {
-          this.errorListener(x);
-        }
-      }
-    }
-  },
+    };
+  }()),
   
   /**
    * Sets the <code>URL</code> property.
@@ -331,15 +365,15 @@ jsx.HTTPRequest.prototype = {
   setResponseListener: function (fResponseListener) {
     /* initialization */
     if (typeof fResponseListener == "undefined"
-        && typeof this.responseListener == "undefined")
+        && typeof this._responseListener == "undefined")
     {
-      this.responseListener = new jsx.HTTPResponseListener();
+      this._responseListener = new jsx.net.http.ResponseListener();
       return true;
     }
     else if (jsx.object.isMethod(fResponseListener))
     {
-      this.responseListener = fResponseListener;
-      return (this.responseListener == fResponseListener);
+      this._responseListener = fResponseListener;
+      return (this._responseListener == fResponseListener);
     }
     else
     {
@@ -354,7 +388,7 @@ jsx.HTTPRequest.prototype = {
    * successful requests.
    * 
    * An <code>HTTPRequest</code> object is always initialized with
-   * an inherited dummy success listener (a {@link jsx.HTTPResponseListener}
+   * an inherited dummy success listener (a {@link jsx.net.http.ResponseListener}
    * instance) that does nothing, if you do not specify one.  Once initialized,
    * passing a reference to a non-callable object as argument throws an
    * {@link jsx#InvalidArgumentError InvalidArgumentError}
@@ -370,7 +404,7 @@ jsx.HTTPRequest.prototype = {
     if (typeof fSuccessListener == "undefined"
         && typeof this.successListener == "undefined")
     {
-      this.successListener = new jsx.HTTPResponseListener();
+      this.successListener = new jsx.net.http.ResponseListener();
       return true;
     }
     else if (typeof fSuccessListener == "function")
@@ -392,7 +426,7 @@ jsx.HTTPRequest.prototype = {
    * 
    * An <code>HTTPRequest</code> object is always initialized with
    * an inherited dummy error listener that does nothing (a
-   * {@link jsx.HTTPResponseListener} instance), if you
+   * {@link jsx.net.http.ResponseListener} instance), if you
    * do not specify one.  Once initialized, passing a reference
    * to a non-callable object as argument throws an
    * {@link jsx#InvalidArgumentError InvalidArgumentError}
@@ -405,7 +439,7 @@ jsx.HTTPRequest.prototype = {
     if (typeof fErrorListener == "undefined"
         && typeof this.errorListener == "undefined")
     {
-      this.errorListener = new jsx.HTTPResponseListener();
+      this.errorListener = new jsx.net.http.ResponseListener();
       return true;
     }
     else if (jsx.object.isMethod(fErrorListener))
@@ -462,7 +496,6 @@ jsx.HTTPRequest.prototype = {
       {
         this.method = f.method;
       }
-      
       
       var aData = [];
 
@@ -675,9 +708,9 @@ jsx.HTTPRequest.prototype = {
           // console.log("readyState = %i, status = %i", x.readyState, x.status);
           // console.log(C.status.OK_EXPR);
           
-          if (jsx_object.isMethod(me.responseListener))
+          if (jsx_object.isMethod(me._responseListener))
           {
-            me.responseListener(x2);
+            me._responseListener(x2);
           }
           
           /* Let the garbage collector handle this per the closure */
@@ -695,9 +728,9 @@ jsx.HTTPRequest.prototype = {
     
     if (!bAsync)
     {
-      if (jsx_object.isMethod(this.responseListener))
+      if (jsx_object.isMethod(this._responseListener))
       {
-        this.responseListener(x);
+        this._responseListener(x);
       }
         
       /* Handle stopped servers */
@@ -726,7 +759,7 @@ jsx.HTTPRequest.prototype = {
  * 
  * Recommended usage:
  * <pre><code>
- * var f = jsx.HTTPResponseListener(
+ * var f = jsx.net.http.ResponseListener(
  *   new Array(
  *     'statement;',
  *     'statement;'
@@ -737,7 +770,7 @@ jsx.HTTPRequest.prototype = {
  * @type Function
  * @constructor
  */
-jsx.HTTPResponseListener = function (sCode) {
+jsx.net.http.ResponseListener = function (sCode) {
   return Function("x", sCode || "");
 };
 
