@@ -1,0 +1,7 @@
+RedirectMatch permanent (.*/)preloadImages(\.html?)?(.*) $1hoverMe/
+RedirectMatch permanent (.*/test/(hoverMe))(-\d.\d\d?)?(\.html?)$ $1/$2/$2$3
+RedirectMatch permanent (.*/test)/(hoverMe.*)$ $1/dom/$2
+RedirectMatch permanent (.*/whatami)-(de)(\.html?)?(.*) $1.html.$2$4
+# RedirectMatch permanent ^(.*)/(liveconn)[^/]+$ $1/$2.html
+
+# RedirectMatch permanent (.*/)obj-?insp(?!\.(css|js)) $1ObjectInspector/nightly/latest/
