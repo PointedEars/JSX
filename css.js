@@ -35,11 +35,11 @@ if (typeof jsx == "undefined")
  * @namespace
  */
 jsx.css = {
-  version: "0.1.$Rev$"
+  version: "0.1.$Revision$"
 };
 
 /**
- * A <code>CSSSelectorList</code> object encapsulates
+ * A <code>SelectorList</code> object encapsulates
  * all CSS selectors linked to from a document in a
  * {@link Collection}.
  *
@@ -186,28 +186,29 @@ jsx.css.SelectorList.extend(Collection, {
  */
 function showByClassName(sClassName, bShow)
 {
+  var newDisplay = bShow ? "" : "none";
   var selectorList, selector;
-  if (typeof CSSSelectorList != "undefined"
+  if (typeof jsx.css != "undefined"
+      && typeof jsx.css.SelectorList == "function"
       && (selectorList = new jsx.css.SelectorList())
       && (selector =
             selectorList.findSimpleSelector("\\." + sClassName)))
   {
-    selector.display = bShow ? "" : "none";
-    return (selector.display == bShow ? "" : "none");
+    selector.display = newDisplay;
+    return (selector.display == newDisplay);
   }
   else
   {
-    if (typeof dhtml != "undefined"
-        && dhtml.isMethodType(typeof dhtml.getElemByClassName))
+    if (typeof jsx.object.isMethod(jsx.dom, "getElemByClassName"))
     {
-      var es = dhtml.getElemByClassName(sClassName);
+      var es = jsx.dom.getElemByClassName(sClassName);
 
       for (var i = es.length; i--; 0)
       {
         var o = es[i];
         if (typeof o.display != "undefined")
         {
-          o.display = bShow ? "" : "none";
+          o.display = newDisplay;
         }
       }
       return true;
@@ -224,24 +225,23 @@ function showByClassName(sClassName, bShow)
  * The <code>Color</code> prototype encapsulates
  * color data given in RGB format.
  *
- * @param iRed {Number|Color|String}
+ * @param iRed : Number|Color|String
  *   Red value or RGB color.  Supported formats for RGB color are:
  *   <code>rgb(<var>r</var>, <var>g</var>, <var>b</var>)</code>,
  *   <code>#rgb</code> and <code>#rrggbb</code>.  If a <code>Color</code>,
  *   its red component is used.
- * @param iGreen {Number|Color}
+ * @param iGreen : Number|Color
  *   Green value (optional).  If both <code>iRed</code> and this argument
  *   are <code>Color</code>s, this arguments's green component is used.
- * @param iBlue {Number|Color}
+ * @param iBlue : Number|Color
  *   Blue value (optional).  If both <code>iRed</code> and this argument
  *   are <code>Color</code>s, this arguments's blue component is used.
- * @property {Number} red
+ * @property red : Number
  *   Red value
- * @property {Number} green
+ * @property green : Number
  *   Green value.
- * @property {Number} blue
+ * @property blue : Number
  *   Blue value.
- * @return Color
  */
 jsx.css.Color = function(iRed, iGreen, iBlue) {
   this.set(iRed, iGreen, iBlue);
