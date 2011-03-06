@@ -2,6 +2,7 @@ RedirectMatch permanent ^(/scripts)/((events|scope)\.html?.*) $1/test/$2
 RedirectMatch permanent ^/(JSDoc|jsdoc)(.*) /scripts/JSdoc$2
 RedirectMatch permanent ^(/scripts)/js-version-info(\.php)?(.*) $1/test/es-matrix/?redir$3
 RedirectMatch permanent ^(/scripts)/((dom|es)-matrix.*) $1/test/$2
+RedirectMatch permanent ^/scripts/websvn /websvn/listing.php?repname=JSX\&path=/trunk/
 
 Options +Indexes
 AddDescription "Creates documentation markup from JSdoc&trade; comments within JavaScript&trade; source code" JSdoc AddDescription "LCARS Extensions" LCARS.js
@@ -16,7 +17,6 @@ AddDescription "JavaScript Cookie Data Access Prototype" cookie.js
 AddDescription "cookie.js Documentation" cookie.txt
 AddDescription "JavaScript ClosePage Support" close.js
 AddDescription "DOM Library" dhtml.js
-AddDescription "DOM Library (commented)" dhtml-commented.js
 AddDescription "JavaScript Routines and Objects to Create Temporary Documents" document.js
 AddDescription "enhanced.js Documentation" enhanced.htm
 AddDescription "JSX: Level-1 Enhanced Website Features" enhanced.js
@@ -25,13 +25,11 @@ AddDescription "JSX: Level-2 Enhanced Website Features (depends on enhanced.js)"
 AddDescription "Global Object Support Library" global.js
 AddDescription "JSX: Math Library" math.js
 AddDescription "Basic Object Library" object.js
-AddDescription "Basic Object Library (commented)" object-commented.js
 AddDescription "JSX: Support for Outline-styled Structure Using Dynamic HTML Statements" outline.js
 AddDescription "JSX: RegExp Library" regexp.js
 AddDescription "search.js Documentation" search.htm
 AddDescription "JSX: Search-String Library" search.js
 AddDescription "JSX: String Library" string.js
-AddDescription "JSX: String Library (commented)" string-commented.js
 AddDescription "Documentation Global Style-Sheet" style.css
 AddDescription "JSX: Time Prototypes and Functions" time.js
 AddDescription "time.js Documentation" time.txt
