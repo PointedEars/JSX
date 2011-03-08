@@ -1246,18 +1246,31 @@ if (jsx.object.isMethod(this, "eval"))
        * @param argArray : Array
        * @return {Object} the newly constructed object
        */
-      construct: (function () {
-        var
-          jsx_object = jsx.object;
-
+      construct: function (argArray) {
+        var a = new Array();
+        for (var i = 0, len = argArray.length; i < len; ++i)
+        {
+          a[i] = "argArray[" + i + "]";
+        }
+               
+        return eval("new this(" + a + ")");
+      },
+      
+      /**
+       * @author Courtesy of Asen Bozhilov, slightly adapted
+       * @function
+       * @memberOf Function#prototype
+       * @param argArray : Array
+       * @return {Object} the newly constructed object
+       */
+      construct2: (function () {
+        function Dummy(constructor, args) {
+          constructor.apply(this, args);
+        }
+  
         return function (argArray) {
-          var a = new Array();
-          for (var i = 0, len = argArray.length; i < len; ++i)
-          {
-            a[i] = "argArray[" + i + "]";
-          }
-                 
-          return eval("new this(" + a + ")");
+          Dummy.prototype = this.prototype;
+          return new Dummy(this, args);
         };
       }())
     },
