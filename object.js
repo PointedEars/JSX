@@ -1264,13 +1264,13 @@ if (jsx.object.isMethod(this, "eval"))
        * @return {Object} the newly constructed object
        */
       construct2: (function () {
-        function Dummy(constructor, args) {
-          constructor.apply(this, args);
+        function Dummy(constructor, argArray) {
+          constructor.apply(this, argArray);
         }
   
         return function (argArray) {
           Dummy.prototype = this.prototype;
-          return new Dummy(this, args);
+          return new Dummy(this, argArray);
         };
       }())
     },
