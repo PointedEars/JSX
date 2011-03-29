@@ -1004,8 +1004,9 @@ var isMethod = jsx.object.isMethod = jsx.object.areMethods = (function () {
       
     for (var i = 1; i < len; i++)
     {
+      p = arguments[i];
+      
       var
-        p = arguments[i],
         p_is_Array = (i === len - 1 && p && typeof p.valueOf() != "string"),
         aProp = p;
       
@@ -1079,13 +1080,13 @@ var isMethodType = jsx.object.isMethodType = function (s) {
  * 
  * @param o : optional Object
  *   Object which property should be checked for existence.
- * @param p : string
+ * @param sProperty : string
  *   Name of the property to check.
  * @return boolean
  *   <code>true</code> if there is such a property;
  *   <code>false</code> otherwise.
  */
-var _hasOwnProperty = jsx.object._hasOwnProperty = function (o, p) {
+var _hasOwnProperty = jsx.object._hasOwnProperty = function (o, sProperty) {
   if (arguments.length < 2 && o)
   {
     sProperty = o;
@@ -1095,11 +1096,11 @@ var _hasOwnProperty = jsx.object._hasOwnProperty = function (o, p) {
   var proto;
 
   return (jsx.object.isMethod(o, "hasOwnProperty")
-    ? o.hasOwnProperty(p)
-    : (typeof o[p] != "undefined"
+    ? o.hasOwnProperty(sProperty)
+    : (typeof o[sProperty] != "undefined"
         && ((typeof o.constructor != "undefind"
               && (proto = o.constructor.prototype)
-              && typeof proto[p] == "undefined")
+              && typeof proto[sProperty] == "undefined")
             || (typeof o.constructor == "undefined"))));
 };
 
@@ -1435,7 +1436,7 @@ Function.prototype.extend = (function () {
 
       for (var i = userDefProtoProps.length; i--;)
       {
-        var p = userDefProtoProps[i];
+        p = userDefProtoProps[i];
         oDescriptors[p] = {
           value: proto[p],
           enumerable: false

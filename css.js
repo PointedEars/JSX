@@ -757,7 +757,7 @@ jsx.css.Color.prototype.toHex = function() {
  * @function
  * @return string
  */
-jsx.css.Color.prototype.toString = jsx.css.Color.toRGBString = function() {
+jsx.css.Color.prototype.toString = jsx.css.Color.prototype.toRGBString = function() {
   return ['rgb(', this.red, ',', this.green, ',', this.blue, ')'].join('');
 };
   
@@ -789,8 +789,7 @@ function makeMono()
     a = ['backgroundColor', 'borderColor', 'borderTopColor',
          'borderRightColor', 'borderBottomColor', 'borderLeftColor',
          'outlineColor', 'color'],
-    j,
-    p;
+    j, p;
     
   while ((s = oIt.next()))
   {
