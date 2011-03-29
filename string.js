@@ -1952,7 +1952,7 @@ function trimRight(s)
            i >= 0 && (a = s.charAt(i)) <= " " || a == CH_NBSP;
            i--)
       {
-        ;
+        
       }
       s = s.substring(0, i + 1);
     }

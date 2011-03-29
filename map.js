@@ -35,18 +35,18 @@ var Map = (function() {
   };
   
   /**
-   * @param m : Map
+   * @param map : Map
    *   The map whose mappings are to be placed in this map
    * @return Map
    */
-  function Map(m)
+  function Map(map)
   {
     var me = arguments.callee;
     
     /* Allows to use this as a factory */
     if (this.constructor != me)
     {
-      return new me(m);
+      return new me(map);
     }
     
     var
@@ -238,18 +238,18 @@ var Map = (function() {
      * These mappings will replace any mappings that this map had
      * for any of the keys currently in the specified map.
      *
-     * @param m : Map
+     * @param map : Map
      * @public
      */
-    this.putAll = function(m) {
-      if (!me.isInstance(m))
+    this.putAll = function(map) {
+      if (!me.isInstance(map))
       {
         jsx.throwThis(Map.InvalidArgumentError);
       }
       
-      this.setMaxAliasLength(m.getMaxAliasLength());
+      this.setMaxAliasLength(map.getMaxAliasLength());
       
-      for (var a = m.mappings(), i = a.length; i--;)
+      for (var a = map.mappings(), i = a.length; i--;)
       {
         var o = a[i];
         
@@ -259,7 +259,7 @@ var Map = (function() {
     
     if (arguments.length > 0)
     {
-      this.putAll(m);
+      this.putAll(map);
     }
   
     /**
