@@ -7,7 +7,7 @@ function FuzzySort(aSelect) {
 			var Save;
 			Save = aSelect.options[i].text;
 			aSelect.options[i].text = aSelect.options[i + 1].text;
-			aSelect.options[i + 1].text = Save
+			aSelect.options[i + 1].text = Save;
 			Save = null;
 			if( i > 1 )
 				i--;
@@ -23,7 +23,7 @@ function blurStartCtrl(aStartCtrl) {
 }
 
 function getObjProp(sObject, aStartCtrl, aSelect) {
-	var ident = getObjProp;
+//	var ident = getObjProp;
 	var aObject = eval(sObject);
 	var bValidTarget = (aSelect != null);
 	if(bValidTarget) bValidTarget = (aSelect.tagName.toLowerCase() == "select");
@@ -45,7 +45,7 @@ function getObjProp(sObject, aStartCtrl, aSelect) {
 	aSelect.style.cursor = "wait";
 	var sCondition = false;
 	for(var Item in aObject) {
-		var sCondition = ( String(aObject[Item]).toLowerCase().substr(0, 9) != "function " );
+		sCondition = ( String(aObject[Item]).toLowerCase().substr(0, 9) != "function " );
 		if(sCondition) {
 			var propValue = aObject[Item];
 			var s = ( ( isNaN(propValue) || String(propValue) == "" ) 

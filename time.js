@@ -169,10 +169,8 @@ function SystemTime_fromData(iHours, iMinutes, iSeconds, iSec100, bDayCount)
     }
     return true;
   }
-  else
-  {
-    return false;
-  }
+  
+  return false;
 }
 
 function SystemTime_fromString(s)

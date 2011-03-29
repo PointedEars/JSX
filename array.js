@@ -37,7 +37,7 @@ Array.version   = "0.1.2008062516";
 Array.copyright = "Copyright \xA9 2004-2008";
 Array.author    = "Thomas Lahn";
 Array.email     = "array.js@PointedEars.de";
-Array.path      = "http://pointedears.de/scripts/"
+Array.path      = "http://pointedears.de/scripts/";
 // Array.docURL = Array.path + "array.htm";
 
 /**
@@ -279,7 +279,6 @@ function array_pop(a)
 {
   if (!isArray(a) && isArray(this))
   {
-    value = a;
     a = this;
   }
    
@@ -755,7 +754,7 @@ addProperties(
         if (!thisObject.callback())
         {
           return false;
-        };
+        }
       }
     
       return true;
