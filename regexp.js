@@ -381,8 +381,11 @@ jsx.regexp.RegExp = (function () {
               var
                 fields = lines[i],
                 propertyClass = fields[2],
+                prevClass,
                 codePoint = fields[0],
-                num = parseInt(codePoint, 16);
+                prevCodePoint,
+                num = parseInt(codePoint, 16),
+                prevNum;
               
               if (codePoint == "" || num > 0xFFFF)
               {
@@ -422,10 +425,9 @@ jsx.regexp.RegExp = (function () {
                 }
               }
 
-              var
-                prevClass = propertyClass,
-                prevCodePoint = codePoint,
-                prevNum = num;
+              prevClass = propertyClass,
+              prevCodePoint = codePoint,
+              prevNum = num;
             }
             
             if (startRange)

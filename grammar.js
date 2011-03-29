@@ -10,10 +10,9 @@ function Production(source, target)
   this.target = target;
 }
 
-Production.prototype.toString = function()
-{
+Production.prototype.toString = function() {
   return this.source + '\n  : ' + this.target;
-}
+};
 
 function Modifier(expression, type)
 {
@@ -21,37 +20,34 @@ function Modifier(expression, type)
   this.type = type;
 }
 
-Modifier.prototype.toString = function()
-{
+Modifier.prototype.toString = function() {
   return this.expression + this.type;
-}
+};
 
 function Group(aItems)
 {
   this.items = aItems;
 }
 
-Group.prototype.toString = function()
-{
+Group.prototype.toString = function() {
   var result = "";
   for ( var i = 0; i < this.items.length; i++)
   {
     if (i > 0)
     {
-      result += ' '
+      result += ' ';
     }
     result += this.items[i];
   }
   return result;
-}
+};
 
 function Alternative(aExpressions)
 {
   this.expressions = aExpressions;
 }
 
-Alternative.prototype.toString = function()
-{
+Alternative.prototype.toString = function() {
   var result = "";
   for ( var i = 0; i < this.expressions.length; i++)
   {
@@ -61,29 +57,28 @@ Alternative.prototype.toString = function()
     }
     if (i > 0)
     {
-      result += ' | '
+      result += ' | ';
     }
     result += this.expressions[i];
   }
   
   return result;
-}
+};
 
 function Expression(value)
 {
   this.value = value;
 }
 
-Expression.prototype.toString = function()
-{
+Expression.prototype.toString = function() {
   return this.value;
-}
+};
 
 function Literal(sValue)
 {
   this.value = sValue;
 }
-Literal.prototype.toString = function()
-{
+
+Literal.prototype.toString = function() {
   return "'" + this.value + "'";
-}
+};
