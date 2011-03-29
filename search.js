@@ -1,27 +1,13 @@
 /**
  * <title>PointedEars' JSX: Search-String Library</title>
- */
-/*
- * Definition of the SearchString prototype which uses the functions
- * above with names beginning with the prototype name, as methods.
- */
-function SearchString(/** @argument string */ s)
-{
-  this.version = "1.10.2006082411";
-/**
+ *
  * @file search.js
  * @partof PointedEars' JavaScript Extensions (JSX)
  * @requires types.js
+ *
  * @author Copyright (c) 2000-2004
  *         Thomas Lahn &lt;search.js@PointedEars.de&gt;
- *
- */
-  this.copyright = "Copyright \xA9 2000-2006";
-  this.author    = "Thomas Lahn";
-  this.email     = "search.js@PointedEars.de";
-  this.path      = "http://pointedears.de.vu/scripts/";
-  this.URI       = this.path + "search.js";
-/**
+ *         
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -39,7 +25,23 @@ function SearchString(/** @argument string */ s)
  * 
  * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
  */
+ 
 // Refer search.htm file for general documentation.
+
+/**
+ * Definition of the SearchString prototype which uses the functions
+ * above with names beginning with the prototype name, as methods.
+ * 
+ * @param s : string 
+ */
+function SearchString(s)
+{
+  this.version = "1.10.2006082411";
+  this.copyright = "Copyright \xA9 2000-2006";
+  this.author    = "Thomas Lahn";
+  this.email     = "search.js@PointedEars.de";
+  this.path      = "http://pointedears.de.vu/scripts/";
+  this.URI       = this.path + "search.js";
 
   if (typeof s != "string")
   {

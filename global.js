@@ -97,7 +97,6 @@ function Engine()
  * 
  * @return type string
  */
-Engine.prototype.toString = function()
-{
+Engine.prototype.toString = function() {
   return (this.name ? this.name + ' ' : '') + this.version;
-}
+};

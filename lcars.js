@@ -155,13 +155,12 @@ function blendWords(o, bBlendIn, iDelay)
             // getTextContent(blendWords.targets[id].target)
             getTextContent(o)
               + ' '
-              + aWords[i].value)
+              + aWords[i].value);
         };
 
-        t.toString = function()
-        {
+        t.toString = function() {
           return 't();';
-        }
+        };
         
         // var _setTimeout = function(f, delay, args)
         // {
@@ -197,8 +196,7 @@ function LCARSWidget(x, y)
 LCARSWidget.prototype = {
   constructor: LCARSWidget,
 
-  moveTo: function(x, y)
-  {
+  moveTo: function(x, y) {
     this.x = x;
     this.y = y;
     if (dhtml.getStyle(this.obj, "display") == 'visible') this.repaint();
@@ -218,7 +216,7 @@ LCARSWidget.prototype = {
  */
 function LCARSTimer(x, y, nStart)
 {
-	LCARSWidget.call(this, x, y)
+	LCARSWidget.call(this, x, y);
 	this.reset();
 }
 

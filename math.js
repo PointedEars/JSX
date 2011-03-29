@@ -97,7 +97,7 @@ Math.MathError.extend(Exception);
  * @todo
  */
 Math.InvalidArgumentError = function(sMethodCall, iErrorCode) {
-  var sSubErrType = msgInvArg;
+  var sSubErrType = Math.msgInvArg;
   
   switch (iErrorCode)
   {
@@ -122,7 +122,7 @@ Math.UnderflowError = function() {
 };
 
 Math.DivisionByZeroError = function() {
-  Math.MathError.call(msgDivByZero);
+  Math.MathError.call(Math.msgDivByZero);
 };
 
 /** @section Intervals */
@@ -185,12 +185,12 @@ Math.Interval.prototype.getRightBorder = function() {
 Math.getSubIntervalIndex = function(n, o) {
   var result = null;
 
-  if (!(o instanceof Interval) && this instanceof Interval)
+  if (!(o instanceof Math.Interval) && this instanceof Math.Interval)
   {
     o = this;
   }
 
-  if (o instanceof Interval)
+  if (o instanceof Math.Interval)
   {
     var
       start = 0,
@@ -252,12 +252,12 @@ Math.getSubIntervalIndex = function(n, o) {
 Math.isInInterval = function(n, o) {
   var result = false;
 
-  if (!(o instanceof Interval) && this instanceof Interval)
+  if (!(o instanceof Math.Interval) && this instanceof Math.Interval)
   {
     o = this;
   }
 
-  if (o instanceof Interval)
+  if (o instanceof Math.Interval)
   {
     var lo, l, ro, r;
     
@@ -281,11 +281,11 @@ Math.getRightOpenIntervals = function() {
   var len = arguments.length;
   if (len == 0)
   {
-    a.push(new Interval(0, 1, true));
+    a.push(new Math.Interval(0, 1, true));
   }
   else
   {
-    a.push(new Interval(arguments[0], arguments[1], true));
+    a.push(new Math.Interval(arguments[0], arguments[1], true));
   }
 
   if (len > 2)
@@ -293,7 +293,7 @@ Math.getRightOpenIntervals = function() {
     len = arguments.length;
     for (var i = 1; i < len; i++)
     {
-      a.push(new Interval(arguments[i], arguments[i+1], true));
+      a.push(new Math.Interval(arguments[i], arguments[i+1], true));
     }
   }
  
@@ -315,7 +315,7 @@ Math.getIntervalIndex = function(n, a) {
     for (var i = 0, len = a.length; i < len; i++)
     {
       var o;
-      if ((o = a[i]) instanceof Interval && o.contains(n))
+      if ((o = a[i]) instanceof Math.Interval && o.contains(n))
       {
         result = i;
         break;
@@ -646,12 +646,12 @@ Math.minN = function() {
   var result = Number.POSITIVE_INFINITY;
   var min_el;
     
-  for (var i = 0; i < arguments.length; i++)
+  for (var i = 0, len = arguments.length; i < len; ++i)
   {
     var a = arguments[i];
     if (isArray(a))
     {
-      for (var j = 0; j < a.length; j++)
+      for (var j = 0, len2 = a.length; j < len2; ++j)
       {
         if ((min_el = Math.min(a[j])) < result)
         {
@@ -688,12 +688,12 @@ Math.minN = function() {
 Math.maxN = function() {
   var result = Number.NEGATIVE_INFINITY;
   
-  for (var i = 0, len = arguments.length; i < len; i++)
+  for (var i = 0, len = arguments.length; i < len; ++i)
   {
     var a = arguments[i], max_el;
     if (isArray(a))
     {
-      for (var j = 0; j < a.length; j++)
+      for (var j = 0, len2 = a.length; j < len2; ++j)
       {
         if ((max_el = Math.maxN(a[j])) > result)
         {
@@ -1062,11 +1062,11 @@ Math.dtGrad = 2;
 Math.sinX = function(x, iArgType) {
   switch (iArgType)
   {
-    case dtDeg:
+    case Math.dtDeg:
       x = x/180 * Math.PI;
       break;
 
-    case dtGrad:
+    case Math.dtGrad:
       x = x/300 * Math.PI;
   }
 
@@ -1082,11 +1082,11 @@ Math.sinX = function(x, iArgType) {
 Math.cosX = function(x, iArgType) {
   switch (iArgType)
   {
-    case dtDeg:
+    case Math.dtDeg:
       x = x/180 * Math.PI;
       break;
       
-    case dtGrad:
+    case Math.dtGrad:
       x = x/300 * Math.PI;
   }
   
@@ -1107,11 +1107,11 @@ Math.tanX = function(x, iArgType) {
   
   switch (iArgType)
   {
-    case dtDeg:
+    case Math.dtDeg:
       x = x/180 * Math.PI;
       break;
       
-    case dtGrad:
+    case Math.dtGrad:
       x = x/300 * Math.PI;
   }
   
@@ -1119,10 +1119,8 @@ Math.tanX = function(x, iArgType) {
   {
     return Math.tan(x);
   }
-  else
-  {
-    return (Math.sinX(x) / Math.cosX(x));
-  }
+  
+  return (Math.sinX(x) / Math.cosX(x));
 };
 
 if (!jsx.object.isMethod(Math, "tan"))
@@ -1675,7 +1673,11 @@ Math.Matrix.prototype = {
   
       if ((m = m.data))
       {
-        var as = [], bHasFormat = (typeof format != "undefined"), maxLen;
+        var
+          as = [],
+          bHasFormat = (typeof format != "undefined"),
+          maxLen;
+        
         if (bHasFormat)
         {
           maxLen = Math.max(m);
@@ -1816,7 +1818,7 @@ Math.multiply = function(a, b) {
     if (dimRowX || dimRowY)
     {
 //      if (dimRowX && d
-      result = matrixMatrixMultiply(a, b);
+      var result = matrixMatrixMultiply(a, b);
     }
     else if (isArray(a) && !isArray(b))
     {
@@ -1827,7 +1829,7 @@ Math.multiply = function(a, b) {
       result = matrix;
     }
     
-    var result = new Array();
+    result = new Array();
     // matrixMultiply
   }
   else
