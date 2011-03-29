@@ -105,15 +105,13 @@ function docCheck(bRaiseException)
   {
     return true;
   }
-  else
+  
+  if (arguments.length = 1 && bRaiseException == true)
   {
-    if (arguments.length = 1 && bRaiseException == true)
-    {
-      ENoDocument(docCheck.caller);
-    }
-    
-    return false;
+    ENoDocument(docCheck.caller);
   }
+  
+  return false;
 }
 
 /* Document Type Definitions and HTML 4.0 Tag Policy URLs */

@@ -15,7 +15,7 @@
 */
 
 var enhanced2Version   = "1.23.20080120";
-var enhanced2Copyright = "Copyright © 2000-2008";
+var enhanced2Copyright = "Copyright ï¿½ 2000-2008";
 var enhanced2Author    = "Thomas Lahn";
 var enhanced2Email     = "PointedEars@gmx.de";
 var enhanced2DocURL    = "http://www.tu-ilmenau.de/~thla-in/scripts/enhancd2.htm";
@@ -24,8 +24,8 @@ function linkOutWin(sURL, sCaption, bShowURL) {
   return(linkOut( sURL, sCaption, bShowURL, "_new", 0, 0, "fullscreen=no,channelmode=no,toolbar=yes,location=yes,status=yes,menubar=yes,scrollbars=yes,resizable=yes,top=0,left=0" ));
 }
 
-var sEnlargeImgTitle_en = "Click to close window"
-var sEnlargeImgTitle_de = "Klicken, um Fenster zu schlie&szlig;en"
+var sEnlargeImgTitle_en = "Click to close window";
+var sEnlargeImgTitle_de = "Klicken, um Fenster zu schlie&szlig;en";
 var sEnlargeImgTitle = sEnlargeImgTitle_en;
 
 function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter) {
@@ -165,7 +165,7 @@ function hoverImg(imgID, state) {
   else if (document.getElementById)
     img = document.getElementById(imgID);
   if (typeof img == "object") {
-    col = "";
+    var col = "";
     switch (state) {
       case 0: col = colMouseout; break;
       default: col = colMouseover; break;
@@ -211,7 +211,7 @@ function TDateNames(
   Pass arrays containing the respective strings as arguments
   to set properties on creation of object.
 */
-  var iArgNum = TDateNames.arguments.length;
+//  var iArgNum = TDateNames.arguments.length;
   this.aShortWeekdayNames = aaShortWeekdayNames || new Array(7);
   this.aMedWeekdayNames   = aaMedWeekdayNames   || new Array(7);
   this.aLongWeekdayNames  = aaLongWeekdayNames  || new Array(7);
@@ -273,7 +273,7 @@ function getDateFmt(dDate, sFormat, oDateNames) {
     var ooDateNames = oDateNames;
   else
     // Default (english) weekdays, month labels and timezone descriptions
-    var ooDateNames = new TDateNames(
+    ooDateNames = new TDateNames(
       new Array("Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"),
       new Array("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"),
       new Array(
@@ -396,11 +396,11 @@ var oDateNames_de = new TDateNames(
     "Sep", "Okt", "Nov", "Dez"
   ),
   new Array(
-    "Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug",
+    "Jan", "Feb", "Mï¿½r", "Apr", "Mai", "Jun", "Jul", "Aug",
     "Sep", "Okt", "Nov", "Dez"
   ),
   new Array(
-    "Januar", "Februar", "März", "April", "Mai", "Juni",
+    "Januar", "Februar", "Mï¿½rz", "April", "Mai", "Juni",
     "Juli", "August", "September", "Oktober", "November", "Dezember"
   ),
   new Array(

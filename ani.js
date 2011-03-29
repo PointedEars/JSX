@@ -27,10 +27,8 @@ Array.get = function(a, index) {
   {
     return a[index];
   }
-  else
-  {
-    return a[a.length + index];
-  }
+  
+  return a[a.length + index];
 };
 
 /**
@@ -244,7 +242,7 @@ jsx.animation.Timeline = (function() {
          
         this[param] = paramValue;
       }
-    };
+    }
     
     /* Sort keyFrames by time */
     var keyFrames = this.keyFrames;
@@ -860,10 +858,8 @@ jsx.animation.Interpolator = {
           startValue.blue  + (endValue.blue - startValue.blue) * fraction
         );
       }
-      else
-      {
-        return startValue + (endValue - startValue) * fraction;
-      }
+      
+      return startValue + (endValue - startValue) * fraction;
     };
   }())
 };
