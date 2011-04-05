@@ -1234,14 +1234,14 @@ if (jsx.object.isMethod(this, "eval"))
       /**
        * Constructs a new object using the calling object as constructor
        * and elements of the referred array as items of the arguments list.
-       * 
+       * <p>
        * Example:
-       * <code>var d = Date.construct([2009, 8, 1]);</code>
+       * <pre><code>var d = Date.construct([2009, 8, 1]);</code></pre>
        * is equivalent to
-       * <code>var d = new Date(2009, 8, 1);</code>
+       * <pre><code>var d = new Date(2009, 8, 1);</code></pre>
        * but, by contrast, allows for passing an arbitrary number of
        * arguments per the array's elements.
-       * 
+       * </p>
        * @memberOf Function#prototype
        * @function
        * @param argArray : Array
