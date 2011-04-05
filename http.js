@@ -760,10 +760,9 @@ jsx.net.http.Request.prototype = {
  * Recommended usage:
  * <pre><code>
  * var f = jsx.net.http.ResponseListener(
- *   new Array(
  *     'statement;',
- *     'statement;'
- *   ).join(""));
+ *   + 'statement;'
+ * );
  * </code></pre>
  * 
  * @param sCode
