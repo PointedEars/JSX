@@ -629,7 +629,7 @@ function alertValue(a, bDontAlert, bDontEval)
       o = !bDontEval ? eval(a[i]) : a[i],
       t = typeof o,
       delim = (t == "string" ? '"' : ''),
-      s = [delim, a[i], delim, " : ", t, " = ", delim, o, delim].join("");
+      s = delim + a[i] + delim + " : " + t + " = " + delim + o + delim;
 
     if (t == "object" || t == "function")
     {
@@ -637,10 +637,8 @@ function alertValue(a, bDontAlert, bDontEval)
       {
         t = typeof o[j];
         delim = (t == "string" ? '"' : '');
-        s += [
-          "\n", a[i], '["', j, '"] : ', t, " = ",
-          delim + o[j], delim
-        ].join("");
+        s += "\n" + a[i] + '["' + j + '"] : ' + t + " = "
+          +  delim + o[j] + delim;
       }
     }
 
@@ -2026,15 +2024,14 @@ jsx.object.addProperties({
           'try {',
           '  for (var i = 0; i < this.properties.length; i++) {',
           '    var p = this.properties[i];',
-          '    s += new Array(',
-          '        "[" + p.id + "] ",',
-          '        p.name,',
-          '        " : " + p.type,',
-          '        " = ",',
-          '        (p.type == "string" ? "\\"" : ""),',
-          '        p.value,',
-          '        (p.type == "string" ? "\\"" : ""),',
-          '        "\\n").join("");',
+          '    s += "[" + p.id + "] "',
+          '      +  p.name',
+          '      +  " : " + p.type',
+          '      +  " = "',
+          '      +  (p.type == "string" ? "\\"" : "")',
+          '      +  p.value',
+          '      +  (p.type == "string" ? "\\"" : "")',
+          '      +  "\\n";',
           '  }',
           '} catch (e) {',
           '  s = e;',
