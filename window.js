@@ -302,17 +302,16 @@ function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter)
   }
   
   /* preset also window position and size in the case the temporary script below fails */
-  var sOptions = [
-    "toolbar=no,location=no,menubar=no,scrollbars=yes,resizable=yes",
-    ((argnum > 2) && !isNaN(iWidth)) ? (",width=" + iWidth + 12) : "",
-    ((argnum > 3) && !isNaN(iHeight)) ? (",height=" + iHeight + 32) : "",
-    ",left=",
-    parseInt(screen.width / 2 - (argnum > 2
-                                 && !isNaN(iWidth) ? iWidth / 2 : 0)),
-    ",top=",
-    parseInt(screen.height / 2 - (argnum > 3
-                                  && !isNaN(iHeight) ? iHeight / 2 : 0))
-  ].join("");
+  var sOptions =
+      "toolbar=no,location=no,menubar=no,scrollbars=yes,resizable=yes"
+    + ((argnum > 2) && !isNaN(iWidth)) ? (",width=" + iWidth + 12) : ""
+    + ((argnum > 3) && !isNaN(iHeight)) ? (",height=" + iHeight + 32) : ""
+    + ",left="
+    + parseInt(screen.width / 2 - (argnum > 2
+                                   && !isNaN(iWidth) ? iWidth / 2 : 0))
+    + ",top="
+    + parseInt(screen.height / 2 - (argnum > 3
+                                    && !isNaN(iHeight) ? iHeight / 2 : 0));
   
   var w = window.open("", "wndZoom", sOptions);
   if (w)
@@ -328,15 +327,13 @@ function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter)
         '  <head>',
         '    <meta http-equiv="Content-Type" content="text/html;'
         + ' charset=UTF-8">',
-        [
+        
           '    <meta name="generator" value="JSX:window.js{',
-           windowVersion, '}:enlargeImg(...) ', windowCopyright,
-           '  ', windowAuthor, ' &lt;', windowEmail, '&gt;">'
-        ].join(""),
-        [
-          '    <title>' + ((argnum > 1 && sCaption != "") ? sCaption : sImageURL),
-          '<\/title>'
-        ].join(""),
+        + windowVersion + '}:enlargeImg(...) ' + windowCopyright
+        + '  ' + windowAuthor + ' &lt;' + windowEmail + '&gt;">',
+        
+          '    <title>' + ((argnum > 1 && sCaption != "") ? sCaption : sImageURL)
+        + '<\/title>',
         
         /*
          * temporary script and updated inline code to fix
