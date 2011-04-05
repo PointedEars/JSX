@@ -1365,27 +1365,26 @@ function serialize(o, options)
       });
     }
     
-    a.push([
-      indent, options.sIndent, p,
-      (options.showConstructor
-       ? ("["
-          + (origV && typeof origV.constructor != "undefined"
-             ? (String(origV.constructor).match(/function\s*([^\s\(\{]+)/)
-                || {"1": "unknown"})[1]
-             : "unknown")
-          + "]")
-       : ""),
-      (options.showType ? ": " + t : ""),
-      (options.showType ? " = " : ": "),
-      !(options.depth && (!isString || isNaN(p)))
-        ? (s + v.replace(/"/g, "\\$&") + s)
-        : v
-    ].join(""));
+    a.push(indent + options.sIndent + p
+      + (options.showConstructor
+         ? ("["
+            + (origV && typeof origV.constructor != "undefined"
+               ? (String(origV.constructor).match(/function\s*([^\s\(\{]+)/)
+                  || {"1": "unknown"})[1]
+               : "unknown")
+            + "]")
+         : "")
+      + (options.showType ? ": " + t : "")
+      + (options.showType ? " = " : ": ")
+      + !(options.depth && (!isString || isNaN(p)))
+          ? (s + v.replace(/"/g, "\\$&") + s)
+          : v
+    );
   }
   
   if (a.length > 0)
   {
-    return ["{\n", a.join(",\n"), "\n", indent, "}"].join("");
+    return "{\n" + a.join(",\n") + "\n" + indent + "}";
   }
 
   return String(o);

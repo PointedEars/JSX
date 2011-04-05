@@ -122,12 +122,11 @@ jsx.css.SelectorList.extend(Collection, {
   //    .replace(/FUNCTION/g,            "IDENT\\(\\s*expr\\)\\s*")
   //    .replace(/\{expr\}/g,            'Term(OperatorTerm)*')
   //    .replace(/\{Operator\}/g,        "(/\\s*|,\\s*|/\\*([^*]|\\*[\\/])*\\/)")
-  //    .replace(/\{Term\}/g,            ["([+-]?",
-  //                                      "(NUMBER%?\\s*|LENGTH\\s*",
-  //                                      "|ANGLE\\s*|TIME\\s*",
-  //                                      "|FREQ\\s*|IDENT\\(\\s*expr\\)\\s*)",
-  //                                      "|STRING\\s*|IDENT\\s*|URI\\s*|hexcolor)"]
-  //                                      .join(''))
+  //    .replace(/\{Term\}/g,              "([+-]?"
+  //                                     + "(NUMBER%?\\s*|LENGTH\\s*"
+  //                                     + "|ANGLE\\s*|TIME\\s*"
+  //                                     + "|FREQ\\s*|IDENT\\(\\s*expr\\)\\s*)"
+  //                                     + "|STRING\\s*|IDENT\\s*|URI\\s*|hexcolor)")
   //    .replace(/ANGLE/g,               'NUMBER(deg|g?rad)')
   //    .replace(/TIME/g,                'NUMBERm?s')
   //    .replace(/FREQ/g,                'NUMBERk?Hz')
@@ -739,14 +738,14 @@ jsx.css.Color.prototype.toHex = function() {
     rx = /([0-9a-f])\1([0-9a-f])\2([0-9a-f])\3/i,
     m;
      
-  if ((m = rx.exec([r, g, b].join(''))))
+  if ((m = rx.exec(r + g + b)))
   {
     r = m[1];
     g = m[2];
     b = m[3];
   }
     
-  return ['#', r, g, b].join('');
+  return '#' + r + g + b;
 };
 
 /**
@@ -758,7 +757,7 @@ jsx.css.Color.prototype.toHex = function() {
  * @return string
  */
 jsx.css.Color.prototype.toString = jsx.css.Color.prototype.toRGBString = function() {
-  return ['rgb(', this.red, ',', this.green, ',', this.blue, ')'].join('');
+  return 'rgb(' + this.red + ',' + this.green + ',' + this.blue + ')';
 };
   
   /**
@@ -769,9 +768,7 @@ jsx.css.Color.prototype.toString = jsx.css.Color.prototype.toRGBString = functio
    * @return string
    */
 jsx.css.Color.prototype.toObjectString = function() {
-  return [
-    '{red: ', this.red, ', green: ', this.green, ', blue: ', this.blue, '}'
-  ].join('');
+  return '{red: ' + this.red + ', green: ' + this.green + ', blue: '+ this.blue + '}';
 };
 
 /**
