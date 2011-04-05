@@ -890,7 +890,8 @@ jsx.animation.KeyFrame.extend(jsx.animation.Frame, {
   /**
    * A comparison function used to sort KeyFrames by their specified
    * reference time.
-   * 
+   *
+   * @memberOf jsx.animation.KeyFrame#prototype
    * @param o : KeyFrame
    * @return number
    *   An Integer value<br>
@@ -903,6 +904,7 @@ jsx.animation.KeyFrame.extend(jsx.animation.Frame, {
   },
   
   /**
+   * @memberOf jsx.animation.KeyFrame#prototype
    * @function
    */
   interpolate: jsx.animation.Interpolator.LINEAR
