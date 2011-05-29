@@ -9,8 +9,21 @@
   </head>
 
   <body>
-    <h1>object.js</h1>
-    <h2>jsx</h2>
+    <h1><tt>object.js</tt></h1>
+    <h2><a name="globals" id="globals">Global Variables</a></h2>
+
+    <dl>
+      <dt><code><var>_global</var> <span class="punct">:</span>&nbsp;Global</code></dt>
+        <dd>Reference to the ECMAScript Global Object.<br>
+            <strong>deprecated</strong> since 0.1.5a.2009063012 in favor of
+            <code><a href="#jsx.global">jsx.global</a></code> for library references.</dd>
+
+      <dt><code><var><a href="#jsx">jsx</a></var>
+          <span class="punct">:</span>&nbsp;Object</code></dt>
+        <dd>Top-level namespace</dd>
+    </dl>
+
+    <h2><code><a name="jsx" id="jsx">jsx</a></code></h2>
     <ul>
       <li><code>Object</code>
         <ul>
@@ -20,47 +33,155 @@
 
     <h3>Properties of <code>jsx</code></h3>
     <dl>
-      <dt><code><var>global</var> <span class="punct">:</span>&nbsp;Global</code></dt>
+      <dt><code><var><a name="jsx.MSG_INFO" id="jsx.MSG_INFO">MSG_INFO</a></var>
+        <span class="punct">:</span>&nbsp;string
+        <span class="punct">=</span> <span class="string">"info"</span></code></dt>
+        <dd></dd>
+
+      <dt><code><var><a name="jsx.MSG_WARN" id="jsx.MSG_WARN">MSG_WARN</a></var>
+        <span class="punct">:</span>&nbsp;string
+        <span class="punct">=</span> <span class="string">"warn"</span></code></dt>
+        <dd></dd>
+
+      <dt><code><var>MSG_DEBUG</var> <span class="punct">:</span>&nbsp;string
+        <span class="punct">=</span> <span class="string">"debug"</span></code></dt>
+        <dd></dd>
+
+      <dt><code><var><a name="jsx.global" id="jsx.global">global</a></var>
+          <span class="punct">:</span>&nbsp;Global</code></dt>
         <dd>Reference to the ECMAScript Global Object</dd>
 
-      <dt><code><var>object</var> <span class="punct">:</span>&nbsp;Object</code></dt>
-        <dd>Namespace for basic features</dd>
+      <dt><code><var><a href="#jsx.object">object</a></var>
+          <span class="punct">:</span>&nbsp;Object</code></dt>
+        <dd>Namespace for basic object-specific features</dd>
+    </dl>
+
+    <h3>Methods of <code>jsx</code></h3>
+    <dl>
+      <dt><h3><code><span class="ident"><a name="jsx.dmsg" id="jsx.dmsg"
+          >dmsg</a></span><span class="punct">(</span><var>sMsg</var></code>[<code><span
+          class="punct">,</span>
+          <var>sType</var></code> = <code><span class="str">"log"</span></code>]<code><span
+          class="punct">)</span>
+          :&nbsp;<span class="rswd">boolean</span></code></h3></dt>
+        <dd><p>Prints debug messages to the script console.</p>
+            <p>NOTE: This method has previously been provided by
+               {@link debug.js}; optimizations in code reuse
+               moved it here.</p>
+          <h4>Arguments</h4>
+          <dl>
+            <dt><code><var>sMsg</var> : string</code></dt>
+              <dd>Message to be printed</dd>
+
+            <dt><code><var>sType</var> : string</code></dt>
+              <dd>Type of the message.  Supported values include
+                  <code class="str">"log"</code> (default), <code class="str">"info"</code>,
+                  <code class="str">"warn"</code>, and <code class="str">"debug"</code>.
+                  If a script console does not support a message type,
+                  the default value is used.</dd>
+          </dl>
+
+          <h4>Returns</h4>
+          <p><code class="rswd">true</code> if it was possible to cause the
+             message to be printed; <code class="rswd">false</code> otherwise.</p></dd>
+
+      <dt><h3><code><span class="ident">info</span><span class="punct">(</span><var>sMsg</var><span class="punct">)</span>
+          :&nbsp;<span class="rswd">boolean</span></code></h3></dt>
+        <dd><p>Issues an info message, if possible.</p>
+          <h4>Arguments</h4>
+          <dl>
+            <dt><code><var>sMsg</var> : string</code></dt>
+          </dl>
+
+          <h4>Returns</h4>
+          <p>The return value of <code><a href="#jsx.dmsg">jsx.dmsg</a><span
+             class="punct">(</span><var>sMsg</var></span>, <a href="#jsx.MSG_INFO">jsx.MSG_INFO</a><span
+             class="punct">)</span></code></p>
+
+      <dt><h3><code><span class="ident">warn</span><span class="punct">(</span><var>sMsg</var><span class="punct">)</span>
+          :&nbsp;<span class="rswd">boolean</span></code></h3></dt>
+        <dd><p>Issues a warning, if possible.</p>
+          <h4>Arguments</h4>
+          <dl>
+            <dt><code><var>sMsg</var> : string</code></dt>
+          </dl>
+
+          <h4>Returns</h4>
+          <p>The return value of <code><a href="#jsx.dmsg">jsx.dmsg</a><span
+             class="punct">(</span><var>sMsg</var></span>,
+             <a href="#jsx.MSG_WARN">jsx.MSG_WARN</a><span
+             class="punct">)</span></code></p>
     </dl>
     
-    <h2>jsx.object</h2>
+    <h2><code><a name="jsx.object" id="jsx.object">jsx.object</a></code></h2>
     <ul>
       <li><code>Object</code>
         <ul>
-          <li><code>jsx.object</code></li>
+          <li><code><a href="#jsx">jsx</a>.object</code></li>
         </ul></li>
     </ul>
     
     <h3>Properties of <code>jsx.object</code></h3>
     <dl>
-      <dt><code><var>version</var> <span class="punct">:</span>&nbsp;string</code></dt>
-        <dd>Script version</dd>
-        
-      <dt><code><var>copyright</var> <span class="punct">:</span>&nbsp;string</code></dt>
-        <dd>Script Copyright</dd>
+      <dt><code><var>ADD_OVERWRITE</var> <span class="punct">:</span>&nbsp;number
+        <span class="punct">=</span> <span class="num">1</span></code></dt>
+        <dd>Used by {@link #addProperties()} to overwrite existing properties.</dd>
+
+      <dt><code><var>COPY_ENUM</var> <span class="punct">:</span>&nbsp;number
+        <span class="punct">=</span> <span class="num">0</span></code></dt>
+        <dd>Used by {@link #addProperties()} and {@link #clone()}
+            to make a shallow copy of all enumerable properties
+            (default).</dd>
+
+      <dt><code><var>COPY_ENUM_DEEP</var> <span class="punct">:</span>&nbsp;number
+        <span class="punct">=</span> <span class="num">2</span></code></dt>
+        <dd>Used by {@link #addProperties()} and {@link #clone()}
+            to make a deep copy of all enumerable properties.</dd>
+
+      <dt><code><var>COPY_INHERIT</var> <span class="punct">:</span>&nbsp;number
+        <span class="punct">=</span> <span class="num">4</span></code></dt>
+        <dd>Used by {@link #addProperties()} and {@link #clone()}
+            to copy a property by inheritance.</dd>
 
       <dt><code><var>author</var> <span class="punct">:</span>&nbsp;string</code></dt>
         <dd>Script author</dd>
+
+      <dt><code><var>copyright</var> <span class="punct">:</span>&nbsp;string</code></dt>
+        <dd>Script Copyright</dd>
 
       <dt><code><var>email</var> <span class="punct">:</span>&nbsp;string</code></dt>
         <dd>Contact e-mail address</dd>
 
       <dt><code><var>path</var> <span class="punct">:</span>&nbsp;string</code></dt>
         <dd>Original script path</dd>
+
+      <dt><code><var>version</var> <span class="punct">:</span>&nbsp;string</code></dt>
+        <dd>Script version</dd>
     </dl>
         
     <h3>Methods of <code>jsx.object</code></h3>
     <dl>
-      <dt><h3><code><span class="ident">TODO</span><span class="punct">()</span></code></h3></dt>
-        <dd><p>TODO</p>
-          <h4>Throws</h4>
+      <dt><h3><code><span class="ident">addProperties</span><span
+          class="punct">(</span><var>oSource</var> :&nbsp;Object</code>[<code><span
+          class="punct">,</span> <var>iFlags</var></code>[<code><span class="punct">,</span>
+          <var>oOwner</var></code>]]<code><span class="punct">)</span></code></h3></dt>
+        <dd><p>Adds/replaces properties of an object</p>
+          <h4>Arguments</h4>
           <dl>
-            <dt><code class="ident">jsx<span class="punct">.</span>TODO</code></dt>
-              <dd>if TODO</dd>
+            <dt><code><var>oSource</var> : Object</code></dt>
+              <dd>Object specifying the properties to be added/replaced.
+                  The name of each property serves as the name for the
+                  property of the target object, its value as the value
+                  of that property.</dd>
+
+            <dt><code><var>iFlags</var> : number</code></dt>
+              <dd>Flags for the modification, see {@link Object#ADD_OVERWRITE ADD_*}
+                  and {@link Object#COPY_ENUM COPY_*}.</dd>
+
+            <dt><code><var>oOwner</var> : Object</code></dt>
+              <dd>If provided, used as target object instead of the
+                  calling object.  This makes it possible to call
+                  the method without an explicit calling object.</dd>
           </dl></dd>
     </dl>
   </body>
