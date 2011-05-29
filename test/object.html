@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+  "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>object.js Test Case</title>
+    <script type="text/javascript" src="../object.js"></script>
+    <script type="text/javascript" src="../test/test.js"></script>
+    <script type="text/javascript">
+      var assertFalse = jsx.test.assertFalse;
+      var assertTrue = jsx.test.assertTrue;
+
+      jsx.test.runner.run({
+        tests: [
+          function() {
+            var ok = true;
+            jsx.tryThis("jsx.object.isMethod()", function() { ok = false; });
+            assertFalse(ok);
+          },
+
+          function() {
+            assertFalse("jsx.object.isMethod(false)");
+          },
+
+          function() {
+            assertTrue("jsx.object.isMethod(eval)");
+            assertFalse("jsx.object.isMethod(this, null)");
+            assertTrue("jsx.object.isMethod(this, 'eval')");
+            assertFalse("jsx.object.isMethod(this, '')");
+            assertTrue("jsx.object.isMethod(window, 'location', 'reload')");
+            assertFalse("jsx.object.isMethod(window, 'location', 'hash')");
+            assertFalse("jsx.object.isMethod('window', 'location', 'hash')");
+            assertFalse("jsx.object.isMethod('window', 'location')");
+            assertTrue("jsx.object.isMethod(window, 'location')");
+            assertFalse("jsx.object.isMethod('foo', 'location')");
+          }
+        ]
+      });
+    </script>
+  </head>
+
+  <body>
+    <h1><tt>object.js</tt> Test&nbsp;Case</h1>
+<!--     <div><a href="jsunit/testRunner?testPage=<?php -->
+<!--       echo urlencode(htmlentities($_SERVER['REQUEST_URI'])); ?>&amp;autoRun=true" -->
+<!--       >Run tests</a></div> -->
+  </body>
+</html>
