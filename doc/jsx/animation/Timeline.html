@@ -9,7 +9,7 @@
   </head>
 
   <body>
-    <h1>jsx.animation.Timeline</h1>
+    <h1><code>jsx.animation.Timeline</code></h1>
     <ul>
       <li><code>Object</code>
         <ul>
@@ -35,7 +35,7 @@ Animation ---.
 Timeline 1:  :--Action0------Action1------Action2-----Action3->
 Timeline 2:  `----------Action0------Action1-------Action2---->
 </pre>
-    <p>An item in a timeline can also be a <code>Timeline</code> itself
+<!--     <p>An item in a timeline can also be a <code>Timeline</code> itself
        ("child timeline"), in which case the time offset of the child
        timeline depends on the previous action in the parent timeline,
        however the time offset of the next action in the parent is
@@ -43,10 +43,10 @@ Timeline 2:  `----------Action0------Action1-------Action2---->
        affects the same target object as its parent unless specified
        otherwise.</p>
     <pre>
-Animation ---.
-Timeline 1:  :---Action0------+----------Action1a------------->
-Timeline 1a: |                `---Action1a:0---Action1a:1----->
-Timeline 2:  `-------Action0------Action1-------Action2------->
+Animation -\-\-.
+Timeline 1:  :-\-\-Action0-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-Action1a-\-\-\-\-\-\-\-\-\-\-\-\->
+Timeline 1a: |                `-\-\-Action1a:0-\-\-Action1a:1-\-\-\-\->
+Timeline 2:  `-\-\-\-\-\-\-Action0-\-\-\-\-\-Action1-\-\-\-\-\-\-Action2-\-\-\-\-\-\->
 </pre>
 
     <p>There is no explicit limit as to how deep timelines may be nested.
@@ -58,7 +58,7 @@ Timeline 2:  `-------Action0------Action1-------Action2------->
        the more operations need be performed at approximately the same time;
        this can slow down the entire animation considerably and lead to
        considerably higher CPU load.</p>
-      
+ -->      
     <h2>Static Properties</h2>
     <dl>
       <dt><code><var>INDEFINITE</var>

@@ -86,7 +86,7 @@ if (typeof test == "undefined")
     var sDefault = "";
     var result = sDefault;
     
-    setErrorHandler();
+    jsx.setErrorHandler();
     
     if (eval(expression))
     {
@@ -97,7 +97,7 @@ if (typeof test == "undefined")
       result = (arguments.length > 2 ? falseValue : sDefault);
     }
   
-    clearErrorHandler();
+    jsx.clearErrorHandler();
     return result;
   };
 }
@@ -160,198 +160,6 @@ test(new Array(
   'o.baz.x', 42);
 test('o2.x = null;', 'o.baz.x', '!= null (TODO)');
 */
-
-if (typeof AssertionError == "undefined")
-{
-  /**
-   * @param s : string
-   */
-  var AssertionError = function (s) {
-    Error.call(this);
-    this.message = "Assertion failed: " + s;
-  };
-  
-  if (typeof Error != "undefined")
-  {
-    AssertionError.extend(Error);
-  }
-}
-
-if (typeof assertTrue == "undefined")
-{
-  /**
-   * Asserts that a condition is true.  If it isn't, it throws
-   * an <code>AssertionError</code> with a default message.
-   *
-   * @param x : string|any
-   *   If a string, it is evaluated as a <i>Program</i>; the assertion
-   *   fails if its result, type-converted to <i>boolean</i>, is
-   *   <code>false</code>.
-   *   If not a string, the value is type-converted to <i>boolean</i>;
-   *   the assertion fails if the result of the conversion is
-   *   <code>false</code>.
-   * @throws
-   *   <code>AssertionError</code> if the assertion fails and this exception
-   *   can be thrown.
-   * @return boolean
-   *   <code>false</code>, if the assertion fails and no exception can be thrown;
-   *   <code>true</code>, if the assertion is met.
-   * @see Global#eval(String)
-   */
-  var assertTrue = function (x) {
-    var ox = x;
-    if (typeof x == "string")
-    {
-      x = eval(x);
-    }
-    
-    if (!x)
-    {
-      (
-        function () {
-          eval('throw new AssertionError('
-               + '"assertTrue(" + (typeof ox == "string" ? ox : "...") + ");");');
-        }
-      )();
-    }
-    
-    return !!x;
-  };
-}
-
-if (typeof assertFalse == "undefined")
-{
-  /**
-   * Asserts that a condition is false.  If it isn't, it throws
-   * an <code>AssertionError</code> with a default message.
-   *
-   * @param x : string|any
-   *   If a string, it is evaluated as a <i>Program</i>; the assertion
-   *   fails if its result, type-converted to <i>boolean</i>, is
-   *   <code>true</code>.
-   *   If not a string, the value is type-converted to <i>boolean</i>;
-   *   the assertion fails if the result of the conversion is
-   *   <code>true</code>.
-   * @param bThrow : optional boolean = true
-   *   If <code>true</code> (default), an exception will be thrown if
-   *   the assertion fails, otherwise a warning will be issued to the
-   *   error console in that case.
-   * @param sContext : optional String
-   *   Description of the context in which the assertion was made.
-   *   Ignored if <code><var>bThrow</var> == true</code>.
-   * @throws
-   *   <code>AssertionError</code> if the assertion fails and this exception
-   *   can be thrown.
-   * @return boolean
-   *   <code>false</code>, if the assertion fails and no exception can be thrown;
-   *   <code>true</code>, if the assertion is met.
-   * @see Global#eval(String)
-   */
-  var assertFalse = function (x, bThrow, sContext) {
-    var ox = x;
-    if (typeof x == "string")
-    {
-      x = eval(x);
-    }
-    
-    if (x)
-    {
-      if (typeof bThrow == "undefined" || bThrow)
-      {
-        (
-          function () {
-            eval('throw new AssertionError('
-                 + '"assertFalse(" + (typeof ox == "string" ? ox : "...") + ");");');
-          }
-        )();
-      }
-      else
-      {
-        jsx.dmsg((sContext ? sContext + ": " : "") + "Assertion failed: "
-          + (typeof ox == "string" ? ox : "Value") + " must be false.", "warn");
-      }
-    }
-    
-    return !!x;
-  };
-}
-
-if (typeof assertArrayEquals == "undefined")
-{
-  /**
-   * Asserts that two arrays are equal.  If they are not,
-   * an <code>AssertionError</code> is thrown with a default message.
-   * Two arrays are considered equal only if their elements are
-   * strictly equal (shallow strict comparison).
-   *
-   * @param expecteds : string|Array
-   *   Expected value; if a string, it is evaluated as a <i>Program</i>.
-   * @param actuals : string|Array
-   *   Actual value; if a string, it is evaluated as a <i>Program</i>.
-   * @throws
-   *   <code>ArrayComparisonFailure</code> if either of the given
-   *   values is not a reference to an Array object;
-   *
-   *   <code>AssertionError</code>
-   *   if the assertion fails and either exception can be thrown.
-   * @return boolean
-   *   <code>false</code>, if comparison is not possible
-   *   or the assertion fails, and no exception can be thrown;
-   *   <code>true</code>, if the assertion is met.
-   * @see Global#eval()
-   */
-  var assertArrayEquals = function (expecteds, actuals) {
-    if (typeof expecteds == "string")
-    {
-      expecteds = eval(expecteds);
-    }
-    
-    if (typeof actuals == "string")
-    {
-      actuals = eval(actuals);
-    }
-    
-    if (expecteds == null && actuals == null)
-    {
-      return true;
-    }
-    
-    if (expecteds.constructor != Array || actuals.constructor != Array)
-    {
-      if (typeof ArrayComparisonFailure == "function")
-      {
-        eval('throw new ArrayComparisonFailure();');
-      }
-  
-      return false;
-    }
-    
-    for (var i = actuals.length, len2 = expecteds.length; i--;)
-    {
-      if (len2 < i || expecteds[i] !== actuals[i])
-      {
-        (
-          function () {
-            var stack = (new Error()).stack || "";
-            if (stack)
-            {
-              stack = stack.split(/\r?\n|\r/);
-              stack.shift();
-              stack.shift();
-              stack = stack.join("\n");
-            }
-            
-            eval('throw new AssertionError('
-                 + '"assertArrayEquals([" + expecteds + "], [" + actuals + "]);'
-                 + ' in " + stack);');
-          }
-        )();
-      }
-    }
-    
-    return true;
-  };
-}
 
 //if (!isMethod("profile"))
 //{
@@ -453,7 +261,7 @@ function time(expr, bPrintResult, loops, repeats)
       {
         jsx.tryThis(function () { expr[i]; });
       }
-      
+    
       repeat_stats[j] = new Date() - eval_loop_start;
     }
   }
@@ -464,16 +272,16 @@ function time(expr, bPrintResult, loops, repeats)
     result.push(
       "\nEvaluation Results (ms):\n\n\\",
       pad("n|", cnt.toString().length - 1));
-    
+  
     var col_width = Math.maxN(repeats, stats).toString().length + 1;
-    
+  
     for (j = 0; j < repeats; j++)
     {
       result.push(format("%*2$d", j + 1, col_width));
     }
-  
+
     var expr_width = (cnt + 1).toString().length;
-    
+  
     result.push(
       format("\xA0%*4$s\xA0%*4$s\xA0%*4$s\n", "min", "max", "avg", col_width),
       format("%*2$d\\|", "e", expr_width),
@@ -498,7 +306,7 @@ function time(expr, bPrintResult, loops, repeats)
           Math.avgN(stats[i]).toFixed(1),
           col_width));
     }
-    
+  
     result = result.join("");
   }
   else
@@ -515,8 +323,8 @@ function time2(aFunctions, repeats)
   {
     jsx.throwThis(
       "TypeError",
-      "benchmark: Expected aFunctions : Function|Array, saw " + aFunctions
-        + " : " + typeof aFunctions);
+    "benchmark: Expected aFunctions : Function|Array, saw " + aFunctions
+      + " : " + typeof aFunctions);
   }
 
   if (aFunctions.constructor != Array)
@@ -556,44 +364,44 @@ function getError(e)
   var sError = e;
 
   if (typeof e.name != "undefined")
-  {
-    sError += "\nName: " + e.name;
-  }
-  
-  if (typeof e.number != "undefined")
-  {
-    sError += "\nCode: " + e.number;
-  }
-  
-  if (typeof e.message != "undefined")
-  {
-    sError += "\nMessage: " + e.message;
-  }
-  
-  if (typeof e.description != "undefined")
-  {
-    sError += "\nDescription: " + e.description;
-  }
-  
-  if (typeof e.fileName != "undefined")
-  {
-    sError += "\nFilename: " + e.fileName;
-  }
+{
+  sError += "\nName: " + e.name;
+}
 
-  setErrorHandler();
-  eval(new Array(
-      'try {',
-      '  if (e.lineNumber) {',
-      '    sError += "\\nLine: " + e.lineNumber;',
-      '  }',
-      '} catch (e2) {',
-      '  sError += "\\nLine: " + e2;',
-      '}').join("\n"));
-  clearErrorHandler();
-        
-  if (typeof e.stack != "undefined")
-  {
-    sError += "\nStack:\n" + e.stack;
+if (typeof e.number != "undefined")
+{
+  sError += "\nCode: " + e.number;
+}
+
+if (typeof e.message != "undefined")
+{
+  sError += "\nMessage: " + e.message;
+}
+
+if (typeof e.description != "undefined")
+{
+  sError += "\nDescription: " + e.description;
+}
+
+if (typeof e.fileName != "undefined")
+{
+  sError += "\nFilename: " + e.fileName;
+}
+
+jsx.setErrorHandler();
+eval(new Array(
+    'try {',
+    '  if (e.lineNumber) {',
+    '    sError += "\\nLine: " + e.lineNumber;',
+    '  }',
+    '} catch (e2) {',
+    '  sError += "\\nLine: " + e2;',
+    '}').join("\n"));
+jsx.clearErrorHandler();
+      
+if (typeof e.stack != "undefined")
+{
+  sError += "\nStack:\n" + e.stack;
   }
 
   return sError;
@@ -629,23 +437,23 @@ function alertValue(a, bDontAlert, bDontEval)
       o = !bDontEval ? eval(a[i]) : a[i],
       t = typeof o,
       delim = (t == "string" ? '"' : ''),
-      s = delim + a[i] + delim + " : " + t + " = " + delim + o + delim;
+    s = delim + a[i] + delim + " : " + t + " = " + delim + o + delim;
 
-    if (t == "object" || t == "function")
+  if (t == "object" || t == "function")
+  {
+    for (var j in o)
     {
-      for (var j in o)
-      {
-        t = typeof o[j];
-        delim = (t == "string" ? '"' : '');
-        s += "\n" + a[i] + '["' + j + '"] : ' + t + " = "
-          +  delim + o[j] + delim;
-      }
+      t = typeof o[j];
+      delim = (t == "string" ? '"' : '');
+      s += "\n" + a[i] + '["' + j + '"] : ' + t + " = "
+        +  delim + o[j] + delim;
     }
-
-    as.push(s);
   }
 
-  var result = as.join("\n");
+  as.push(s);
+}
+
+var result = as.join("\n");
 
   if (!bDontAlert)
   {
@@ -703,9 +511,9 @@ function beautify(s)
 {
   return s
     .replace(/(\s*\{\s*)/g, "\n$1\n  ")
-    .replace(/(\s*\}([^,;])\s*)/g, "\n$1\n")
-    .replace(/,([^\s])/g, ", $1")
-    .replace(/([^}]?;\s*)/g, "$1\n");
+  .replace(/(\s*\}([^,;])\s*)/g, "\n$1\n")
+  .replace(/,([^\s])/g, ", $1")
+  .replace(/([^}]?;\s*)/g, "$1\n");
 }
 
 //alert(beautify('javascript:function resizeToHelp() { alert("Usage: resizeTo clientWidth [clientHeight]"); } if ("%s".length > 0) { var a = "%s".split(" "); if (a[0] && !isNaN(a[0])) { void (window.innerWidth=parseInt(a[0])); if (a[1] && !isNaN(a[1])) { void (window.innerHeight=parseInt(a[1])); } else resizeToHelp(); } else resizeToHelp(); } else resizeToHelp();'));
@@ -825,7 +633,7 @@ var synhl = (function () {
     sOptAttr = "(\\s+[^>]+|)",
     
     rxCode = new RegExp(
-      "(//.*|/\\*(.|\\s)*?\\*/)"
+      "(//.*|/\\*([^*/]|\\*[^/]|/)*\\*/)"
       + "|(&lt;/?script(.|\\r?\\n|\\r)*?&gt;|^script$)"
       + "|(^|[^<])(/(</[^>]*>|[^/\\\\\\[]|\\\\.|\\[[^\\]]*\\])+/)"
       + "|</?" + sElementType + sOptAttr + ">"

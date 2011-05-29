@@ -380,84 +380,6 @@ function DHTML()
     }());
   }
 
-  this.getElemByClassName = this.gEBCN = (function() {
-    var splice = (
-      function() {
-        var jsx_object = jsx.object;
-         
-        if (jsx_object.isMethod(jsx.global, "array_splice"))
-        {
-          return array_splice;
-        }
-        else if (typeof Array != "undefined"
-                 && jsx_object.isMethod(Array, "prototype", "splice"))
-        {
-          return function(a, start, del, ins) {
-            var proto = Array.prototype;
-            ins = proto.slice.call(arguments, 3);
-            return proto.splice.apply(a, [start, del].concat(ins));
-          };
-        }
-        else
-        {
-          return function(a, start, del, ins) {
-            var aDeleted = new Array();
-            
-            for (var i = start + del, len = a.length; i < len; i++)
-            {
-              aDeleted[aDeleted.length] = a[i - del];
-              a[i - del] = a[i];
-            }
-            
-            a.length = len - del;
-            
-            for (i = 3, len = arguments.length; i < len; i++)
-            {
-              a[a.length] = arguments[i];
-            }
-            
-            return aDeleted;
-          };
-        }
-      }
-    ());
-
-    /**
-     * Retrieves all elements matching certain CSS class names
-     * 
-     * @param sClassName
-     * @return Array
-     *   An <code>Array</code> of references to objects representing
-     *   matching elements
-     */
-    return function(sClassName) {
-      var
-        aElements = this.getElemByTagName(),
-        result = new Array();
-  
-      if (aElements)
-      {
-        var sWhiteSpace = "[ \\t\\f\\u200B\\r\\n]+";
-        
-        /*
-         * NOTE: There are many more elements than potential class names, so loop
-         * through those only once
-         */
-        for (var i = 0, len = aElements.length; i < len; ++i)
-        {
-          var element = aElements[i];
-          
-          if (new RegExp("(^|" + sWhiteSpace + ")" + sClassName + "($|" + sWhiteSpace + ")")
-              .test(element.className))
-          {
-            result[result.length] = element;
-          }
-        }
-      }
-  
-      return result;
-    };
-  }());
 
   /*
    * Apart from isNS4DOM, none of these object-inference properties is used
@@ -1230,91 +1152,6 @@ var _getComputedStyle = (function () {
   };
 }());
 DHTML.prototype.getComputedStyle = _getComputedStyle;
-
-/**
- * Adds a CSS class name to the <code>class</code> attribute of
- * an {@link Element}.
- * 
- * @param o : Element
- * @param sClassName : string
- * @param bRemove : boolean
- *   If the class name is already there, and this argument is
- *   <code>true</code>, all instances of it are removed first.
- *   If the class is there and this argument is <code>false</code>,
- *   exit without changing anything.  The default is <code>false</code>,
- *   which is more efficient.
- * @return boolean
- *   <code>true</code> if the class name could be added successfully or
- *   was already there, <code>false</code> otherwise.
- */
-function addClassName(o, sClassName, bRemove)
-{
-  var rx = new RegExp("(^\\s*|\\s+)" + sClassName + "(\\s*$|\\s)");
-  
-  if (bRemove)
-  {
-    this.removeClassName(o, sClassName);
-  }
-  else if (rx.test(o.className))
-  {
-    return true;
-  }
-  
-  if (sClassName)
-  {
-    if (/\S/.test(o.className))
-    {
-      o.className += " " + sClassName;
-    }
-    else
-    {
-      o.className = sClassName;
-    }
-    
-    return rx.test(o.className);
-  }
-}
-DHTML.prototype.addClassName = addClassName;
-
-/**
- * Removes all occurences of a CSS class name from the
- * <code>class</code> attribute of an {@link Element}.
- * 
- * @param o : Element
- * @param sClass : string
- */
-var removeClassName = function (o, sClassName) {
-  var curClassNames = o.className;
-  var newClassNames = curClassNames.replace(
-    new RegExp("(^\\s*|\\s+)" + sClassName + "(\\s*$|(\\s))", "g"),
-    "$3");
-  o.className = newClassNames;
-
-  if (!newClassNames && jsx.object.isMethod(o, "removeAttribute"))
-  {
-    o.removeAttribute("class");
-  }
-};
-DHTML.prototype.removeClassName = removeClassName;
-
-/**
- * Schedules code for later execution.
- * 
- * @param code : String|Function
- *   Code to be executed or function to be called.
- * @param iTimeout : number
- *   Number of milliseconds after which <var>code</var> should be run.
- */
-var runLater = function (code, iTimeout) {
-  if (typeof window != "undefined"
-      && jsx.object.isMethod(window, "setTimeout"))
-  {
-    return window.setTimeout(code, iTimeout);
-  }
-  
-  return Number.NaN;
-};
-DHTML.prototype.runLater = runLater;
 
 /**
  * Retrieves the value of a style property of an HTMLElement object.
@@ -2266,6 +2103,19 @@ dom.HTMLSerializer = (
   })()
 });
 
+/**
+ * Returns the first child node of another node.
+ * <p>
+ * NOTE: This method was written to support the MSHTML 4 DOM as well as
+ * newer DOMs.  It is <em>NOT</em> intended to work around the issue that
+ * MSHTML removes white-space text nodes from the document tree, while
+ * standards-compliant DOMs do not.  In particular, it does <em>NOT</em>
+ * return the first child <em>element</em> node, and return values do vary
+ * across DOMs..
+ * </p>
+ * @param oNode : Node
+ * @returns {Node} The first child node of another node.
+ */
 function getFirstChild(oNode)
 {
   var result = null;
@@ -2286,6 +2136,12 @@ function getFirstChild(oNode)
 }
 DHTML.prototype.getFirstChild = getFirstChild;
 
+/**
+ * Returns the parent node of a node
+ * 
+ * @param oNode : Node
+ * @returns {Node} The parent node of <var>oNode</var>
+ */
 function getParent(oNode)
 {
   var result = null;
