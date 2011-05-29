@@ -118,8 +118,10 @@ var isUndefined = jsx.types.isUndefined = function(o, p) {
 jsx.types.isInstanceOf = jsx.object.isInstanceOf;
 
 /**
+ * Determines whether an object is an array
+ * 
  * @author
- *   (C) 2003, 2009  Thomas Lahn &lt;object.js@PointedEars.de&gt;
+ *   (C) 2003, 2009, 2011 Thomas Lahn &lt;object.js@PointedEars.de&gt;
  * @partof http://pointedears.de/scripts/object.js
  * @requires jsx.object#isInstanceOf
  * @param a : Object

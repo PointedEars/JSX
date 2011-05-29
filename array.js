@@ -774,3 +774,44 @@ addProperties(
     }
   },
   Array.prototype);
+
+var splice = (
+  function() {
+    var jsx_object = jsx.object;
+     
+    if (jsx_object.isMethod(jsx.global, "array_splice"))
+    {
+      return array_splice;
+    }
+    else if (typeof Array != "undefined"
+             && jsx_object.isMethod(Array, "prototype", "splice"))
+    {
+      return function(a, start, del, ins) {
+        var proto = Array.prototype;
+        ins = proto.slice.call(arguments, 3);
+        return proto.splice.apply(a, [start, del].concat(ins));
+      };
+    }
+    else
+    {
+      return function(a, start, del, ins) {
+        var aDeleted = new Array();
+        
+        for (var i = start + del, len = a.length; i < len; i++)
+        {
+          aDeleted[aDeleted.length] = a[i - del];
+          a[i - del] = a[i];
+        }
+        
+        a.length = len - del;
+        
+        for (i = 3, len = arguments.length; i < len; i++)
+        {
+          a[a.length] = arguments[i];
+        }
+        
+        return aDeleted;
+      };
+    }
+  }
+());
