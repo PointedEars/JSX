@@ -279,6 +279,7 @@ jsx.dmsg = (function() {
               && isMethod(opera, "postError"))
     {
       opera.postError(msgMap.getString(sType) + sMsg);
+      return true;
     }
     
     return false;
@@ -463,7 +464,7 @@ jsx.object.addProperties = (function() {
           oOwner[p] = clone(
             iFlags & (COPY_ENUM_DEEP | COPY_INHERIT),
             oSource[p]);
-          oOwner[p].userDefined = true;
+          oOwner[p]._userDefined = true;
         });
       }
     }
@@ -1410,7 +1411,7 @@ if (jsx.object.isMethod(this, "eval"))
  * @param oProtoProps : Object
  *   Object from which to shallow-copy properties as prototype
  *   properties.  Of those, the <code>_super</code>,
- *   <code>constructor</code>, and <code>userDefined</code>
+ *   <code>constructor</code>, and <code>_userDefined</code>
  *   properties are ignored as they are used internally.
  * @return {Function}
  *   A reference to the constructor of the extended prototype object
@@ -1423,8 +1424,8 @@ Function.prototype.extend = (function() {
     /* Optimize if ECMAScript 5 features were available */
     if (jsx_object.isMethod(jsx.tryThis("Object"), "defineProperties"))
     {
-      return function(obj) {
-        return obj;
+      return function() {
+        return this;
       };
     }
     
@@ -1518,7 +1519,7 @@ Function.prototype.extend = (function() {
     this._super = Constructor;
     this.prototype._super = Constructor.prototype;
     this.prototype.constructor = this;
-    this.userDefined = true;
+    this._userDefined = true;
     
     /* PERF: for (var p in o.iterator()) is rather inefficient */
     /**

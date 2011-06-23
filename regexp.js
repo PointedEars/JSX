@@ -2,14 +2,14 @@
  * <title>PointedEars' JSX: RegExp Library</title>
  * @filename regexp.js
  * @version $Id$
- * 
+ *
  * @section Copyright & Disclaimer
  *
  * @author
  *   (C) 2005‒2011  Thomas Lahn &lt;js@PointedEars.de&gt;
- * 
+ *
  * @partof PointedEars' JavaScript Extensions (JSX)
- * 
+ *
  * JSX is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -48,7 +48,7 @@ jsx.regexp = {
 
 /**
  * Returns the string representation of a {@link RegExp} without delimiters.
- * 
+ *
  * @param rx : RegExp
  * @return string
  *   The string representation of <var>rx</var>
@@ -62,10 +62,10 @@ RegExp.prototype.toString2 = regexp2str;
 /**
  * Concatenates strings or regular expressions ({@link RegExp})
  * and returns the resulting <code>RegExp</code>.
- * 
+ *
  * If flags are used with either <code>RegExp</code> argument, the
  * resulting <code>RegExp</code> has all of those flags set.
- * 
+ *
  * @author Copyright (c) 2005
  *   Thomas Lahn &lt;regexp.js@PointedEars.de&gt;
  * @partof
@@ -77,7 +77,7 @@ RegExp.prototype.toString2 = regexp2str;
  *   For characters to lose their special meaning, escape them in
  *   a <code>RegExp</code> argument or escape them twice in
  *   a converted (e.g. string) argument.
- * 
+ *
  *   If this function is called as method of a <code>RegExp</code>,
  *   the expressions given are concatenated beginning with the
  *   <code>this</code> value.
@@ -88,7 +88,7 @@ var regexp_concat = jsx.regexp.concat = function () {
   var
     aParts = [],
     c = this.constructor;
-    
+
   if (c && c == RegExp)
   {
     aParts.push(regexp2str(this));
@@ -99,7 +99,7 @@ var regexp_concat = jsx.regexp.concat = function () {
     i: false,
     m: false,
     y: false,
-    
+
     joinSet:
       /**
        * @return string
@@ -108,7 +108,7 @@ var regexp_concat = jsx.regexp.concat = function () {
         var
           a = [],
           oDummy = {g: 1, i: 1, m: 1, y: 1};
-        
+
         for (var flag in oDummy)
         {
           if (this[flag] === true)
@@ -116,11 +116,11 @@ var regexp_concat = jsx.regexp.concat = function () {
             a.push(flag);
           }
         }
-        
+
         return a.join("");
       }
   };
-  
+
   for (var i = 0, iArgnum = arguments.length; i < iArgnum; i++)
   {
     var a = arguments[i];
@@ -132,17 +132,17 @@ var regexp_concat = jsx.regexp.concat = function () {
       {
         oFlags.g = true;
       }
-      
+
       if (!oFlags.i && a.ignoreCase)
       {
         oFlags.i = true;
       }
-      
+
       if (!oFlags.m && a.multiline)
       {
         oFlags.m = true;
       }
-      
+
       if (!oFlags.y && a.sticky)
       {
         oFlags.y = true;
@@ -160,7 +160,7 @@ RegExp.prototype.concat = regexp_concat;
 
 /**
  * Returns a {@link RegExp} that is an alternation of two regular expressions.
- * 
+ *
  * @param pattern2
  * @param pattern1
  * @return RegExp
@@ -180,7 +180,7 @@ var regexp_intersect = jsx.regexp.intersect = function (pattern2, pattern1) {
       return null;
     }
   }
-  
+
   /* Rule out invalid values */
   if (!pattern2 || pattern2.constructor != RegExp)
   {
@@ -244,7 +244,7 @@ RegExp.prototype.intersect = regexp_intersect;
  * Returns an escaped version of the string that can be
  * passed as an argument to {@link Global#RegExp(string, string) RegExp()}
  * to match that string.
- * 
+ *
  * @param s : string
  * @return string
  */
@@ -253,15 +253,17 @@ var strRegExpEscape = jsx.regexp.escape = function (s) {
   {
     s = this;
   }
-    
+
   return s.replace(/[\]\\^$*+?.(){}[]/g, "\\$&");
 };
 String.prototype.regExpEscape = strRegExpEscape;
 
 /**
- * Creates an extended {@link RegExp} where you can use PCRE-compliant
- * Unicode property classes using e.g. the \p{…} notation.
- * 
+ * Creates an extended {@link RegExp} where you can use some features
+ * of Perl-compatible Regular Expressions: Unicode property classes
+ * using e.g. the \p{…} notation, and named subpatterns by passing
+ * strings with the <tt>(?&lt;name>…)</tt> notation.
+ *
  * There are the following possibilities to make Unicode property classes
  * known to this constructor:
  * <ol>
@@ -270,7 +272,7 @@ String.prototype.regExpEscape = strRegExpEscape;
  *       plain text resource that is accessed with XMLHttpRequest;</li>
  *   <li>Define character classes manually</li>
  * </ol>
- * 
+ *
  * <p>
  * Variant #1 requires you to define a mapping object of the following structure:
  * </p>
@@ -294,7 +296,7 @@ String.prototype.regExpEscape = strRegExpEscape;
  * load the file specified by the <code>ucdScriptPath</code> (default:
  * <code>"/scripts/UnicodeData.js"</code>) using synchronous XHR (see below).
  * </p>
- * 
+ *
  * <p>
  * Variant #2 supports two different methods: Synchronous and asynchronous
  * request-response handling.  Synchronous request-response handling
@@ -308,7 +310,7 @@ String.prototype.regExpEscape = strRegExpEscape;
  * must be performed.  Asynchronous handling is recommended for applications
  * that need to be responsive to user input.
  * </p>
- * 
+ *
  * <p>
  * Variant #3 can be combined with the other variants.  The constructor
  * has a definePropertyClasses() method which can be used to define and
@@ -316,7 +318,7 @@ String.prototype.regExpEscape = strRegExpEscape;
  * to support only a subset of Unicode Character Classes, and to support
  * user-defined character classes.
  * </p>
- * 
+ *
  * @function
  * @constructor
  * @param expression : String|RegExp
@@ -335,6 +337,7 @@ jsx.regexp.RegExp = (function () {
 
     fEscapeMapper = function (match, classRanges, p3, p4, p5,
                                standalonePropSpec, standaloneClass) {
+      /* If no extended features are used */
       if (!(classRanges || standaloneClass))
       {
         return match;
@@ -343,39 +346,38 @@ jsx.regexp.RegExp = (function () {
       var
         me = jsx.regexp.RegExp,
         propertyClasses = me.propertyClasses;
-    
+
+      /* If the UCD is not statically loaded */
       if (!propertyClasses)
       {
-        var req = new jsx.net.http.Request(me.ucdScriptPath, "GET", false,
-          function (x) {
-            eval(x.responseText);
-          });
-        req.send();
-        
+        /* load it dynamically */
+        jsx.importFrom(me.ucdScriptPath);
         propertyClasses = me.propertyClasses;
-        
+
+        /* if this failed */
         if (!propertyClasses)
         {
+          /* parse the text version of the UCD */
           req.setURL(me.ucdTextPath);
           req.setSuccessListener(function (xhr) {
             var lines = xhr.responseText.split(/\r?\n|\r/).map(function (e) {
               return e.split(";");
             });
-          
+
             lines.sort(function (a, b) {
               var
                 a2 = a[2],
                 b2 = b[2],
                 a0 = a[0],
                 b0 = b[0];
-              
+
               return (a2 < b2 || (a2 === b2 && a0 < b0))
                 ? -1
                 : (a2 === b2 && a0 === b0 ? 0 : 1);
             });
-            
+
             propertyClasses = me.propertyClasses = {};
-            
+
             for (var i = 0, len = lines.length; i < len; ++i)
             {
               var
@@ -386,7 +388,7 @@ jsx.regexp.RegExp = (function () {
                 prevCodePoint,
                 num = parseInt(codePoint, 16),
                 prevNum;
-              
+
               if (codePoint == "" || num > 0xFFFF)
               {
                 continue;
@@ -429,7 +431,7 @@ jsx.regexp.RegExp = (function () {
               prevCodePoint = codePoint,
               prevNum = num;
             }
-            
+
             if (startRange)
             {
               propertyClasses[prevClass] += "-\\u" + prevCodePoint;
@@ -439,16 +441,18 @@ jsx.regexp.RegExp = (function () {
         }
       }
 
+      /* We can handle standalone class references */
       if (standaloneClass)
       {
         var result = jsx_object.getProperty(propertyClasses, standaloneClass);
-      
+
         result = "[" + (standalonePropSpec == "P" ? "^" : "") + result + "]";
       }
       else
       {
+        /* and class references in character classes */
         var negPropClasses = [];
-                    
+
         result = classRanges.replace(rxPropertyEscapes,
           function (match, propertySpecifier, propertyClass) {
             if (propertySpecifier == "P")
@@ -456,29 +460,28 @@ jsx.regexp.RegExp = (function () {
               negPropClasses.push(match);
               return "";
             }
-            
+
             return jsx_object.getProperty(propertyClasses, propertyClass);
           });
-        
+
         if (result)
         {
           result = "[" + result + "]";
         }
-        
+
         if (negPropClasses.length > 0)
         {
           negPropClasses = negPropClasses.join("");
-          
+
           if (result)
           {
-            jsx.dmsg(
+            jsx.warn(
               "jsx.RegExp: [...\\P{...}...] requires support for"
-                + " non-capturing parentheses",
-              "warn");
+                + " non-capturing parentheses");
 
             result = "(?:" + result + "|";
           }
-          
+
           result += "[^"
             + negPropClasses.replace(rxPropertyEscapes,
                 function (match, propertySpecifier, propertyClass) {
@@ -488,17 +491,16 @@ jsx.regexp.RegExp = (function () {
             + (result ? ")" : "");
         }
       }
-      
+
       return result;
     };
 
-    /** foo */
   return function(expression, sFlags) {
     if (expression && expression.constructor == RegExp)
     {
       expression = expression.source;
     }
-    
+
     var t = typeof expression;
     if (t != "string")
     {
@@ -511,17 +513,109 @@ jsx.regexp.RegExp = (function () {
         expression = String(expression);
       }
     }
-    
+
     var originalSource = expression;
+
+    this.subpatternCount = 0;
+    this.subpatterns = {};
+    var me = this;
     
+    /* Support for named subpatterns (PCRE-compliant) */
+    expression = expression.replace(/(\\\()|(\((\?<([^>]+)>)?)/g,
+      function(match, escapedLParen, subpattern, namedSubpattern, name) {
+        if (subpattern)
+        {
+          ++me.subpatternCount;
+        
+          if (name)
+          {
+            me.subpatterns[me.subpatternCount] = name;
+          }
+
+          return "(";
+        }
+
+        return escapedLParen;
+      });
+    
+    /* Support for Unicode character property classes (PCRE-compliant) */
     expression = expression.replace(rxEscapes, fEscapeMapper);
-    
+
     var rx = new RegExp(expression, sFlags);
     rx.originalSource = originalSource;
+    rx.subpatterns = this.subpatterns;
     
     return rx;
   };
 })();
+
+/**
+ * Determines if an object has been constructed using this constructor
+ * 
+ * @param rx
+ *   Instance to be tested\bHTTPRequest\b
+ * @return boolean
+ *   <code>true</code> if <var>rx</var> has been constructed
+ *   using this constructpr, <code>false</code> otherwise.
+ */
+jsx.regexp.RegExp.isInstance = function(rx) {
+  return !!rx.originalSource;
+};
+
+jsx.regexp.RegExp.exec = (function() {
+  var isInstance = jsx.regexp.RegExp.isInstance;
+
+  return function(rx, s) {
+    var matches = rx.exec(s);
+    
+    if (matches && !rx.global && isInstance(rx))
+    {
+      for (var i = 1, len = matches.length; i < len; ++i)
+      {
+        matches[rx.subpatterns[i]] = matches[i];
+      }
+    }
+    
+    return matches;
+  };
+}());
+
+jsx.regexp.String = function(s) {
+  if (this.constructor != arguments.callee)
+  {
+    jsx.throwThis("jsx.Error", "Must be called as constructor", "jsx.regexp.String");
+  }
+  
+  this.value = String(s);
+};
+
+jsx.regexp.String.extend(String);
+
+/**
+ * Matches a string against a regular expression, using special features
+ * of jsx.regexp.RegExp if possible
+ * 
+ * @param rx : RegExp|jsx.regexp.RegExp
+ * @return Array
+ *   The Array as if returned by String.prototype.match.call(this, rx)
+ */
+jsx.regexp.String.prototype.match = (function() {
+  var isInstance = jsx.regexp.RegExp.isInstance;
+
+  return function(rx) {
+    var matches = this.value.match(rx);
+    
+    if (matches && !rx.global && isInstance(rx))
+    {
+      for (var i = 1, len = matches.length; i < len; ++i)
+      {
+        matches[rx.subpatterns[i]] = matches[i];
+      }
+    }
+    
+    return matches;
+  };
+}());
 
 jsx.regexp.RegExp.ucdScriptPath = "/scripts/UnicodeData.js";
 jsx.regexp.RegExp.ucdTextPath = "/scripts/UnicodeData.txt";
