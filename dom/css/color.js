@@ -1,3 +1,27 @@
+if (typeof jsx == "undefined")
+{
+  /**
+   * @namespace
+   */
+  var jsx = {};
+}
+
+if (typeof jsx.dom == "undefined")
+{
+  /**
+   * @namespace
+   */
+  jsx.dom = {};
+}
+
+if (typeof jsx.dom.css == "undefined")
+{
+  /**
+   * @namespace
+   */
+  jsx.dom.css = {};
+}
+
 /**
  * The <code>Color</code> prototype encapsulates
  * color data given in RGB format.
@@ -452,59 +476,62 @@ jsx.dom.css.Color.prototype.getHSV = function() {
  * If any of the coordinates is not provided, it is assumed to be
  * 0 (zero).
  * 
- * @param h : number
+ * @param iHue : number
  *   Hue, from 0 to 360 (degrees).
- * @param s : number
+ * @param fSaturation : number
  *   Saturation, from 0.0 to 1.0 (0 to 100%).
- * @param v : number
+ * @param fValue : number
  *   Brightness value, from 0.0 to 1.0 (0 to 100%).
  * @return Color
  */
-jsx.dom.css.Color.prototype.HSVtoRGB = function(h, s, v) {
+jsx.dom.css.Color.prototype.HSVtoRGB = function(iHue, fSaturation, fValue) {
   var Color = jsx.dom.css.Color;
   
   /* Cf. http://en.wikipedia.org/wiki/HSV_color_space#Transformation_between_HSV_and_RGB */
-  if (s == 0.0)
+  if (fSaturation == 0.0)
   {
-    return new Color(v * 255, v * 255, v * 255);
+    return new Color(fValue * 255, fValue * 255, fValue * 255);
   }
 
   var
-    h_i = Math.floor(h / 60) % 6,
-    f = (h / 60) - h_i,
-    p = v * (1 - s),
-    q = v * (1 - f * s),
-    t = v * (1 - (1 - f) * s),
-    r, g, b;
+    h_i = Math.floor(iHue / 60) % 6,
+    f = (iHue / 60) - h_i,
+    p = fValue * (1 - fSaturation),
+    q = fValue * (1 - f * fSaturation),
+    t = fValue * (1 - (1 - f) * fSaturation),
+    red, green, blue;
     
   switch (h_i)
   {
     case 0:
-      r = v; g = t; b = p;
+      red = fValue; green = t; blue = p;
       break;
       
     case 1:
-      r = q; g = v; b = p;
+      red = q; green = fValue; blue = p;
       break;
       
     case 2:
-      r = p; g = v; b = t;
+      red = p; green = fValue; blue = t;
       break;
       
     case 3:
-      r = p; g = q; b = v;
+      red = p; green = q; blue = fValue;
       break;
       
     case 4:
-      r = t; g = p; b = v;
+      red = t; green = p; blue = fValue;
       break;
       
     case 5:
-      r = v; g = p; b = q;
+      red = fValue; green = p; blue = q;
       break;
+      
+    default:
+      return null;
   }
   
-  return new Color(r * 255, g * 255, b * 255);
+  return new Color(red * 255, green * 255, blue * 255);
 };
   
 /**
@@ -514,20 +541,20 @@ jsx.dom.css.Color.prototype.HSVtoRGB = function(h, s, v) {
 jsx.dom.css.Color.prototype.toHex = function() {
   var
     leadingZero = jsx.string.leadingZero,
-    r = leadingZero(this.red.toString(16), 2),
-    g = leadingZero(this.green.toString(16), 2),
-    b = leadingZero(this.blue.toString(16), 2),
+    red = leadingZero(this.red.toString(16), 2),
+    green = leadingZero(this.green.toString(16), 2),
+    blue = leadingZero(this.blue.toString(16), 2),
     rx = /([0-9a-f])\1([0-9a-f])\2([0-9a-f])\3/i,
     m;
      
-  if ((m = rx.exec(r + g + b)))
+  if ((m = rx.exec(red + green + blue)))
   {
-    r = m[1];
-    g = m[2];
-    b = m[3];
+    red = m[1];
+    green = m[2];
+    blue = m[3];
   }
     
-  return '#' + r + g + b;
+  return '#' + red + green + blue;
 };
 
 /**
@@ -551,4 +578,44 @@ jsx.dom.css.Color.prototype.toString = jsx.dom.css.Color.prototype.toRGBString =
    */
 jsx.dom.css.Color.prototype.toObjectString = function() {
   return '{red: ' + this.red + ', green: ' + this.green + ', blue: '+ this.blue + '}';
+};
+
+/**
+ * Changes the current document into a monochrome version of itself.
+ * 
+ * @requires dhtml.js
+ */
+jsx.dom.css.makeMono = function() {
+  var
+    sl = new jsx.dom.css.SelectorList(),
+    oIt = sl.iterator(),
+    s,
+    c = new jsx.dom.css.Color(),
+    a = ['backgroundColor', 'borderColor', 'borderTopColor',
+         'borderRightColor', 'borderBottomColor', 'borderLeftColor',
+         'outlineColor', 'color'],
+    j, p;
+    
+  while ((s = oIt.next()))
+  {
+    for (j = a.length; j--;)
+    {
+      if ((p = s[a[j]]))
+      {
+        s[a[j]] = c.setMono(p).toString();
+      }
+    }
+  }
+  
+  for (var es = dhtml.getElemByTagName('*'), i = es && es.length; i--;)
+  {
+    var e = es[i];
+    for (j = a.length; j--;)
+    {
+      if ((p = e.style[a[j]]))
+      {
+        e.style[a[j]] = c.setMono(p).toString();
+      }
+    }
+  }
 };

@@ -51,8 +51,7 @@
  *   reference used to fill the collection.
  * @constructor
  */
-function Collection(o)
-{
+jsx.Collection = function(o) {
   this.version   = "0.1.2008120823";
   this.copyright = "Copyright \xA9 2002-2008";
   this.author    = "Thomas Lahn";
@@ -63,122 +62,120 @@ function Collection(o)
   this.allowExceptionMsg = true;
 
   this.set(o);
-}
+};
 
-Collection.extend(Array, {
-  constructor: Collection,
+jsx.Collection.extend(Array);
 
-  /**
-   * Adds an item to a {@link Collection}.
-   * 
-   * @param val
-   * @param name : optional string
-   *   Reference to an object used to fill the collection.
-   * @return CollectionItem
-   *   the added item
-   */
-  add: function (val, name) {
-    var index = this.items.length;
-    this.items[index] = new CollectionItem(val);
-  
-    if (name && isNaN(name))
-    {
-      this.items[name] = this.items[index];
-    }
-  
-    return this.items[index];
-  },
+/**
+ * Adds an item to a {@link Collection}.
+ * 
+ * @param val
+ * @param name : optional string
+ *   Reference to an object used to fill the collection.
+ * @return CollectionItem
+ *   the added item
+ */
+jsx.Collection.prototype.add = function (val, name) {
+  var index = this.items.length;
+  this.items[index] = new jsx.CollectionItem(val);
 
-  /**
-   * @param o : optional Object
-   *   reference used to append to the collection.
-   */
-  addItems: function (o) {
-    var result = null;
-
-    for (var i in o)
-    {
-      /* omit deleted items */
-      if (typeof o[i] != "undefined")
-      {
-        result = this.add(o[i], i);
-      }
-    }
-    
-    return result;
-  },
-
-  /**
-   * Removes all items from the {@link Collection}.
-   * 
-   * @type Array
-   */
-  clear: function () {
-    this.items = [];
-    
-    if (typeof this.items.map != "function")
-    {
-      this.items.map = function (callback, thisObj) {
-        var a = this;
-        
-        if (typeof callback == "function")
-        {
-          if (!thisObj){thisObj = this;}
-          
-          a = [];
-          for (var i = 0, len = this.length; i < len; i++)
-          {
-            a[i] = callback.call(thisObj, this[i], i, this);
-          }
-        }
-        else
-        {
-          (function() {
-             eval("throw new TypeError('Collection.prototype.items.map(callback, thisObj):'"
-               + "+ ' expected function, got ' + typeof thisObj)");
-           }());
-        }
-    
-        return a;
-      };
-    }
-  
-    return this.items;
-  },
-  
-  keys: function () {
-    var a = [], o = this.items;
-    
-    for (var k in o)
-    {
-      a.push(o[k]);
-    }
-    
-    return a;
-  },
-  
-  values: function () {
-    return this.items.map(function(v) { return v; });
-  },
-  
-  /**
-   * Returns a reference to a new {@link Iterator} for the {@link Collection}.
-   * 
-   * @return Iterator
-   */
-  iterator: function () {
-    return new Iterator(this.items);
-  },
-  
-  /**
-   * @param o : optional Object
-   *   reference used to fill the {@link Collection}.
-   */
-  set: function (o) {
-    this.clear();
-    return this.addItems(o);
+  if (name && isNaN(name))
+  {
+    this.items[name] = this.items[index];
   }
-});
+
+  return this.items[index];
+};
+
+/**
+ * @param o : optional Object
+ *   reference used to append to the collection.
+ */
+jsx.Collection.prototype.addItems = function (o) {
+  var result = null;
+
+  for (var i in o)
+  {
+    /* omit deleted items */
+    if (typeof o[i] != "undefined")
+    {
+      result = this.add(o[i], i);
+    }
+  }
+  
+  return result;
+};
+
+/**
+ * Removes all items from the {@link Collection}.
+ * 
+ * @type Array
+ */
+jsx.Collection.prototype.clear = function () {
+  this.items = [];
+  
+  if (typeof this.items.map != "function")
+  {
+    this.items.map = function (callback, thisObj) {
+      var a = this;
+      
+      if (typeof callback == "function")
+      {
+        if (!thisObj){thisObj = this;}
+        
+        a = [];
+        for (var i = 0, len = this.length; i < len; i++)
+        {
+          a[i] = callback.call(thisObj, this[i], i, this);
+        }
+      }
+      else
+      {
+        (function() {
+           eval("throw new TypeError('Collection.prototype.items.map(callback, thisObj):'"
+             + "+ ' expected function, got ' + typeof thisObj)");
+         }());
+      }
+  
+      return a;
+    };
+  }
+
+  return this.items;
+};
+
+jsx.Collection.prototype.keys = function () {
+  var a = [], o = this.items;
+  
+  for (var k in o)
+  {
+    a.push(o[k]);
+  }
+  
+  return a;
+};
+
+jsx.Collection.prototype.values = function () {
+  return this.items.map(function(v) { return v; });
+};
+
+/**
+ * Returns a reference to a new {@link Iterator} for the {@link Collection}.
+ * 
+ * @return Iterator
+ */
+jsx.Collection.prototype.iterator = function () {
+  return new jsx.Iterator(this.items);
+};
+
+/**
+ * @param o : optional Object
+ *   reference used to fill the {@link Collection}.
+ */
+jsx.Collection.prototype.set = function (o) {
+  this.clear();
+  return this.addItems(o);
+};
 
 /**
  * Creates and initializes a <code>ValueCollection</code> object,
@@ -189,12 +186,11 @@ Collection.extend(Array, {
  * @param val
  *   Value that the object holds
  */
-function ValueCollection(o, val)
-{
-  Collection.call(o);
+jsx.ValueCollection = function(o, val) {
+  jsx.Collection.call(o);
   this.value = val;
-}
-ValueCollection.extend(Collection);
+};
+jsx.ValueCollection.extend(jsx.Collection);
 
 /**
  * Creates and initializes a <code>CollectionItem</code> object.
@@ -202,10 +198,9 @@ ValueCollection.extend(Collection);
  * @param val
  *   Value of the item
  */
-function CollectionItem(val)
-{
+jsx.CollectionItem = function(val) {
   this.value = val;
-}
+};
 
 /**
  * Creates an initializes an <code>Iterator</code> object.
@@ -215,14 +210,13 @@ function CollectionItem(val)
  * @param o : Collection
  *   Iteration target
  */
-function Iterator(o)
-{
+jsx.Iterator = function(o) {
   /* properties */
   this.target = o;
   this.prevItem = -1;
   this.currItem = -1;
   this.nextItem = -1;
-}
+};
 
 /* prototype methods */
 /**
@@ -231,7 +225,7 @@ function Iterator(o)
  * @return CollectionItem
  *   The item previously visited in the iteration.
  */
-Iterator.prototype.prev = function () {
+jsx.Iterator.prototype.prev = function () {
   var result;
   var t = this.target;
 
@@ -281,7 +275,7 @@ Iterator.prototype.prev = function () {
  * @return CollectionItem
  *   The item that will next be visited in the iteration.
  */
-Iterator.prototype.next = function () {
+jsx.Iterator.prototype.next = function () {
   var
     result,
     t = this.target;
@@ -337,7 +331,7 @@ Iterator.prototype.next = function () {
  *   <code>true</code> if there is a previous item
  *   in the iteration, <code>false</code> otherwise.
  */
-Iterator.prototype.hasPrev = function () {
+jsx.Iterator.prototype.hasPrev = function () {
   var result = false;
   this.prevItem = -1;
   var t = this.target;
@@ -382,7 +376,7 @@ Iterator.prototype.hasPrev = function () {
  *   <code>true</code> if there is a next item
  *   in the iteration, <code>false</code> otherwise.
  */
-Iterator.prototype.hasNext = function () {
+jsx.Iterator.prototype.hasNext = function () {
   var result = false;
   this.nextItem = -1;
   var t = this.target;
@@ -423,7 +417,7 @@ Iterator.prototype.hasNext = function () {
  * @type mixed
  * @return the next item, <code>undefined</code> if there is none.
  */
-Iterator.prototype.remove = function () {
+jsx.Iterator.prototype.remove = function () {
   var undef;
   delete this.target[this.currItem];
   if (this.hasNext())

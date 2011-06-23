@@ -537,39 +537,43 @@ var parseFloat = jsx.string.parseFloat = (function () {
 //}
 
 /**
+ * @protected
+ */
+jsx.string._rxFormatSpec = new RegExp(
+  /* flags */
+  "%(\\(([^)]*)\\))?([#0+' _-]*)"
+  
+  /* field width */
+  + "([1-9]*\\d+|(\\*((\\d+)\\$)?))?"
+  
+  /* precision */
+  + "(\\.([+-]?\\d+|(\\*((\\d+)\\$)?))?)?"
+  
+  /* member delimiter */
+  + "(,)?"
+  
+  /* conversion */
+  + "([%aAbdiouxXeEfFgGcsCSpn])",
+  
+  /* global match */
+  "g");
+
+/**
  * A more efficient rewrite of the previous format() function.
  * 
  * @param sFormat
  * @return string
  */
-var sprintf,
-format = sprintf = jsx.string.format = jsx.string.sprintf = function(sFormat) {
+jsx.string.format = jsx.string.sprintf = function(sFormat) {
   var
+    rxFormatSpec = jsx.string._rxFormatSpec,
     args = arguments,
     i = 1,
     jsx_string = jsx.string,
     ignoredArgs = [];
   
   return String(sFormat).replace(
-    new RegExp(
-      /* flags */
-      "%(\\(([^)]*)\\))?([#0+' _-]*)"
-      
-      /* field width */
-      + "([1-9]*\\d+|(\\*((\\d+)\\$)?))?"
-      
-      /* precision */
-      + "(\\.([+-]?\\d+|(\\*((\\d+)\\$)?))?)?"
-      
-      /* member delimiter */
-      + "(,)?"
-      
-      /* conversion */
-      + "([%aAbdiouxXeEfFgGcsCSpn])",
-      
-      /* global replace */
-      "g"),
-      
+    rxFormatSpec,
     function(m, p1, propertyName, flags,
               fieldWidth, argFieldWidth, p4, uFieldWidthArg, p6,
               precision, argPrecision, p9, uPrecisionArg,
@@ -777,6 +781,73 @@ format = sprintf = jsx.string.format = jsx.string.sprintf = function(sFormat) {
       return v;
     });
 };
+
+/**
+ * Parses values out of a string using the specified format
+ * 
+ * @param s : String
+ * @param format : String
+ * @return Array
+ */
+jsx.string.sscanf = (function() {
+  var formatSpec = {
+    dec: "([+-]?(?:0|[1-9]\\d+)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)",
+    "int": "([+-]?(?:0|[1-9]\\d+)(?:[eE][+-]?\\d+)?)"
+  };
+  
+  var formatMap = {
+    "%d": {
+      spec: formatSpec.dec,
+      parser: parseFloat
+    },
+    "%i": {
+      spec: formatSpec["int"],
+      parser: function(value) {
+        return parseInt(value, 10);
+      }
+    }
+  };
+  
+  function replacer(match)
+  {
+    if (typeof formatMap[match] != "undefined")
+    {
+      replaced.push(match);
+      match = formatMap[match].spec;
+    }
+    
+    return match;
+  }
+  
+  var rxFormatSpec = jsx.string._rxFormatSpec;
+
+  return function(s, format) {
+    /* TODO: Use the same expression as sprintf() above */
+    var replaced = [];
+    format = format.replace(rxFormatSpec, replacer);
+    var matches = s.match(new RegExp(format));
+    matches.shift();
+    
+    /* TODO: Convert values to specified type */
+
+    for (var i = 0, len = replaced.length; i < len; ++i)
+    {
+      var replace = replaced[i];
+      
+      
+      switch (replace)
+      {
+        case formatSpec.dec:
+          matches[i] = parseFloat(matches[i]);
+          break;
+          
+        
+      }
+    }
+    
+    return matches;
+  };
+}());
 
 /**
  * @version
