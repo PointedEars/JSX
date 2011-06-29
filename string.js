@@ -822,7 +822,6 @@ jsx.string.sscanf = (function() {
   var rxFormatSpec = jsx.string._rxFormatSpec;
 
   return function(s, format) {
-    /* TODO: Use the same expression as sprintf() above */
     var replaced = [];
     format = format.replace(rxFormatSpec, replacer);
     var matches = s.match(new RegExp(format));
