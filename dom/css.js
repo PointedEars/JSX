@@ -535,19 +535,21 @@ jsx.dom.css.SelectorList.extend(jsx.Collection, {
   }
 });
 
-this.getElemByClassName = this.gEBCN = (function() {
-  /**
-   * Retrieves all elements matching certain CSS class names
-   * 
-   * @param sClassName
-   * @return Array
-   *   An <code>Array</code> of references to objects representing
-   *   matching elements
-   */
+/**
+ * Retrieves all elements matching certain CSS class names
+ * 
+ * @param sClassName
+ * @return Array
+ *   An <code>Array</code> of references to objects representing
+ *   matching elements
+ */
+jsx.dom.css.getElemByClassName = jsx.dom.css.gEBCN = (function() {
+  var _getElemByTagName = jsx.dom.getElemByTagName;
+  
   return function(sClassName) {
     var
-      aElements = this.getElemByTagName(),
-      result = new Array();
+      aElements = _getElemByTagName(),
+      result = [];
 
     if (aElements)
     {
