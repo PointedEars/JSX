@@ -267,56 +267,57 @@ String.prototype.regExpEscape = strRegExpEscape;
  * There are the following possibilities to make Unicode property classes
  * known to this constructor:
  * <ol>
- *   <li>Provide the Unicode Character Database, or parts thereof, as an Object;</li>
- *   <li>Provide the Unicode Character Database, or parts thereof, as a
- *       plain text resource that is accessed with XMLHttpRequest;</li>
- *   <li>Define character classes manually</li>
+ *   <li>Provide the Unicode Character Database, or parts thereof,
+ *       as an Object;</li>
+ *   <li>Provide the Unicode Character Database, or parts thereof,
+ *       as a plain text resource that is accessed with XMLHttpRequest;</li>
+ *   <li>Define property classes manually</li>
  * </ol>
- *
  * <p>
- * Variant #1 requires you to define a mapping object of the following structure:
+ * Variant #1 requires you to define a mapping object with the following
+ * namespace and structure:
  * </p>
  * <pre><code>
- *   jsx.RegExp.propertyClasses = {
+ *   jsx.regexp.RegExp.propertyClasses = {
  *      ...,
  *     Sc: "\u20AC...",
  *     ...
  *   };
  * </code></pre>
  * <p>
- * The property name is the name of the Unicode property class.  The property
- * value defines which characters belong to that class.  You may use
- * "-" to specify character ranges, i.e., the range of characters including
- * the characters having the boundaries as code point, and all characters
- * that have a code point in-between.  (For a literal "-", you may use "\\-".)
+ * The property name is the name of the Unicode property class (here:
+ * <tt>Sc</tt>).  The property value (a string) defines which characters
+ * belong to that class.  You may use "-" to specify character ranges,
+ * i.e., the range of characters including the characters having
+ * the boundaries as code point, and all characters that have a code point
+ * in-between.  (For a literal "-", you may use "\\-".)
  * An example file to mirror the Unicode 5.0 Character Database, UnicodeData.js,
- * is distributed with this file.  Include it after the file that
- * declares the constructor (this file) to use it.  If you do not include it,
- * but use the <code>\p{...}</code> notation, an attempt will be made to
+ * is distributed with this file.  Include it <em>after</em> the file
+ * that declares the constructor (this file) to use it.  If you do not include
+ * it, but use the <code>\p{...}</code> notation, an attempt will be made to
  * load the file specified by the <code>ucdScriptPath</code> (default:
  * <code>"/scripts/UnicodeData.js"</code>) using synchronous XHR (see below).
  * </p>
- *
  * <p>
- * Variant #2 supports two different methods: Synchronous and asynchronous
- * request-response handling.  Synchronous request-response handling
- * requests the (partial) Unicode Character Database from the resource
- * specified by the <code>ucdTextPath</code> property (default:
+ * Variant #2 is going to support two different methods: Synchronous and
+ * asynchronous request-response handling.  Synchronous request-response
+ * handling requests the (partial) Unicode Character Database from the
+ * resource specified by the <code>ucdTextPath</code> property (default:
  * <code>"/scripts/UnicodeData.txt"</code>) and halts execution until
- * a response has been received or the connection timed out.  Asynchronous
- * request-response handling allows script execution to continue while
- * the request and response are in progress, but you need to provide a
+ * a response has been received or the connection timed out.
+ * Asynchronous request-response handling allows script execution to continue
+ * while the request and response are in progress, but you need to provide a
  * callback as third argument where actions related to the regular expression
  * must be performed.  Asynchronous handling is recommended for applications
  * that need to be responsive to user input.
+ * <strong>Currently, only synchronous handling is implemented.</strong>
  * </p>
- *
  * <p>
  * Variant #3 can be combined with the other variants.  The constructor
  * has a definePropertyClasses() method which can be used to define and
  * redefine property classes.  This allows an extended RegExp object
- * to support only a subset of Unicode Character Classes, and to support
- * user-defined character classes.
+ * to support only a subset of Unicode property classes, and to support
+ * user-defined character property classes.
  * </p>
  *
  * @function
@@ -358,85 +359,86 @@ jsx.regexp.RegExp = (function () {
         if (!propertyClasses)
         {
           /* parse the text version of the UCD */
-          req.setURL(me.ucdTextPath);
-          req.setSuccessListener(function (xhr) {
-            var lines = xhr.responseText.split(/\r?\n|\r/).map(function (e) {
-              return e.split(";");
-            });
-
-            lines.sort(function (a, b) {
-              var
-                a2 = a[2],
-                b2 = b[2],
-                a0 = a[0],
-                b0 = b[0];
-
-              return (a2 < b2 || (a2 === b2 && a0 < b0))
-                ? -1
-                : (a2 === b2 && a0 === b0 ? 0 : 1);
-            });
-
-            propertyClasses = me.propertyClasses = {};
-
-            for (var i = 0, len = lines.length; i < len; ++i)
-            {
-              var
-                fields = lines[i],
-                propertyClass = fields[2],
-                prevClass,
-                codePoint = fields[0],
-                prevCodePoint,
-                num = parseInt(codePoint, 16),
-                prevNum;
-
-              if (codePoint == "" || num > 0xFFFF)
+          var req = new jsx.net.http.Request(me.ucdTextPath, "GET", false,
+            function (xhr) {
+              var lines = xhr.responseText.split(/\r?\n|\r/).map(
+                function (e) {
+                  return e.split(";");
+                });
+  
+              lines.sort(function (a, b) {
+                var
+                  a2 = a[2],
+                  b2 = b[2],
+                  a0 = a[0],
+                  b0 = b[0];
+  
+                return (a2 < b2 || (a2 === b2 && a0 < b0))
+                  ? -1
+                  : (a2 === b2 && a0 === b0 ? 0 : 1);
+              });
+  
+              propertyClasses = me.propertyClasses = {};
+  
+              for (var i = 0, len = lines.length; i < len; ++i)
               {
-                continue;
-              }
-
-              if (propertyClass != prevClass)
-              {
-                if (num != prevNum + 1)
+                var
+                  fields = lines[i],
+                  propertyClass = fields[2],
+                  prevClass,
+                  codePoint = fields[0],
+                  prevCodePoint,
+                  num = parseInt(codePoint, 16),
+                  prevNum;
+  
+                if (codePoint == "" || num > 0xFFFF)
                 {
-                  if (startRange)
-                  {
-                    propertyClasses[prevClass] += "-\\u" + prevCodePoint;
-                  }
+                  continue;
                 }
-
-                propertyClasses[propertyClass] = "\\u" + codePoint;
-
-                var startRange = false;
-              }
-              else
-              {
-                if (num != prevNum + 1)
+  
+                if (propertyClass != prevClass)
                 {
-                  if (startRange)
+                  if (num != prevNum + 1)
                   {
-                    propertyClasses[prevClass] += "-\\u" + prevCodePoint;
-
-                    startRange = false;
+                    if (startRange)
+                    {
+                      propertyClasses[prevClass] += "-\\u" + prevCodePoint;
+                    }
                   }
-
-                  propertyClasses[propertyClass] += "\\u" + codePoint;
+  
+                  propertyClasses[propertyClass] = "\\u" + codePoint;
+  
+                  var startRange = false;
                 }
                 else
                 {
-                  startRange = true;
+                  if (num != prevNum + 1)
+                  {
+                    if (startRange)
+                    {
+                      propertyClasses[prevClass] += "-\\u" + prevCodePoint;
+  
+                      startRange = false;
+                    }
+  
+                    propertyClasses[propertyClass] += "\\u" + codePoint;
+                  }
+                  else
+                  {
+                    startRange = true;
+                  }
                 }
+  
+                prevClass = propertyClass,
+                prevCodePoint = codePoint,
+                prevNum = num;
               }
-
-              prevClass = propertyClass,
-              prevCodePoint = codePoint,
-              prevNum = num;
-            }
-
-            if (startRange)
-            {
-              propertyClasses[prevClass] += "-\\u" + prevCodePoint;
-            }
-          });
+  
+              if (startRange)
+              {
+                propertyClasses[prevClass] += "-\\u" + prevCodePoint;
+              }
+            });
           req.send();
         }
       }
@@ -553,7 +555,7 @@ jsx.regexp.RegExp = (function () {
  * Determines if an object has been constructed using this constructor
  * 
  * @param rx
- *   Instance to be tested\bHTTPRequest\b
+ *   Instance to be tested
  * @return boolean
  *   <code>true</code> if <var>rx</var> has been constructed
  *   using this constructpr, <code>false</code> otherwise.
@@ -580,10 +582,25 @@ jsx.regexp.RegExp.exec = (function() {
   };
 }());
 
+jsx.regexp.RegExp.ucdScriptPath = "/scripts/UnicodeData.js";
+jsx.regexp.RegExp.ucdTextPath = "/scripts/UnicodeData.txt";
+
+jsx.regexp.RegExp.definePropertyClasses = function (o) {
+  for (var p in o)
+  {
+    this.propertyClasses[p] = o[p];
+  }
+};
+
+jsx.regexp.RegExp.deletePropertyClass = function (p) {
+  return (delete this.propertyClasses[p]);
+};
+
 jsx.regexp.String = function(s) {
   if (this.constructor != arguments.callee)
   {
-    jsx.throwThis("jsx.Error", "Must be called as constructor", "jsx.regexp.String");
+    jsx.throwThis("jsx.Error", "Must be called as constructor",
+      "jsx.regexp.String");
   }
   
   this.value = String(s);
@@ -617,16 +634,10 @@ jsx.regexp.String.prototype.match = (function() {
   };
 }());
 
-jsx.regexp.RegExp.ucdScriptPath = "/scripts/UnicodeData.js";
-jsx.regexp.RegExp.ucdTextPath = "/scripts/UnicodeData.txt";
-
-jsx.regexp.RegExp.definePropertyClasses = function (o) {
-  for (var p in o)
-  {
-    this.propertyClasses[p] = o[p];
-  }
-};
-
-jsx.regexp.RegExp.deletePropertyClass = function (p) {
-  return (delete this.propertyClasses[p]);
-};
+/**
+ * Returns this object's encapsulated string value
+ */
+jsx.regexp.String.prototype.toString = jsx.regexp.String.prototype.valueOf =
+  function() {
+    return this.value;
+  };
