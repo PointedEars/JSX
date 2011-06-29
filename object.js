@@ -1641,12 +1641,12 @@ jsx.object.addProperties(
 jsx.Error = function(sMsg) {
   var msg = (sMsg || "Unspecified error");
   var _super = arguments.callee._super;
+  var e = null;
   
   if (typeof _super == "function")
   {
     _super.call(this, msg);
     
-    var e;
     jsx.tryThis(function() { e = new _super(); });
   }
   
@@ -1657,7 +1657,7 @@ jsx.Error = function(sMsg) {
   
   if (!this.lineNumber && e)
   {
-    this.lineNumber = e.lineNumber;
+    this.lineNumber = e.lineNumber || e.line;
   }
   
   if (!this.stack && e && e.stack)
@@ -1694,7 +1694,7 @@ jsx.InvalidArgumentError = function(sReason, sGot, sExpected) {
  * Object-related exception
  * 
  * @constructor
- * @param s
+ * @param sMsg
  * @extends jsx#Error
  */
 jsx.object.ObjectError = function(sMsg) {
@@ -1705,7 +1705,7 @@ jsx.object.ObjectError = function(sMsg) {
  * Property-related exception
  * 
  * @constructor
- * @param s
+ * @param sMsg
  * @extends jsx.object#ObjectError
  */
 jsx.object.PropertyError = function(sMsg) {
