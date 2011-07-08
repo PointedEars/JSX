@@ -175,7 +175,7 @@ var isIterable = jsx.types.isIterable = function(o) {
  */
 var bracketsToDots = jsx.bracketsToDots = function(s) {
   /* FIXME: What about non-identifier names? */
-  return s.replace(/\['?/g, '.').replace(/'?\]/g, '');
+  return s.replace(/\[['"]?/g, '.').replace(/['"]?\]/g, '');
 };
 
 /**
