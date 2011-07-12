@@ -348,7 +348,7 @@ jsx.regexp.RegExp = (function () {
         me = jsx.regexp.RegExp,
         propertyClasses = me.propertyClasses;
 
-      /* If the UCD is not statically loaded */
+      /* If the Unicode Character Database (UCD) is not statically loaded */
       if (!propertyClasses)
       {
         /* load it dynamically */

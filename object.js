@@ -347,10 +347,8 @@ jsx.object.clone = (function() {
       {
         return jsx_object.inheritFrom(oOriginal.constructor.prototype);
       }
-      else
-      {
-        return new Object();
-      }
+
+      return new Object();
     };
   
   return function(iLevel, oSource) {
