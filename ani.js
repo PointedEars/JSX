@@ -479,7 +479,7 @@ jsx.animation.Timeline.prototype = {
       jsx_dom = jsx.dom,
       jsx_object = jsx.object,
       jsx_animation_Timeline = jsx.animation.Timeline,
-      Color = jsx.css.Color;
+      Color = jsx.dom.css.Color;
 
     return function() {
       for (var i = 1, len = this.keyFrames.length; i < len; ++i)
@@ -846,7 +846,7 @@ jsx.animation.Interpolator = {
   LINEAR: (function() {
     var
       jsx_object = jsx.object,
-      Color = jsx.css.Color;
+      Color = jsx.dom.css.Color;
 
     return function(startValue, endValue, fraction) {
       if (jsx_object.isInstanceOf(startValue, Color)

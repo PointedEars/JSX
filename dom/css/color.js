@@ -54,8 +54,8 @@ jsx.dom.css.Color = function(iRed, iGreen, iBlue, iOpacity) {
 };
 
 /**
- * Sets the color values from Red, Green and Blue values or a
- * RGB value.
+ * Sets the color values from Red, Green, Blue and Opacity values or a
+ * RGB(A) value.
  * 
  * @param iRed {number|Color|string}
  *   Red value or RGB color.  Supported formats
@@ -78,6 +78,11 @@ jsx.dom.css.Color.prototype.set = function(iRed, iGreen, iBlue, iOpacity) {
     }
     else
     {
+      if (typeof iOpacity == "undefined")
+      {
+        iOpacity = 1.0;
+      }
+      
       if (jsx.object.isInstanceOf(iRed, this.constructor))
       {
         this.setRed(iRed.red);
@@ -270,27 +275,32 @@ jsx.dom.css.Color.prototype.inc = function(iRed, iGreen, iBlue) {
 };
   
 /**
- * Sets the color values from a RGB value.
+ * Sets the color values from an RGB(A) value.
  * 
  * @param v : string
- *   RGB value as supported by @{#Color()}.
+ *   RGB(A) value as supported by @{#Color()}.
  * @return Color
  */
 jsx.dom.css.Color.prototype.setRGB = function(v) {
+  var rx = new RegExp(
+    '(rgb(a)?\\(\\s*(\\d{1,3})\\s*,\\s*(\\d{1,3})\\s*,\\s*(\\d{1,3})\\s*\\))'
+    + '|(#([0-9a-f]{3})([0-9a-f]{3})?)',
+    'i');
   var m;
-
-  if ((m =
-        new RegExp(
-          '((rgb\\(\\s*(\\d{1,3})\\s*,\\s*(\\d{1,3})\\s*,\\s*(\\d{1,3})\\s*\\))'
-            + '|(#([0-9a-f]{3})([0-9a-f]{3})?))',
-          'i').exec(v)))
+  
+  if ((m = rx.exec(v)))
   {
     /* rgb(...) */
-    if (m[2])
+    if (m[1])
     {
       this.setRed(m[3]);
       this.setGreen(m[4]);
       this.setBlue(m[5]);
+//
+//      if (m[2])
+//      {
+//        this.setOpacity(m[6]);
+//      }
     }
     /* #xxxxxx */
     else if (m[6])
