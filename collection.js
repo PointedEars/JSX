@@ -121,7 +121,10 @@ jsx.Collection.prototype.clear = function () {
       
       if (typeof callback == "function")
       {
-        if (!thisObj){thisObj = this;}
+        if (!thisObj)
+        {
+          thisObj = this;
+        }
         
         a = [];
         for (var i = 0, len = this.length; i < len; i++)
