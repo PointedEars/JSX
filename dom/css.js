@@ -545,6 +545,7 @@ jsx.dom.css.SelectorList.extend(jsx.Collection, {
  */
 jsx.dom.css.getElemByClassName = jsx.dom.css.gEBCN = (function() {
   var _getElemByTagName = jsx.dom.getElemByTagName;
+  var sWhiteSpace = "[ \\t\\f\\u200B\\r\\n]+";
   
   return function(sClassName) {
     var
@@ -553,8 +554,6 @@ jsx.dom.css.getElemByClassName = jsx.dom.css.gEBCN = (function() {
 
     if (aElements)
     {
-      var sWhiteSpace = "[ \\t\\f\\u200B\\r\\n]+";
-      
       /*
        * NOTE: There are many more elements than potential class names, so loop
        * through those only once
