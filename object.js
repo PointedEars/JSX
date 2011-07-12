@@ -889,21 +889,24 @@ jsx.object.getFeature = function(obj) {
  *   <code>true</code> if <code>obj</code> is an object derived
  *   from <var>Prototype</var>, <code>false</code> otherwise.
  */
-jsx.object.isInstanceOf = (function() {
-  var jsx_object = jsx.object;
-  
-  return function(obj, Prototype) {
+jsx.object.isInstanceOf = //(function() {
+//  var jsx_object = jsx.object;
+//
+//  return
+  function(obj, Prototype) {
     return !!(obj && Prototype
       && typeof obj.constructor != "undefined"
       && obj.constructor == Prototype
       
       /*
        * For a built-in type T, T.prototype often has the same
-       * [[Class]] like instances (exception: RegExp)
+       * [[Class]] like instances (exception: RegExp);
+       * BUT error-prone for native user-defined objects (Color "==" KeyValue)!
        */
-      || jsx_object.getClass(obj) == jsx_object.getClass(Prototype.prototype));
-    };
-}());
+//      || jsx_object.getClass(obj) == jsx_object.getClass(Prototype.prototype)
+      );
+  };
+//}());
 
 /**
  * Returns the name of a function if it has one, or the empty string.
