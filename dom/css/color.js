@@ -64,11 +64,11 @@ jsx.dom.css.Color = function(iRed, iGreen, iBlue, iOpacity) {
  *   Green value (optional)
  * @param iBlue {number|Color}
  *   Blue value (optional)
- * @param iOpacity : {number|Color}
+ * @param fOpacity : {number|Color}
  *   Opacity value (optional)
  * @return Color
  */
-jsx.dom.css.Color.prototype.set = function(iRed, iGreen, iBlue, iOpacity) {
+jsx.dom.css.Color.prototype.set = function(iRed, iGreen, iBlue, fOpacity) {
   if (typeof iRed != 'undefined')
   {
     /* rgb(...) or /#xxx(xxx)?/ */
@@ -78,9 +78,9 @@ jsx.dom.css.Color.prototype.set = function(iRed, iGreen, iBlue, iOpacity) {
     }
     else
     {
-      if (typeof iOpacity == "undefined")
+      if (typeof fOpacity == "undefined")
       {
-        iOpacity = 1.0;
+        fOpacity = 1.0;
       }
       
       if (jsx.object.isInstanceOf(iRed, this.constructor))
@@ -90,14 +90,14 @@ jsx.dom.css.Color.prototype.set = function(iRed, iGreen, iBlue, iOpacity) {
         var argc = arguments.length;
         if (jsx.object.isInstanceOf(iGreen, this.constructor)
             && jsx.object.isInstanceOf(iBlue, this.constructor)
-            && (jsx.object.isInstanceOf(iOpacity, this.constructor)
+            && (jsx.object.isInstanceOf(fOpacity, this.constructor)
                 || argc < 4))
         {
           this.setGreen(iGreen.green);
           this.setBlue(iBlue.blue);
           if (argc < 4)
           {
-            this.setOpacity(iOpacity.opacity);
+            this.setOpacity(fOpacity.opacity);
           }
         }
         else
@@ -112,7 +112,7 @@ jsx.dom.css.Color.prototype.set = function(iRed, iGreen, iBlue, iOpacity) {
         this.setRed(iRed);
         this.setGreen(iGreen);
         this.setBlue(iBlue);
-        this.setOpacity(iOpacity);
+        this.setOpacity(fOpacity);
       }
     }
   }
@@ -128,13 +128,18 @@ jsx.dom.css.Color.prototype.set = function(iRed, iGreen, iBlue, iOpacity) {
  * @param {Number} value
  */
 jsx.dom.css.Color.prototype._setComponent = function(sComponent, value) {
+  if (String(value).indexOf("%") > -1)
+  {
+    value = 255 * (parseInt(value, 10) / 100);
+  }
+  
   if (isNaN(value))
   {
     return jsx.throwThis("jsx.InvalidArgumentError",
       ["Invalid component value", String(value), "number"]);
   }
   
-  this[sComponent] = parseInt(value);
+  this[sComponent] = parseInt(value, 10);
 };
   
 jsx.dom.css.Color.prototype.setRed = function(value) {
@@ -150,7 +155,13 @@ jsx.dom.css.Color.prototype.setBlue = function(value) {
 };
 
 jsx.dom.css.Color.prototype.setOpacity = function(value) {
-  this._setComponent("opacity", value);
+  if (isNaN(value))
+  {
+    return jsx.throwThis("jsx.InvalidArgumentError",
+      ["Invalid opacity value", String(value), "number"]);
+  }
+  
+  this.opacity = parseFloat(value);
 };
 
 /**
@@ -236,6 +247,7 @@ jsx.dom.css.Color.prototype.inc = function(iRed, iGreen, iBlue) {
   {
     case String:
       iRed = new jsx.dom.css.Color(iRed);
+      break;
     
     case Object:
     case jsx.dom.css.Color:
@@ -283,45 +295,56 @@ jsx.dom.css.Color.prototype.inc = function(iRed, iGreen, iBlue) {
  */
 jsx.dom.css.Color.prototype.setRGB = function(v) {
   var rx = new RegExp(
-    '(rgb(a)?\\(\\s*(\\d{1,3})\\s*,\\s*(\\d{1,3})\\s*,\\s*(\\d{1,3})\\s*\\))'
-    + '|(#([0-9a-f]{3})([0-9a-f]{3})?)',
-    'i');
-  var m;
+    "rgb(a)?\\(\\s*(\\d{1,3}%?)\\s*,\\s*(\\d{1,3}%?)\\s*,\\s*(\\d{1,3}%?)"
+    + "(\\s*,\\s*(\\d+|\\d*\\.\\d+))?\\s*\\)"
+    + "|#([0-9a-f]{3})([0-9a-f]{3})?",
+    "i");
   
+  var m;
   if ((m = rx.exec(v)))
   {
     /* rgb(...) */
-    if (m[1])
+    var
+      rgba    = m[1],
+      red     = m[2],
+      green   = m[3],
+      blue    = m[4],
+      opacity = m[6],
+      hex3    = m[7],
+      hex6    = m[8];
+
+    if (red)
     {
-      this.setRed(m[3]);
-      this.setGreen(m[4]);
-      this.setBlue(m[5]);
-//
-//      if (m[2])
-//      {
-//        this.setOpacity(m[6]);
-//      }
-    }
-    /* #xxxxxx */
-    else if (m[6])
-    {
-      if (m[8])
+      this.setRed(red);
+      this.setGreen(green);
+      this.setBlue(blue);
+
+      if (rgba)
       {
+        this.setOpacity(opacity);
+      }
+    }
+    else
+    {
+      /* #xxx(xxx)? */
+      if (hex6)
+      {
+        /* #xxxxxx */
         if ((m =
-               /([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i.exec(m[7] + m[8])))
+               /([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i.exec(hex3 + hex6)))
         {
           this.red   = parseInt(m[1], 16);
           this.green = parseInt(m[2], 16);
           this.blue  = parseInt(m[3], 16);
         }
       }
-      /* #xxx */
       else
       {
-        var c;
-        this.red   = parseInt((c = m[7].charAt(0)) + c, 16);
-        this.green = parseInt((c = m[7].charAt(1)) + c, 16);
-        this.blue  = parseInt((c = m[7].charAt(2)) + c, 16);
+        /* #xxx */
+        var ch;
+        this.red   = parseInt((ch = hex3.charAt(0)) + ch, 16);
+        this.green = parseInt((ch = hex3.charAt(1)) + ch, 16);
+        this.blue  = parseInt((ch = hex3.charAt(2)) + ch, 16);
       }
     }
   }
@@ -494,7 +517,7 @@ jsx.dom.css.Color.prototype.getHSV = function() {
  *   Brightness value, from 0.0 to 1.0 (0 to 100%).
  * @return Color
  */
-jsx.dom.css.Color.prototype.HSVtoRGB = function(iHue, fSaturation, fValue) {
+jsx.dom.css.Color.prototype.hsv2rgb = function(iHue, fSaturation, fValue) {
   var Color = jsx.dom.css.Color;
   
   /* Cf. http://en.wikipedia.org/wiki/HSV_color_space#Transformation_between_HSV_and_RGB */
@@ -569,23 +592,38 @@ jsx.dom.css.Color.prototype.toHex = function() {
 
 /**
  * Returns the color as a string
- * <code>rgb(<var>r</var>,<var>g</var>,<var>b</var>)</code>
+ * <code>rgb(<var>red</var>,<var>green</var>,<var>blue</var>)</code>
  * representation supported by CSS.
  * 
  * @function
  * @return string
  */
-jsx.dom.css.Color.prototype.toString = jsx.dom.css.Color.prototype.toRGBString = function() {
+jsx.dom.css.Color.prototype.toRGBString = function() {
   return 'rgb(' + this.red + ',' + this.green + ',' + this.blue + ')';
 };
-  
-  /**
-   * Returns the color as a string
-   * <code>{red: <var>r</var>, green: <var>g</var>, blue: <var>b</var>}</code>
-   * representation as supported by e.g. JSON.
-   * 
-   * @return string
-   */
+
+/**
+ * Returns the color as a string
+ * <code>rgba(<var>red</var>,<var>green</var>,<var>blue</var>, <var>opacity</var>)</code>
+ * representation supported by CSS.
+ * 
+ * @function
+ * @return string
+ */
+jsx.dom.css.Color.prototype.toString =
+jsx.dom.css.Color.prototype.toRGBAString = function() {
+  return ('rgba(' + this.red + ',' + this.green + ',' + this.blue
+    + ',' + this.opacity + ')');
+};
+
+/**
+ * Returns the color as a string
+ * <code>{red: <var>r</var>, green: <var>g</var>, blue: <var>b</var>}</code>
+ * representation as supported by e.g. JSON.
+ * 
+ * @function
+ * @return string
+ */
 jsx.dom.css.Color.prototype.toObjectString = function() {
   return '{red: ' + this.red + ', green: ' + this.green + ', blue: '+ this.blue + '}';
 };
@@ -593,38 +631,41 @@ jsx.dom.css.Color.prototype.toObjectString = function() {
 /**
  * Changes the current document into a monochrome version of itself.
  * 
+ * @function
  * @requires dhtml.js
  */
 jsx.dom.css.makeMono = function() {
   var
-    sl = new jsx.dom.css.SelectorList(),
-    oIt = sl.iterator(),
-    s,
-    c = new jsx.dom.css.Color(),
-    a = ['backgroundColor', 'borderColor', 'borderTopColor',
-         'borderRightColor', 'borderBottomColor', 'borderLeftColor',
-         'outlineColor', 'color'],
-    j, p;
+    selectorList = new jsx.dom.css.SelectorList(),
+    iter = selectorList.iterator(),
+    selector,
+    color = new jsx.dom.css.Color(),
+    colorProperties = [
+      'backgroundColor', 'borderColor', 'borderTopColor',
+      'borderRightColor', 'borderBottomColor', 'borderLeftColor',
+      'outlineColor', 'color'
+    ],
+    j, propertyValue;
     
-  while ((s = oIt.next()))
+  while ((selector = iter.next()))
   {
-    for (j = a.length; j--;)
+    for (j = colorProperties.length; j--;)
     {
-      if ((p = s[a[j]]))
+      if ((propertyValue = selector[colorProperties[j]]))
       {
-        s[a[j]] = c.setMono(p).toString();
+        selector[colorProperties[j]] = color.setMono(propertyValue).toString();
       }
     }
   }
   
-  for (var es = dhtml.getElemByTagName('*'), i = es && es.length; i--;)
+  for (var elems = dhtml.getElemByTagName('*'), i = elems && elems.length; i--;)
   {
-    var e = es[i];
-    for (j = a.length; j--;)
+    var elem = elems[i];
+    for (j = colorProperties.length; j--;)
     {
-      if ((p = e.style[a[j]]))
+      if ((propertyValue = elem.style[colorProperties[j]]))
       {
-        e.style[a[j]] = c.setMono(p).toString();
+        elem.style[colorProperties[j]] = color.setMono(propertyValue).toString();
       }
     }
   }

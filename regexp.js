@@ -330,20 +330,17 @@ String.prototype.regExpEscape = strRegExpEscape;
  */
 jsx.regexp.RegExp = (function () {
   var
-    rxPropertyEscapes = /\\([pP])\{([^\}]+)\}/g,
-    rxEscapes = /\\\[/.concat(
-      "|\\[((", /[^\]\\]+/, "|", rxPropertyEscapes, "|", /\\./, ")+)\\]",
-      "|", rxPropertyEscapes),
+    sPropertyEscapes = "\\\\(p)\\{([^\\}]+)\\}",
+    rxPropertyEscapes = new RegExp(sPropertyEscapes, "gi"),
+    sNonPropEscInRange = "([^\\]\\\\]|\\\\[^p])*",
+    sEscapes =
+      "\\[(\\^?(" + sNonPropEscInRange + "(" + sPropertyEscapes + ")+" + sNonPropEscInRange + ")+)\\]"
+      + "|" + sPropertyEscapes + "",
+    rxEscapes = new RegExp(sEscapes, "gi"),
     jsx_object = jsx.object,
-
-    fEscapeMapper = function (match, classRanges, p3, p4, p5,
+    
+    fEscapeMapper = function (match, classRanges, p2, p3, p4, p5, p6, p7,
                                standalonePropSpec, standaloneClass) {
-      /* If no extended features are used */
-      if (!(classRanges || standaloneClass))
-      {
-        return match;
-      }
-
       var
         me = jsx.regexp.RegExp,
         propertyClasses = me.propertyClasses;
@@ -442,12 +439,35 @@ jsx.regexp.RegExp = (function () {
           req.send();
         }
       }
+      
+      /**
+       * Retrieves class ranges by property class, and throws a specialized
+       * exception if this fails.
+       * 
+       * @param propertyClass : String
+       * @throws jsx.regexp#UnknownPropertyClassError
+       */
+      var _getRanges = function(propertyClass) {
+        return jsx.tryThis(
+          function() {
+            return jsx_object.getProperty(propertyClasses, propertyClass);
+          },
+          function(e) {
+            if (e.name == "jsx.object.PropertyError")
+            {
+              jsx.throwThis("jsx.regexp.UnknownPropertyClassError", propertyClass);
+            }
+            else
+            {
+              jsx.throwThis(e);
+            }
+          });
+      };
 
       /* We can handle standalone class references */
       if (standaloneClass)
       {
-        var result = jsx_object.getProperty(propertyClasses, standaloneClass);
-
+        var result = _getRanges(standaloneClass);
         result = "[" + (standalonePropSpec == "P" ? "^" : "") + result + "]";
       }
       else
@@ -455,6 +475,7 @@ jsx.regexp.RegExp = (function () {
         /* and class references in character classes */
         var negPropClasses = [];
 
+        /* Shift any negative property classes, expand positive ones */
         result = classRanges.replace(rxPropertyEscapes,
           function (match, propertySpecifier, propertyClass) {
             if (propertySpecifier == "P")
@@ -463,7 +484,8 @@ jsx.regexp.RegExp = (function () {
               return "";
             }
 
-            return jsx_object.getProperty(propertyClasses, propertyClass);
+            var ranges = _getRanges(propertyClass);
+            return ranges;
           });
 
         if (result)
@@ -487,7 +509,7 @@ jsx.regexp.RegExp = (function () {
           result += "[^"
             + negPropClasses.replace(rxPropertyEscapes,
                 function (match, propertySpecifier, propertyClass) {
-                  return jsx_object.getProperty(propertyClasses, propertyClass);
+                  return _getRanges(propertyClass);
                 })
             + "]"
             + (result ? ")" : "");
@@ -496,7 +518,7 @@ jsx.regexp.RegExp = (function () {
 
       return result;
     };
-
+    
   return function(expression, sFlags) {
     if (expression && expression.constructor == RegExp)
     {
@@ -518,20 +540,20 @@ jsx.regexp.RegExp = (function () {
 
     var originalSource = expression;
 
-    this.subpatternCount = 0;
-    this.subpatterns = {};
+    var groupCount = 0;
+    this.groups = {};
     var me = this;
     
     /* Support for named subpatterns (PCRE-compliant) */
-    expression = expression.replace(/(\\\()|(\((\?<([^>]+)>)?)/g,
-      function(match, escapedLParen, subpattern, namedSubpattern, name) {
-        if (subpattern)
+    expression = expression.replace(/(\\\()|(\((\?P?[<']([^>']+)[>'])?)/g,
+      function(match, escapedLParen, group, namedGroup, name) {
+        if (group)
         {
-          ++me.subpatternCount;
-        
+          ++groupCount;
+
           if (name)
           {
-            me.subpatterns[me.subpatternCount] = name;
+            me.groups[groupCount] = name;
           }
 
           return "(";
@@ -545,7 +567,7 @@ jsx.regexp.RegExp = (function () {
 
     var rx = new RegExp(expression, sFlags);
     rx.originalSource = originalSource;
-    rx.subpatterns = this.subpatterns;
+    rx.groups = this.groups;
     
     return rx;
   };
@@ -572,9 +594,11 @@ jsx.regexp.RegExp.exec = (function() {
     
     if (matches && !rx.global && isInstance(rx))
     {
+      matches.groups = {};
+      
       for (var i = 1, len = matches.length; i < len; ++i)
       {
-        matches[rx.subpatterns[i]] = matches[i];
+        matches.groups[rx.groups[i]] = matches[i];
       }
     }
     
@@ -624,9 +648,11 @@ jsx.regexp.String.prototype.match = (function() {
     
     if (matches && !rx.global && isInstance(rx))
     {
+      matches.groups = {};
+      
       for (var i = 1, len = matches.length; i < len; ++i)
       {
-        matches[rx.subpatterns[i]] = matches[i];
+        matches.groups[rx.groups[i]] = matches[i];
       }
     }
     
@@ -641,3 +667,16 @@ jsx.regexp.String.prototype.toString = jsx.regexp.String.prototype.valueOf =
   function() {
     return this.value;
   };
+  
+/**
+ * Property-related exception
+ * 
+ * @constructor
+ * @param sMsg
+ * @extends jsx.object#ObjectError
+ */
+jsx.regexp.UnknownPropertyClassError = function(sMsg) {
+  arguments.callee._super.call(
+    this, "Unknown property class" + (arguments.length > 0 ? (": " + sMsg) : ""));
+}.extend(jsx.object.ObjectError, {name: "jsx.regexp.UnknownPropertyClassError"});
+ 

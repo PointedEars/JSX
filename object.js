@@ -795,7 +795,7 @@ jsx.throwThis = (function() {
       var stack = (new Error()).stack;
       if (stack)
       {
-        sContext = stack + "\n";
+        sContext =  "\n\n" + stack;
       }
     }
     
@@ -819,7 +819,7 @@ jsx.throwThis = (function() {
     }
     else
     {
-      message = (sContext || "") + (message || "");
+      message = (message || "") + (sContext || "");
       message = '"'
         + message.replace(/["\\]/g, "\\$&").replace(/\r?\n|\r/g, "\\n")
         + '"';
@@ -1711,5 +1711,5 @@ jsx.object.ObjectError = function(sMsg) {
  */
 jsx.object.PropertyError = function(sMsg) {
   arguments.callee._super.call(
-    this, "No such property" + (arguments.length > 0 ? ": '" + sMsg + "'" : ""));
+    this, "No such property" + (arguments.length > 0 ? (": " + sMsg) : ""));
 }.extend(jsx.object.ObjectError, {name: "jsx.object.PropertyError"});
