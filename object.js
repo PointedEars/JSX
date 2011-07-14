@@ -171,6 +171,12 @@ jsx.object.isMethod = jsx.object.areMethods = (function() {
     {
       prop = arguments[i];
       
+      /* NOTE: Handle null _and_ undefined */
+      if (prop == null)
+      {
+        return false;
+      }
+      
       var isLastSeg = (i == len - 1);
       if (isLastSeg)
       {
