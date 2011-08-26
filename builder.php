@@ -1,8 +1,22 @@
 <?php
 
+if (!function_exists('lcfirst'))
+{
+  function lcfirst($name)
+  {
+    return strtolower(substr($name, 0, 1)) . substr($name, 1));
+  }
+}
+
 class ResourceBuilder
 {
-  protected $_version = '0.2';
+  protected $_version = '0.4';
+  
+  /**
+   * Common path prefix for all resources
+   * @var string
+   */
+  protected $_prefix = '';
   
   /**
    * Sources to be processed in order
@@ -14,7 +28,7 @@ class ResourceBuilder
    * Content-type to be used
    * @var string
    */
-  protected $_contentType;
+  protected $_contentType = 'text/javascript';
   
   protected $_typeMap = array(
   	'text/javascript' => 'js',
@@ -31,8 +45,18 @@ class ResourceBuilder
   {
     if (isset($_GET['src']))
     {
+      if (isset($_GET['prefix']))
+      {
+        $this->prefix = $_GET['prefix'];
+      }
+      
       $this->sources = $_GET['src'];
-      $this->contentType = isset($_GET['type']) ? $_GET['type'] : '';
+      
+      if (isset($_GET['type']))
+      {
+        $this->contentType = $_GET['type'];
+      }
+      
       $this->commentCount = 0;
     }
   }
@@ -58,8 +82,17 @@ class ResourceBuilder
       return $this->$property;
     }
 
-    throw new DomainException(
-    	"No method '$getter' or property '$property' on this object");
+    $exceptionClass = 'DomainException';
+    $message = "No method '$getter' or property '$property' on this object";
+    
+    if (function_exists($exceptionClass))
+    {
+      throw new $exceptionClass($message);
+    }
+    else
+    {
+      echo "$exceptionClass: $message\n";
+    }
   }
 
   /**
@@ -73,7 +106,7 @@ class ResourceBuilder
   {
     $setter = 'set' . ucfirst($name);
     $property = '_' . lcfirst($name);
-    
+        
     if (method_exists($this, $setter))
     {
       return $this->$setter($value);
@@ -84,8 +117,17 @@ class ResourceBuilder
     }
     else
     {
-      throw new DomainException(
-      	"No method '$setter' or property '$property' on this object");
+      $exceptionClass = 'DomainException';
+      $message = "No method '$setter' or property '$property' on this object";
+      
+      if (function_exists($exceptionClass))
+      {
+        throw new $exceptionClass($message);
+      }
+      else
+      {
+        echo "$exceptionClass: $message\n";
+      }
     }
   }
   
@@ -122,9 +164,9 @@ class ResourceBuilder
    */
   protected function commentReplacer($match)
   {
-    ++$this->commentCount;
+    ++$this->_commentCount;
 
-    if ($this->commentCount > 1)
+    if ($this->_commentCount > 1)
     {
       return '';
     }
@@ -133,16 +175,39 @@ class ResourceBuilder
   }
 
   /**
+   * Returns the passed string with all multiline comments,
+   * leading and trailing whitespace removed
+   *
    * @param string $s Source code to process
    * @return string Processed source code
+   * @todo Do not strip from within literals
    */
   protected function uncomment($s)
   {
     return preg_replace('/^\\s+|\\s+$/', '',
       preg_replace_callback(
-        '#/[\\t ]*\\*(?:[^*/]|\\*[^/]|/)*\\*(\\r?\\n|\\n)*/#',
+      	'#/[\\t ]*\\*.*?\\*/[\\t ]*(\\r?\\n|\\n)*#s',
     		array('self', 'commentReplacer'),
         $s));
+  }
+
+  /**
+   * Returns the passed string with all JSdoc comments but the first one,
+   * leading and trailing whitespace removed
+   *
+   * @param string $s Source code to process
+   * @return string Processed source code
+   * @todo Do not strip from within literals
+   */
+  protected function stripJSdoc($s)
+  {
+    $s = preg_replace('/^\\s+|\\s+$/', '',
+      preg_replace_callback(
+      	'#/[\\t ]*\\*\\*.*?\\*/[\\t ]*(\\r?\\n|\\n)*#s',
+        array('self', 'commentReplacer'),
+        $s));
+    
+    return $s;
   }
   
   public function output()
@@ -152,26 +217,26 @@ class ResourceBuilder
            '/*',
            " * Compacted with PointedEars' ResourceBuilder {$this->version}",
            " * Type: {$this->contentType}",
+           " * Prefix: {$this->prefix}",
            " * Resources: " . implode(', ', $this->sources),
            " */\n\n"));
     
     foreach ($this->sources as $index => $source)
     {
+      $this->commentCount = 0;
+      
       if ($index > 0)
       {
         echo "\n\n";
       }
       
-      $file = $source
+      $file = $this->prefix . $source
         . (array_key_exists($this->contentType, $this->typeMap)
           ? '.' . $this->typeMap[$this->contentType]
           : '');
       echo "/* Please see {$file} for the complete source code */\n";
-      ob_start();
-        require_once "./$file";
-        $content = ob_get_contents();
-      ob_end_clean();
-      echo $this->uncomment($content);
+      $content = file_get_contents("./$file");
+      echo $this->stripJSdoc($content);
     }
   }
 }
