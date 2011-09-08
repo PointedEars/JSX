@@ -4,7 +4,7 @@ if (!function_exists('lcfirst'))
 {
   function lcfirst($name)
   {
-    return strtolower(substr($name, 0, 1)) . substr($name, 1));
+    return strtolower(substr($name, 0, 1)) . substr($name, 1);
   }
 }
 
