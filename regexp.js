@@ -348,13 +348,22 @@ jsx.regexp.RegExp = (function () {
       /* If the Unicode Character Database (UCD) is not statically loaded */
       if (!propertyClasses)
       {
-        /* load it dynamically */
-        jsx.importFrom(me.ucdScriptPath);
+        /* load it dynamically, ignore exceptions */
+        jsx.tryThis(function() { jsx.importFrom(me.ucdScriptPath); });
+        
         propertyClasses = me.propertyClasses;
 
         /* if this failed */
         if (!propertyClasses)
         {
+          if (!jsx.net || !jsx.net.http
+              || typeof jsx.net.http.Request != "function")
+          {
+            jsx.throwThis("jsx.regexp.UCDLoadError",
+              ['"' + me.ucdScriptPath + '" (jsx.regexp.RegExp.ucdScriptPath)',
+              "http.js"]);
+          }
+          
           /* parse the text version of the UCD */
           var req = new jsx.net.http.Request(me.ucdTextPath, "GET", false,
             function (xhr) {
@@ -667,9 +676,27 @@ jsx.regexp.String.prototype.toString = jsx.regexp.String.prototype.valueOf =
   function() {
     return this.value;
   };
+
+  /**
+   * Exception thrown if a character property class is referenced, but the
+   * Unicode Character Database (UCD) cannot be loaded
+   * 
+   * @constructor
+   * @param sUCDScript : String
+   *   The script that contains the UCD in the specified form
+   * @param sHTTPScript : String
+   *   The script that contains the HTTP request type to load the UCD
+   *   dynamically
+   * @extends jsx.object#ObjectError
+   */
+jsx.regexp.UCDLoadError = function(sUCDScript, sHTTPScript) {
+  arguments.callee._super.call(this,
+    "Unable to load the Unicode Character Database."
+    + " Please include " + sUCDScript + " or " + sHTTPScript + ".");
+}.extend(jsx.Error, {name: "jsx.regexp.UCDLoadError"});
   
 /**
- * Property-related exception
+ * Exception thrown if a referred character property class cannot be resolved
  * 
  * @constructor
  * @param sMsg

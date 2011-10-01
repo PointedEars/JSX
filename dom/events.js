@@ -83,15 +83,21 @@ if (typeof jsx.dom == "undefined")
 jsx.dom.addEventListener = function(oNode, sEvent, fListener) {
   var
     jsx_object = jsx.object,
-    result = false,
+    result = null,
     sHandler = "on" + sEvent;
 
   if (oNode && sEvent && jsx_object.isMethod(fListener))
   {
     if (jsx_object.isMethod(oNode, "addEventListener"))
     {
-      oNode.addEventListener(sEvent, fListener, false);
-      result = fListener;
+      jsx.tryThis(
+        function() {
+          oNode.addEventListener(sEvent, fListener, false);
+          result = fListener;
+        },
+        function() {
+          result = null;
+        });
     }
     else
     {
@@ -391,6 +397,7 @@ jsx.dom.createEventListener = function(f) {
      */
     var e2 = {originalEvent: e};
     var properties = ["type", "charCode", "keyCode",
+                      "clientX", "clientY", "offsetX", "offsetY",
                       "shiftKey", "ctrlKey", "altKey", "metaKey"];
     for (var i = properties.length; i--;)
     {
@@ -416,7 +423,8 @@ jsx.dom.createEventListener = function(f) {
           e.stopPropagation();
         };
       }
-      else if (typeof e.cancelBubble != "undefined")
+      
+      if (typeof e.cancelBubble != "undefined")
       {
         return function() {
           e.cancelBubble = true;
@@ -431,12 +439,10 @@ jsx.dom.createEventListener = function(f) {
           return e.preventDefault();
         };
       }
-      else if (typeof e.returnValue != "undefined")
-      {
-        return function() {
-          e.returnValue = false;
-        };
-      }
+      
+      return function() {
+        e.returnValue = false;
+      };
     })(e);
     
     e2.initEvent = (function() {
@@ -450,7 +456,7 @@ jsx.dom.createEventListener = function(f) {
       return function() {};
     })();
 
-    return f(e2);
+    return f.call(e2.target, e2);
   }
   
   /* Strict W3C DOM Level 2 Events compatibility */
