@@ -7,7 +7,7 @@
  *
  * @author Copyright (c) 2000-2004
  *         Thomas Lahn &lt;search.js@PointedEars.de&gt;
- *         
+ * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -32,7 +32,7 @@
  * Definition of the SearchString prototype which uses the functions
  * above with names beginning with the prototype name, as methods.
  * 
- * @param s : string 
+ * @param s : string
  */
 function SearchString(s)
 {
@@ -61,9 +61,9 @@ function SearchString(s)
 
   // Determine method to be used for decoding URI components
   var decode =
-    (isMethodType(typeof decodeURIComponent)
+    (jsx.object.isMethodType(typeof decodeURIComponent)
       ? decodeURIComponent
-      : (isMethodType(typeof unescape)
+      : (jsx.object.isMethodType(typeof unescape)
           ? unescape
           : dummy));
  
@@ -119,7 +119,7 @@ function SearchString(s)
         {
           sValue = value_pair;
         }
-        else                                                      
+        else
         {
           sName = value_pair.substring(0, idxEquals);
           sValue = value_pair.substring(idxEquals + 1);
@@ -136,7 +136,7 @@ function SearchString(s)
 SearchString.prototype.isName =
 /**
  * @param sName: string
- * @param bCaseSensitive: optional boolean = false 
+ * @param bCaseSensitive: optional boolean = false
  *   Provide <code>true</code> for case-sensitivity.
  * @return <code>true</code> if the name <var>sName</var> exists,
  *   <code>false</code> otherwise.

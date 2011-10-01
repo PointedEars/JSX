@@ -20,8 +20,13 @@
  * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* a more compatible approach */
+/**
+ * @namespace
+ */
 var jsx = {
+  /**
+   * @namespace
+   */
   object: {
     /**
      * @version
@@ -73,28 +78,28 @@ jsx.global = this;
  */
 
 /**
- * @property number
+ * @type number
  *   Used by {@link jsx.object#addProperties()} to overwrite existing
  *   properties.
  */
 jsx.object.ADD_OVERWRITE = 1;
 
 /**
- * @property number
+ * @type number
  *   Used by {@link jsx.object#addProperties()} and {@link jsx.object#clone()}
  *   to make a shallow copy of all enumerable properties (default).
  */
 jsx.object.COPY_ENUM = 0;
 
 /**
- * @property number
+ * @type number
  *   Used by {@link jsx.object#addProperties()} and {@link jsx.object#clone()}
  *   to make a deep copy of all enumerable properties.
  */
 jsx.object.COPY_ENUM_DEEP = 2;
 
 /**
- * @property number
+ * @type number
  *   Used by {@link jsx.object#addProperties()} and {@link jsx.object#clone()}
  *   to copy a property by inheritance.
  */
@@ -499,6 +504,8 @@ jsx.object.addProperties = (function() {
  *   The context in which the property definition was attempted.
  *   Included in the info message in case getters and setters could not be
  *   defined.
+ * @todo Depending on ES Matrix results, replace with user-defined
+ *   Object.defineProperties() if the implementation does not provide it.
  */
 jsx.object.defineProperties = function(oTarget, oProperties, sContext) {
   jsx.tryThis(
@@ -510,17 +517,22 @@ jsx.object.defineProperties = function(oTarget, oProperties, sContext) {
         function() {
           for (var propertyName in oProperties)
           {
-            var propertyValue = oProperties[propertyName];
+            var propertyDescriptor = oProperties[propertyName];
             
-            /* NOTE: Allow specified values to fail */
-            if (typeof propertyValue.get != "undefined")
+            if (typeof propertyDescriptor.value != "undefined")
             {
-              oTarget.__defineGetter__(propertyName, propertyValue.get);
+              oTarget[propertyName] = propertyDescriptor.value;
             }
             
-            if (typeof propertyValue.set != "undefined")
+            /* NOTE: Allow specified values to fail */
+            if (typeof propertyDescriptor.get != "undefined")
             {
-              oTarget.__defineSetter__(propertyName, propertyValue.set);
+              oTarget.__defineGetter__(propertyName, propertyDescriptor.get);
+            }
+            
+            if (typeof propertyDescriptor.set != "undefined")
+            {
+              oTarget.__defineSetter__(propertyName, propertyDescriptor.set);
             }
           }
         },
@@ -724,37 +736,62 @@ jsx.setErrorHandler = (function() {
  *   Distributed under the GNU GPL v3 and later.
  * @partof JSX:object.js
  */
-jsx.tryThis = (function() {
-  /**
-   * @param s Value to be stringified
-   * @param sCall : String
-   *   CallStatement that should be used instead of the value
-   * @return string Stringified version of <code>s</code>
-   */
-  function stringify(s, sCall)
-  {
-    if (typeof s == "function")
-    {
-      s = sCall;
-    }
-    else if (typeof s == "undefined")
-    {
-      s = "";
-    }
-    
-    return s;
-  }
+jsx.tryThis =
+//  (function() {
+//  /**
+//   * @param s Value to be stringified
+//   * @param sCall : String
+//   *   CallStatement that should be used instead of the value
+//   * @return string Stringified version of <code>s</code>
+//   */
+//  function stringify(s, sCall)
+//  {
+//    if (typeof s == "function")
+//    {
+//      s = sCall;
+//    }
+//    else if (typeof s == "undefined")
+//    {
+//      s = "";
+//    }
+//
+//    return s;
+//  }
   
-  return function(statements, errorHandlers) {
-    var sStatements = stringify(statements, "statements();");
-    var sErrorHandlers = stringify(errorHandlers, "errorHandlers(e);");
-    
-    var code = 'try {\n  ' + sStatements + '\n}\n'
-             + 'catch (e) {\n  ' + sErrorHandlers + '\n}';
-    
-    return eval(code);
+  /*return*/ function(statements, errorHandlers) {
+    /*
+     * Replaced because eval() performs magnitudes worse;
+     * TODO: Backwards compatibility (branching for NN4 & friends?)
+     */
+//    var sStatements = stringify(statements, "statements();");
+//    var sErrorHandlers = stringify(errorHandlers, "errorHandlers(e);");
+//
+//    var code = 'try {\n  ' + sStatements + '\n}\n'
+//             + 'catch (e) {\n  ' + sErrorHandlers + '\n}';
+//
+//    return eval(code);
+    var t = typeof statements;
+    try
+    {
+      if (t == "function")
+      {
+        return statements();
+      }
+
+      return eval(statements);
+    }
+    catch (e)
+    {
+      t = typeof errorHandlers;
+      if (t == "function")
+      {
+        return errorHandlers(e);
+      }
+
+      return eval(errorHandlers);
+    }
   };
-}());
+//}());
 
 /**
  * Throws an exception, including an execution context hint if provided,
@@ -783,8 +820,10 @@ jsx.throwThis = (function() {
   var
     jsx_global = jsx.global,
     jsx_object = jsx.object,
-    f = function(e, i, a) {
-      return typeof e == "string" ? '"' + e + '"' : e;
+    _addslashes = function(e) {
+      return (typeof e == "string")
+        ? '"' + e.replace(/["'\\]/g, "\\$&").replace(/\r?\n|\r/g, "\\n") + '"'
+        : e;
     };
   
   return function(errorType, message, context) {
@@ -819,16 +858,12 @@ jsx.throwThis = (function() {
     /* Array for exception constructor's argument list */
     if (jsx_object.isMethod(message, "map"))
     {
-      /* NOTE: Opera 5 and 6 require this to be split in two statements */
-      message = String(message.map(f)).replace(/\\/g, "\\$&");
-      message = message.replace(/\r?\n|\r/g, "\\n");
+      message = message.map(_addslashes);
     }
     else
     {
       message = (message || "") + (sContext || "");
-      message = '"'
-        + message.replace(/["\\]/g, "\\$&").replace(/\r?\n|\r/g, "\\n")
-        + '"';
+      message = _addslashes(message);
     }
   
     /* DEBUG */
@@ -915,7 +950,7 @@ jsx.object.isInstanceOf = //(function() {
 //}());
 
 /**
- * Returns the name of a function if it has one, or the empty string.
+ * Returns the name of a function
  * 
  * @param aFunction : Function|String
  * @return string
@@ -1412,7 +1447,7 @@ if (jsx.object.isMethod(this, "eval"))
  * </p>
  * 
  * @function
- * @param Constructor : Function
+ * @param fConstructor : Function
  *   Constructor from which prototype object should be
  *   inherited.
  * @param oProtoProps : Object
@@ -1490,7 +1525,16 @@ Function.prototype.extend = (function() {
     }
   }
   
-  return function(Constructor, oProtoProps) {
+  return function(fConstructor, oProtoProps) {
+    /*
+     * Allows constructor to be undefined or null to inherit from
+     * Object.prototype by default (see below)
+     */
+    if (fConstructor == null)
+    {
+      fConstructor = "Object";
+    }
+    
     /*
      * Supports strings being passed that denote properties of the
      * Global Object.
@@ -1500,12 +1544,12 @@ Function.prototype.extend = (function() {
      * on user call only, might be useful for constructors defined
      * in Object initializers.
      */
-    if (typeof Constructor.valueOf() == "string")
+    if (typeof fConstructor.valueOf() == "string")
     {
-      Constructor = jsx.global[Constructor];
+      fConstructor = jsx.global[fConstructor];
     }
     
-    var t = typeof Constructor;
+    var t = typeof fConstructor;
     if (t != "function")
     {
       jsx.throwThis("TypeError",
@@ -1513,7 +1557,7 @@ Function.prototype.extend = (function() {
       return null;
     }
   
-    this.prototype = jsx_object.inheritFrom(Constructor.prototype);
+    this.prototype = jsx_object.inheritFrom(fConstructor.prototype);
     
     if (oProtoProps)
     {
@@ -1523,8 +1567,8 @@ Function.prototype.extend = (function() {
       }
     }
     
-    this._super = Constructor;
-    this.prototype._super = Constructor.prototype;
+    this._super = fConstructor;
+    this.prototype._super = fConstructor.prototype;
     this.prototype.constructor = this;
     this._userDefined = true;
     
@@ -1559,7 +1603,7 @@ Function.prototype.extend = (function() {
         },
         function(e) {
           jsx.warn(jsx_object.getFunctionName(me) + ".extend("
-            + jsx_object.getFunctionName(Constructor) + ", "
+            + jsx_object.getFunctionName(fConstructor) + ", "
             + oProtoProps + "): " + e.name + ': ' + e.message);
         });
     }
@@ -1672,17 +1716,22 @@ jsx.Error = function(sMsg) {
     var stack = String(e.stack).split(/\r?\n|\r/).slice(2);
     this.stack = stack.join("\n");
   }
-}.extend(
+};
+
+jsx.Error.extend(
   typeof Error != "undefined" ? Error : function() {},
   {
+    /**
+     * @memberOf jsx.Error#prototype
+     */
     name: "jsx.Error",
     getMessage: function() { return this.message; },
     getStackTrace: function() { return this.stack; },
     printStackTrace: function() {
       var s = this.getStackTrace();
       jsx.dmsg(s) || window.alert(s);
-    }
-  });
+  }
+});
 
 /**
  * Invalid argument
@@ -1695,7 +1744,14 @@ jsx.InvalidArgumentError = function(sReason, sGot, sExpected) {
     (sReason || "Invalid argument(s)")
       + (sGot ? ": " + sGot : "")
       + (sExpected ? "; expected " + sExpected : ""));
-}.extend(jsx.Error, {name: "jsx.InvalidArgumentError"});
+};
+
+jsx.InvalidArgumentError.extend(jsx.Error, {
+  /**
+   * @memberOf jsx.InvalidArgumentError#prototype
+   */
+  name: "jsx.InvalidArgumentError"
+});
 
 /**
  * Object-related exception
@@ -1706,7 +1762,14 @@ jsx.InvalidArgumentError = function(sReason, sGot, sExpected) {
  */
 jsx.object.ObjectError = function(sMsg) {
   arguments.callee._super.call(this, sMsg);
-}.extend(jsx.Error, {name: "jsx.object.ObjectError"});
+};
+
+jsx.object.ObjectError.extend(jsx.Error, {
+  /**
+   * @memberOf jsx.object.ObjectError#prototype
+   */
+  name: "jsx.object.ObjectError"
+});
 
 /**
  * Property-related exception
@@ -1718,4 +1781,11 @@ jsx.object.ObjectError = function(sMsg) {
 jsx.object.PropertyError = function(sMsg) {
   arguments.callee._super.call(
     this, "No such property" + (arguments.length > 0 ? (": " + sMsg) : ""));
-}.extend(jsx.object.ObjectError, {name: "jsx.object.PropertyError"});
+};
+
+jsx.object.PropertyError.extend(jsx.object.ObjectError, {
+  /**
+   * @memberOf jsx.object.PropertyError#prototype
+   */
+  name: "jsx.object.PropertyError"
+});

@@ -370,8 +370,9 @@ jsx.dom.hoverImg = function(imgID, state) {
     img = document.images[imgID];
   }
 
+  var me = arguments.callee;
   return jsx.dom.setStyleProperty(img, "borderColor",
-    (state == 0 ? hoverImg.clMouseout : hoverImg.clMouseover));
+    (state == 0 ? me.clMouseout : me.clMouseover));
 };
 jsx.dom.hoverImg.clMouseout = "#000";
 jsx.dom.hoverImg.clMouseover = "#fff";
@@ -414,7 +415,7 @@ jsx.dom.getAbsPos = function(oNode) {
  * @return jsx.dom.css.SelectorList
  */
 jsx.dom.css.SelectorList = function(oDocument) {
-  this._super();
+  arguments.callee._super.call(this);
   this.document = oDocument || document;
   this.get();
 };
@@ -429,10 +430,11 @@ jsx.dom.css.SelectorList.extend(jsx.Collection, {
    * Populates the collection with the selectors
    * of the document.
    *
+   * @memberOf jsx.dom.css.SelectorList#prototype
    * @param oDocument : optional Object
    *   Object reference to override the default
    *   <code>document</code> object reference.
-   * @return undefined
+   * @return boolean
    */
   get: function(oDocument) {
     if (oDocument)

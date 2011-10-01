@@ -132,9 +132,9 @@ jsx.python.set = function(list) {
 };
 
 /**
- * Return an Array of Arrays, where each inner Array contains the i-th element
- * from each of the argument Arrays.  The returned Array is truncated
- * in length to the length of the shortest argument Array.
+ * Return an Array of Arrays, where each inner Array contains the i-th
+ * element from each of the argument Arrays.  The returned Array is
+ * truncated in length to the length of the shortest argument Array.
  *
  * @param arg1 : Array
  * @returns {Array}
@@ -161,3 +161,18 @@ jsx.python.zip = function(arg1, arg2) {
   return result;
 };
 
+/**
+ * Extends an Array with elements from another Array.
+ * 
+ * Different from Array.prototype.concat() in that the Array is modified.
+ * 
+ * @param list1 : Array which is to be extended
+ * @param list2 : Array which elements should be appended to <var>list1</var>
+ */
+jsx.python.extend = function(list1, list2) {
+  for (var elem in list2)
+  {
+    Array.prototype.push.call(list1, list2[elem]);
+  }
+
+};
