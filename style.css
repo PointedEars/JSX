@@ -10,15 +10,6 @@ h1 {
   margin-bottom: 0;
 }
 
-p.subtitle {
-  margin-top: 0;
-  margin-bottom: 1em;
-}
-
-p.subtitle span {
-  font-style: italic;
-}
-
 a:link:hover, a:visited:hover {
   background-color: transparent;
   color: red;

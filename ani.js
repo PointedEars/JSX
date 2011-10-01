@@ -217,13 +217,13 @@ jsx.animation.Timeline = (function() {
         }
       },
       
-      framerate: {
+      frameRate: {
         get: function() {
-          return this.getFramerate();
+          return this.getFrameRate();
         },
     
-        set: function(framerate) {
-          return this.setFramerate(framerate);
+        set: function(frameRate) {
+          return this.setFrameRate(frameRate);
         }
       }
     }, "jsx.animation.Timelime");
@@ -400,7 +400,7 @@ jsx.animation.Timeline.prototype = {
    * @return Number
    */
   getCurrentRate: function() {
-    return (this._playing) ? this.getFramerate() : 0.0;
+    return (this._playing) ? this.getFrameRate() : 0.0;
   },
 
   /**
@@ -417,45 +417,50 @@ jsx.animation.Timeline.prototype = {
   },
   
   /**
-   * Retrieves the maximum framerate at which this <code>Timeline</code>
+   * Retrieves the maximum frame rate at which this <code>Timeline</code>
    * will play, in frames per second.
    * 
    * @return {Number}
    */
-  getFramerate: function() {
+  getFrameRate: function() {
     return 1000 / this.frameLength;
   },
 
   /**
-   * Sets the maximum framerate at which this <code>Timeline</code> will play,
+   * Sets the maximum frame rate at which this <code>Timeline</code> will play,
    * in frames per second.  This can be used, for example, to keep particularly
    * complex <code>Timelines</code> from over-consuming system resources.
-   * By default, a <code>Timeline</code>'s framerate is not explicitly
+   * By default, a <code>Timeline</code>'s frame  rate is not explicitly
    * limited, meaning the <code>Timeline</code> will play at an optimal
-   * framerate for the underlying platform.
+   * frame rate for the underlying platform.
    * 
    * @function
-   * @param framerate : Number
-   *   The maximum framerate at which this <code>Timeline</code> will play,
-   *   in frames per second.  Framerates above 90 fps that result in
+   * @param frameRate : Number
+   *   The maximum frame rate at which this <code>Timeline</code> will play,
+   *   in frames per second.  Frame rates above 90 fps that result in
    *   a frame length shorter than 11 ms are normalized.
    * @return Number
-   *   The effective maximum framerate, in frames per second
+   *   The effective maximum frame rate, in frames per second
    */
-  setFramerate: (function() {
+  setFrameRate: (function() {
     var jsx_animation_Timeline = jsx.animation;
     
-    return function(framerate) {
+    return function(frameRate) {
       if (this._playing)
       {
-        jsx.info("Cannot change framerate while playing");
+        jsx.info("Cannot change frame rate while playing");
         return false;
       }
       
-      var frameLength = 1000 / framerate;
+      /*
+       * NOTE: Rounding the frame length up and number of frames down
+       * should help with odd frame lengths/times; frame length not
+       * rounded down (faster) to avoid animtion stall.
+       */
+      var frameLength = Math.ceil(1000 / frameRate);
       if (frameLength < jsx_animation_Timeline.MIN_FRAME_LENGTH)
       {
-        jsx.info("Requested framerate of " + framerate + " fps (frame length of "
+        jsx.info("Requested frame rate of " + frameRate + " fps (frame length of "
           + frameLength + " ms) was normalized to ca. "
           + (1000 / jsx_animation_Timeline.MIN_FRAME_LENGTH) + " fps ("
           + jsx_animation_Timeline.MIN_FRAME_LENGTH + " ms)");
@@ -632,16 +637,20 @@ jsx.animation.Timeline.prototype = {
       };
     
     return function() {
-      this._playing = true;
-
       /* First clear all remaining timeouts */
       this.stop();
-      
+            
       if (!this._keyValuesEvaluated)
       {
         this.evaluateKeyValues();
         this._keyValuesEvaluated = true;
       }
+      
+      /* Fix frame length to be integer and long enough */
+      this.setFrameRate(this.getFrameRate());
+      var dt = this.frameLength;
+      
+      this._playing = true;
     
       for (var i = 1, len = this.keyFrames.length; i < len; ++i)
       {
@@ -652,14 +661,20 @@ jsx.animation.Timeline.prototype = {
         
         /* Display the previous keyframe, then play the tween */
 
-        /* TODO: What if the number of frames is not integer? */
-        var dt = this.frameLength;
-        var numFrames = (nextKeyFrame.time - previousKeyFrame.time) / dt;
+        /*
+         * NOTE: Rounding the frame length up (see above) and the number
+         * of frames down should help with odd frame lengths/times;
+         * frame length not rounded down (faster) to avoid animation stall.
+         */
+        var numFrames = Math.floor((nextKeyFrame.time - previousKeyFrame.time) / dt);
         
         var frameValues = jsx_object.clone(jsx_object.COPY_ENUM_DEEP, previousValues);
         var t = previousKeyFrame.time;
         
-        for (var currentFrame = 0; currentFrame < numFrames - 1; ++currentFrame)
+        var lastFrameIndex = numFrames - 1;
+        for (var currentFrameIndex = 0;
+             currentFrameIndex < lastFrameIndex;
+             ++currentFrameIndex)
         {
           for (var property in frameValues)
           {
@@ -683,7 +698,7 @@ jsx.animation.Timeline.prototype = {
                 frameStyle[styleProperty] = interpolate(
                   previousStyle[styleProperty],
                   nextStyleValue,
-                  currentFrame / numFrames);
+                  currentFrameIndex / numFrames);
               }
             }
             else
@@ -699,7 +714,7 @@ jsx.animation.Timeline.prototype = {
               frameValues[property] = interpolate(
                 previousValues[property],
                 nextValue,
-                currentFrame / numFrames);
+                currentFrameIndex / numFrames);
             }
           }
           

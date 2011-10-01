@@ -10,7 +10,7 @@ if (!function_exists('lcfirst'))
 
 class ResourceBuilder
 {
-  protected $_version = '0.4';
+  protected $_version = '0.4.2';
   
   /**
    * Common path prefix for all resources
@@ -30,11 +30,26 @@ class ResourceBuilder
    */
   protected $_contentType = 'text/javascript';
   
+  /**
+   * Maps MIME media types to file extensions
+   */
   protected $_typeMap = array(
   	'text/javascript' => 'js',
     'text/css' => 'css'
   );
   
+  /**
+   * If <code>true</code>, preserve original file content
+   * @var boolean
+   */
+  protected $_debug = false;
+  
+  /**
+   * If <code>true</code>, produce verbose messages
+   * @var boolean
+   */
+  protected $_verbose = false;
+    
   /**
    * Number of comments processed so far
    * @var int
@@ -57,6 +72,16 @@ class ResourceBuilder
         $this->contentType = $_GET['type'];
       }
       
+      if (isset($_GET['debug']))
+      {
+        $this->debug = $_GET['debug'];
+      }
+      
+      if (isset($_GET['verbose']))
+      {
+        $this->verbose = $_GET['verbose'];
+      }
+      
       $this->commentCount = 0;
     }
   }
@@ -77,7 +102,8 @@ class ResourceBuilder
     {
       return $this->$getter();
     }
-    else if (property_exists($this, $property))
+    
+    if (property_exists($this, $property))
     {
       return $this->$property;
     }
@@ -89,10 +115,8 @@ class ResourceBuilder
     {
       throw new $exceptionClass($message);
     }
-    else
-    {
-      echo "$exceptionClass: $message\n";
-    }
+
+    echo "$exceptionClass: $message\n";
   }
 
   /**
@@ -111,7 +135,8 @@ class ResourceBuilder
     {
       return $this->$setter($value);
     }
-    else if (property_exists($this, $property))
+    
+    if (property_exists($this, $property))
     {
       $this->$property = $value;
     }
@@ -124,10 +149,8 @@ class ResourceBuilder
       {
         throw new $exceptionClass($message);
       }
-      else
-      {
-        echo "$exceptionClass: $message\n";
-      }
+
+      echo "$exceptionClass: $message\n";
     }
   }
   
@@ -154,6 +177,32 @@ class ResourceBuilder
   protected function setContentType($type)
   {
     $this->_contentType = ($type ? $type : 'text/javascript');
+  }
+  
+  /**
+   * Sets the _debug property
+   *
+   * @param string $debug
+   */
+  protected function setDebug($debug)
+  {
+    if ($debug != 0)
+    {
+      $this->_debug = true;
+    }
+  }
+
+  /**
+   * Sets the _verbose property
+   *
+   * @param string $verbose
+   */
+  protected function setVerbose($verbose)
+  {
+    if ($verbose != 0)
+    {
+      $this->_verbose = true;
+    }
   }
   
   /**
@@ -213,13 +262,20 @@ class ResourceBuilder
   public function output()
   {
     header("Content-Type: {$this->contentType}");
-    echo implode("\n", array(
-           '/*',
-           " * Compacted with PointedEars' ResourceBuilder {$this->version}",
-           " * Type: {$this->contentType}",
-           " * Prefix: {$this->prefix}",
-           " * Resources: " . implode(', ', $this->sources),
-           " */\n\n"));
+    $prefix = $this->prefix;
+    echo "/*\n"
+        . " * Compacted with PointedEars' ResourceBuilder {$this->version}\n"
+        . ($this->verbose
+            ?   " * Type:          {$this->contentType}\n"
+              . " * Common Prefix: " . ($prefix ? $prefix : '<none>') . "\n"
+           		. " * Resources:     " . implode(', ', $this->sources) . "\n"
+            : '')
+        . " *\n"
+        . " * Please see the original files for the complete source code.\n"
+    		. " */\n\n";
+    
+    $totalSize = 0;
+    $totalCompactedSize = 0;
     
     foreach ($this->sources as $index => $source)
     {
@@ -230,13 +286,48 @@ class ResourceBuilder
         echo "\n\n";
       }
       
-      $file = $this->prefix . $source
+      $file = $prefix . $source
         . (array_key_exists($this->contentType, $this->typeMap)
           ? '.' . $this->typeMap[$this->contentType]
           : '');
-      echo "/* Please see {$file} for the complete source code */\n";
+      $originalSize = filesize("./$file");
+      $totalSize += $originalSize;
+      $originalSizeFormatted = number_format($originalSize, 0, '.', "'");
       $content = file_get_contents("./$file");
-      echo $this->stripJSdoc($content);
+      
+      if (!$this->debug)
+      {
+        $content = $this->stripJSdoc($content);
+      }
+      
+      $compactedSize = strlen($content);
+      $totalCompactedSize += $compactedSize;
+      $compactedSizeFormatted = number_format($compactedSize, 0, '.', "'");
+      $ratioPercentage = $compactedSize / $originalSize * 100;
+      $ratioFormatted = sprintf('%.1f %%', $ratioPercentage);
+      echo implode("\n", array(
+      	'/*',
+      	" * {$file}"
+      	  . ($this->verbose
+      	     ? ": {$originalSizeFormatted} bytes reduced to {$compactedSizeFormatted} bytes"
+               . " ({$ratioFormatted})"
+      	     : ""),
+        " */\n"
+      ));
+      
+      echo $content;
+      
+      if ($this->verbose)
+      {
+        $totalSizeFormatted = number_format($totalSize, 0, '.', "'");
+        $totalCompactedSizeFormatted = number_format($totalCompactedSize, 0, '.', "'");
+        $ratioPercentage = $totalCompactedSize / $totalSize * 100;
+        $ratioFormatted = sprintf('%.1f %%', $ratioPercentage);
+                
+        echo "\n\n/*"
+          . " Total of {$totalSizeFormatted} bytes reduced to {$totalCompactedSizeFormatted} bytes"
+          . " ({$ratioFormatted}). */";
+      }
     }
   }
 }
