@@ -252,7 +252,7 @@ jsx.test.runner = {
         }
         catch (e)
         {
-          jsx.warn("Test " + (i + 1) + " threw " + e);
+          jsx.warn("Test " + (i + 1) + " threw " + e + (e.stack ? "\n\n" + e.stack : ""));
         }
         
         if (hasTearDown)
