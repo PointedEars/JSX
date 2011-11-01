@@ -1,5 +1,26 @@
 /**
+ * <title>PointedEars' DOM Library: Widgets</title>
+ * 
+ * @version $Id$
  * @requires dom.js, events.js
+ * @section Copyright & Disclaimer
+ * 
+ * @author (C) 2010, 2011 Thomas Lahn <js@PointedEars.de>
+ * 
+ * @partof PointedEars' JavaScript Extensions (JSX)
+ * 
+ * JSX is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JSX is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 if (typeof jsx == "undefined")
@@ -19,118 +40,289 @@ if (typeof jsx.dom == "undefined")
 }
 
 /**
- * Constructor of the abstract prototype for widgets. It provides shallow
- * copying of the passed properties, stores the reference to the manipulated DOM
- * object, and applies the given properties to the display of that object.
- * Widgets should inherit from this prototype, and this constructor should be
- * called only from the constructors of prototypes of specialized widgets.
+ * @namespace
+ */
+jsx.dom.widgets = {
+  version: "$Id$"
+};
+
+/**
+ * Constructor of the abstract prototype for widgets. It provides
+ * shallow copying of the passed properties, stores the reference to the
+ * manipulated DOM object, and applies the given properties to the
+ * display of that object. Widgets should inherit from this prototype,
+ * and this constructor should be called only from the constructors of
+ * prototypes of specialized widgets.
  * 
- * @param oTarget : Elementp
- *   Reference to the DOM object that provides the client area for the widget
+ * @param oTarget : Element
+ *   Reference to the DOM object that represents the
+ *   element that provides the client area for the widget. Pass a
+ *   false-value to create a new element.
+ * @param oParent : Element
+ *   Reference to the DOM object that represents the parent
+ *   element for this widget. Pass <code>null</code> so that the
+ *   widget will not be automatically attached to the document
+ *   tree. You can call its {@link #appendTo()} method later to
+ *   attach it.
  * @param oProperties : Object
  */
-jsx.dom.Widget = function(oTarget, oProperties) {
-  for (var p in oProperties)
+jsx.dom.widgets.Widget = function(oTarget, oParent, oProperties) {
+  this.target = oTarget || document.createElement(this.elementType);
+  this._parent = oParent || null;
+  
+  for ( var p in oProperties)
   {
     if (typeof this[p] != "function")
     {
-      this[p] = oProperties[p];
-    }
-  }
-  
-  this.target = oTarget;
-  this.applyProperties();
-};
-
-jsx.dom.Widget.extend(null, {
-  /**
-   * @memberOf jsx.dom.Widget#prototype
-   */
-  applyProperties: function() {
-    /* overridden by inheriting types */
-  }
-});
-
-/**
- * An <code>InputWidget</code> object enhances the default <code>INPUT</code>
- * element text box with a restriction to the characters that may be typed into
- * it.
- * 
- * @param oTarget : Element
- *   Reference to the DOM object that provides the client area for the widget
- * @param oProperties : Object
- * @see Widget
- */
-jsx.dom.InputWidget = function(oTarget, oProperties) {
-  arguments.callee._super.apply(this, arguments);
-  
-  var me = this;
-  
-  jsx.dom.addEventListener(oTarget, 'keypress', function(e) {
-    if (!e)
-    {
-      e = (typeof window != "undefined" && window
-           && typeof window.event != "undefined" && window.event);
-    }
-    
-    if (e)
-    {
-      var charCode = typeof e.charCode != "undefined"
-                   ? e.charCode
-                   : (typeof e.keyCode != "undefined" ? e.keyCode : charCode);
-      
-      if (!(charCode < 32 || me.allowedChars.test(String.fromCharCode(charCode))
-           && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey))
+      var setter = this._getSetterFor(p);
+      if (setter)
       {
-        /* W3C DOM Level 2+ Events */
-        if (jsx.object.isMethod(e, "preventDefault"))
-        {
-          e.preventDefault();
-        }
-        
-        /* MSHTML DOM */
-        if (typeof e.returnValue != "undefined")
-        {
-          e.returnValue = false;
-        }
-        
-        /* other proprietary */
-        return false;
+        setter.call(this, oProperties[p]);
+      }
+      else
+      {
+        this[p] = oProperties[p];
       }
     }
-    
-    return true;
-  });
+  }
+  
+  if (this.target)
+  {
+    this.init();
+    this.update();
+  }
 };
 
-jsx.dom.InputWidget.extend(jsx.dom.Widget, {
+jsx.dom.widgets.Widget.extend(null, {
   /**
-   * Regular Expression specifying the format allowed to be input into this
-   * widget. CAUTION: Too restrictive an expression could render the widget
-   * unusable.
-   * 
-   * @memberOf jsx.dom.InputWidget#prototype
-   * @type RegExp
+   * Widgets are `div' elements by default. Inheriting classes should
+   * override this when appropriate (e. g., a menu should be a `ul').
+   * @memberOf jsx.dom.widgets.Widget#prototype
    */
-  allowedChars: /./
+  elementType: "div",
+  
+  /**
+   * @type Element
+   */
+  target: null,
+  
+  /**
+   * Defines actions to be performed when the widget is initialized;
+   * overridden by inheriting types.
+   */
+  init: function() {
+    /* stub */
+  },
+  
+  /**
+   * Defines actions to be performed when the widget's canvas should be
+   * updated to reflect its current status; overridden by inheriting
+   * types.
+   */
+  update: function() {
+    /* overridden by inheriting types */
+  },
+  
+  /**
+   * Causes the widget to be rendered, and attached to the document tree
+   * if not already attached.
+   * 
+   * @param parent : optional Element
+   *   Reference to the object representing the parent element to
+   *   which the widget should be appended as child. The default is
+   *   document.body.
+   */
+  render: function(parent) {
+    this.appendTo(parent);
+    this.target.style.display = "";
+  },
+  
+  /**
+   * Causes the widget not to be rendered, without removing it from the
+   * document tree.
+   */
+  unrender: function() {
+    this.target.style.display = "none";
+  },
+  
+  /**
+   * Shows the widget
+   */
+  show: function() {
+    target.style.display.visibility = "visible";
+  },
+  
+  /**
+   * Hides the widget, but keeps its box
+   */
+  hide: function() {
+    this.target.style.display.visibility = "hidden";
+  },
+  
+  /**
+   * Appends the widget as a child element
+   * 
+   * @param parent
+   * @returns
+   */
+  appendTo: function(parent) {
+    var result = null;
+    
+    if (typeof parent == "undefined")
+    {
+      parent = this._parent;
+    }
+    
+    var target = this.target;
+    if (!target.parentNode || (parent != target.parentNode))
+    {
+      result = parent.appendChild(target);
+    }
+    
+    return result;
+  },
+  
+  /**
+   * Removes the widget from the document
+   */
+  remove: function() {
+    return this.target.parentNode.removeChild(this.target);
+  },
+  
+  /**
+   * @memberOf jsx.dom.widgets.Widget#prototype
+   */
+  _getSetterFor: function(propertyName) {
+    var setterName =
+      "set" + propertyName.charAt(0).toUpperCase() + propertyName.substring(1);
+    var setter = this[setterName];
+    return (typeof setter == "function") ? setter : null;
+  },
 });
 
 /**
- * A <code>NumberWidget</code> restricts the characters to be typed into it to
- * decimal digits by default.
+ * An <code>Input</code> widget enhances the default
+ * <code>INPUT</code> element text box with a restriction to the
+ * characters that may be typed into it.
  * 
- * @param oTarget : Element
- *   Reference to the DOM object that provides the client area for the widget
- * @param oProperties : Object
- * @see InputWidget
+ * @param oTarget :
+ *        Element Reference to the DOM object that represents the
+ *        element that provides the client area for the widget. Pass a
+ *        false-value to create a new element.
+ * @param oParent :
+ *        Element Reference to the DOM object that represents the parent
+ *        element for this widget. Pass <code>null</code> so that the
+ *        widget will not be automatically attached to the document
+ *        tree. You can call its {@link #appendTo()} method later to
+ *        attach it.
+ * @param oProperties :
+ *        Object
+ * @see Widget
  */
-jsx.dom.NumberWidget = function(oTarget, oProperties) {
+jsx.dom.widgets.Input = function(oTarget, oParent, oProperties) {
+  arguments.callee._super.apply(this, arguments);
+};
+
+jsx.dom.widgets.Input.extend(jsx.dom.widgets.Widget, {
+  /**
+   * Regular Expression specifying the format allowed to be input into
+   * this widget. CAUTION: Too restrictive an expression could render
+   * the widget unusable.
+   * 
+   * @memberOf jsx.dom.widgets.Input#prototype
+   * @type RegExp
+   */
+  allowedChars: /./,
+  
+  elementType: "input",
+  
+  init: function() {
+    var me = this;
+    jsx.dom.addEventListener(this.target, 'keypress', function(e) {
+      if (!e)
+      {
+        e =
+          (typeof window != "undefined" && window
+            && typeof window.event != "undefined" && window.event);
+      }
+      
+      if (e)
+      {
+        var charCode =
+          (typeof e.charCode != "undefined") ? e.charCode
+            : (typeof e.keyCode != "undefined" ? e.keyCode : charCode);
+        
+        if (! (charCode < 32 || me.allowedChars.test(String
+          .fromCharCode(charCode))
+          && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey))
+        {
+          /* W3C DOM Level 2+ Events */
+          if (jsx.object.isMethod(e, "preventDefault"))
+          {
+            e.preventDefault();
+          }
+          
+          /* MSHTML DOM */
+          if (typeof e.returnValue != "undefined")
+          {
+            e.returnValue = false;
+          }
+          
+          /* other proprietary */
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  }
+});
+
+jsx.dom.widgets.Button = function(oTarget, oParent, oProperties) {
+  arguments.callee._super.apply(this, arguments);
+};
+
+jsx.dom.widgets.Button.extend(jsx.dom.widgets.Input, {
+  /**
+   * @memberOf jsx.dom.widgets.Button#prototype
+   */
+  init: function() {
+    this.target.type = "button";
+  },
+  
+  update: function() {
+    var t = this.target;
+    t.type = "button";
+    t.value = this.text || "";
+    t.onclick = this.onclick;
+  }
+});
+
+/**
+ * A <code>NumberInput</code> widget restricts the characters to be
+ * typed into it to decimal digits by default.
+ * 
+ * @param oTarget :
+ *        Element Reference to the DOM object that represents the
+ *        element that provides the client area for the widget. Pass a
+ *        false-value to create a new element.
+ * @param oParent :
+ *        Element Reference to the DOM object that represents the parent
+ *        element for this widget. Pass <code>null</code> so that the
+ *        widget will not be automatically attached to the document
+ *        tree. You can call its {@link #appendTo()} method later to
+ *        attach it.
+ * @param oProperties :
+ *        Object
+ * @see jsx.dom.widgets#Input
+ */
+jsx.dom.widgets.NumberInput = function(oTarget, oParent, oProperties) {
   arguments.callee._super.apply(this, arguments);
   
   var me = this;
   
   jsx.dom.addEventListener(oTarget, 'blur', function() {
-    me.applyProperties();
+    me.update();
   });
   
   jsx.dom.addEventListener(oTarget, 'focus', function() {
@@ -141,8 +333,9 @@ jsx.dom.NumberWidget = function(oTarget, oProperties) {
   });
 };
 
-jsx.dom.NumberWidget.extend(jsx.dom.InputWidget, {
+jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
   /**
+   * @memberOf jsx.dom.widgets.NumberInput#prototype
    * @type RegExp
    */
   allowedChars: /\d/,
@@ -159,76 +352,150 @@ jsx.dom.NumberWidget.extend(jsx.dom.InputWidget, {
    */
   maxValue: Infinity,
   
-  /**
-   * Overwrites the method inherited from Widget
+  init: function() {
+    var target = this.target;
+    
+    target.type = "number";
+    if (target.type == "number")
+    {
+      /* HTML5 support */
+    }
+  },
+  
+  /*
+   * (non JSdoc)
    * 
-   * @memberOf jsx.dom.NumberWidget#prototype
+   * @see Widget.prototype#update
    */
-  applyProperties: function() {
-    var t = this.target;
+  update: function() {
+    var target = this.target;
+    
     if (this.leadingZero && this.maxValue != Infinity)
     {
-      t.value = leadingZero(t.value, String(this.maxValue).length);
+      target.value = leadingZero(target.value, String(this.maxValue).length);
     }
-    else if (!this.leadingZero && t.value.length > 0)
+    else if (!this.leadingZero && target.value.length > 0)
     {
-      t.value = String(parseFloat(t.value));
+      target.value = String(parseFloat(target.value));
     }
+  },
+  
+  _setBoundary: function(valueType, value) {
+    value = parseFloat(value);
+    
+    if (!isNaN(value))
+    {
+      if (this.target.type == "number")
+      {
+        /* HTML5 support */
+        this.target[valueType] = String(value);
+      }
+      
+      this[valueType + "Value"] = value;
+    }
+    else
+    {
+      jsx.throwThis(null, "Invalid boundary: " + valueType + "Value");
+    }
+    
+    return this[valueType + "Value"];
+  },
+  
+  setMinValue: function(value) {
+    return this._setBoundary("min", value);
+  },
+  
+  setMaxValue: function(value) {
+    return this._setBoundary("max", value);
   }
+
 });
 
 /**
- * A <code>SpinnerWidget</code> is a <code>NumberWidget</code> that allows
- * the user to increase or decrease its current value with the arrow keys or the
- * attached arrow buttons ("to spin" it). It is possible to define a minimum or
- * maximum value.
+ * A <code>SpinnerInput</code> is a <code>NumberInput</code> that
+ * allows the user to increase or decrease its current value with the
+ * arrow keys or the attached arrow buttons ("to spin" it). It is
+ * possible to define a minimum or maximum value.
  * 
- * @param oTarget : Element
- *   Reference to the DOM object that provides the client area for the widget
- * @param oProperties : Object
- * @see NumberWidget
+ * @param oTarget :
+ *        Element Reference to the DOM object that represents the
+ *        element that provides the client area for the widget. Pass a
+ *        false-value to create a new element.
+ * @param oParent :
+ *        Element Reference to the DOM object that represents the parent
+ *        element for this widget. Pass <code>null</code> so that the
+ *        widget will not be automatically attached to the document
+ *        tree. You can call its {@link #appendTo()} method later to
+ *        attach it.
+ * @param oProperties :
+ *        Object
+ * @see jsx.dom.widgets#NumberInput
  */
-jsx.dom.SpinnerWidget = function(oTarget, oProperties) {
-  arguments.callee._super.apply(this, arguments);
-  
+jsx.dom.widgets.SpinnerInput = function(oTarget, oParent, oProperties) {
   var me = this;
   
-  /* TODO: add arrow controls */
+  arguments.callee._super.apply(this, arguments);
   
-  /* add event listeners */
-  jsx.dom.addEventListener(oTarget, 'keydown', function(e) {
+  var target = this.target;
+  if (target.type != "number")
+  {
+    /* If no HTML5 support, add arrow controls */
+    this.buttonUp = new jsx.dom.widgets.Button(null, null, {
+      text: "\u25B4",
+      onclick: function() {
+        me.inc();
+      }
+    });
+    
+    this.buttonDown = new jsx.dom.widgets.Button(null, null, {
+      text: "\u25BE",
+      onclick: function() {
+        me.dec();
+      }
+    });
+    
+    target.parentNode.insertBefore(this.buttonUp.target, target.nextSibling);
+    target.parentNode.insertBefore(this.buttonDown.target,
+      this.buttonUp.target.nextSibling);
+  }
+  
+  /* Add event listeners */
+  jsx.dom.addEventListener(target, 'keydown', function(e) {
     /**
      * Increases the value of the <code>value</code> property.
      */
-//  function inc()
-//  {
-//    var v;
-//    if ((me.maxValue == Infinity || this.value < me.maxValue)
-//        && !isNaN(v = parseInt(this.value, 10) + 1)
-//        && (this.maxLength < 1 || v.toString().length <= this.maxLength))
-//    {
-//      this.value = v;
-//    }
-//  }
-//
-//  function dec()
-//  {
-//    var v;
-//    if ((me.minValue == -Infinity || this.value > me.minValue)
-//        && !isNaN(v = parseInt(this.value, 10) - 1)
-//        && (this.maxLength < 1 || v.toString().length <= this.maxLength))
-//    {
-//      this.value = v;
-//    }
-//  }    if (me.minValue != -Infinity || me.maxValue != Infinity)
+    // function inc()
+    // {
+    // var v;
+    // if ((me.maxValue == Infinity || this.value < me.maxValue)
+    // && !isNaN(v = parseInt(this.value, 10) + 1)
+    // && (this.maxLength < 1 || v.toString().length <=
+    // this.maxLength))
+    // {
+    // this.value = v;
+    // }
+    // }
+    //
+    // function dec()
+    // {
+    // var v;
+    // if ((me.minValue == -Infinity || this.value > me.minValue)
+    // && !isNaN(v = parseInt(this.value, 10) - 1)
+    // && (this.maxLength < 1 || v.toString().length <=
+    // this.maxLength))
+    // {
+    // this.value = v;
+    // }
+    // } if (me.minValue != -Infinity || me.maxValue != Infinity)
     {
-      if (!e)
+      if (typeof e == "undefined")
       {
-        e = (typeof window != "undefined" && window
-             && typeof window.event != "undefined" && window.event);
+        e =
+          (typeof window != "undefined" && window
+            && typeof window.event != "undefined" && window.event);
       }
       
-      if (e)
+      if (typeof e != "undefined")
       {
         /* DOM Level 3 Events draft */
         switch (e.keyIdentifier)
@@ -261,30 +528,27 @@ jsx.dom.SpinnerWidget = function(oTarget, oProperties) {
   });
 };
 
-jsx.dom.SpinnerWidget.extend(jsx.dom.NumberWidget, {
+jsx.dom.widgets.SpinnerInput.extend(jsx.dom.widgets.NumberInput, {
   /**
-   * @memberOf jsx.dom.SpinnerWidget#prototype
+   * @memberOf jsx.dom.widgets.SpinnerInput#prototype
    */
   inc: function() {
     var v, t = this.target;
     
-    if ((this.maxValue == Infinity || t.value < this.maxValue)
-        && !isNaN(v = parseInt(t.value, 10) + 1)
-        && (t.maxLength < 1 || v.toString().length <= t.maxLength))
+    if ( (this.maxValue == Infinity || t.value < this.maxValue)
+      && !isNaN(v = parseInt(t.value, 10) + 1)
+      && (t.maxLength < 1 || v.toString().length <= t.maxLength))
     {
       t.value = v;
     }
   },
   
-  /**
-   * @memberOf jsx.dom.SpinnerWidget#prototype
-   */
   dec: function() {
     var v, t = this.target;
     
-    if ((this.minValue == -Infinity || t.value > this.minValue)
-        && !isNaN(v = parseInt(t.value, 10) - 1)
-        && (t.maxLength < 1 || v.toString().length <= t.maxLength))
+    if ( (this.minValue == -Infinity || t.value > this.minValue)
+      && !isNaN(v = parseInt(t.value, 10) - 1)
+      && (t.maxLength < 1 || v.toString().length <= t.maxLength))
     {
       t.value = v;
     }
@@ -292,20 +556,29 @@ jsx.dom.SpinnerWidget.extend(jsx.dom.NumberWidget, {
 });
 
 /**
- * A <code>TimerWidget</code> uses several <code>NumberWidgets</code> to
- * implement a digital timer.
+ * A <code>Timer</code> widget uses several <code>NumberInput</code>
+ * widgets to implement a digital timer.
  * 
- * @param oTarget : Element
- *   Reference to the DOM object that provides the client area for the widget
- * @param oProperties : Object
+ * @param oTarget :
+ *        Element Reference to the DOM object that represents the
+ *        element that provides the client area for the widget. Pass a
+ *        false-value to create a new element.
+ * @param oParent :
+ *        Element Reference to the DOM object that represents the parent
+ *        element for this widget. Pass <code>null</code> so that the
+ *        widget will not be automatically attached to the document
+ *        tree. You can call its {@link #appendTo()} method later to
+ *        attach it.
+ * @param oProperties :
+ *        Object
  * @base jsx.dom.Widget
  * @see NumberWidget
  */
-jsx.dom.TimerWidget = function(oTarget, oProperties) {
+jsx.dom.widgets.Timer = function(oTarget, oParent, oProperties) {
   arguments.callee._super.apply(this, arguments);
 };
 
-jsx.dom.TimerWidget.extend(jsx.dom.Widget);
+jsx.dom.widgets.Timer.extend(jsx.dom.widgets.Widget);
 
 function handleKeypress(e)
 {
@@ -323,11 +596,11 @@ function handleKeypress(e)
       
       /* Allow control characters and numbers only */
       console.log("keyCode = ", keyCode);
-      if (!(keyCode < 32 || (keyCode >= "0".charCodeAt(0) && keyCode <= "9"
+      if (! (keyCode < 32 || (keyCode >= "0".charCodeAt(0) && keyCode <= "9"
         .charCodeAt(0))))
       {
         /* W3C DOM */
-        if (isMethodType(typeof e.stopPropagation) && e.stopPropagation)
+        if (jsx.object.isMethod(e, "stopPropagation"))
         {
           e.stopPropagation();
         }
@@ -341,19 +614,14 @@ function handleKeypress(e)
         /* W3C DOM */
         /*
          * Order is important for Firefox 2: cancelBubble exists after
-         * preventDefault() and changes DOM behavior (event is NOT canceled then
-         * if cancelBubble is assigned `true')
+         * preventDefault() and changes DOM behavior (event is NOT
+         * canceled then if cancelBubble is assigned `true')
          */
-        if (isMethodType(typeof e.preventDefault) && e.preventDefault)
+        if (jsx.object.isMethod(e, "preventDefault"))
         {
           e.preventDefault();
         }
-        
-        /*
-         * FIXME: key* cannot be canceled in the MSHTML DOM,
-         * check MSDN Library
-         */
-        if (typeof e.returnValue != "undefined")
+        else
         {
           e.returnValue = false;
         }

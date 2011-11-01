@@ -548,6 +548,13 @@ jsx.regexp.RegExp = (function () {
     }
 
     var originalSource = expression;
+    
+    /* Support for the PCRE `x' modifier */
+    if (sFlags.indexOf("x") > -1)
+    {
+      expression = expression.replace(/(\\\s|\[([^\\\]]|\\.)*\])|\s+/g, "$1");
+      sFlags = sFlags.replace(/x/g, "");
+    }
 
     var groupCount = 0;
     this.groups = {};

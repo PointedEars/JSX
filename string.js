@@ -564,7 +564,7 @@ jsx.string._rxFormatSpec = new RegExp(
  * @param sFormat
  * @return string
  */
-jsx.string.format = jsx.string.sprintf = function(sFormat) {
+jsx.string.sprintf = function(sFormat) {
   var
     rxFormatSpec = jsx.string._rxFormatSpec,
     args = arguments,
@@ -781,6 +781,51 @@ jsx.string.format = jsx.string.sprintf = function(sFormat) {
       return v;
     });
 };
+
+/**
+ * Formats a string
+ */
+String.prototype.format = jsx.string.format = (function() {
+  var _getClass = jsx.object.getClass;
+  var _hasOwnProperty = jsx.object._hasOwnProperty;
+
+   /**
+    * @param format
+    * @return {String}
+    */
+  return function(s) {
+    var start = 1;
+    
+    if (_getClass(this) === "String")
+    {
+      s = this.constructor(this);
+      start = 0;
+    }
+    
+    for (var i = start, len = arguments.length; i < len; ++i)
+    {
+      var format = arguments[i];
+      
+      if (_getClass(format) === "Object")
+      {
+        for (var property in format)
+        {
+          if (_hasOwnProperty(format, property))
+          {
+            s = s.replace(new RegExp("\\{" + property + "\\}", "g"),
+                  format[property]);
+          }
+        }
+      }
+      else
+      {
+        s = s.replace(new RegExp("\\{" + (i - start) + "\\}", "g"), format);
+      }
+    }
+    
+    return s;
+  };
+}());
 
 /**
  * Parses values out of a string using the specified format
