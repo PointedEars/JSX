@@ -36,18 +36,18 @@
         var f = document.forms[0];
         var es = f.elements;
 
-        var SpinnerWidget = jsx.dom.SpinnerWidget;
-        oHours = new SpinnerWidget(es['hours'], {
+        var SpinnerInput = jsx.dom.widgets.SpinnerInput;
+        oHours = new SpinnerInput(es['hours'], null, {
           minValue: 0
         });
         
-        oMins = new SpinnerWidget(es['minutes'], {
+        oMins = new SpinnerInput(es['minutes'], null, {
           leadingZero: true,
           minValue: 0,
           maxValue: 59
         });
         
-        oSec = new SpinnerWidget(es['seconds'], {
+        oSec = new SpinnerInput(es['seconds'], null, {
           leadingZero: true,
           minValue: 0,
           maxValue: 59

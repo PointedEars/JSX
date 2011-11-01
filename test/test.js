@@ -212,6 +212,36 @@ jsx.test.assertArrayEquals = function (expecteds, actuals) {
 jsx.test.runner = {
   tests: [],
   
+  /**
+   * Runs test cases
+   * 
+   * @param spec : Object
+   *   Test specifaction.  Supported properties incude:
+   *   <table>
+   *    <thead>
+   *      <th>Property</th>
+   *      <th>Type</th>
+   *      <th>Meaning</th>
+   *    </thead>
+   *    <tbody>
+   *      <tr>
+   *        <th><code>setUp</code></th>
+   *        <td><code>Function</code></td>
+   *        <td>Function that is called before each test case</td>
+   *      </tr>
+   *      <tr>
+   *        <th><code>tearDown</code></th>
+   *        <td><code>Function</code></td>
+   *        <td>Function that is called after each test case</td>
+   *      </tr>
+   *      <tr>
+   *        <th><code>tests</code></th>
+   *        <td><code>Array</code> of <code>Function</code></td>
+   *        <td>Test cases</td>
+   *      </tr>
+   *   </table>
+   * @function
+   */
   run: (function() {
     var isMethod = jsx.object.isMethod;
     

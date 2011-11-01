@@ -279,6 +279,11 @@ jsx.dmsg = (function() {
         sType = "log";
       }
       
+      if (sType != "info")
+      {
+        sMsg += "\n" + jsx.getStackTrace();
+      }
+      
       if (isMethod(console, sType))
       {
         /* MSHTML's console methods do not implement call() */
@@ -598,6 +603,80 @@ jsx.object.findNewProperty = (function() {
     return "";
   };
 }());
+
+/**
+ * Determines if an object, or the objects it refers to,
+ * has an enumerable property with a certain value
+ * 
+ * @param obj : Object
+ * @param needle
+ *   The value to be searched for
+ * @param params : Object
+ *   Search parameters.  The following properties are supported:
+ *   <table>
+ *     <thead>
+ *       <tr>
+ *         <th>Property</th>
+ *         <th>Meaning</th>
+ *       </tr>
+ *     </thead>
+ *     <tbody>
+ *       <tr>
+ *         <th><code><var>exclude</var> :&nbsp;Array</code></th>
+ *         <td><code>Array</code> containing the names of the
+ *             properties that should not be searched</td>
+ *       </tr>
+ *       <tr>
+ *         <th><code><var>recursive</var> :&nbsp;boolean</code></th>
+ *         <td>If a true-value, search recursively.</td>
+ *       </tr>
+ *       <tr>
+ *         <th><code><var>strict</var> :&nbsp;boolean</code></th>
+ *         <td>If a true-value, perform a strict comparison
+ *             without type conversion.</td>
+ *       </tr>
+ *     </tbody>
+ *   </table>
+ */
+jsx.object.hasPropertyValue = function(obj, needle, params) {
+  for (var property in obj)
+  {
+    if (params && params.exclude && params.exclude.indexOf(property) > -1)
+    {
+      continue;
+    }
+    
+    var propertyValue = obj[property];
+    if (params && params.recursive)
+    {
+      if (typeof propertyValue == "object" && propertyValue !== null)
+      {
+        if (arguments.callee(propertyValue, needle, params))
+        {
+          return true;
+        }
+      }
+    }
+    
+    if (params && params.strict)
+    {
+      if (propertyValue === needle)
+      {
+        return true;
+      }
+    }
+    else
+    {
+      /* Switch operands because of JScript quirk */
+      if (needle == propertyValue)
+      {
+        return true;
+      }
+    }
+  }
+  
+  return false;
+};
 
 /**
  * Clears the handler for the proprietary <code>error</code> event.
@@ -957,7 +1036,8 @@ jsx.object.isInstanceOf = //(function() {
  *   The name of a function if it has one; the empty string otherwise.
  */
 jsx.object.getFunctionName = function(aFunction) {
-  return (typeof aFunction.name != "undefined" && aFunction.name)
+  /* Return the empty string for null or undefined */
+  return (aFunction != null && typeof aFunction.name != "undefined" && aFunction.name)
     || (String(aFunction).match(/function\s+(\w+)/) || [, ""])[1];
 };
 
@@ -977,32 +1057,30 @@ jsx.getStackTrace = function() {
   function parseErrorStack(excp)
   {
     var stack = [];
-    var name;
 
-    if (!excp || !excp.stack)
+    if (excp && excp.stack)
     {
-      return stack;
-    }
-
-    var stacklist = excp.stack.split('\n');
-
-    for (var i = 0; i < stacklist.length - 1; i++)
-    {
-        var framedata = stacklist[i];
-
-        name = framedata.match(/^(\w*)/)[1];
-        if (!name)
-        {
-          name = 'anonymous';
-        }
-
-        stack[stack.length] = name;
-    }
-    
-    /* remove top level anonymous functions to match JScript */
-    while (stack.length && stack[stack.length - 1] == 'anonymous')
-    {
-      stack.length = stack.length - 1;
+      var stacklist = excp.stack.split('\n');
+  
+//      for (var i = 0; i < stacklist.length - 1; i++)
+//      {
+//          var framedata = stacklist[i];
+//
+//          var name = framedata.match(/^\s*(at\s+)?(\w*)/)[2];
+//          if (!name)
+//          {
+//            name = 'anonymous';
+//          }
+//
+//          stack[stack.length] = name;
+//      }
+      var stack = stacklist;
+      
+      /* remove top level anonymous functions to match JScript */
+//      while (stack.length && stack[stack.length - 1] == 'anonymous')
+//      {
+//        stack.length = stack.length - 1;
+//      }
     }
 
     return stack;
@@ -1027,16 +1105,17 @@ jsx.getStackTrace = function() {
   else
   {
     /* other */
-    if (typeof Error !== "function")
+    if (typeof Error != "function")
     {
       return result;
     }
 
     var stack = parseErrorStack(new Error());
-    for (var i = 1; i < stack.length; i++)
-    {
-      result += '> ' + stack[i] + '\n';
-    }
+    result = stack.slice(2).join("\n");
+//    for (var i = 1; i < stack.length; i++)
+//    {
+//      result += '> ' + stack[i] + '\n';
+//    }
   }
 
   return result;
@@ -1062,10 +1141,11 @@ jsx.getStackTrace = function() {
  *   <code>undefined</code> if the property value cannot be determined.
  */
 jsx.object.getClass = (function() {
-  var _toString = Object.prototype.toString;
+  var _toString = ({}).toString;
   
   return function(obj) {
-    return (_toString.call(obj).match(/^\s*\[\s*object\s+(\S+)\s*\]\s*$/) || [, ])[1];
+    return (_toString.call(obj)
+      .match(/^\s*\[object\s+(\S+)\s*\]\s*$/) || [, ])[1];
   };
 }());
 
@@ -1526,12 +1606,22 @@ Function.prototype.extend = (function() {
   }
   
   return function(fConstructor, oProtoProps) {
+    var me = this;
+
     /*
-     * Allows constructor to be undefined or null to inherit from
+     * Allows constructor to be null or undefined to inherit from
      * Object.prototype by default (see below)
      */
     if (fConstructor == null)
     {
+      if (typeof fConstructor == "undefined")
+      {
+        /* Passing undefined is probably unintentional, so warn about it */
+        jsx.warn((jsx_object.getFunctionName(me) || "[anonymous Function]")
+          + ".extend(" + "undefined, " + oProtoProps + "):"
+          + " Parent constructor is undefined, using Object");
+      }
+
       fConstructor = "Object";
     }
     
@@ -1578,7 +1668,6 @@ Function.prototype.extend = (function() {
      * @deprecated
      */
     this.prototype.iterator = iterator;
-    var me = this;
     
     /* Optimize iteration if ECMAScript 5 features are available */
     if (jsx_object.isMethod(jsx.tryThis("Object"), "defineProperties"))
@@ -1646,8 +1735,73 @@ Function.prototype.extend = (function() {
   };
 }());
 
+/* Defines Array.prototype.indexOf and .map() if not already defined */
 jsx.object.addProperties(
   {
+    /**
+     * Returns the first index at which a given element can be found in
+     * the array, or -1 if it is not present.
+     * 
+     * @param searchElement
+     *   Element to locate in the array.
+     * @param fromIndex : number
+     *   The index at which to begin the search. Defaults to 0, i.e.
+     *   the whole array will be searched. If the index is greater than
+     *   or equal to the length of the array, -1 is returned, i.e.
+     *   the array will not be searched. If negative, it is taken as
+     *   the offset from the end of the array. Note that even when
+     *   the index is negative, the array is still searched from front
+     *   to back. If the calculated index is less than 0, the whole array
+     *   will be searched.
+     * @returns
+     *   The first index at which a given element can be found in
+     *   the array, or -1 if it is not present.
+     * @author Courtesy of developer.mozilla.org, unverified
+     */
+    indexOf: function(searchElement, fromIndex) {
+      "use strict";
+      if (this === void 0 || this === null)
+      {
+        throw new TypeError();
+      }
+      
+      var t = Object(this);
+      
+      var len = t.length >>> 0;
+      if (len === 0) {
+        return -1;
+      }
+      
+      var n = 0;
+      if (arguments.length > 0)
+      {
+        n = Number(fromIndex);
+        if (n !== n) {
+          /* shortcut for verifying if it's NaN */
+          n = 0;
+        }
+        else if (n !== 0 && n !== Infinity && n !== -Infinity)
+        {
+          n = (n > 0 || -1) * Math.floor(Math.abs(n));
+        }
+      }
+      
+      if (n >= len)
+      {
+        return -1;
+      }
+      
+      var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
+      for (; k < len; k++)
+      {
+        if (k in t && t[k] === searchElement)
+        {
+          return k;
+        }
+      }
+      
+      return -1;
+    },
     /**
      * Maps one array to another
      * 
