@@ -1,19 +1,42 @@
 /**
- * Python functions for ECMAScript implementations
- * 
+ * @fileOverview <title>Pythonic functions for ECMAScript implementations</title>
+ * @file $Id$
  * @requires object.js
+ * 
+ * @author (C) 2011 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
+ * 
+ * @partof PointedEars' JavaScript Extensions (JSX)
+ * 
+ * JSX is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JSX is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 if (typeof jsx == "undefined")
 {
+  /**
+   * @namespace
+   */
   var jsx = {};
 }
 
+/**
+ * @namespace
+ */
 jsx.python = {
   /**
    * @version
    */
-  version:   "$Revision: $ ($Date: $)",
+  version:   "$Revision$ ($Date$)",
   copyright: "Copyright \xA9 2011",
   author:    "Thomas Lahn",
   email:     "js@PointedEars.de",
@@ -27,6 +50,7 @@ jsx.python = {
  * 
  * @function
  * @param iterable : Object
+ * @return {Array}
  */
 jsx.python.list = (function() {
   var jsx_object = jsx.object;
@@ -60,7 +84,7 @@ jsx.python.list = (function() {
  * Returns a reference to an object
  * 
  * @param mapping
- * @returns {Object}
+ * @return {Object}
  */
 jsx.python.dict = function(mapping, values) {
   var result = {};
@@ -103,33 +127,44 @@ jsx.python.dict = function(mapping, values) {
 /**
  * Build an unordered collection of unique elements.
  * 
- * @param list : Object
- * @returns {Array}
+ * @param iterable : Object
+ * @return {Array}
  */
-jsx.python.set = function(list) {
-  var result = [];
-  
-  for (var prop in list)
-  {
-    result.push(list[prop]);
-  }
-  
-  for (var i = 0, len = result.length; i < len; ++i)
-  {
-    for (var j = i + 1, max = Math.floor(Math.sqrt(len)); j < max; ++j)
+jsx.python.set = (function() {
+  var isMethod = jsx_object.isMethod;
+
+  return function(iterable) {
+    var result = [];
+    
+    if (isMethod(iterable, "slice"))
     {
-      if (result[i] === result[j])
+      result = iterable.slice();
+    }
+    else
+    {
+      for (var prop in iterable)
       {
-        delete result[j];
-        --j;
-        --max;
-        --len;
+        result.push(iterable[prop]);
       }
     }
-  }
-  
-  return result;
-};
+    
+    for (i = 0, len = result.length; i < len; ++i)
+    {
+      for (var j = i + 1, max = Math.floor(Math.sqrt(len)); j < max; ++j)
+      {
+        if (result[i] === result[j])
+        {
+          delete result[j];
+          --j;
+          --max;
+          --len;
+        }
+      }
+    }
+    
+    return result;
+  };
+}());
 
 /**
  * Return an Array of Arrays, where each inner Array contains the i-th
@@ -137,7 +172,7 @@ jsx.python.set = function(list) {
  * truncated in length to the length of the shortest argument Array.
  *
  * @param arg1 : Array
- * @returns {Array}
+ * @return {Array}
  */
 jsx.python.zip = function(arg1, arg2) {
   var result = [];
@@ -164,15 +199,16 @@ jsx.python.zip = function(arg1, arg2) {
 /**
  * Extends an Array with elements from another Array.
  * 
- * Different from Array.prototype.concat() in that the Array is modified.
+ * Different from Array.prototype.concat() in that the first Array is modified.
+ * To emphasize this, there is no explicit return value (i.e. returns
+ * <code>undefined</code>).
  * 
  * @param list1 : Array which is to be extended
  * @param list2 : Array which elements should be appended to <var>list1</var>
  */
 jsx.python.extend = function(list1, list2) {
-  for (var elem in list2)
+  for (var i = 0, len = list2.length; i < len; ++i)
   {
-    Array.prototype.push.call(list1, list2[elem]);
+    Array.prototype.push.call(list1, list2[i]);
   }
-
 };

@@ -1,4 +1,26 @@
 <?php
+/**
+ * Builds a resource from several other ones.
+ *
+ * @version $Id$
+ * @author
+ * Copyright © 2011  Thomas 'PointedEars' Lahn &lt;php@PointedEars.de&gt;
+ *
+ * Part of PointedEars' JavaScript Extensions (JSX)
+ *
+ * JSX is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JSX is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 if (!function_exists('lcfirst'))
 {
@@ -8,16 +30,48 @@ if (!function_exists('lcfirst'))
   }
 }
 
+/**
+ * Builds a resource from several other ones.
+ *
+ * Information is passed via <code>$_GET</code>. Supports PHP-generated
+ * resources; references to globals in resource SHOULD be avoided, but
+ * MUST be declared if used.
+ *
+ * @author
+ *   Copyright © 2011  Thomas 'PointedEars' Lahn &lt;php@PointedEars.de&gt;
+ * @license http://www.gnu.org/licenses/gpl.html
+ *   GNU General Public License, version 3 and later
+ * @property-read string $version
+ *   Class version
+ * @property string $prefix
+ *   Common path prefix for all resources
+ * @property array $sources
+ *   Sources to be processed in order
+ * @property string $contentType
+ *   Content-type to be used
+ * @property-read array $typeMap
+ *   Maps MIME media types to file extensions
+ * @property boolean $debug
+ *   If <code>true</code>, preserve original file content
+ * @property boolean $verbose
+ *   If <code>true</code>, produce verbose messages
+ * @property-read int $commentCount
+ *   Number of comments processed so far
+ */
 class ResourceBuilder
 {
-  protected $_version = '0.4.2';
-  
+  /**
+ 	 * Class version
+   * @var string
+   */
+  protected $_version = '0.4.3';
+
   /**
    * Common path prefix for all resources
    * @var string
    */
   protected $_prefix = '';
-  
+
   /**
    * Sources to be processed in order
    * @var array
@@ -31,7 +85,8 @@ class ResourceBuilder
   protected $_contentType = 'text/javascript';
   
   /**
-   * Maps MIME media types to file extensions
+   * @property-read  array $typeMap
+   *   Maps MIME media types to file extensions
    */
   protected $_typeMap = array(
   	'text/javascript' => 'js',
@@ -274,8 +329,14 @@ class ResourceBuilder
         . " * Please see the original files for the complete source code.\n"
     		. " */\n\n";
     
-    $totalSize = 0;
-    $totalCompactedSize = 0;
+    $verbose = $this->verbose;
+    
+    /* Compute sizes only when needed */
+    if ($verbose)
+    {
+      $totalSize = 0;
+      $totalCompactedSize = 0;
+    }
     
     foreach ($this->sources as $index => $source)
     {
@@ -290,25 +351,46 @@ class ResourceBuilder
         . (array_key_exists($this->contentType, $this->typeMap)
           ? '.' . $this->typeMap[$this->contentType]
           : '');
-      $originalSize = filesize("./$file");
-      $totalSize += $originalSize;
-      $originalSizeFormatted = number_format($originalSize, 0, '.', "'");
-      $content = file_get_contents("./$file");
+
+      /*
+       * NOTE: No file_get_contents(), so that PHP in resource gets parsed.
+       * See globals caveat in class's PHPdoc.
+       */
+      ob_start();
+        require_once $file;
+  
+        if ($verbose)
+        {
+          $originalSize = ob_get_length();
+        }
+        
+        $content = ob_get_contents();
+      ob_end_clean();
+      
+      if ($verbose)
+      {
+        $totalSize += $originalSize;
+        $originalSizeFormatted = number_format($originalSize, 0, '.', "'");
+      }
       
       if (!$this->debug)
       {
         $content = $this->stripJSdoc($content);
       }
       
-      $compactedSize = strlen($content);
-      $totalCompactedSize += $compactedSize;
-      $compactedSizeFormatted = number_format($compactedSize, 0, '.', "'");
-      $ratioPercentage = $compactedSize / $originalSize * 100;
-      $ratioFormatted = sprintf('%.1f %%', $ratioPercentage);
+      if ($verbose)
+      {
+        $compactedSize = strlen($content);
+        $totalCompactedSize += $compactedSize;
+        $compactedSizeFormatted = number_format($compactedSize, 0, '.', "'");
+        $ratioPercentage = $compactedSize / $originalSize * 100;
+        $ratioFormatted = sprintf('%.1f %%', $ratioPercentage);
+      }
+      
       echo implode("\n", array(
       	'/*',
       	" * {$file}"
-      	  . ($this->verbose
+      	  . ($verbose
       	     ? ": {$originalSizeFormatted} bytes reduced to {$compactedSizeFormatted} bytes"
                . " ({$ratioFormatted})"
       	     : ""),
@@ -317,7 +399,7 @@ class ResourceBuilder
       
       echo $content;
       
-      if ($this->verbose)
+      if ($verbose)
       {
         $totalSizeFormatted = number_format($totalSize, 0, '.', "'");
         $totalCompactedSizeFormatted = number_format($totalCompactedSize, 0, '.', "'");

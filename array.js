@@ -1,12 +1,12 @@
 /**
  * <title>PointedEars' Array Library</title>
- * 
+ *
  * @section Copyright & Disclaimer
- * 
+ *
  * @author (C) 2004-2011  Thomas Lahn &lt;array.js@PointedEars.de&gt;
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
- * 
+ *
  * JSX is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -29,23 +29,31 @@
  * for details.
  */
 
-if (typeof Array == "undefined")
+if (typeof jsx == "undefined")
 {
-  var Array = new Object();
+  /**
+   * @namespace
+   */
+  var jsx = {};
 }
-Array.version   = "0.1.2008062516";
-Array.copyright = "Copyright \xA9 2004-2008";
-Array.author    = "Thomas Lahn";
-Array.email     = "array.js@PointedEars.de";
-Array.path      = "http://pointedears.de/scripts/";
-// Array.docURL = Array.path + "array.htm";
+
+/**
+ * @namespace
+ */
+jsx.array = {
+   version: "0.1.2008062516",
+   copyright: "Copyright \xA9 2004-2008",
+   author: "Thomas Lahn",
+   email: "array.js@PointedEars.de",
+   path: "http://pointedears.de/scripts/"
+};
+// jsx.array.docURL = jsx.array.path + "array.htm";
 
 /**
  * @param sMsg
  * @return boolean false
  */
-function ArrayException(/** @argument optional string */ sMsg)
-{
+jsx.array.ArrayError = function(/** @argument optional string */ sMsg) {
   alert(
     "array.js "
       + Array.version
@@ -58,12 +66,12 @@ function ArrayException(/** @argument optional string */ sMsg)
       + ">\n\n"
       + sMsg);
   return false;
-}
+};
 
 /**
  * Splits the array <code>a</code> into several arrays with
  * <code>iSize</code> values in them.
- * 
+ *
  * @author
  *   (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
  * @partof
@@ -77,8 +85,7 @@ function ArrayException(/** @argument optional string */ sMsg)
  *   Maximum size of the resulting arrays.
  *   An array of arrays indexed with numbers starting from zero.
  */
-function array_chunk(a, iSize)
-{
+jsx.array.chunk = function (a, iSize) {
   if (!isArray(a) && isArray(this))
   {
     iSize = a;
@@ -88,7 +95,7 @@ function array_chunk(a, iSize)
   var arrays = new Array(new Array());
 
   var i = 0;
-  if (isMethodType(typeof a.slice))
+  if (jsx.object.isMethod(a, "slice"))
   {
     while (i < a.length)
     {
@@ -105,16 +112,16 @@ function array_chunk(a, iSize)
       {
         arrays[++index] = new Array();
       }
-      
-      array_push(arrays[index], a[i]);
+
+      jsx.array.push(arrays[index], a[i]);
     }
   }
-}
+};
 
 /**
  * Returns an object using the values of the array <code>a</code>
  * as properties and their frequency in <code>a</code> as values.
- * 
+ *
  * @author
  *   (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
  * @partof
@@ -124,30 +131,29 @@ function array_chunk(a, iSize)
  * @param a : optional Array
  *   Array which values should be counted.  Is used instead of
  *   the <code>Array</code> object the function is applied to.
- * @return type Object
+ * @return Object
  */
-function array_countValues(a)
-{
+jsx.array.countValues = function (a) {
   if (!isArray(a) && isArray(this))
   {
     a = this;
   }
-  
+
   var o = new Object();
-  
+
   for (var i = 0; i < a.length; i++)
   {
     if (typeof o[a[i]] != "undefined"){o[a[i]]++;} else {o[a[i]] = 1;}
   }
-  
+
   return o;
-}
+};
 
 /**
  * Fills an array with <code>iNumber</code> entries of the value
  * of the <code>value</code> argument, indexes starting at the
  * value of the <code>iStart</code> argument.
- * 
+ *
  * @author
  *   (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
  * @partof
@@ -165,8 +171,7 @@ function array_countValues(a)
  * @type Array
  * @return The filled array.
  */
-function array_fill(a, iStart, iNumber, value)
-{
+jsx.array.fill = function (a, iStart, iNumber, value) {
   if (!isArray(a) && isArray(this))
   {
     a = this;
@@ -176,19 +181,19 @@ function array_fill(a, iStart, iNumber, value)
   {
     a = new Array();
   }
-  
+
   for (var i = iStart; i < iStart + iNumber; i++)
   {
     a[i] = value;
   }
-  
+
   return a;
-}
+};
 
 /**
  * Returns an array containing all the elements of <code>a</code>
  * filtered according a callback function <code>fCallback</code>.
- * 
+ *
  * @author
  *   (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
  * @partof
@@ -204,10 +209,9 @@ function array_fill(a, iStart, iNumber, value)
  * @param a : optional Array
  *   Array which should be filtered.  Is used instead of the
  *   <code>Array</code> object the function is applied to.
- * @return type Array
+ * @return Array
  */
-function array_filter(fCallback, a)
-{
+jsx.array.filter = function (fCallback, a) {
   if (a)
   {
     // support for old-style calls
@@ -232,7 +236,7 @@ function array_filter(fCallback, a)
   }
 
   var len = this.length;
-  
+
   if (typeof fCallback != "function")
   {
     eval('throw new TypeError();');
@@ -246,7 +250,7 @@ function array_filter(fCallback, a)
     {
       // mozilla.org: in case fCallback mutates `this'(?)
       var val = this[i];
-      
+
       if (fCallback.call(a, val, i, this))
       {
         res.push(val);
@@ -255,8 +259,8 @@ function array_filter(fCallback, a)
   }
 
   return res;
-}
-  
+};
+
 /**
  * Removes the last element from an array and returns that
  * element.  This method changes the length of the array, if
@@ -275,13 +279,12 @@ function array_filter(fCallback, a)
  * @return
  *   The element removed from the array changed array.
  */
-function array_pop(a)
-{
+jsx.array.pop = function (a) {
   if (!isArray(a) && isArray(this))
   {
     a = this;
   }
-   
+
   var result = null;
 
   if (a.length > 0)
@@ -294,7 +297,7 @@ function array_pop(a)
   }
 
   return result;
-}
+};
 
 /**
  * @author
@@ -310,27 +313,26 @@ function array_pop(a)
  * @return type Array
  *   The changed array.
  */
-function array_push(a, value)
-{
+jsx.array.push = function (a, value) {
   if (!isArray(a) && isArray(this))
   {
     value = a;
     a = this;
   }
-  
+
   for (var i = 0, len = arguments.length; i < len; i++)
   {
     a[a.length] = arguments[i];
   }
 
   return a;
-}
+};
 
 /**
  * Takes input array <code>a</code> or the calling <code>Array</code>
  * object and returns a new <code>Array</code> object with the
  * order of the elements reversed.
- * 
+ *
  * @author
  *   (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
  * @partof
@@ -346,36 +348,35 @@ function array_push(a, value)
  *   object with its elements in reverse order.  If <code>a</code>
  *   has no elements, an empty array is returned.
  */
-function array_reverse(a)
-{
+jsx.array.reverse = function (a) {
   if (!isArray(a) && isArray(this))
   {
     a = this;
   }
-  
+
   var result = new Array();
 
   if (isArray(a))
   {
     for (var i = a.length - 1; i > -1; i--) {result[result.length] = a[i];}
   }
-  
+
   return result;
-}
+};
 
 /**
  * Searches an array for a given value and returns
  * the corresponding index or vector if successful.
- * 
+ *
  * @author
  *   (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/array.js
  * @requires
  *   types#isArray()
- * @param needle : *
+ * @param needle
  *   Value to be searched for.
- * @param aHaystack : *
+ * @param aHaystack : Array
  *   <code>Array</code> to be searched for.  Is used instead of
  *   the calling <code>Array</code> object.
  * @param bStrict : optional boolean
@@ -388,7 +389,7 @@ function array_reverse(a)
  *   method pays attention to the possibility that an element may
  *   refer to one of its parents, so that infinite recursion is
  *   not performed in this case.  However, this additional check
- *   reduces efficiency as another <code>array_search()</code>
+ *   reduces efficiency as another {@link jsx.array#search()}
  *   must be invoked for every ancestor relationship.  Also
  *   note that this compares only references, not content.
  *   If <code>needle</code> is a reference to an <code>Array</code>
@@ -423,14 +424,14 @@ function array_reverse(a)
  *       if <code>needle</code> is found in the array,
  *     -1
  *       otherwise.
- * 
+ *
  *   With {@linkplain (bDeepSearch) deep search}:
  *     A reference to an Array object indicating the vector of
  *     the first matching element (i.e. its coordinates)
  *       if <code>needle</code> is found in the array,
  *     <code>null</code>
  *       otherwise.
- * 
+ *
  *   If neither the calling object is an <code>Array</code>
  *   object nor <code>aHaystack</code> is a reference to such:
  *     0 or <code>index</code>
@@ -439,19 +440,18 @@ function array_reverse(a)
  *    -1
  *       otherwise.
  */
-function array_search(needle, aHaystack, bStrict, bDeepSearch, aAncestors,
-  aResultVector, iLevel, index)
-{
+jsx.array.search = function(needle, aHaystack, bStrict, bDeepSearch,
+    aAncestors, aResultVector, iLevel, index) {
   var result = -1;
-  
+
   if (typeof index == "undefined" || index < 0)
   {
     index = 0;
   }
-  
+
 /*
  array_search(4, [[1, 2, 3], [4, 5, 6], [7, 8, 9]], true, true);
- 
+
  {0: {0: 1,
       1: 2,
       2: 3},
@@ -461,7 +461,7 @@ function array_search(needle, aHaystack, bStrict, bDeepSearch, aAncestors,
   2: {0: 7,
       1: 8,
       2: 9}}
- 
+
  array_search(4, [[1, 2, 3], [4, 5, 6], [7, 8, 9]], true, true) == [1, 0]
  array_search(4, [1, 2, 3], true, true) == null
  array_search(4, [4, 5, 6], true, true) == 0
@@ -480,13 +480,13 @@ function array_search(needle, aHaystack, bStrict, bDeepSearch, aAncestors,
         {
           aAncestors = new Array();
         }
-        
+
         if (aAncestors.length == 0
             || aAncestors[aAncestors.length - 1] != aHaystack) // avoid dupes
         {
           array_push(aAncestors, aHaystack);
         }
-     
+
         if (!aResultVector)
         {
           aResultVector = new Array();
@@ -509,7 +509,7 @@ function array_search(needle, aHaystack, bStrict, bDeepSearch, aAncestors,
               aResultVector,
               iLevel + 1,
               i);
-              
+
           if (res != null && res > -1)
           {
             result = aResultVector;
@@ -560,7 +560,7 @@ function array_search(needle, aHaystack, bStrict, bDeepSearch, aAncestors,
   }
 
   return result;
-}
+};
 
 /**
  * @author
@@ -583,8 +583,7 @@ function array_search(needle, aHaystack, bStrict, bDeepSearch, aAncestors,
  *   <code>true</code> if <code>value</code> is an element of
  *   <code>a</code>, <code>false</code> otherwise.
  */
-function inArray(value, a, bExactMatch, bDeepSearch)
-{
+jsx.array.contains = function (value, a, bExactMatch, bDeepSearch) {
   var result = null;
 
   if (bDeepSearch)
@@ -595,16 +594,16 @@ function inArray(value, a, bExactMatch, bDeepSearch)
   {
     result = array_search(value, a, bExactMatch, false) > -1;
   }
-  
+
   return result;
-}
+};
 
 /**
  * Takes input array <code>a</code> or the <code>Array</code> object
  * it is applied to as method and returns a new <code>Array</code>
  * object with all string elements (optionally all elements regardless
  * of their type) either lowercased or uppercased.
- * 
+ *
  * @author
  *   (C) 2004, 2008 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
  * @partof
@@ -627,15 +626,14 @@ function inArray(value, a, bExactMatch, bDeepSearch)
  *   elements' value uppercased or lowercased.  If <code>a</code>
  *   has no elements, an empty array is returned.
  */
-function array_changeCase(a, bUppercase, bConvertNonStrings)
-{
+jsx.array.changeCase = function (a, bUppercase, bConvertNonStrings) {
   if (!isArray(a) && isArray(this))
   {
     bConvertNonStrings = bUppercase;
     bUpperCase = a;
     a = this;
   }
-  
+
   if (isArray(a))
   {
     for (var i = 0; i < a.length; i++)
@@ -652,19 +650,19 @@ function array_changeCase(a, bUppercase, bConvertNonStrings)
         }
       }
     }
-    
+
     return a;
   }
-  
+
   return new Array();
-}
+};
 
 /**
  * Takes input array <code>a</code> or the Array object it is
  * applied to as method and returns a new Array object with all
  * string elements (optionally all elements regardless of their
  * type) lowercased.
- * 
+ *
  * @author
  *   (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
  * @partof
@@ -678,28 +676,27 @@ function array_changeCase(a, bUppercase, bConvertNonStrings)
  *   If <code>false</code> default, changes only the case of
  *   string elements.  If <code>true</code>, converts non-string
  *   elements to String and changes their case.
- * @return type Array
+ * @return Array
  *   A copy of <code>a</code> or the Array object with its
  *   elements' value lowercased.  If <code>a</code> has no
  *   elements, an empty array is returned.
  */
-function array_toLowerCase(a, bConvertNonStrings)
-{
+jsx.array.toLowerCase = function (a, bConvertNonStrings) {
   if (!isArray(a) && isArray(this))
   {
     bConvertNonStrings = a;
     a = this;
   }
 
-  return array_changeCase(a, false, bConvertNonStrings);
-}
+  return jsx.array.changeCase.call(a, a, false, bConvertNonStrings);
+};
 
 /**
  * Takes input array <code>a</code> or the Array object it is
  * applied to as method and returns a new Array object with all
  * string elements (optionally all elements regardless of their
  * type) uppercased.
- * 
+ *
  * @author
  *   (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
  * @partof
@@ -718,37 +715,36 @@ function array_toLowerCase(a, bConvertNonStrings)
  *   elements' value uppercased.  If <code>a</code> has no
  *   elements, an empty array is returned.
  */
-function array_toUpperCase(a, bConvertNonStrings)
-{
+jsx.array.toUpperCase = function (a, bConvertNonStrings) {
   if (!isArray(a) && isArray(this))
   {
     bConvertNonStrings = a;
     a = this;
   }
 
-  return array_changeCase(a, true, bConvertNonStrings);
-}
+  return jsx.array.changeCase.call(a, a, true, bConvertNonStrings);
+};
 
 addProperties(
   {
-    contains:    inArray,
-    chunk:       array_chunk,
-    changeCase:  array_changeCase,
-    countValues: array_countValues,
-    fill:        array_fill,
-    pop:         array_pop,
-    push:        array_push,
-    reverse:     array_reverse,
-    search:      array_search,
-    toUpperCase: array_toUpperCase,
-    
+    contains:    jsx.array.contains,
+    chunk:       jsx.array.chunk,
+    changeCase:  jsx.array.changeCase,
+    countValues: jsx.array.countValues,
+    fill:        jsx.array.fill,
+    pop:         jsx.array.pop,
+    push:        jsx.array.push,
+    reverse:     jsx.array.reverse,
+    search:      jsx.array.search,
+    toUpperCase: jsx.array.toUpperCase,
+
     // JavaScript 1.6 (1.5 in Gecko 1.8b2 and later) emulation
     every: function(callback, thisObject) {
       if (arguments.length < 2)
       {
         thisObject = this;
       }
-      
+
       for (var i = 0, len = thisObject.length; i < len; i++)
       {
         if (!thisObject.callback())
@@ -756,62 +752,60 @@ addProperties(
           return false;
         }
       }
-    
+
       return true;
     },
-    
+
     filter: array_filter,
-       
+
     iterate: function() {
       var a = new Array();
-      
+
       for (var i = 0, len = this.length; i < len; i++)
       {
         a.push(this[i]);
       }
-      
+
       return a;
     }
   },
   Array.prototype);
 
-var splice = (
-  function() {
-    var jsx_object = jsx.object;
-     
-    if (jsx_object.isMethod(jsx.global, "array_splice"))
-    {
-      return array_splice;
-    }
-    else if (typeof Array != "undefined"
-             && jsx_object.isMethod(Array, "prototype", "splice"))
-    {
-      return function(a, start, del, ins) {
-        var proto = Array.prototype;
-        ins = proto.slice.call(arguments, 3);
-        return proto.splice.apply(a, [start, del].concat(ins));
-      };
-    }
-    else
-    {
-      return function(a, start, del, ins) {
-        var aDeleted = new Array();
-        
-        for (var i = start + del, len = a.length; i < len; i++)
-        {
-          aDeleted[aDeleted.length] = a[i - del];
-          a[i - del] = a[i];
-        }
-        
-        a.length = len - del;
-        
-        for (i = 3, len = arguments.length; i < len; i++)
-        {
-          a[a.length] = arguments[i];
-        }
-        
-        return aDeleted;
-      };
-    }
+jsx.array.splice = (function() {
+  var jsx_object = jsx.object;
+
+  if (jsx_object.isMethod(jsx.global, "array_splice"))
+  {
+    return array_splice;
   }
-());
+  else if (typeof Array != "undefined"
+           && jsx_object.isMethod(Array, "prototype", "splice"))
+  {
+    return function(a, start, del, ins) {
+      var proto = Array.prototype;
+      ins = proto.slice.call(arguments, 3);
+      return proto.splice.apply(a, [start, del].concat(ins));
+    };
+  }
+  else
+  {
+    return function(a, start, del, ins) {
+      var aDeleted = new Array();
+
+      for (var i = start + del, len = a.length; i < len; i++)
+      {
+        aDeleted[aDeleted.length] = a[i - del];
+        a[i - del] = a[i];
+      }
+
+      a.length = len - del;
+
+      for (i = 3, len = arguments.length; i < len; i++)
+      {
+        a[a.length] = arguments[i];
+      }
+
+      return aDeleted;
+    };
+  }
+}());

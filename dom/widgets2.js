@@ -111,23 +111,47 @@ jsx.dom.Widget.prototype = {
     left: 4
   },
   
+  /**
+   * Causes the widget to be rendered, and attached to the document tree
+   * if not already attached.
+   * 
+   * @param parent
+   *   Reference to the object representing the parent element to which
+   *   the widget should be appended as child.  The default is document.body.
+   */
   render: function(parent) {
     this.appendTo(parent);
     this.target.style.display = "";
   },
   
+  /**
+   * Causes the widget not to be rendered, without removing it from
+   * the document tree.
+   */
   unrender: function() {
     this.target.style.display = "none";
   },
   
+  /**
+   * Shows the widget
+   */
   show: function() {
     target.style.display.visibility = "visible";
   },
 
+  /**
+   * Hides the widget, but keeps its box
+   */
   hide: function() {
     this.target.style.display.visibility = "hidden";
   },
   
+  /**
+   * Appends the widget as a child element
+   * 
+   * @param parent
+   * @returns
+   */
   appendTo: function(parent) {
     var result = null;
     
@@ -292,8 +316,8 @@ jsx.dom.liveedit.LiveEdit = function(target, parent) {
 jsx.dom.liveedit.LiveEdit.extend();
 
 /**
-* Shows the toolbox of this editor
-*/
+ * Shows the toolbox of this editor
+ */
 jsx.dom.liveedit.LiveEdit.prototype.showToolbox = function() {
   this._toolbox.render();
 };
