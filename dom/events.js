@@ -456,7 +456,7 @@ jsx.dom.createEventListener = function(f) {
       return function() {};
     })();
 
-    return f.call(e2.target, e2);
+    return f.call(this, e2);
   }
   
   /* Strict W3C DOM Level 2 Events compatibility */
