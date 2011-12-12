@@ -1,3 +1,4 @@
+"use strict";
 /**
  * <title>PointedEars' XPath Library</title>
  * @file $Id$
@@ -99,8 +100,8 @@ jsx.xpath = {
     (function () {
       var jsx_object = jsx.object;
       
-      return function(expression, contextNode, namespaceResolver, resultType,
-                        oResult) {
+      return function (expression, contextNode, namespaceResolver,
+                         resultType, oResult) {
         var result;
                      
         if (!contextNode)
@@ -124,7 +125,7 @@ jsx.xpath = {
         }
         else if (jsx_object.isMethod(contextNode, "selectNodes"))
         {
-          result = contextNode.selectNodes(expression.replace(/_\w+:/g, ""));
+          result = contextNode.selectNodes(expression.replace(/_\w*:/g, ""));
           resultType = XPathResult.ORDERED_NODE_ITERATOR_TYPE;
         }
             
@@ -156,6 +157,7 @@ jsx.xpath = {
               if (jsx_object.isMethod(result, "iterateNext"))
               {
                 /* DOM Level 3 XPath: NodeIterator */
+                var res;
                 while ((res = result.iterateNext()))
                 {
                   found.push(res);
@@ -225,7 +227,7 @@ jsx.xpath = {
    *   method.  If not specified, <code>document</code> is used.
    * @return NSResolver|null
    */
-  createDefaultNSResolver: function(contextNode, documentNode) {
+  createDefaultNSResolver: function (contextNode, documentNode) {
     if (!documentNode)
     {
       documentNode = document;
@@ -240,31 +242,191 @@ jsx.xpath = {
   },
   
   /**
-   * Creates and returns a custom namespace resolver.  This method exists primarily
-   * to facilitate the matching of elements that are in the default namespace,
-   * XPath defines QNames without prefix to match only elements in the null
-   * namespace.  See also the description of the <var>expression</var> argument
-   * of {@link jsx.xpath#evaluate} for details.
+   * Collects and returns the namespaces of a node and its descendants.
+   * 
+   * Collects the namespace prefixes and URIs of <var>contextNode</var> and
+   * its descendant element nodes.  Duplicate prefixes with different namespace
+   * URI are ignored and must be resolved manually using the <var>namespaces</var>
+   * argument of {@link jsx.xpath#createCustomNSResolver}.
    * 
    * @param namespaces : Object
-   *   Namespace declarations.  The property names are the namespace prefixes,
-   *   the property values are the namespace URIs.
+   *   Contains the collected namespace specifications.  Existing properties
+   *   are preserved.
+   * @param contextNode : Document|Element
+   *   The parent node from where to start searching for namespace specifications.
+   *   If it is a Document node, the document element node is used instead.
+   *   The default is the document element node.
+   * @return Object
+   *   The resulting value of <var>namespaces</var> if successful,
+   *   <code>null</code> otherwise.
+   * @throws jsx.xpath#InvalidNodeError if a value has been specified
+   *   for <var>contextNode</var> that is not a reference to a Document
+   *   node or an Element node.
+   */
+  collectNamespaces: function jsx_xpath_collectNamespaces (namespaces, contextNode) {
+    if (!namespaces)
+    {
+      jsx.warn("`namespaces' is not convertible to an Object; argument is not modified.");
+      namespaces = {};
+    }
+
+    /* Scan entire document by default */
+    if (!contextNode)
+    {
+      contextNode = document.documentElement;
+    }
+      
+    /* if DOCUMENT_NODE, use root element */
+    if (contextNode.nodeType == 9)
+    {
+      contextNode = contextNode.documentElement;
+    }
+    
+    if (!contextNode || contextNode.nodeType != 1)
+    {
+      jsx.throwThis("jsx.xpath.InvalidNodeError", contextNode);
+      return null;
+    }
+    
+    for (var i = 0, attribs = contextNode.attributes, len = attribs && attribs.length;
+         i < len;
+         ++i)
+    {
+      var attr = attribs[i];
+      var nodeName = attr.nodeName;
+      var matches;
+      if ((matches = String(nodeName).match(/^(xmlns($|:(.+)))/)))
+      {
+        var prefix = matches[3];
+        if (!prefix)
+        {
+          prefix = "_";
+        }
+       
+        if (typeof namespaces[prefix] == "undefined")
+        {
+          namespaces[prefix] = attr.nodeValue;
+        }
+      }
+    }
+
+    for (var i = 0, childNodes = contextNode.childNodes, len = childNodes && childNodes.length;
+         i < len;
+         ++i)
+    {
+      var childNode = childNodes[i];
+      
+      /* If ELEMENT_NODE, recurse */
+      if (childNode.nodeType == 1)
+      {
+        jsx.tryThis(
+          function() {
+            jsx_xpath_collectNamespaces(namespaces, childNode);
+          },
+          function (e) {
+            if (e.name === "jsx.xpath.InvalidArgumentError")
+            {
+              jsx.throwThis(e);
+            }
+          });
+      }
+    }
+    
+    return namespaces;
+  },
+  
+  /**
+   * Creates and returns a custom namespace resolver.
+   * 
+   * This method* exists primarily to facilitate the matching of elements
+   * that are in the default namespace as XPath defines <tt>QNames</tt>
+   * without prefix to match only elements in the null namespace.  Use it
+   * instead of {@link jsx.xpath#createFullNSResolver} if you only want
+   * to match elements in custom default namespaces.
+   * 
+   * See also the description of the <var>expression</var> argument of
+   * {@link jsx.xpath#evaluate} for details.
+   * 
+   * @param namespaces : Object
+   *   Namespace declarations.  The property names are the namespace
+   *   prefixes, the property values are the namespace URIs.
    * @returns {Function} A namespace resolver that can resolve the
    *   declared namespaces.  A selector in an undeclared namespace is
-   *   considered to be in the no namespace.
+   *   considered to be in the null namespace.
    */
-  createCustomNSResolver: function(namespaces) {
-    return function(prefix) {
+  createCustomNSResolver: function (namespaces) {
+    return function (prefix) {
       return namespaces[prefix] || null;
     };
   },
+  
+  /**
+   * Creates and returns a customizable full namespace resolver.
+   * 
+   * Creates and returns a customizable namespace resolver that
+   * considers the already namespaces specified in the document first.
+   * 
+   * Like {@link jsx.xpath#createCustomNSResolver}, this method exists
+   * to facilitate the matching of elements that are in the default namespace
+   * as XPath defines <tt>QNames</tt> without prefix to match only elements
+   * in the null namespace.  Use it instead of
+   * {@link jsx.xpath#createCustomNSResolver} if you need to match elements
+   * in the context node's default namespace or in one of the named namespaces
+   * specified by the context node or its descendants.
+   * 
+   * See also the description of the <var>expression</var> argument of
+   * {@link jsx.xpath#evaluate} for details.
+   * 
+   * @param namespaces : Object
+   *   Namespace declarations.  The property names are the namespace
+   *   prefixes, the property values are the namespace URIs.
+   * @param contextNode : Document|Element
+   *   The parent node from where to start searching for namespace specifications.
+   *   If it is a Document node, the document element node is used instead.
+   *   The default is the document element node.
+   * @returns {Function} A namespace resolver that can resolve the
+   *   declared namespaces.  A selector in an undeclared namespace is
+   *   considered to be in the null namespace.
+   * @throws jsx.xpath#InvalidNodeError if a value has been specified
+   *   for <var>contextNode</var> that is not a reference to a Document
+   *   node or an Element node.
+   * @see jsx.xpath#collectNamespaces(string, Element|Document)
+   */
+  createFullNSResolver: (function () {
+    return function (namespaces, contextNode) {
+      if (contextNode)
+      {
+        if (!namespaces)
+        {
+          namespaces = {};
+        }
+               
+        jsx.xpath.collectNamespaces(namespaces, contextNode);
+      }
+      
+      return function (prefix) {
+        return namespaces[prefix] || null;
+      };
+    };
+  }()),
   
   /**
    * Exception thrown if an unsupported XPath implementation is encountered
    * 
    * @function
    */
-  InvalidImplementationError: (function() {}).extend(jsx.Error, {
+  InvalidImplementationError: (function () {}).extend(jsx.Error, {
     name: "jsx.xpath.InvalidImplementationError"
+  }),
+  
+  /**
+   * Exception thrown if an invalid Node reference is passed
+   * 
+   * @function
+   */
+  InvalidNodeError: (function (contextNode) {
+    arguments.callee._super.call(this, contextNode);
+  }).extend(jsx.Error, {
+    name: "jsx.xpath.InvalidNodeError"
   })
 };

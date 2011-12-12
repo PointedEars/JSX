@@ -6,7 +6,7 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2002-2010 Thomas Lahn <dhtml.js@PointedEars.de>
+ *   (C) 2002-2011 Thomas Lahn <js@PointedEars.de>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  * 
@@ -38,6 +38,14 @@ if (typeof jsx.dom == "undefined")
    * @namespace
    */
   jsx.dom = {};
+}
+
+if (typeof jsx.dom.timeout == "undefined")
+{
+  /**
+   * @namespace
+   */
+  jsx.dom.timeout = {};
 }
 
 /**
@@ -142,7 +150,7 @@ jsx.dom.timeout.TimeoutList.prototype.unsetAll = function() {
  * @param iTimeout : number
  *   Number of milliseconds after which <var>code</var> should be run.
  */
-jsx.dom.runLater = function (code, iTimeout) {
+jsx.dom.timeout.runAsync = function (code, iTimeout) {
   (new jsx.dom.timeout.Timeout(code, iTimeout)).run();
   
   return Number.NaN;
