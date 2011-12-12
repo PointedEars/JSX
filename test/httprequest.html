@@ -12,21 +12,21 @@
     <script type="text/javascript">
       function makeRequest(s)
       {
-        var req = new jsx.net.http.Request("http://localhost/scripts/tmp/jQuery/test.xml");
+        var req = new jsx.net.http.Request("http://localhost/scripts/test/test.xml");
         if (req)
         {
           req.setSuccessListener(
             function (x) {
               var doc = x.responseXML;
               //window.alert(doc.selectNodes("//res:OUTPUT//res:UNDO_COUNT/text()").tagName);
-              var nodes = jsx.xpath.evaluate("//_:baz", doc,
-                jsx.xpath.createCustomNSResolver({
-                  _: "bar",
-                  res: "http://www.ebasetech.com/LADRA_COPYMOVE_TERM_OP/Response"
-                }, doc));
+              var nodes = jsx.xpath.evaluate("//res:UNDO_COUNT", doc,
+                jsx.xpath.createFullNSResolver({
+                  /*_: "bar"*/
+                }, doc), XPathResult.ORDERED_NODE_ITERATOR_TYPE);
               for (var i = 0, len = nodes.length; i < len; ++i)
               {
-                window.alert(nodes[i].tagName);
+                var node = nodes[i];
+                window.alert(node.textContent || node.firstChild && node.firstChild.nodeValue || null);
               }
               // window.alert(
               //   format(

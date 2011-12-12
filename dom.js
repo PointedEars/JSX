@@ -1493,3 +1493,21 @@ if (typeof jsx.types != "undefined"
 {
   HTMLElement.prototype.getElementsByTabIndex = jsx.dom.getElementsByTabIndex;
 }
+
+jsx.dom.isDescendantOfOrSelf = function(node, ancestor) {
+  if (arguments.length < 2)
+  {
+    jsx.throwThis(null, "No ancestor provided");
+  }
+
+  do
+  {
+    if (node == ancestor)
+    {
+      return true;
+    }
+  }
+  while ((node = node.parentNode));
+
+  return false;
+};
