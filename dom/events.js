@@ -86,7 +86,7 @@ jsx.dom.addEventListener = function(oNode, sEvent, fListener) {
     result = null,
     sHandler = "on" + sEvent;
 
-  if (oNode && sEvent && jsx_object.isMethod(fListener))
+  if (oNode && sEvent && jsx_object.isNativeMethod(fListener))
   {
     if (jsx_object.isMethod(oNode, "addEventListener"))
     {

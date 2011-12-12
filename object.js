@@ -144,10 +144,13 @@ jsx.MSG_DEBUG = "debug";
  *   <code>false</code> otherwise.
  * @see jsx.object#isMethodType()
  */
-jsx.object.isMethod = jsx.object.areMethods = (function() {
+jsx.object.isMethod = jsx.object.areMethods =
+jsx.object.isHostMethod = jsx.object.areHostMethods = (function() {
   var
     rxUnknown = /^\s*unknown\s*$/i,
-    rxMethod = /^\s*(function|object)\s*$/i;
+    rxNativeMethod = /^\s*function\s*$/i,
+    rxMethod = /^\s*(function|object)\s*$/i,
+    areNativeMethods = null;
   
   return function(obj, prop) {
     var len = arguments.length;
@@ -158,11 +161,24 @@ jsx.object.isMethod = jsx.object.areMethods = (function() {
       return false;
     }
   
+    /*
+     * Determine if we were apply'd by jsx.object.areNativeMethods;
+     * NOTE: cache reference
+     */
+    var checkNative =
+      (this == (areNativeMethods
+                 || (areNativeMethods = jsx.object.areNativeMethods)));
+    
     var t = typeof obj;
   
     /* When no property names are provided, test if the first argument is a method */
     if (len < 2)
     {
+      if (checkNative)
+      {
+        return rxNativeMethod.test(t) && obj && true || false;
+      }
+
       return rxUnknown.test(t) || rxMethod.test(t) && obj && true || false;
     }
     
@@ -216,6 +232,10 @@ jsx.object.isMethod = jsx.object.areMethods = (function() {
               return false;
             }
           }
+          else if (checkNative && !rxNativeMethod.test(t))
+          {
+            return false;
+          }
         }
         else
         {
@@ -225,6 +245,50 @@ jsx.object.isMethod = jsx.object.areMethods = (function() {
     }
     
     return true;
+  };
+}());
+
+/**
+ * Determines whether an object is, or several objects are,
+ * likely to be a native method.
+ * 
+ * @author (C) 2011  <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
+ * @function
+ * @param obj : Object which should be tested for a method, or checked
+ *   for being a method if no further arguments are provided.
+ *   <p>
+ *   <em>NOTE: If you pass a primitive value for this argument,
+ *   the properties of the object created from that value are considered.
+ *   In particular, if you pass a string value containing
+ *   a <i>MemberExpression</i>, the properties of the corresponding
+ *   <code>String</code> instance are considered, not of the object that
+ *   the <i>MemberExpression</i> might refer to.  If you need to use such
+ *   a string to refer to an object (e.g., if you do not know whether it
+ *   is safe to refer to the object), use the return value of
+ *   {@link jsx#tryThis jsx.tryThis("<var>MemberExpression</var>")}
+ *   as argument to this method instead.</em>
+ *   </p>
+ * @param prop : optional string|Array
+ *   Path of the property to be determined a method, i.e. a reference to
+ *   a callable object assigned as property of another object.
+ *   Use a string argument for each component of the path, e.g.
+ *   the argument list <code>(o, "foo", "bar")</code> for testing whether
+ *   <code>o.foo.bar</code> is a method.
+ *   If the last argument is an {@link Array}, all elements of
+ *   this array are used for property names; e.g.
+ *   <code>(o, "foo", ["bar", "baz"])</code>.  This allows for testing
+ *   several properties of the same object with one call.
+ * @return boolean
+ *   <code>true</code> if all arguments refer to methods,
+ *   <code>false</code> otherwise.
+ * @see jsx.object#isMethodType()
+ */
+jsx.object.isNativeMethod = jsx.object.areNativeMethods = (function() {
+  var areMethods = jsx.object.areMethods;
+  
+  return function(obj, prop) {
+    /* NOTE: Thread-safe, argument-safe code reuse -- `this' is our ID */
+    return areMethods.apply(arguments.callee, arguments);
   };
 }());
 

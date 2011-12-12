@@ -623,8 +623,8 @@ jsx.dom.css.showByClassName = (function() {
  * Returns the computed style of an element or
  * the computed value of a style property of an element.
  * 
- * @param o : HTMLElement
- * @param p : string
+ * @param obj : Element
+ * @param cssProperty : string
  * @return CSSStyleDeclaration|string
  *   The return value depends on both the passed arguments
  *   and the capabilities of the user agent:
@@ -632,45 +632,51 @@ jsx.dom.css.showByClassName = (function() {
  *   If the UA supports either ViewCSS::getComputedStyle()
  *   from W3C DOM Level 2 CSS or MSHTML's currentStyle
  *   property, then
- *     a) if p was passed, the value of the style property
- *        with name p is returned; it is a string if the
- *        property is supported;
- *     b) if p was not passed, the corresponding style object
- *        is returned
+ *     a) if <var>cssProperty</var> was passed, the value of the
+ *        CSS property with name <var>cssProperty</vr> is returned;
+ *        it is a string if the property is supported;
+ *     b) if <var>cssProperty</var> was not passed, the corresponding
+ *        style object is returned
  * 
  *   If the UA supports neither of the above, `undefined' is
  *   returned.
  * @type string|CSSStyleDeclaration|currentStyle
  */
-jsx.dom.css.getComputedStyle = function(o, p) {
-  var isMethod = jsx.object.isMethod;
+jsx.dom.css.getComputedStyle = (function() {
+  var _isMethod = jsx.object.isMethod,
+  _defaultView;
   
-  var s;
-  if (isMethod(document, "defaultView", "getComputedStyle")
-      && (s = document.defaultView.getComputedStyle(o, null)))
-  {
-    if (p && isMethod(s, "getPropertyValue"))
+  return function(obj, cssProperty) {
+    var computedStyle;
+    
+    if (_isMethod(document, "defaultView", "getComputedStyle")
+        && (typeof _defaultView != "undefined" || (_defaultView = document.defaultView))
+        && (computedStyle = _defaultView.getComputedStyle(obj, null)))
     {
-      return s.getPropertyValue(p);
+      if (cssProperty)
+      {
+        if (_isMethod(computedStyle, "getPropertyValue"))
+        {
+          return computedStyle.getPropertyValue(cssProperty);
+        }
+        
+        return jsx.throwThis(null, "Unable to retrieve computed style property");
+      }
     }
-
-    return s;
-  }
-  else if (typeof (s = o.currentStyle) != "undefined")
-  {
-    if (p)
+    else if (typeof (computedStyle = obj.currentStyle) != "undefined")
     {
-      return s[p];
+      if (cssProperty)
+      {
+        return computedStyle[cssProperty];
+      }
     }
-
-    return s;
-  }
-
-  return s;
-};
+  
+    return computedStyle;
+  };
+}());
 
 jsx.dom.css.isHidden = (function() {
-  var getComputedStyle = jsx.dom.css.getComputedStyle;
+  var _getComputedStyle = jsx.dom.css.getComputedStyle;
   
   return function(o) {
     while (o)
@@ -678,7 +684,7 @@ jsx.dom.css.isHidden = (function() {
       if (typeof o.style == "undefined"
           || typeof o.style.visibility != "undefined"
           && /hidden/i.test(o.style.visibility)
-          || /hidden/i.test(getComputedStyle(o, "visibility")))
+          || /hidden/i.test(_getComputedStyle(o, "visibility")))
       {
         return true;
       }
