@@ -16,6 +16,10 @@
       .num:focus {
         border: 1px solid white;
       }
+      
+      input {
+        width: 215px;
+      }
       -->
     </style>
     
