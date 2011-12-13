@@ -86,7 +86,8 @@ jsx.xpath = {
    *   Namespace resolver.  If not provided, a default namespace
    *   resolver will be created using {@link jsx.xpath#createDefaultNSResolver}.
    *   Is ignored if MSXML is used, as MSXML for JScript supports only
-   *   the default namespace resolver.
+   *   the default namespace resolver.  See the section
+   *   {@ref "Namespace Resolvers"} for details.
    * @param resultType : Number
    *   Expected XPath result type.  Should be one of the XPathResult.* constants.
    *   Is ignored if MSXML is used, as MSXML only supports the equivalent of
@@ -98,8 +99,9 @@ jsx.xpath = {
    */
   evaluate:
     (function () {
-      var jsx_object = jsx.object;
+      var isMethod = jsx.object.isMethod;
       var _XPathResult = XPathResult;
+      var createDefaultNSResolver = null;
       
       return function (expression, contextNode, namespaceResolver,
                          resultType, oResult) {
@@ -115,16 +117,19 @@ jsx.xpath = {
           documentNode = contextNode.ownerDocument || contextNode;
         }
 
-        if (jsx_object.isMethod(documentNode, "evaluate"))
+        if (isMethod(documentNode, "evaluate"))
         {
           var nsResolver = namespaceResolver
-            || this.createDefaultNSResolver(contextNode, documentNode);
+            || (
+                 createDefaultNSResolver
+                 || (createDefaultNSResolver = jsx.xpath.createDefaultNSResolver)
+               )(contextNode, documentNode);
           var iResultType = resultType || 0;
           var objResult = oResult || null;
           result = documentNode.evaluate(expression, contextNode, nsResolver,
             iResultType, objResult);
         }
-        else if (jsx_object.isMethod(contextNode, "selectNodes"))
+        else if (isMethod(contextNode, "selectNodes"))
         {
           result = contextNode.selectNodes(expression.replace(/_\w*:/g, ""));
           resultType = _XPathResult.ORDERED_NODE_ITERATOR_TYPE;
@@ -139,23 +144,29 @@ jsx.xpath = {
                    : resultType)
           {
             case _XPathResult.NUMBER_TYPE:
-              result = typeof result.numberValue != "undefined"
-                       && result.numberValue;
+              if (typeof result.numberValue != "undefined")
+              {
+                result = result.numberValue;
+              }
               break;
               
             case _XPathResult.STRING_TYPE:
-              result = typeof result.stringValue != "undefined"
-                       && result.stringValue;
+              if (typeof result.stringValue != "undefined")
+              {
+                result = result.stringValue;
+              }
               break;
               
             case _XPathResult.BOOLEAN_TYPE:
-              result = typeof result.booleanValue != "undefined"
-                       && result.booleanValue;
+              if (typeof result.booleanValue != "undefined")
+              {
+                result = result.booleanValue;
+              }
               break;
               
             case _XPathResult.UNORDERED_NODE_ITERATOR_TYPE:
             case _XPathResult.ORDERED_NODE_ITERATOR_TYPE:
-              if (jsx_object.isMethod(result, "iterateNext"))
+              if (isMethod(result, "iterateNext"))
               {
                 /* DOM Level 3 XPath: NodeIterator */
                 var res;
@@ -181,7 +192,7 @@ jsx.xpath = {
             case _XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE:
             case _XPathResult.ORDERED_NODE_SNAPSHOT_TYPE:
               if (typeof result.snapshotLength != "undefined"
-                  && jsx_object.isMethod(result, "snapshotItem"))
+                  && isMethod(result, "snapshotItem"))
               {
                 for (var i = 0, len = result.snapshotLength; i < len; i++)
                 {
@@ -210,6 +221,39 @@ jsx.xpath = {
       };
     }()),
   
+/**
+ * @section Namespace Resolvers
+ * 
+ * To facilitate matching of elements and attributes in namespaces
+ * with XPath, a namespace resolver is required.  A namespace resolver
+ * is a function that returns the namespace URI for a given namespace
+ * prefix found in an XPath expression.
+ * 
+ * JSX:xpath.js provides three ways to create a namespace resolver:
+ * <ul>
+ *   <li>{@link jsx.xpath#createDefaultNSResolver} creates a built-in
+ *       namespace resolver (if available) that can resolve elements
+ *       and attributes in the document in the null namespace (in no
+ *       namespace) or in namespaces with prefixes (declared with
+ *       <code>xmlns:<var>prefix</var>="<var>URI</var>"</code>.
+ *       It cannot resolve elements and attributes in a default
+ *       namespace (declared with <code>xmlns="<var>URI</var>"</code>).
+ *   </li>
+ *   <li>{@link jsx.xpath#createCustomNSResolver} creates a custom
+ *       namespace resolver that can resolve only namespace prefixes
+ *       that you specify.  You can use this kind of resolver
+ *       to select elements and attributes in known default namespaces,
+ *       by giving those prefixes starting with <code>_</code>, and
+ *       namespaces with other prefixes.</li>
+ *   <li>{@link jsx.xpath#createFullNSResolver} gives you the
+ *       best of both worlds. It creates a customizable namespace
+ *       resolver that scans the document starting from a given context
+ *       node (the document element node by default) for the first
+ *       default namespace declaracation and for declarations of
+ *       namespaces with a prefix.
+ * </ul>
+ */
+    
   /**
    * Creates and returns a default namespace resolver, as created and
    * returned by <code>Document::createNSResolver()</code>, if available,
@@ -251,12 +295,12 @@ jsx.xpath = {
    * argument of {@link jsx.xpath#createFullNSResolver()}.
    * 
    * @param namespaces : Object
-   *   Contains the collected namespace specifications.  Existing properties
+   *   Contains the collected namespace declarations.  Existing properties
    *   are preserved.
    * @param contextNode : Document|Element
-   *   The parent node from where to start searching for namespace specifications.
-   *   If it is a Document node, the document element node is used instead.
-   *   The default is the document element node.
+   *   The parent node from where to start searching for namespace
+   *   declarations.  If it is a Document node, the document element node
+   *   is used instead.  The default is the document element node.
    * @return {Object}
    *   The resulting value of <var>namespaces</var> if successful,
    *   <code>null</code> otherwise.
@@ -297,17 +341,26 @@ jsx.xpath = {
       var attr = attribs[i];
       var attrName = attr.name;
       var matches;
+      
       if ((matches = String(attrName).match(/^xmlns($|:(.+))/)))
       {
-        var prefix = matches[2];
-        if (!prefix)
-        {
-          prefix = "_";
-        }
+        var originalPrefix = matches[2];
+        var prefix = originalPrefix || "_";
        
         if (typeof namespaces[prefix] == "undefined")
         {
-          namespaces[prefix] = attr.value;
+          var attrValue = attr.value;
+          
+          /*
+           * Default NS declaration with empty value means _no_ namespace,
+           * see <http://www.w3.org/TR/REC-xml-names/#defaulting>
+           */
+          if (!originalPrefix && attrValue == "")
+          {
+            attrValue = null;
+          }
+          
+          namespaces[prefix] = attrValue;
         }
       }
     }
@@ -366,15 +419,14 @@ jsx.xpath = {
    * Creates and returns a customizable full namespace resolver.
    * 
    * Creates and returns a customizable namespace resolver that
-   * considers the namespaces already specified in the document first.
+   * considers the namespaces already declared in the document first.
    * 
    * Like {@link jsx.xpath#createCustomNSResolver}, this method exists
-   * to facilitate the matching of elements that are in the default
-   * namespace as XPath defines <tt>QNames</tt> without prefix to match
-   * only elements in the null namespace.  Use it instead of
+   * primarily to facilitate the matching of elements that are in a
+   * default namespace.  Use it instead of
    * {@link jsx.xpath#createCustomNSResolver} if you need to match elements
-   * in the context node's default namespace, or in one of the named
-   * namespaces specified by the context node or its descendants.
+   * in the context node's default namespace, or in one of the namespaces
+   * with prefix declared in the context node or its descendant elements.
    * 
    * See also the description of the <var>expression</var> argument of
    * {@link jsx.xpath#evaluate} for details.
@@ -383,9 +435,9 @@ jsx.xpath = {
    *   Namespace declarations.  The property names are the namespace
    *   prefixes, the property values are the namespace URIs.
    * @param contextNode : Document|Element
-   *   The parent node from where to start searching for namespace specifications.
-   *   If it is a Document node, the document element node is used instead.
-   *   The default is the document element node.
+   *   The parent node from where to start searching for namespace
+   *   declarations.  If it is a Document node, the document element node
+   *   is used instead.  The default is the document element node.
    * @return {Function} A namespace resolver that can resolve the
    *   declared namespaces.  A selector in an undeclared namespace is
    *   considered to be in the null namespace.
