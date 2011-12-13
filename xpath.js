@@ -93,16 +93,17 @@ jsx.xpath = {
    *   {@link XPathResult#ORDERED_NODE_ITERATOR_TYPE}.
    * @param oResult : XPathResult
    *   Optional XPathResult.  For backwards compatibility only.
-   * @return Result of the XPath expression
-   * @type number|string|boolean|Array
+   * @return Result of the XPath expression, or <code>null</code> on error
+   * @type Null|number|string|boolean|Array
    */
   evaluate:
     (function () {
       var jsx_object = jsx.object;
+      var _XPathResult = XPathResult;
       
       return function (expression, contextNode, namespaceResolver,
                          resultType, oResult) {
-        var result;
+        var result = null;
                      
         if (!contextNode)
         {
@@ -126,7 +127,7 @@ jsx.xpath = {
         else if (jsx_object.isMethod(contextNode, "selectNodes"))
         {
           result = contextNode.selectNodes(expression.replace(/_\w*:/g, ""));
-          resultType = XPathResult.ORDERED_NODE_ITERATOR_TYPE;
+          resultType = _XPathResult.ORDERED_NODE_ITERATOR_TYPE;
         }
             
         if (result)
@@ -137,23 +138,23 @@ jsx.xpath = {
                    ? result.resultType
                    : resultType)
           {
-            case XPathResult.NUMBER_TYPE:
+            case _XPathResult.NUMBER_TYPE:
               result = typeof result.numberValue != "undefined"
                        && result.numberValue;
               break;
               
-            case XPathResult.STRING_TYPE:
+            case _XPathResult.STRING_TYPE:
               result = typeof result.stringValue != "undefined"
                        && result.stringValue;
               break;
               
-            case XPathResult.BOOLEAN_TYPE:
+            case _XPathResult.BOOLEAN_TYPE:
               result = typeof result.booleanValue != "undefined"
                        && result.booleanValue;
               break;
               
-            case XPathResult.UNORDERED_NODE_ITERATOR_TYPE:
-            case XPathResult.ORDERED_NODE_ITERATOR_TYPE:
+            case _XPathResult.UNORDERED_NODE_ITERATOR_TYPE:
+            case _XPathResult.ORDERED_NODE_ITERATOR_TYPE:
               if (jsx_object.isMethod(result, "iterateNext"))
               {
                 /* DOM Level 3 XPath: NodeIterator */
@@ -177,8 +178,8 @@ jsx.xpath = {
               }
               break;
               
-            case XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE:
-            case XPathResult.ORDERED_NODE_SNAPSHOT_TYPE:
+            case _XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE:
+            case _XPathResult.ORDERED_NODE_SNAPSHOT_TYPE:
               if (typeof result.snapshotLength != "undefined"
                   && jsx_object.isMethod(result, "snapshotItem"))
               {
@@ -191,8 +192,8 @@ jsx.xpath = {
               }
               break;
               
-            case XPathResult.ANY_UNORDERED_NODE_TYPE:
-            case XPathResult.FIRST_ORDERED_NODE_TYPE:
+            case _XPathResult.ANY_UNORDERED_NODE_TYPE:
+            case _XPathResult.FIRST_ORDERED_NODE_TYPE:
               if (typeof result.singleNodeValue != "undefined")
               {
                 result = result.singleNodeValue;
@@ -247,7 +248,7 @@ jsx.xpath = {
    * Collects the namespace prefixes and URIs of <var>contextNode</var> and
    * its descendant element nodes.  Duplicate prefixes with different namespace
    * URI are ignored and must be resolved manually using the <var>namespaces</var>
-   * argument of {@link jsx.xpath#createCustomNSResolver}.
+   * argument of {@link jsx.xpath#createFullNSResolver()}.
    * 
    * @param namespaces : Object
    *   Contains the collected namespace specifications.  Existing properties
@@ -256,12 +257,13 @@ jsx.xpath = {
    *   The parent node from where to start searching for namespace specifications.
    *   If it is a Document node, the document element node is used instead.
    *   The default is the document element node.
-   * @return Object
+   * @return {Object}
    *   The resulting value of <var>namespaces</var> if successful,
    *   <code>null</code> otherwise.
-   * @throws jsx.xpath#InvalidNodeError if a value has been specified
+   * @throws jsx.xpath.InvalidNodeError if a value has been specified
    *   for <var>contextNode</var> that is not a reference to a Document
    *   node or an Element node.
+   * @see jsx.xpath#createFullNSResolver()
    */
   collectNamespaces: function jsx_xpath_collectNamespaces (namespaces, contextNode) {
     if (!namespaces)
@@ -293,11 +295,11 @@ jsx.xpath = {
          ++i)
     {
       var attr = attribs[i];
-      var nodeName = attr.nodeName;
+      var attrName = attr.name;
       var matches;
-      if ((matches = String(nodeName).match(/^(xmlns($|:(.+)))/)))
+      if ((matches = String(attrName).match(/^xmlns($|:(.+))/)))
       {
-        var prefix = matches[3];
+        var prefix = matches[2];
         if (!prefix)
         {
           prefix = "_";
@@ -305,7 +307,7 @@ jsx.xpath = {
        
         if (typeof namespaces[prefix] == "undefined")
         {
-          namespaces[prefix] = attr.nodeValue;
+          namespaces[prefix] = attr.value;
         }
       }
     }
@@ -338,7 +340,7 @@ jsx.xpath = {
   /**
    * Creates and returns a custom namespace resolver.
    * 
-   * This method* exists primarily to facilitate the matching of elements
+   * This method exists primarily to facilitate the matching of elements
    * that are in the default namespace as XPath defines <tt>QNames</tt>
    * without prefix to match only elements in the null namespace.  Use it
    * instead of {@link jsx.xpath#createFullNSResolver} if you only want
@@ -350,7 +352,7 @@ jsx.xpath = {
    * @param namespaces : Object
    *   Namespace declarations.  The property names are the namespace
    *   prefixes, the property values are the namespace URIs.
-   * @returns {Function} A namespace resolver that can resolve the
+   * @return {Function} A namespace resolver that can resolve the
    *   declared namespaces.  A selector in an undeclared namespace is
    *   considered to be in the null namespace.
    */
@@ -364,15 +366,15 @@ jsx.xpath = {
    * Creates and returns a customizable full namespace resolver.
    * 
    * Creates and returns a customizable namespace resolver that
-   * considers the already namespaces specified in the document first.
+   * considers the namespaces already specified in the document first.
    * 
    * Like {@link jsx.xpath#createCustomNSResolver}, this method exists
-   * to facilitate the matching of elements that are in the default namespace
-   * as XPath defines <tt>QNames</tt> without prefix to match only elements
-   * in the null namespace.  Use it instead of
+   * to facilitate the matching of elements that are in the default
+   * namespace as XPath defines <tt>QNames</tt> without prefix to match
+   * only elements in the null namespace.  Use it instead of
    * {@link jsx.xpath#createCustomNSResolver} if you need to match elements
-   * in the context node's default namespace or in one of the named namespaces
-   * specified by the context node or its descendants.
+   * in the context node's default namespace, or in one of the named
+   * namespaces specified by the context node or its descendants.
    * 
    * See also the description of the <var>expression</var> argument of
    * {@link jsx.xpath#evaluate} for details.
@@ -384,15 +386,18 @@ jsx.xpath = {
    *   The parent node from where to start searching for namespace specifications.
    *   If it is a Document node, the document element node is used instead.
    *   The default is the document element node.
-   * @returns {Function} A namespace resolver that can resolve the
+   * @return {Function} A namespace resolver that can resolve the
    *   declared namespaces.  A selector in an undeclared namespace is
    *   considered to be in the null namespace.
    * @throws jsx.xpath#InvalidNodeError if a value has been specified
    *   for <var>contextNode</var> that is not a reference to a Document
    *   node or an Element node.
    * @see jsx.xpath#collectNamespaces(string, Element|Document)
+   * @function
    */
   createFullNSResolver: (function () {
+    var collectNamespaces = null;
+    
     return function (namespaces, contextNode) {
       if (contextNode)
       {
@@ -401,7 +406,9 @@ jsx.xpath = {
           namespaces = {};
         }
                
-        jsx.xpath.collectNamespaces(namespaces, contextNode);
+        (
+          collectNamespaces || (collectNamespaces = jsx.xpath.collectNamespaces)
+        )(namespaces, contextNode);
       }
       
       return function (prefix) {

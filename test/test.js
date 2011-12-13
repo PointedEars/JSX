@@ -243,18 +243,18 @@ jsx.test.runner = {
    * @function
    */
   run: (function() {
-    var isMethod = jsx.object.isMethod;
+    var isNativeMethod = jsx.object.isNativeMethod;
     
     return function(spec) {
       if (spec)
       {
-        var hasSetUp = isMethod(spec, 'setUp');
+        var hasSetUp = isNativeMethod(spec, 'setUp');
         if (hasSetUp)
         {
           this._setUp = spec.setUp;
         }
         
-        var hasTearDown = isMethod(spec, 'tearDown');
+        var hasTearDown = isNativeMethod(spec, 'tearDown');
         if (hasTearDown)
         {
           this._tearDown = spec.tearDown;
@@ -294,7 +294,7 @@ jsx.test.runner = {
   }()),
   
   setSetUp: function(f) {
-    if (!jsx.object.isMethod(f))
+    if (!jsx.object.isNativeMethod(f))
     {
       jsx.throwThis("jsx.InvalidArgumentError",
         ["", typeof f, "function"], "jsx.test.runner.setSetUp");
@@ -304,7 +304,7 @@ jsx.test.runner = {
   },
   
   setTearDown: function(f) {
-    if (!jsx.object.isMethod(f))
+    if (!jsx.object.isNativeMethod(f))
     {
       jsx.throwThis("jsx.InvalidArgumentError", ["", typeof f, "function"]);
     }
