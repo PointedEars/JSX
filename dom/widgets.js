@@ -226,6 +226,23 @@ jsx.dom.widgets.Widget.extend(null, {
  */
 jsx.dom.widgets.Input = function(oTarget, oParent, oProperties) {
   arguments.callee._super.apply(this, arguments);
+
+  var me = this;
+  jsx.dom.addEventListener(this.target, 'keypress', jsx.dom.createEventListener(
+    function (e) {
+      var charCode =
+        (typeof e.charCode != "undefined")
+          ? e.charCode
+          : (typeof e.keyCode != "undefined" ? e.keyCode : charCode);
+
+      if (! (charCode < 32
+             || me.allowedChars.test(String.fromCharCode(charCode))
+          && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey))
+      {
+        return e.preventDefault();
+      }
+    }
+  ));
 };
 
 jsx.dom.widgets.Input.extend(jsx.dom.widgets.Widget, {
@@ -241,46 +258,18 @@ jsx.dom.widgets.Input.extend(jsx.dom.widgets.Widget, {
 
   elementType: "input",
 
-  init: function() {
-    var me = this;
-    jsx.dom.addEventListener(this.target, 'keypress', function(e) {
-      if (!e)
+  update: (function () {
+    var update = jsx.dom.widgets.Widget.prototype.update;
+
+    return function () {
+      update.call(this);
+
+      if (typeof this.tabIndex != "undefined")
       {
-        e =
-          (typeof window != "undefined" && window
-            && typeof window.event != "undefined" && window.event);
+        this.target.tabIndex = this.tabIndex;
       }
-
-      if (e)
-      {
-        var charCode =
-          (typeof e.charCode != "undefined") ? e.charCode
-            : (typeof e.keyCode != "undefined" ? e.keyCode : charCode);
-
-        if (! (charCode < 32 || me.allowedChars.test(String
-          .fromCharCode(charCode))
-          && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey))
-        {
-          /* W3C DOM Level 2+ Events */
-          if (jsx.object.isMethod(e, "preventDefault"))
-          {
-            e.preventDefault();
-          }
-
-          /* MSHTML DOM */
-          if (typeof e.returnValue != "undefined")
-          {
-            e.returnValue = false;
-          }
-
-          /* other proprietary */
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }
+    };
+  }())
 });
 
 jsx.dom.widgets.Button = function(oTarget, oParent, oProperties) {
@@ -291,36 +280,46 @@ jsx.dom.widgets.Button.extend(jsx.dom.widgets.Input, {
   /**
    * @memberOf jsx.dom.widgets.Button#prototype
    */
+  elementType: "button",
+
   init: function() {
     this.target.type = "button";
   },
 
-  update: function() {
-    this._super.update.call(this);
-    
-    var t = this.target;
-    t.type = "button";
-    t.value = this.text || "";
-    t.onclick = this.onclick;
-  }
+  /*
+   * (non JSdoc)
+   *
+   * @see Widget.prototype#update
+   */
+  update: (function () {
+    var update = jsx.dom.widgets.Input.prototype.update;
+
+    return function () {
+      update.call(this);
+
+      var t = this.target;
+      t.appendChild(document.createTextNode(this.text || ""));
+      t.onclick = this.onclick || null;
+      t.onmouseover = this.onmouseover || null;
+      t.onmousedown = this.onmousedown || null;
+    };
+  }())
 });
 
 /**
  * A <code>NumberInput</code> widget restricts the characters to be
- * typed into it to decimal digits by default.
+ * typed into it to decimal digits and the decimal point (`.') by default.
  *
- * @param oTarget :
- *        Element Reference to the DOM object that represents the
- *        element that provides the client area for the widget. Pass a
- *        false-value to create a new element.
- * @param oParent :
- *        Element Reference to the DOM object that represents the parent
- *        element for this widget. Pass <code>null</code> so that the
- *        widget will not be automatically attached to the document
- *        tree. You can call its {@link #appendTo()} method later to
- *        attach it.
- * @param oProperties :
- *        Object
+ * @param oTarget : Element
+ *   Reference to the DOM object that represents the element that
+ *   provides the client area for the widget. Pass a false-value
+ *   to create a new element.
+ * @param oParent : Element
+ *   Reference to the DOM object that represents the parent element
+ *   for this widget. Pass <code>null</code> so that the widget will
+ *   not be automatically attached to the document tree. You can call
+ *   its {@link #appendTo()} method later to attach it.
+ * @param oProperties : Object
  * @see jsx.dom.widgets#Input
  */
 jsx.dom.widgets.NumberInput = function(oTarget, oParent, oProperties) {
@@ -328,16 +327,22 @@ jsx.dom.widgets.NumberInput = function(oTarget, oParent, oProperties) {
 
   var me = this;
 
-  jsx.dom.addEventListener(oTarget, 'blur', function() {
+  var target = this.target;
+  jsx.dom.addEventListener(target, 'blur', function() {
     me.update();
   });
 
-  jsx.dom.addEventListener(oTarget, 'focus', function() {
+  jsx.dom.addEventListener(target, 'focus', function() {
     if (me.leadingZero)
     {
-      oTarget.value = parseInt(oTarget.value, 10);
+      this.value = parseInt(this.value, 10);
     }
   });
+
+  if (this.oninput == "function")
+  {
+    jsx.dom.addEventListener(target, 'input', this.oninput);
+  }
 };
 
 jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
@@ -345,7 +350,7 @@ jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
    * @memberOf jsx.dom.widgets.NumberInput#prototype
    * @type RegExp
    */
-  allowedChars: /\d/,
+  allowedChars: /[\d.]/,
 
   leadingZero: false,
 
@@ -362,7 +367,11 @@ jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
   init: function() {
     var target = this.target;
 
-    target.type = "number";
+    if (target.type != "number")
+    {
+      jsx.tryThis(function () { target.type = "number"; });
+    }
+
     if (target.type == "number")
     {
       /* HTML5 support */
@@ -374,20 +383,24 @@ jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
    *
    * @see Widget.prototype#update
    */
-  update: function() {
-    this._super.update.call(this);
-    
-    var target = this.target;
+  update: (function () {
+    var update = jsx.dom.widgets.Input.prototype.update;
 
-    if (this.leadingZero && this.maxValue != Infinity)
-    {
-      target.value = leadingZero(target.value, String(this.maxValue).length);
-    }
-    else if (!this.leadingZero && target.value.length > 0)
-    {
-      target.value = String(parseFloat(target.value));
-    }
-  },
+    return function() {
+      update.call(this);
+
+      var target = this.target;
+
+      if (this.leadingZero && this.maxValue != Infinity)
+      {
+        target.value = leadingZero(target.value, String(this.maxValue).length);
+      }
+      else if (!this.leadingZero && target.value.length > 0)
+      {
+        target.value = String(parseFloat(target.value));
+      }
+    };
+  }()),
 
   _setBoundary: function(valueType, value) {
     value = parseFloat(value);
@@ -421,23 +434,30 @@ jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
 });
 
 /**
- * A <code>SpinnerInput</code> is a <code>NumberInput</code> that
- * allows the user to increase or decrease its current value with the
- * arrow keys or the attached arrow buttons ("to spin" it). It is
- * possible to define a minimum or maximum value.
+ * Input widget that allows the user to increase or decrease its
+ * current value
  *
- * @param oTarget :
- *        Element Reference to the DOM object that represents the
- *        element that provides the client area for the widget. Pass a
- *        false-value to create a new element.
- * @param oParent :
- *        Element Reference to the DOM object that represents the parent
- *        element for this widget. Pass <code>null</code> so that the
- *        widget will not be automatically attached to the document
- *        tree. You can call its {@link #appendTo()} method later to
- *        attach it.
- * @param oProperties :
- *        Object
+ * <p>A <code>SpinnerInput</code> is a
+ * {@link jsx.dom.widgets#NumberInput NumberInput}
+ * that allows the user to increase or decrease its current value
+ * with the arrow keys or the attached arrow buttons ("to spin" it).
+ * It is possible to define a minimum or maximum value.</p>
+ *
+ * <p>If buttons are generated by JSX, they are accessible as
+ * {@link jsx.dom.widgets#Button Button} instances via the
+ * <code>buttonUp</code> and <code>buttonDown</code> properties
+ * of the widget, respectively.</p>
+ *
+ * @param oTarget : Element
+ *   Reference to the DOM object that represents the element that
+ *   provides the client area for the widget. Pass a false-value
+ *   to create a new element.
+ * @param oParent : Element
+ *   Reference to the DOM object that represents the parent element
+ *   for this widget. Pass <code>null</code> so that the widget
+ *   will not be automatically attached to the document tree.
+ *   You can call its {@link #appendTo()} method later to attach it.
+ * @param oProperties : Object
  * @see jsx.dom.widgets#NumberInput
  */
 jsx.dom.widgets.SpinnerInput = function(oTarget, oParent, oProperties) {
@@ -448,70 +468,89 @@ jsx.dom.widgets.SpinnerInput = function(oTarget, oParent, oProperties) {
   var target = this.target;
   if (target.type != "number")
   {
+    var buttonContainer = document.createElement("div");
+    buttonContainer.style.display = "inline-block";
+    buttonContainer.style.lineHeight = "1em";
+    buttonContainer.style.verticalAlign = "middle";
+
     /* If no HTML5 support, add arrow controls */
     this.buttonUp = new jsx.dom.widgets.Button(null, null, {
       text: "\u25B4",
+      tabIndex: target.tabIndex,
       style: {
-        width: "1em"
+        display: "block",
+        margin: "0",
+        width: "1em",
+        minWidth: "0",
+        padding: "0",
+        lineHeight: "1em"
       },
       onclick: function() {
         me.inc();
+
+        if (typeof me.target.onchange == "function")
+        {
+          me.target.onchange();
+        }
       }
     });
 
     this.buttonDown = new jsx.dom.widgets.Button(null, null, {
       text: "\u25BE",
+      tabIndex: target.tabIndex,
       style: {
-        width: "1em"
+        display: "block",
+        margin: "0",
+        width: "1em",
+        minWidth: "0",
+        padding: "0",
+        lineHeight: "1em"
       },
       onclick: function() {
         me.dec();
+
+        if (typeof me.target.onchange == "function")
+        {
+          me.target.onchange();
+        }
       }
     });
 
-    target.parentNode.insertBefore(this.buttonUp.target, target.nextSibling);
-    target.parentNode.insertBefore(this.buttonDown.target,
-      this.buttonUp.target.nextSibling);
+    buttonContainer.appendChild(this.buttonUp.target);
+    buttonContainer.appendChild(this.buttonDown.target);
+    target.parentNode.insertBefore(buttonContainer, target.nextSibling);
 
     /* Add event listeners */
-    jsx.dom.addEventListener(target, 'keydown', function(e) {
-      /**
-       * Increases the value of the <code>value</code> property.
-       */
-      // function inc()
-      // {
-      // var v;
-      // if ((me.maxValue == Infinity || this.value < me.maxValue)
-      // && !isNaN(v = parseInt(this.value, 10) + 1)
-      // && (this.maxLength < 1 || v.toString().length <=
-      // this.maxLength))
-      // {
-      // this.value = v;
-      // }
-      // }
-      //
-      // function dec()
-      // {
-      // var v;
-      // if ((me.minValue == -Infinity || this.value > me.minValue)
-      // && !isNaN(v = parseInt(this.value, 10) - 1)
-      // && (this.maxLength < 1 || v.toString().length <=
-      // this.maxLength))
-      // {
-      // this.value = v;
-      // }
-      // } if (me.minValue != -Infinity || me.maxValue != Infinity)
-      {
-        if (typeof e == "undefined")
+    jsx.dom.addEventListener(target, 'keydown', jsx.dom.createEventListener(
+      function (e) {
+        /**
+         * Increases the value of the <code>value</code> property.
+         */
+        // function inc()
+        // {
+        // var v;
+        // if ((me.maxValue == Infinity || this.value < me.maxValue)
+        // && !isNaN(v = parseInt(this.value, 10) + 1)
+        // && (this.maxLength < 1 || v.toString().length <=
+        // this.maxLength))
+        // {
+        // this.value = v;
+        // }
+        // }
+        //
+        // function dec()
+        // {
+        // var v;
+        // if ((me.minValue == -Infinity || this.value > me.minValue)
+        // && !isNaN(v = parseInt(this.value, 10) - 1)
+        // && (this.maxLength < 1 || v.toString().length <=
+        // this.maxLength))
+        // {
+        // this.value = v;
+        // }
+        // } if (me.minValue != -Infinity || me.maxValue != Infinity)
         {
-          e =
-            (typeof window != "undefined" && window
-              && typeof window.event != "undefined" && window.event);
-        }
-
-        if (typeof e != "undefined")
-        {
-          if (typeof e.keyIdentifier)
+          if (typeof e.keyIdentifier != "undefined")
           {
             /* DOM Level 3 Events draft */
             switch (e.keyIdentifier)
@@ -519,7 +558,7 @@ jsx.dom.widgets.SpinnerInput = function(oTarget, oParent, oProperties) {
               case "Up":
                 me.inc();
                 break;
-  
+
               case "Down":
                 me.dec();
             }
@@ -537,9 +576,14 @@ jsx.dom.widgets.SpinnerInput = function(oTarget, oParent, oProperties) {
                 me.dec();
             }
           }
+
+          if (typeof this.onchange == "function")
+          {
+            this.onchange();
+          }
         }
       }
-    });
+    ));
   }
 };
 
