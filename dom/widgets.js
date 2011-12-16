@@ -202,7 +202,7 @@ jsx.dom.widgets.Widget.extend(null, {
       "set" + propertyName.charAt(0).toUpperCase() + propertyName.substring(1);
     var setter = this[setterName];
     return (typeof setter == "function") ? setter : null;
-  },
+  }
 });
 
 /**
@@ -283,7 +283,19 @@ jsx.dom.widgets.Button.extend(jsx.dom.widgets.Input, {
   elementType: "button",
 
   init: function() {
-    this.target.type = "button";
+    var me = this;
+
+    jsx.tryThis(
+      function ()  {
+        me.target.type = "button";
+      },
+
+      function () {
+        /* IE 7 and other borken UAs that don't support inline-block properly */
+        jsx.throwThis("jsx.dom.widgets.InitError", "jsx.dom.widgets.Button",
+          arguments.callee);
+      }
+    );
   },
 
   /*
@@ -391,13 +403,32 @@ jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
 
       var target = this.target;
 
+      var v = parseFloat(target.value);
+
+      if (isNaN(v))
+      {
+        v = 1;
+      }
+
+      if (this.minValue != -Infinity && v < this.minValue)
+      {
+        v = this.minValue;
+      }
+      else if (this.maxValue != Infinity && v > this.maxValue)
+      {
+        v = this.maxValue;
+      }
+
       if (this.leadingZero && this.maxValue != Infinity)
       {
-        target.value = leadingZero(target.value, String(this.maxValue).length);
+        v = leadingZero(v, String(this.maxValue).length);
       }
-      else if (!this.leadingZero && target.value.length > 0)
+
+      v = String(v);
+
+      if (v != target.value)
       {
-        target.value = String(parseFloat(target.value));
+        target.value = v;
       }
     };
   }()),
@@ -468,57 +499,69 @@ jsx.dom.widgets.SpinnerInput = function(oTarget, oParent, oProperties) {
   var target = this.target;
   if (target.type != "number")
   {
-    var buttonContainer = document.createElement("div");
-    buttonContainer.style.display = "inline-block";
-    buttonContainer.style.lineHeight = "1em";
-    buttonContainer.style.verticalAlign = "middle";
+    /* If no HTML5 support, try adding arrow controls */
+    jsx.tryThis(
+      function () {
+        me.buttonUp = new jsx.dom.widgets.Button(null, null, {
+          text: "\u25B4",
+          tabIndex: target.tabIndex,
+          style: {
+            display: "block",
+            margin: "0",
+            width: "1em",
+            minWidth: "0",
+            padding: "0",
+            lineHeight: "1em"
+          },
+          onclick: function() {
+            me.inc();
 
-    /* If no HTML5 support, add arrow controls */
-    this.buttonUp = new jsx.dom.widgets.Button(null, null, {
-      text: "\u25B4",
-      tabIndex: target.tabIndex,
-      style: {
-        display: "block",
-        margin: "0",
-        width: "1em",
-        minWidth: "0",
-        padding: "0",
-        lineHeight: "1em"
+            if (typeof me.target.onchange == "function")
+            {
+              me.target.onchange();
+            }
+          }
+        });
+
+        me.buttonDown = new jsx.dom.widgets.Button(null, null, {
+          text: "\u25BE",
+          tabIndex: target.tabIndex,
+          style: {
+            display: "block",
+            margin: "0",
+            width: "1em",
+            minWidth: "0",
+            padding: "0",
+            lineHeight: "1em"
+          },
+          onclick: function() {
+            me.dec();
+
+            if (typeof me.target.onchange == "function")
+            {
+              me.target.onchange();
+            }
+          }
+        });
+
+        var buttonContainer = document.createElement("div");
+        buttonContainer.style.display = "inline-block";
+        buttonContainer.style.lineHeight = "1em";
+        buttonContainer.style.verticalAlign = "middle";
+
+        buttonContainer.appendChild(me.buttonUp.target);
+        buttonContainer.appendChild(me.buttonDown.target);
+        target.parentNode.insertBefore(buttonContainer, target.nextSibling);
       },
-      onclick: function() {
-        me.inc();
 
-        if (typeof me.target.onchange == "function")
+      function (e) {
+        if (!e || e.name !== "jsx.dom.widgets.InitError")
         {
-          me.target.onchange();
+          /* Rethrow unhandled error */
+          jsx.throwThis(function () { return e; });
         }
       }
-    });
-
-    this.buttonDown = new jsx.dom.widgets.Button(null, null, {
-      text: "\u25BE",
-      tabIndex: target.tabIndex,
-      style: {
-        display: "block",
-        margin: "0",
-        width: "1em",
-        minWidth: "0",
-        padding: "0",
-        lineHeight: "1em"
-      },
-      onclick: function() {
-        me.dec();
-
-        if (typeof me.target.onchange == "function")
-        {
-          me.target.onchange();
-        }
-      }
-    });
-
-    buttonContainer.appendChild(this.buttonUp.target);
-    buttonContainer.appendChild(this.buttonDown.target);
-    target.parentNode.insertBefore(buttonContainer, target.nextSibling);
+    );
 
     /* Add event listeners */
     jsx.dom.addEventListener(target, 'keydown', jsx.dom.createEventListener(
@@ -549,46 +592,46 @@ jsx.dom.widgets.SpinnerInput = function(oTarget, oParent, oProperties) {
         // this.value = v;
         // }
         // } if (me.minValue != -Infinity || me.maxValue != Infinity)
+
+        if (typeof e.keyIdentifier != "undefined")
         {
-          if (typeof e.keyIdentifier != "undefined")
+          /* DOM Level 3 Events draft */
+          switch (e.keyIdentifier)
           {
-            /* DOM Level 3 Events draft */
-            switch (e.keyIdentifier)
-            {
-              case "Up":
-                me.inc();
-                break;
+            case "Up":
+              me.inc();
+              break;
 
-              case "Down":
-                me.dec();
-            }
-          }
-          else
-          {
-            /* currently proprietary */
-            switch (e.keyCode)
-            {
-              case 38:
-                me.inc();
-                break;
-
-              case 40:
-                me.dec();
-            }
-          }
-
-          if (typeof this.onchange == "function")
-          {
-            this.onchange();
+            case "Down":
+              me.dec();
           }
         }
+        else
+        {
+          /* currently proprietary */
+          switch (e.keyCode)
+          {
+            case 38:
+              me.inc();
+              break;
+
+            case 40:
+              me.dec();
+          }
+        }
+
+        me.update();
       }
     ));
+
+    jsx.dom.addEventListener(target, 'keyup', function () { me.update(); });
   }
 };
 
 jsx.dom.widgets.SpinnerInput.extend(jsx.dom.widgets.NumberInput, {
   /**
+   * Increases the value of the input by 1
+   *
    * @memberOf jsx.dom.widgets.SpinnerInput#prototype
    */
   inc: function() {
@@ -602,6 +645,9 @@ jsx.dom.widgets.SpinnerInput.extend(jsx.dom.widgets.NumberInput, {
     }
   },
 
+  /**
+   * Decreases the value of the input by 1
+   */
   dec: function() {
     var v, t = this.target;
 
@@ -611,7 +657,25 @@ jsx.dom.widgets.SpinnerInput.extend(jsx.dom.widgets.NumberInput, {
     {
       t.value = v;
     }
-  }
+  },
+
+  /*
+   * (non JSdoc)
+   *
+   * @see Widget.prototype#update
+   */
+  update: (function () {
+    var update = jsx.dom.widgets.NumberInput.prototype.update;
+    return function () {
+      update.call(this);
+
+      var target = this.target;
+      if (typeof target.onchange == "function")
+      {
+        target.onchange();
+      }
+    };
+  }())
 });
 
 /**
@@ -638,6 +702,14 @@ jsx.dom.widgets.Timer = function(oTarget, oParent, oProperties) {
 };
 
 jsx.dom.widgets.Timer.extend(jsx.dom.widgets.Widget);
+
+jsx.dom.widgets.InitError = function (widgetType) {
+  arguments.callee._super.call(this, widgetType);
+};
+
+jsx.dom.widgets.InitError.extend(jsx.Error, {
+  name: "jsx.dom.widgets.InitError"
+});
 
 function handleKeypress(e)
 {
