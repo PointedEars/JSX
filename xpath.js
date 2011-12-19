@@ -94,8 +94,10 @@ jsx.xpath = {
    *   {@link XPathResult#ORDERED_NODE_ITERATOR_TYPE}.
    * @param oResult : XPathResult
    *   Optional XPathResult.  For backwards compatibility only.
-   * @return Result of the XPath expression, or <code>null</code> on error
+   * @return Result of the XPath expression,
+   *   or <code>null</code> on recoverable error
    * @type Null|number|string|boolean|Array
+   * @throws DOMException on unrecoverable XPath error
    */
   evaluate:
     (function () {
@@ -126,8 +128,18 @@ jsx.xpath = {
                )(contextNode, documentNode);
           var iResultType = resultType || 0;
           var objResult = oResult || null;
-          result = documentNode.evaluate(expression, contextNode, nsResolver,
-            iResultType, objResult);
+          
+          /* Make DOM exception recoverable in WebCore */
+          jsx.tryThis(
+            function () {
+              result = documentNode.evaluate(expression, contextNode, nsResolver,
+                iResultType, objResult);
+            },
+            function (e) {
+              /* TODO: Rethrow exception without function wrapper */
+              jsx.throwThis(function() { return e; });
+            }
+          );
         }
         else if (isMethod(contextNode, "selectNodes"))
         {

@@ -267,9 +267,23 @@ jsx.test.runner = {
         }
       }
       
+      var result = {
+        failed: 0,
+        passed: 0
+      };
+      
       for (var i = 0, len = this._tests.length; i < len; ++i)
       {
         var f = this._tests[i];
+        var number = i + 1;
+        var name = "";
+        
+        if (f && typeof f != "function")
+        {
+          name = ' "' + f.name + '"';
+          f = f.code;
+        }
+          
         if (hasSetUp)
         {
           this._setUp(i, f);
@@ -278,18 +292,29 @@ jsx.test.runner = {
         try
         {
           f(i);
-          jsx.info("Test " + (i + 1) + " passed.");
+          ++result.passed;
+          jsx.info("Test " + number + name + " passed.");
         }
         catch (e)
         {
-          jsx.warn("Test " + (i + 1) + " threw " + e + (e.stack ? "\n\n" + e.stack : ""));
+          ++result.failed;
+          jsx.warn("Test " + number  + name
+            + " threw " + e + (e.stack ? "\n\n" + e.stack : ""));
         }
-        
+
         if (hasTearDown)
         {
           this._tearDown(i, f);
         }
       }
+
+      var msg = "info";
+      if (result.failed > 0)
+      {
+        msg = "warn";
+      }
+      
+      jsx[msg]("Failed: " + result.failed + ". Passed: " + result.passed + ".");
     };
   }()),
   
