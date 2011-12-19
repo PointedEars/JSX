@@ -4,12 +4,12 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>JSX:HTTPRequest Test Case</title>
-    <script type="text/javascript" src="../object.js"></script>
-    <script type="text/javascript" src="../types.js"></script>
-    <script type="text/javascript" src="../string.js"></script>
-    <script type="text/javascript" src="../http.js"></script>
-    <script type="text/javascript" src="../xpath.js"></script>
+    
+    <!-- 1. Include prerequisites and dependencies using Resource Builder (recommended) -->
+    <script type="text/javascript" src="../builder.php?src=object,string,http,xpath"></script>
+
     <script type="text/javascript" src="test.js"></script>
+
     <script type="text/javascript">
       function makeRequest(s)
       {
@@ -18,35 +18,39 @@
         jsx.test.runner.run({
           tests: [
             function () {
-              var req = new jsx.net.http.Request("http://localhost/scripts/test/test.xml");
+              /*
+               * 2. Construct the HTTP request wrapper; 
+               *    the default is a GET request with asynchronous handling
+               */              
+              var req = new jsx.net.http.Request("test.xml");
+               
+              /* 3. Prepare processing of the HTTP response */
               req.setSuccessListener(
                 function (x) {
+                  /* 5. Get the reference to the XMLDocument object */
                   var doc = x.responseXML;
-                  //window.alert(doc.selectNodes("//res:OUTPUT//res:UNDO_COUNT/text()").tagName);
-                  var nodes = jsx.xpath.evaluate("//res:UNDO_COUNT", doc,
-                    jsx.xpath.createFullNSResolver({
-                      /*_: "bar"*/
-                    }, doc), XPathResult.ORDERED_NODE_ITERATOR_TYPE);
+                  
+                  /* 6. Create the namespace resolver that fits your query best */
+                  var nsResolver = jsx.xpath.createFullNSResolver(null, doc); 
+                  
+                  /* 7. Make the XPath query */
+                  var nodes = jsx.xpath.evaluate("//res:UNDO_COUNT/text()", doc, nsResolver);
                   
                   assert(nodes);
                   assert(nodes.length == 1);
-                  assert(nodes[0].nodeName == "res:UNDO_COUNT");
-                  
-                  for (var i = 0, len = nodes.length; i < len; ++i)
-                  {
-                    var node = nodes[i];
-                    var text = (node.textContent || node.firstChild && node.firstChild.nodeValue || null); 
-                    
-                    assert(text == "1.0");
-                    
-                    window.alert(text);
-                  }
-                  // window.alert(
-                  //   format(
-                  //     "readyState: %n\nstatus: %n\nresponseText:\n%s",
-                  //      x.readyState, x.status, x.responseText));
-                  // window.alert(x.getResponseHeader("Content-Type")); 
+                  assert(nodes[0].nodeName == "#text");
+                  assert(nodes[0].data == "1.0");
+
+                  /*
+                   * 8. Process the result.  jsx.xpath.evaluate() returns a reference
+                   * to an Array instance if you do not specify the result type.
+                   */
+
+                  /* "1.0" */
+                  console.log(nodes[0].data);
                 });
+              
+              /* 4. Make the HTTP request */
               req.send();
             }
           ]
