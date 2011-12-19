@@ -977,13 +977,13 @@ jsx.throwThis = (function() {
       sErrorType = "errorType";
     }
     
-    var sContext;
+    var sContext = "";
     if (jsx_object.isMethod(jsx_global, "Error"))
     {
       var stack = (new Error()).stack;
       if (stack)
       {
-        sContext =  "\n\n" + stack;
+        sContext = "\n\n" + stack;
       }
     }
     

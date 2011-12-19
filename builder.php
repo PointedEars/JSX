@@ -279,8 +279,8 @@ class ResourceBuilder
   }
 
   /**
-   * Returns the passed string with all multiline comments,
-   * leading and trailing whitespace removed
+   * Returns the passed string with all single-line
+   * comments, leading and trailing whitespace removed
    *
    * @param string $s Source code to process
    * @return string Processed source code
@@ -288,16 +288,18 @@ class ResourceBuilder
    */
   protected function uncomment($s)
   {
-    return preg_replace('/^\\s+|\\s+$/', '',
-      preg_replace_callback(
-      	'#/[\\t ]*\\*.*?\\*/[\\t ]*(\\r?\\n|\\n)*#s',
-    		array('self', 'commentReplacer'),
-        $s));
+    return preg_replace('#^[\\t ]*//.*(?:\\r?\\n|\\n)*#m', '',
+      preg_replace('/^\\s+|\\s+$/', '',
+//         preg_replace(
+//      		  '#/[\\t ]*\\*.*?\\*/[\\t ]*(?:\\r?\\n|\\n)*#s', '',
+          $s
+//         )
+      )
+    );
   }
 
   /**
-   * Returns the passed string with all JSdoc comments but the first one,
-   * leading and trailing whitespace removed
+   -Returns the passed string with all JSdoc comments but the first one removed
    *
    * @param string $s Source code to process
    * @return string Processed source code
@@ -305,11 +307,10 @@ class ResourceBuilder
    */
   protected function stripJSdoc($s)
   {
-    $s = preg_replace('/^\\s+|\\s+$/', '',
-      preg_replace_callback(
-      	'#/[\\t ]*\\*\\*.*?\\*/[\\t ]*(\\r?\\n|\\n)*#s',
-        array('self', 'commentReplacer'),
-        $s));
+    $s = preg_replace_callback(
+    	'#/[\\t ]*\\*\\*.*?\\*/[\\t ]*(\\r?\\n|\\n)*#s',
+      array('self', 'commentReplacer'),
+      $s);
     
     return $s;
   }
@@ -375,6 +376,7 @@ class ResourceBuilder
       
       if (!$this->debug)
       {
+        $content = $this->uncomment($content);
         $content = $this->stripJSdoc($content);
       }
       

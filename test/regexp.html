@@ -5,18 +5,58 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>regexp.js Test Case</title>
     <script type="text/javascript" src="../object.js"></script>
-    <script type="text/javascript" src="../test/test.js"></script>
+    <script type="text/javascript" src="test.js"></script>
+    <script type="text/javascript" src="../http.js"></script>
     <script type="text/javascript" src="../regexp.js"></script>
+    <script type="text/javascript" src="../UnicodeData.js"></script>
     <script type="text/javascript">
-      var assertFalse = jsx.test.assertFalse;
-      var assertTrue = jsx.test.assertTrue;
+      var assert = jsx.test.assert;
       var RegExp2 = jsx.regexp.RegExp;
 
       jsx.test.runner.run({
         tests: [
-          function() {
-            console.log(new RegExp2("\\p{Zp}"));
+          {
+            name: "Use statically loaded UCD",
+            code: function() {
+              assert(typeof RegExp2.propertyClasses != "undefined");
+              var rx = new RegExp2("\\p{Zp}");
+              assert(rx.source == "[\\u2029]");
+              console.log(rx);
+            }
           },
+          {
+            name: "Load UCD dynamically with XHR",
+            code: function() {
+              delete RegExp2.propertyClasses;
+              jsx._import("../http.js");
+              var rx = new RegExp2("\\p{Zp}");
+              assert(rx.source == "[\\u2029]");
+              console.log(rx);
+            },
+          },
+          {
+            name: "Throw exception on undefined property class",
+            code: function() {
+              RegExp2.deletePropertyClass("Zp");
+              var throwed = false;
+              jsx.tryThis(
+                function () {
+                  console.log(new RegExp2("\\p{Zp}"));
+                },
+                function (e) {
+                  if (e.name == "jsx.regexp.UnknownPropertyClassError")
+                  {                  
+                    throwed = true;
+                    console.log(e);
+                  }
+                  else
+                  {
+                    jsx.throwThis(function () { return e; });
+                  }
+                });
+              assert(throwed);
+            }
+          }
         ]
       });
     </script>
