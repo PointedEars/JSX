@@ -6,7 +6,7 @@
     <title>JSX:HTTPRequest Test Case</title>
     
     <!-- 1. Include prerequisites and dependencies using Resource Builder (recommended) -->
-    <script type="text/javascript" src="../builder.php?src=object,string,http,xpath"></script>
+    <script type="text/javascript" src="builder.php?src=object,string,http,xpath"></script>
 
     <script type="text/javascript" src="test.js"></script>
 
@@ -47,7 +47,11 @@
                    */
 
                   /* "1.0" */
-                  console.log(nodes[0].data);
+                  var data = nodes[0].data;
+                  if (!jsx.dmsg(data))
+                  {
+                    window.alert(data);
+                  }
                 });
               
               /* 4. Make the HTTP request */
