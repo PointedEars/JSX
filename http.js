@@ -275,22 +275,22 @@ jsx.net.http.Request.prototype = {
       jsx_object = jsx.object,
       oStatus = Request.status;
     
-    return function (x) {
-      if (x.readyState === Request.readyState.COMPLETED)
+    return function (response) {
+      if (response.readyState === Request.readyState.COMPLETED)
       {
-        var reqStatus = x.status;
+        var reqStatus = response.status;
         if (oStatus.OK_EXPR.test(reqStatus))
         {
           if (jsx_object.isMethod(this.successListener))
           {
-            this.successListener(x);
+            this.successListener(response);
           }
         }
         else if (oStatus.FAILED_EXPR.test(reqStatus))
         {
           if (jsx_object.isMethod(this.errorListener))
           {
-            this.errorListener(x);
+            this.errorListener(response);
           }
         }
       }
@@ -608,7 +608,6 @@ jsx.net.http.Request.prototype = {
     {
       this._xhr = x;
     }
-    
     
     return x;
   },
