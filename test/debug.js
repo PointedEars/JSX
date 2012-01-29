@@ -62,45 +62,42 @@ function DebugException(msg)
 
 /** @section Features */
 
-if (typeof test == "undefined")
-{
-  /**
-   * Returns a value depending on whether an expression evaluates to
-   * a true-value or a false-value.
-   * 
-   * @param expression
-   *   Expression to be evaluated.  Parsed as a <i>Program</i> if a
-   *   <code>String</code>.
-   * @param trueValue
-   *   The value to be returned if <var>expression</var> evaluates to
-   *   a true-value; the default is the empty string.
-   * @param falseValue
-   *   The value to be returned if <var>expression</var> evaluates to
-   *   a false-value; the default is the empty string.
-   * @return mixed
-   *   <var>trueValue</var> if <var>expression</var> evaluates to
-   *   a true-value; <var>falseValue</var> otherwise.
-   * @see Global#eval(String)
-   */
-  var test = function (expression, trueValue, falseValue) {
-    var sDefault = "";
-    var result = sDefault;
-    
-    jsx.setErrorHandler();
-    
-    if (eval(expression))
-    {
-      result = (arguments.length > 1 ? trueValue : sDefault);
-    }
-    else
-    {
-      result = (arguments.length > 2 ? falseValue : sDefault);
-    }
+/**
+ * Returns a value depending on whether an expression evaluates to
+ * a true-value or a false-value.
+ * 
+ * @param expression
+ *   Expression to be evaluated.  Parsed as a <i>Program</i> if a
+ *   <code>String</code>.
+ * @param trueValue
+ *   The value to be returned if <var>expression</var> evaluates to
+ *   a true-value; the default is the empty string.
+ * @param falseValue
+ *   The value to be returned if <var>expression</var> evaluates to
+ *   a false-value; the default is the empty string.
+ * @return mixed
+ *   <var>trueValue</var> if <var>expression</var> evaluates to
+ *   a true-value; <var>falseValue</var> otherwise.
+ * @see Global#eval(String)
+ */
+jsx.debug.test = function (expression, trueValue, falseValue) {
+  var sDefault = "";
+  var result = sDefault;
   
-    jsx.clearErrorHandler();
-    return result;
-  };
-}
+  jsx.setErrorHandler();
+  
+  if (eval(expression))
+  {
+    result = (arguments.length > 1 ? trueValue : sDefault);
+  }
+  else
+  {
+    result = (arguments.length > 2 ? falseValue : sDefault);
+  }
+
+  jsx.clearErrorHandler();
+  return result;
+};
 
 if (typeof test2 == "undefined")
 {
