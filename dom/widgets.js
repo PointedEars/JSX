@@ -557,8 +557,8 @@ jsx.dom.widgets.SpinnerInput = function(oTarget, oParent, oProperties) {
       function (e) {
         if (!e || e.name !== "jsx.dom.widgets.InitError")
         {
-          /* Rethrow unhandled error */
-          jsx.throwThis(function () { return e; });
+          /* Rethrow unhandled exception */
+          jsx.rethrowThis(e);
         }
       }
     );

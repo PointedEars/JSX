@@ -1119,6 +1119,75 @@ jsx.dom.createElement = function(sTag) {
   return o;
 };
 
+/**
+ * @param data
+ * @return Element|TextNode
+ */
+jsx.dom.createElementFromObj = function (data) {
+  if (typeof data == "string")
+  {
+    return document.createTextNode(data);
+  }
+
+  var el = document.createElement(data.type);
+  if (!el)
+  {
+    return null;
+  }
+
+  var properties = data.properties;
+  if (properties)
+  {
+    for (var prop in properties)
+    {
+      if (!properties.hasOwnProperty(prop))
+      {
+        continue;
+      }
+
+      if (prop == "style")
+      {
+        var style = properties[prop];
+        for (var styleProp in style)
+        {
+          if (!style.hasOwnProperty(styleProp))
+          {
+            continue;
+          }
+
+          var targetProp = styleProp;
+          if (targetProp === "float")
+          {
+            if (typeof style.cssFloat != "undefined")
+            {
+              var targetProp = "cssFloat";
+            }
+            else if (typeof style.styleFloat != "undefined")
+            {
+              targetProp = "styleFloat";
+            }
+
+          }
+
+          el.style[targetProp] = style[styleProp];
+        }
+      }
+      else
+      {
+        el[prop] = properties[prop];
+      }
+    }
+  }
+
+  var nodes = data.childNodes;
+  for (var i = 0, len = nodes && nodes.length; i < len; ++i)
+  {
+    el.appendChild(arguments.callee(nodes[i]));
+  }
+
+  return el;
+};
+
 jsx.dom.html2nodes = function(sHTML) {
   var m,
     rx = /(<([^\s>]+)(\s+[^>]*)?>)|([^<]+)/g,

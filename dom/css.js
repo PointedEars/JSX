@@ -404,6 +404,55 @@ jsx.dom.getAbsPos = function(oNode) {
 };
 
 /**
+ * @namespace
+ */
+jsx.dom.css.selectors = {
+  ID: "#{nmchar}+"
+    .replace(/\{nmchar\}/, "[_a-z0-9-]|{nonascii}|{escape}")
+    .replace(/\{nonascii\}/g, "[\\xA0-\\xFF]")
+    .replace(/\{escape\}/g, "{unicode}|\\\\[^\\r\\n\\f0-9a-f]")
+    .replace(/\{unicode\}/g, "\\\\{h}{1,6}(\\r\\n|[ \\t\\r\\n\\f])?")
+    .replace(/\{h\}/g, "[0-9a-f]"),
+  CLASS: "\\.IDENT"
+    .replace(/IDENT/, "-?{nmstart}{nmchar}*")
+    .replace(/\{nmstart\}/, "[_a-z]|{nonascii}|{escape}")
+    .replace(/\{nmchar\}/, "[_a-z0-9-]|{nonascii}|{escape}")
+    .replace(/\{nonascii\}/g, "[\\xA0-\\xFF]")
+    .replace(/\{escape\}/g, "{unicode}|\\\\[^\\r\\n\\f0-9a-f]")
+    .replace(/\{unicode\}/g, "\\\\{h}{1,6}(\\r\\n|[ \\t\\r\\n\\f])?")
+    .replace(/\{h\}/g, "[0-9a-f]"),
+  ATTRIBUTE: "\\[\\s*(IDENT\\|)?IDENT\\s*((=|INCLUDES|DASHMATCH)\\s*(IDENT|STRING)\\s*)?\\]"
+    .replace(/IDENT/g, "-?{nmstart}{nmchar}*")
+    .replace(/INCLUDES/, "~=")
+    .replace(/DASHMATCH/, "\\|=")
+    .replace(/STRING/, "{string1}|{string2}")
+    .replace(/\{string1\}/, '"([^\\n\\r\\f\\\\"]|\\\\{nl}|{escape})*"')
+    .replace(/\{string2\}/, "'([^\\n\\r\\f\\\\']|\\\\{nl}|{escape})*'")
+    .replace(/\{nl\}/g, "(\\n|\\r\n|\\r|\\f)")
+    .replace(/\{nmstart\}/g, "[_a-z]|{nonascii}|{escape}")
+    .replace(/\{nmchar\}/g, "[_a-z0-9-]|{nonascii}|{escape}")
+    .replace(/\{nonascii\}/g, "[\\xA0-\\xFF]")
+    .replace(/\{escape\}/g, "{unicode}|\\\\[^\\r\\n\\f0-9a-f]")
+    .replace(/\{unicode\}/g, "\\\\{h}{1,6}(\\r\\n|[ \\t\\r\\n\\f])?")
+    .replace(/\{h\}/g, "[0-9a-f]"),
+  PSEUDOCLASS: ":(link|visited|hover|active|focus|target|lang"
+    + "|enabled|disabled|checked|indeterminate"
+    + "|root|nth-child|nth-last-child|nth-of-type|nth-last-of-type"
+    + "|first-child|last-child|first-of-type|last-of-type"
+    + "|only-child|only-of-type|empty|not)\\b",
+  ELEMENT: "(^|\\s)((IDENT|\\*)\\|)?IDENT"
+    .replace(/IDENT/g, "-?{nmstart}{nmchar}*")
+    .replace(/\{nmstart\}/g, "[_a-z]|{nonascii}|{escape}")
+    .replace(/\{nmchar\}/g, "[_a-z0-9-]|{nonascii}|{escape}")
+    .replace(/\{nonascii\}/g, "[\\xA0-\\xFF]")
+    .replace(/\{escape\}/g, "{unicode}|\\\\[^\\r\\n\\f0-9a-f]")
+    .replace(/\{escape\}/g, "{unicode}|\\\\[^\\r\\n\\f0-9a-f]")
+    .replace(/\{unicode\}/g, "\\\\{h}{1,6}(\\r\\n|[ \\t\\r\\n\\f])?")
+    .replace(/\{h\}/g, "[0-9a-f]"),
+  PSEUDOELEMENT: "::?(first-line|first-letter|before|after)\\b"
+};
+
+/**
  * A <code>SelectorList</code> object encapsulates
  * all CSS selectors linked to from a document in a
  * {@link Collection}.
@@ -473,61 +522,10 @@ jsx.dom.css.SelectorList.extend(jsx.Collection, {
    * @return CSSStyleRule | Null
    */
   findSimpleSelector: function(sSelector) {
-    var s =
-      "{simple_selector}({combinator}{simple_selector}*)*"
-      .replace(
-        /\{simple_selector\}/g,
-        '(element_name(#|class|attrib|pseudo)*'
-        + '|(#|class|attrib|pseudo)+)');
-  
-  //    .replace(/element_name/g,        "(IDENT|\\*)")
-  //    .replace(/class/g,               "\\.IDENT")
-  //    .replace(/attrib/g,              "\\[\\s*IDENT\\s*([~\\|]="
-  //                                     + "\\s*(IDENT|STRING)\\s*)?\\]")
-  //    .replace(/pseudo/g,              ":(IDENT|FUNCTION\\s*IDENT?\\s*\\))")
-  //    .replace(/FUNCTION/g,            "IDENT\\(\\s*expr\\)\\s*")
-  //    .replace(/\{expr\}/g,            'Term(OperatorTerm)*')
-  //    .replace(/\{Operator\}/g,        "(/\\s*|,\\s*|/\\*([^*]|\\*[\\/])*\\/)")
-  //    .replace(/\{Term\}/g,              "([+-]?"
-  //                                     + "(NUMBER%?\\s*|LENGTH\\s*"
-  //                                     + "|ANGLE\\s*|TIME\\s*"
-  //                                     + "|FREQ\\s*|IDENT\\(\\s*expr\\)\\s*)"
-  //                                     + "|STRING\\s*|IDENT\\s*|URI\\s*|hexcolor)")
-  //    .replace(/ANGLE/g,               'NUMBER(deg|g?rad)')
-  //    .replace(/TIME/g,                'NUMBERm?s')
-  //    .replace(/FREQ/g,                'NUMBERk?Hz')
-  //    .replace(/LENGTH/g,              'NUMBER([cm]m|e[mx]|in|p[ctx])')
-  //    .replace(/NUMBER/g,              '([0-9]+|[0-9]*\\.[0-9]+)')
-  //    .replace(/URI/g,                 "url\\(\\s*(STRING|URL)\\s*\\)")
-  //    .replace(/STRING/g,              '({string1}|{string2})')
-  //    .replace(/URL/g,                 '([!#$%&*-~]|{nonascii}|{escape})*')
-  //    .replace(/hexcolor/g,            '#([0-9a-fA-F]{3}){1,2}')
-  //    .replace(/IDENT/g,               "{nmstart}{nmchar}*\\s*")
-  //    .replace(/\{nmstart\}/g,         '([_a-z{nonascii}]|{escape})')
-  //    .replace(/\{nmchar\}/g,          '([_a-zA-Z0-9{nonascii}-]|{escape})')
-  //    .replace(/\{string1\}/g, "\"([\t !#$%&(-~]|\\{nl}|'|[{nonascii}]|{escape})*\"")
-  //    .replace(/\{string2\}/g, "'([\t !#$%&(-~]|\\{nl}|\"|[{nonascii}]|{escape})*'")
-  //    .replace(/\{nl\}/g,              "(\\n|\\r\\n|\\r|\\f)")
-  //    .replace(/\{nonascii\}/g,        "\\x80-\\xFF")
-  //    .replace(/\{escape\}/g,          "({unicode}|\\\\[ -~\\x80-\\xFF])")
-  //    .replace(/\{unicode\}/g,       "\\\\[0-9a-f]{1,6}(\\r\\n|[ \\t\\r\\n\\f])?")
-  //    .replace(/\{combinator\}/g,      "(\\+\\s*|\\>\\s*|\\s+)");
-  
-  //  try
-  //  {
-  //    x = y;
-  //  }
-  //  catch (e)
-  //  {
-  //    alert("TODO in \n" + e.stack + "\n" + s);
-  //  }
-  
-    // var rxSimpleSelector = new RegExp(s);
-      
     var i = this.iterator();
     while ((s = i.next()))
     {
-      if ((new RegExp(sSelector)).test(s.selectorText))
+      if ((new RegExp("(^|\\s)" + sSelector + "([+>\\s]|$)")).test(s.selectorText))
       {
         return s;
       }
@@ -537,22 +535,117 @@ jsx.dom.css.SelectorList.extend(jsx.Collection, {
   }
 });
 
+jsx.dom.css.findRules = (function () {
+  var slice = Array.prototype.slice;
+  function toArray(obj)
+  {
+    return slice.call(obj);
+  }
+  
+  return function (selectorText, exactMatch) {
+    var prefix = "(^|\\s)";
+    if (exactMatch)
+    {
+      prefix = "^\\s*";
+    }
+    
+    var rx = new RegExp(prefix + selectorText.replace(/[$.(){}\[\]^]/g, "\\$&") + "\\s*$");
+    
+    var hits = toArray(document.styleSheets).map(function (styleSheet) {
+      return toArray(styleSheet.cssRules || styleSheet.rules).filter(function (rule) {
+        return rx.test(rule.selectorText);
+      });
+    }).filter(function (hit) {
+      return hit.length > 0;
+    });
+  
+    return Array.prototype.concat.apply([], hits);
+  };
+}());
+
 /**
- * Retrieves all elements matching certain CSS class names
+ * Calculate the specificity of a CSS3 selector
  * 
- * @param sClassName
+ * @param selector : String
+ * @return Number
+ *   The specificity of <var>selector</var> where the value modulo 100
+ *   is the number of ID selectors, the value module 10 is the number of
+ *   class selectors, attributes selectors, and pseudo-classes, and the
+ *   value modulo 1 is the number of element names and pseudo-elements
+ *   in the selector.
+ * @see http://www.w3.org/TR/css3-selectors/#specificity
+ */
+jsx.dom.css.getSpecificity = (function () {
+  var selectors = jsx.dom.css.selectors;
+  var rxID = new RegExp(selectors.ID, "g");
+  var rxAttr = new RegExp(
+    selectors.CLASS + "|" + selectors.ATTRIBUTE + "|" + selectors.PSEUDOCLASS,
+    "g");
+  var rxElem = new RegExp(
+    selectors.ELEMENT + "|" + selectors.PSEUDOELEMENT, "g");
+
+  return function (selector) {
+    selector = String(selector || "");
+    var idNum = (selector.match(rxID) || []).length;
+    var attrNum = (selector.match(rxAttr) || []).length;
+    var elemNum = (selector.match(rxElem) || []).length;
+  
+    return (idNum * 100) + (attrNum * 10) + elemNum;
+  };
+}());
+
+/**
+ * Retrieves all elements matching all specified CSS class names
+ * 
+ * @param sClassNames : Array|String
+ * @param oContextNode : optional Element
  * @return Array
  *   An <code>Array</code> of references to objects representing
  *   matching elements
  */
 jsx.dom.css.getElemByClassName = jsx.dom.css.gEBCN = (function() {
+  var _hasOwnProperty = jsx.object._hasOwnProperty;
   var _getElemByTagName = jsx.dom.getElemByTagName;
   var sWhiteSpace = "[ \\t\\f\\u200B\\r\\n]+";
   
-  return function(sClassName) {
+  return function (sClassNames, contextNode) {
     var
-      aElements = _getElemByTagName(),
-      result = [];
+      result = [],
+      classNames = !Array.isArray(sClassNames)
+        ? String(sClassNames || "").split(/\s+/)
+        : sClassNames,
+      classNameSet = {};
+    
+    if (classNames.length > 0)
+    {
+      for (var i = classNames.length; i--;)
+      {
+        classNameSet[classNames[i]] = true;
+      }
+    
+      classNames = [];
+      if (typeof Object.keys == "function")
+      {
+        var keys = Object.keys(classNameSet);
+        var len = keys.length;
+        for (i = 0; i < len; ++i)
+        {
+          classNames.push(classNameSet[keys[i]]);
+        }
+      }
+      else
+      {
+        for (var className in classNameSet)
+        {
+          if (_hasOwnProperty(classNameSet, className))
+          {
+            classNames.push(className);
+          }
+        }
+      }
+
+      var aElements = _getElemByTagName("*", -1, contextNode || document);
+    }
 
     if (aElements)
     {
@@ -560,15 +653,22 @@ jsx.dom.css.getElemByClassName = jsx.dom.css.gEBCN = (function() {
        * NOTE: There are many more elements than potential class names, so loop
        * through those only once
        */
-      for (var i = 0, len = aElements.length; i < len; ++i)
+      outer: for (var i = 0, len = aElements.length; i < len; ++i)
       {
         var element = aElements[i];
+        var elementClassName = element.className;
         
-        if (new RegExp("(^|" + sWhiteSpace + ")" + sClassName + "($|" + sWhiteSpace + ")")
-            .test(element.className))
+        for (var j = classNames.length; j--;)
         {
-          result[result.length] = element;
+          if (!new RegExp("(^|" + sWhiteSpace + ")" + classNames[j]
+                           + "($|" + sWhiteSpace + ")")
+               .test(elementClassName))
+          {
+            continue outer;
+          }
         }
+
+        result[result.length] = element;
       }
     }
 
@@ -672,6 +772,36 @@ jsx.dom.css.getComputedStyle = (function() {
     }
   
     return computedStyle;
+  };
+}());
+
+/**
+ * Makes all non-default stylesheet declarations for an element inline
+ * 
+ * @param obj : Element
+ */
+jsx.dom.css.makeInline = (function () {
+  var defaultValues = {
+    "background-image": "none"
+  };
+  
+  return function (obj) {
+    var computedStyle = jsx.dom.css.getComputedStyle(obj);
+    if (!computedStyle)
+    {
+      return;
+    }
+    
+    for (var i = 0, len = computedStyle.length; i < len; ++i)
+    {
+      var propertyName = computedStyle[i];
+      var propertyValue = computedStyle.getPropertyValue(propertyName);
+      
+      if (propertyValue != defaultValues[propertyName])
+      {
+        obj.style.setProperty(propertyName, propertyValue);
+      }
+    }
   };
 }());
 
