@@ -24,6 +24,92 @@
  * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @subsection Matrix Operations */
+
+/**
+ * Creates a <code>Matrix</code> object encapsulating an m × n matrix
+ * represented by an array of arrays.
+ * 
+ * Different to a "multi-dimensional" array, a <code>Matrix</code>'s
+ * elements are indexed (like in math) starting from 1, i. e. the
+ * first element of the first row has the coordinates <code>[1, 1]</code>.
+ * 
+ * @param rows : optional Array
+ *   The array containing the elements of the new matrix or the number
+ *   of rows of the new matrix.
+ *   If not provided, the matrix has only one element, <code>0</code>.
+ * @param columns: optional Number
+ *   The number of columns of the matrix, if <var>rows</var> is not an
+ *   <code>Array</code>
+ * @param fill: optional Number
+ *   The number the matrix should be filled with, if <var>rows</var>
+ *   is not an <code>Array</code>.  The default is <code>0</code>.
+ */
+jsx.math.Matrix = (function () {
+  var isMethod = jsx.object.isMethod;
+
+  return function (rows, columns, fill) {
+    this.data = [0];
+
+    if (rows)
+    {
+      if (jsx.types.isArray(rows))
+      {
+        if (isMethod(rows, "slice"))
+        {
+          for (var i = rows.length; i--;)
+          {
+            this.data[i] = rows[i].slice();
+          }
+        }
+        else
+        {
+          for (var i = rows.length; i--;)
+          {
+            var row = rows[i];
+            this.data[i] = [];
+            for (var j = row.length; j--;)
+            {
+              this.data[i][j] = row[j];
+            }
+          }
+        }
+      }
+      else
+      {
+        var a = [];
+
+        var tmp = [];
+        tmp.length = columns;
+        
+        if (typeof fill == "undefined")
+        {
+          fill = 0;
+        }
+        
+        for (var j = 0; j < columns; ++j)
+        {
+          tmp[j] = fill;
+        }
+
+        for (var i = 0; i < rows; ++i)
+        {
+          if (i == 0)
+          {
+            a.push(tmp);
+          }
+          else
+          {
+            a.push(tmp.slice());
+          }
+        }
+
+        this.data = a;
+      }
+    }
+  };
+}());
+
 /**
  * @param A
  * @return number
@@ -49,14 +135,14 @@
  *                (m . ... .)   [m, ...      ]]
  * </pre>
  */
-Math.dimRow = function(A) {
-  return (A instanceof Array
+jsx.math.Matrix.dimRow = function(A) {
+  return (Array.isArray(A)
     ? A.length
     : 1);
 };
 
 /**
- * @param A
+ * @param a
  * @return number
  *   The column dimension of <code>A</code>, provided all
  *   rows of <code>A</code> have the same length (as the first one);
@@ -81,70 +167,40 @@ Math.dimRow = function(A) {
  *                (m . ... .)   [m, ...      ]]
  * </pre>
  */
-Math.dimCol = function(A) {
+jsx.math.Matrix.dimCol = function(a) {
   return (
-    typeof (A = A[0]) != "undefined"
-      ? (A[0] instanceof Array ? A[0].length : 1)
+    typeof (a = a[0]) != "undefined"
+      ? (Array.isArray(a[0]) ? a[0].length : 1)
       : 0);
 };
 
 /**
- * @param A
+ * @param a
  * @return the square root of the product of A's row dimension
  * and its column dimension.  The return value indicates
  * whether a matrix A is square or not; for square matrices,
- * the return value is an integer.  It also serves as a
- * means to determine if two matrices are compatible;
- * if their dimensions differ, they cannot be added to
- * one another.
- * @see Math#matrixAdd()
+ * the return value is an integer.
+ * @see jsx.math#add()
  */
-Math.dim = function(A) {
-  return Math.sqrt(Math.dimRow(A) * Math.dimCol(A));
+jsx.math.Matrix.dim = function(a) {
+  return Math.sqrt(jsx.math.Matrix.dimRow(a) * jsx.math.Matrix.dimCol(a));
 };
 
-
-/** @subsection Matrix Operations */
-
-/**
- * Creates a Matrix object, encapsulating an mXn-dimensional
- * matrix represented by an array of arrays.
- * 
- * @param A : optional Array
- */
-Math.Matrix = function(A) {
-  this.data = [0];
-
-  if (A)
-  {
-    if (jsx.object.isMethod(A, "slice"))
-    {
-      this.data = A.slice(0);
-    }
-    else
-    {
-      for (var i = A.length; i--;)
-      {
-        var row = A[i];
-        this.data[i] = [];
-        for (var j = row.length; j--;)
-        {
-          this.data[i][j] = row[j];
-        }
-      }
-    }
-  }
-};
-
-Math.Matrix.prototype = {
+jsx.math.Matrix.prototype = {
   constructor: Math.Matrix,
   
-  putValue: function (x, y, value) {
+  putValue: function (coords, value) {
     var tmp = this.data;
-
-    for (var i = 0, len = arguments.length; i < len - 2; ++i)
+    
+    for (var i = 0, len = coords.length; i < len - 1; ++i)
     {
-      var arg = arguments[i];
+      var arg = coords[i] - 1;
+      if (arg < 0)
+      {
+        jsx.throwThis("jsx.math.CoordinateError");
+        return;
+      }
+      
       if (typeof tmp[arg] == "undefined")
       {
         tmp[arg] = [];
@@ -153,18 +209,24 @@ Math.Matrix.prototype = {
       tmp = tmp[arg];
     }
     
-    var lastArgs = Array.prototype.slice.call(arguments, i);
-    tmp[lastArgs[0]] = lastArgs[1];
+    var lastCoord = coords.slice(coords.length - 1);
+    if (lastCoord < 1)
+    {
+      jsx.throwThis("jsx.math.CoordinateError");
+      return;
+    }
+    
+    tmp[lastCoord - 1] = value;
 
-    return lastArgs[1];
+    return tmp[lastCoord - 1];
   },
 
-  getValue: function (x, y) {
+  getValue: function (coords) {
     var tmp = this.data;
 
-    for (var i = 0, len = arguments.length; i < len; ++i)
+    for (var i = 0, len = coords.length; i < len; ++i)
     {
-      var arg = arguments[i];
+      var arg = coords[i] - 1;
       tmp = tmp[arg];
 
       if (typeof tmp == "undefined")
@@ -176,9 +238,8 @@ Math.Matrix.prototype = {
     return tmp;
   },
 
-  inc: function (x, y) {
+  inc: function (coords) {
     var
-      coords = Array.prototype.slice.call(arguments, 0),
       v = +this.getValue.apply(this, coords);
 
     return this.putValue.apply(
@@ -225,7 +286,7 @@ Math.Matrix.prototype = {
             as[i] = row.join(" ");
           }
         }
-      }
+      }n
   
       return as.join("\n");
     },
@@ -240,7 +301,7 @@ Math.Matrix.prototype = {
      * @return string
      * @todo
      */
-    function(i, m) {
+    function (i, m) {
       if (!m)
       {
         m = this;
@@ -267,7 +328,7 @@ Math.Matrix.prototype = {
  * @return Array
  *   The sum of the matrixes <var>a</var> and <var>b</var>
  */
-Math.matrixAdd = function(a, b) {
+jsx.math.add = function(a, b) {
   /*
    * x00 x01 x02   y00 y01 y02   x00+y00 x01+y01 x02+y02
    * x10 x11 x12 + y10 y11 y12 = x10+y10 x11+y11 x12+y12
@@ -275,13 +336,17 @@ Math.matrixAdd = function(a, b) {
    */
   var result = new Array();
 
-  var dimA, dimB;
-  if ((dimA = Math.dim(a)) == (dimB = Math.dim(b)))
+  var dimARow,
+       dimACol = jsx.math.dimCol(a),
+       dimBRow,
+       dimBCol = Math.dimCol(b);
+  if ((dimARow = jsx.math.dimRow(a)) == (dimBRow = Math.dimRow(b))
+      && (dimACol == dimBCol))
   {
-    for (var i = 0, a_len = Math.dimRow(a); i < a_len; i++)
+    for (var i = 0; i < dimARow; i++)
     {
-      result[i] = new Array();
-      for (var j = 0, ai_len = Math.dimCol(a); j < ai_len; j++)
+      result[i] = [];
+      for (var j = 0; j < dimACol; j++)
       {
         result[i][j] = a[i][j] + b[i][j];
       }
@@ -290,8 +355,8 @@ Math.matrixAdd = function(a, b) {
   else
   {
     throwException(new Math.InvalidOperandError(
-        "First matrix's dimension (" + dimA
-      + ") != second matrix's dimension (" + dimB + ")"));
+        "First matrix's dimension (" + dimARow + "," + dimACol
+      + ") != second matrix's dimension (" + dimBRow + ", " + dimBCol + ")"));
     return null;
   }
   
@@ -328,31 +393,31 @@ Math.matrixAdd = function(a, b) {
  * @return number|Array
  * @throws Math#InvalidOperandError
  */
-Math.multiply = function(a, b) {
+jsx.math.multiply = function(a, b) {
   /*
-   * x00 x01 ...   y00 y01 ...
-   * x10 x11 ... * y10 y11 ...
+   * a00 a01 ...   b00 b01 ...
+   * a10 a11 ... * b10 b11 ...
    * ... ... ...   ... ... ...
    *
-   *   x00*y00+x01*y10+...*... x00*y01+x01*y11+...*... x00*...+x01*...+...*...
-   * = x10*y10+x11*y10+...*... x10*y01+x11*y11+...*... x00*...+x01*...+...*...
-   *   ...*...+...*...+...+... ...*y01+...*y11+...*... x00*...+x01*...+...*...
+   *   a00*b00+a01*b10+...*... a00*b01+a01*b11+...*... a00*...+a01*...+...*...
+   * = a10*b10+a11*b10+...*... a10*b01+a11*b11+...*... a00*...+a01*...+...*...
+   *   ...*...+...*...+...+... ...*b01+...*b11+...*... a00*...+a01*...+...*...
    */
   
-  var dimRowX = Math.dimRow(a);
-  var dimColX = Math.dimCol(a);
-  var dimRowY = Math.dimCol(b);
-  var dimColY = Math.dimCol(b);
-  if ((dimRowX && dimColX) || (dimRowY && dimColY))
+  var dimRowA = Math.dimRow(a);
+  var dimColA = Math.dimCol(a);
+  var dimRowB = Math.dimRow(b);
+  var dimColB = Math.dimCol(b);
+  if ((dimRowA && dimColA) || (dimRowB && dimColB))
   {
-    if (dimRowX || dimRowY)
+    if (dimRowA || dimRowB)
     {
 //      if (dimRowX && d
       var result = matrixMatrixMultiply(a, b);
     }
-    else if (isArray(a) && !isArray(b))
+    else if (Array.isArray(a) && !Array.isArray(b))
     {
-      if (isArray(a[0]))
+      if (Array.isArray(a[0]))
       {
         // ...
       }
@@ -381,7 +446,7 @@ Math.multiply = function(a, b) {
     {
       if (y_len != xi_len)
       {
-        throwException(new Math.InvalidOperandError(
+        jsx.throwThis(new jsx.math.InvalidOperandError(
             "First matrix's column dimension (" + xi_len
           + ") != second matrix's row dimension (" + y_len + ")"));
         return null;
@@ -430,7 +495,7 @@ Math.multiply = function(a, b) {
  *   vector pointing to an adjacent vertex of the resulting orthotope
  *   that includes all points that the input orthotopes have in common.
  */
-Math.intersect = function (orthotope1, orthotope2) {
+jsx.math.intersect = function (orthotope1, orthotope2) {
   var result = [[], []];
   
   var ortho1LeftTop = orthotope1[0];
@@ -451,3 +516,11 @@ Math.intersect = function (orthotope1, orthotope2) {
 
   return result;
 };
+
+jsx.math.CoordinateError = function () {
+  arguments.callee._super.call(this, "Coordinate must be 1 or greater")
+};
+
+jsx.math.CoordinateError.extend(jsx.InvalidArgumentError, {
+  name: "jsx.math.CoordinateError"
+});

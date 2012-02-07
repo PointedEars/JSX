@@ -4,9 +4,21 @@ jsx.dom.Timer = function(f, oProperties) {
   if (f){this.form = f;}
   this.message = "";
   
-  for (var p in oProperties)
+  if (typeof Object.keys == "function")
   {
-    this[p] = oProperties[p];
+    var keys = Object.keys(oProperties);
+    for (var i = 0, len = keys.length; i < len; ++i)
+    {
+      var p = keys[i];
+      this[p] = oProperties[p];
+    }
+  }
+  else
+  {
+    for (p in oProperties)
+    {
+      this[p] = oProperties[p];
+    }
   }
 };
 
