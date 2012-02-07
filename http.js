@@ -283,7 +283,7 @@ jsx.net.http.Request.prototype = {
         {
           if (jsx_object.isMethod(this.successListener))
           {
-            this.successListener(response);
+            return this.successListener(response);
           }
         }
         else if (oStatus.FAILED_EXPR.test(reqStatus))
@@ -634,12 +634,13 @@ jsx.net.http.Request.prototype = {
    *   to that of the <code>async</code> property, which is <code>true</code>
    *   if not set different previously.
    * @type boolean
-   * @return <code>true</code> if the XHR object could be created
-   *   and <code>IXMLHTTPRequest::send()</code> was successful;
-   *   <code>false</code> otherwise.  Note that "successful" does
-   *   not imply that the server has actually received the message,
-   *   and responded with an OK status code, only that the method
-   *   could be called successfully.
+   * @return <code>true</code> (async) or what was returned by the success
+   *   listener (sync) if the XHR object could be created and
+   *   <code>IXMLHTTPRequest::send()</code> was successful;
+   *   <code>false</code> otherwise.  Note that for asynchronous handling
+   *   "successful" does not imply that the server has actually received
+   *   the message, and responded with an OK status code; only that the
+   *   method could be called successfully.
    */
   send: function (sData, sURL, sMethod, bAsync) {
     var
@@ -729,17 +730,17 @@ jsx.net.http.Request.prototype = {
     {
       if (jsx_object.isMethod(this._responseListener))
       {
-        this._responseListener(x);
+        result = this._responseListener(x);
       }
         
       /* Handle stopped servers */
-      jsx.tryThis(
-        function () {
-          if (C.status.OK_EXPR.test(x.status)) {
-            result = true;
-          }
-        }
-      );
+//      jsx.tryThis(
+//        function () {
+//          if (C.status.OK_EXPR.test(x.status)) {
+//            result = true;
+//          }
+//        }
+//      );
 
       /* TODO: Is this error-prone? */
 //      x = null;
@@ -769,7 +770,7 @@ jsx.net.http.Request.prototype = {
  * @constructor
  */
 jsx.net.http.ResponseListener = function (sCode) {
-  return Function("x", sCode || "");
+  return Function("x", sCode + "" || "");
 };
 
 /* Usage: */

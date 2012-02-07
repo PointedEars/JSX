@@ -11,7 +11,9 @@
     <script type="text/javascript" src="../UnicodeData.js"></script>
     <script type="text/javascript">
       var assert = jsx.test.assert;
+      var assertFalse = jsx.test.assertFalse;
       var RegExp2 = jsx.regexp.RegExp;
+      var out = [];
 
       jsx.test.runner.run({
         tests: [
@@ -21,7 +23,10 @@
               assert(typeof RegExp2.propertyClasses != "undefined");
               var rx = new RegExp2("\\p{Zp}");
               assert(rx.source == "[\\u2029]");
-              console.log(rx);
+              if (!jsx.info(rx))
+              {
+                out.push(rx);
+              }
             }
           },
           {
@@ -31,34 +36,65 @@
               jsx._import("../http.js");
               var rx = new RegExp2("\\p{Zp}");
               assert(rx.source == "[\\u2029]");
-              console.log(rx);
+              if (!jsx.info(rx))
+              {
+                out.push(rx);
+              }
             },
           },
           {
             name: "Throw exception on undefined property class",
             code: function() {
               RegExp2.deletePropertyClass("Zp");
-              var throwed = false;
+              var thrown = false;
               jsx.tryThis(
                 function () {
-                  console.log(new RegExp2("\\p{Zp}"));
+                  var rx = new RegExp2("\\p{Zp}");
+                  if (!jsx.info(rx))
+                  {
+                    out.push(rx);
+                  }
                 },
                 function (e) {
                   if (e.name == "jsx.regexp.UnknownPropertyClassError")
                   {                  
-                    throwed = true;
-                    console.log(e);
+                    thrown = true;
+                    if (!jsx.info(e))
+                    {
+                      out.push(e);
+                    }
                   }
                   else
                   {
-                    jsx.throwThis(function () { return e; });
+                    jsx.rethrowThis(e);
                   }
                 });
-              assert(throwed);
+              assert(thrown);
+            }
+          },
+          {
+            name: "Named subpatterns",
+            code: function () {
+              var rx = new RegExp2("(?P<foo>bar)");
+              assert(rx.groups[1] === "foo");
+              
+              var s = new jsx.regexp.String("bar");
+              assert(s == "bar");
+              assert("bar" == s);
+              assertFalse(s === "bar");
+              assertFalse("bar" === s);
+              
+              var m = s.match(rx);
+              assert(m.groups.foo === "bar");
             }
           }
         ]
       });
+      
+      if (out.length > 0)
+      {
+        window.alert(out.join("\n"));
+      }
     </script>
   </head>
 

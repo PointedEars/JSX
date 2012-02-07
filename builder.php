@@ -110,6 +110,16 @@ class ResourceBuilder
    * @var int
    */
   protected $_commentCount = 0;
+  
+  protected $_jsxDeps = array(
+    'types'  => 'object',
+    'xpath'  => 'object',
+    'http'   => 'object,string',
+    'debug'  => 'object,types,array',
+    'dom'    => 'types',
+    'css'    => 'dom,collection',
+    'events' => 'dom',
+  );
     
   public function __construct()
   {
@@ -314,11 +324,73 @@ class ResourceBuilder
     
     return $s;
   }
+
+  protected function resolveDeps()
+  {
+    $deps = $this->jsxDeps;
+    $old_sources = $this->sources;
+    $new_sources = $old_sources;
+    
+    /*
+     * "css"
+     *
+     */
+    
+    $seen = array();
+    
+    foreach ($old_sources as $key => $source)
+    {
+      if (!array_key_exists($source, $seen))
+      {
+        $new_sources[] = $source;
+        $seen[$source] = $key;
+        
+        if (array_key_exists($source, $deps))
+        {
+          /* if the needed script has dependencies */
+          $source_deps = $deps[$source];
+
+          if (!is_array($source_deps))
+          {
+            $source_deps = explode(',', $source_deps);
+          }
+          
+          /* for all dependences of that script */
+          foreach ($source_deps as $dep)
+          {
+            if (!array_key_exists($dep, $seen))
+            {
+              /*
+               * if the dependency has not yet been included, insert it before
+               * the script
+               */
+              /* Insert dependencies */
+    					/*
+    					 * events   http ---> string
+    					 *  |         |        |
+    					 *  v         v        v
+               * dom ---> types --> object <--- xpath
+               *  ^          ^      ^
+               *  |           \    /
+               * css          debug
+               *  |             |
+               *  v             v
+               * collection   array
+               */
+            }
+          }
+        }
+      }
+    }
+  }
   
   public function output()
   {
     header("Content-Type: {$this->contentType}");
     $prefix = $this->prefix;
+    
+//     $this->resolveDeps();
+    
     echo "/*\n"
         . " * Compacted with PointedEars' ResourceBuilder {$this->version}\n"
         . ($this->verbose

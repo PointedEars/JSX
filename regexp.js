@@ -104,7 +104,7 @@ var regexp_concat = jsx.regexp.concat = function () {
       /**
        * @return string
        */
-      function() {
+      function () {
         var
           a = [],
           oDummy = {g: 1, i: 1, m: 1, y: 1};
@@ -211,16 +211,16 @@ var regexp_intersect = jsx.regexp.intersect = function (pattern2, pattern1) {
 
   /* Compose the new alternation out of common parts */
   var hOP = (
-    function() {
+    function () {
       if (typeof Object.prototype.hasOwnProperty == "function")
       {
-        return function(o, p) {
+        return function (o, p) {
           return o.hasOwnProperty(p);
         };
       }
 
       /* suffices *here* */
-      return function(o, p) {
+      return function (o, p) {
         return typeof o[p] != "undefined"
                && typeof o.constructor.prototype[p] == "undefined";
       };
@@ -260,13 +260,18 @@ String.prototype.regExpEscape = strRegExpEscape;
 
 /**
  * Creates an extended {@link RegExp} where you can use some features
- * of Perl-compatible Regular Expressions: Unicode property classes
- * using e.g. the \p{…} notation, and named subpatterns by passing
- * strings with the <tt>(?&lt;name>…)</tt> notation.
- *
+ * of Perl-compatible Regular Expressions (PCRE).
+ * 
+ * The following PCRE features are currently supported:
+ * <ul>
+ *   <li>Unicode property classes using e.g. the \p{…} notation</li>
+ *   <li>Named subpatterns by passing strings with the
+ *       <tt>(?P&lt;name>…)</tt> or <tt>(?P'name'…)</tt> notation,
+ *       where the <tt>P</tt> is optional, respectively.</li>
+ * </ul><p>
  * There are the following possibilities to make Unicode property classes
  * known to this constructor:
- * <ol>
+ * </p><ol>
  *   <li>Provide the Unicode Character Database, or parts thereof,
  *       as an Object;</li>
  *   <li>Provide the Unicode Character Database, or parts thereof,
@@ -349,7 +354,7 @@ jsx.regexp.RegExp = (function () {
       if (!propertyClasses)
       {
         /* load it dynamically, ignore exceptions */
-        jsx.tryThis(function() { jsx.importFrom(me.ucdScriptPath); });
+        jsx.tryThis(function () { jsx.importFrom(me.ucdScriptPath); });
         
         propertyClasses = me.propertyClasses;
 
@@ -456,19 +461,19 @@ jsx.regexp.RegExp = (function () {
        * @param propertyClass : String
        * @throws jsx.regexp#UnknownPropertyClassError
        */
-      var _getRanges = function(propertyClass) {
+      var _getRanges = function (propertyClass) {
         return jsx.tryThis(
-          function() {
+          function () {
             return jsx_object.getProperty(propertyClasses, propertyClass);
           },
-          function(e) {
+          function (e) {
             if (e.name == "jsx.object.PropertyError")
             {
               jsx.throwThis("jsx.regexp.UnknownPropertyClassError", propertyClass);
             }
             else
             {
-              jsx.throwThis(e);
+              jsx.rethrowThis(e);
             }
           });
       };
@@ -528,7 +533,7 @@ jsx.regexp.RegExp = (function () {
       return result;
     };
     
-  return function(expression, sFlags) {
+  return function (expression, sFlags) {
     if (expression && expression.constructor == RegExp)
     {
       expression = expression.source;
@@ -561,12 +566,14 @@ jsx.regexp.RegExp = (function () {
     var me = this;
     
     /* Support for named subpatterns (PCRE-compliant) */
-    expression = expression.replace(/(\\\()|(\((\?P?[<']([^>']+)[>'])?)/g,
-      function(match, escapedLParen, group, namedGroup, name) {
+    expression = expression.replace(/(\\\()|(\((\?P?(<([^>]+)>|'([^']+)'))?)/g,
+      function (match, escapedLParen, group, namedGroup, bracketsOrQuotes,
+                 bracketedName, quotedName) {
         if (group)
         {
           ++groupCount;
 
+          var name = bracketedName || quotedName;
           if (name)
           {
             me.groups[groupCount] = name;
@@ -598,14 +605,14 @@ jsx.regexp.RegExp = (function () {
  *   <code>true</code> if <var>rx</var> has been constructed
  *   using this constructpr, <code>false</code> otherwise.
  */
-jsx.regexp.RegExp.isInstance = function(rx) {
+jsx.regexp.RegExp.isInstance = function (rx) {
   return !!rx.originalSource;
 };
 
-jsx.regexp.RegExp.exec = (function() {
+jsx.regexp.RegExp.exec = (function () {
   var isInstance = jsx.regexp.RegExp.isInstance;
 
-  return function(rx, s) {
+  return function (rx, s) {
     var matches = rx.exec(s);
     
     if (matches && !rx.global && isInstance(rx))
@@ -636,7 +643,7 @@ jsx.regexp.RegExp.deletePropertyClass = function (p) {
   return (delete this.propertyClasses[p]);
 };
 
-jsx.regexp.String = function(s) {
+jsx.regexp.String = function (s) {
   if (this.constructor != arguments.callee)
   {
     jsx.throwThis("jsx.Error", "Must be called as constructor",
@@ -656,10 +663,10 @@ jsx.regexp.String.extend(String);
  * @return Array
  *   The Array as if returned by String.prototype.match.call(this, rx)
  */
-jsx.regexp.String.prototype.match = (function() {
+jsx.regexp.String.prototype.match = (function () {
   var isInstance = jsx.regexp.RegExp.isInstance;
 
-  return function(rx) {
+  return function (rx) {
     var matches = this.value.match(rx);
     
     if (matches && !rx.global && isInstance(rx))
@@ -680,7 +687,7 @@ jsx.regexp.String.prototype.match = (function() {
  * Returns this object's encapsulated string value
  */
 jsx.regexp.String.prototype.toString = jsx.regexp.String.prototype.valueOf =
-  function() {
+  function () {
     return this.value;
   };
 
@@ -696,7 +703,7 @@ jsx.regexp.String.prototype.toString = jsx.regexp.String.prototype.valueOf =
    *   dynamically
    * @extends jsx.object#ObjectError
    */
-jsx.regexp.UCDLoadError = function(sUCDScript, sHTTPScript) {
+jsx.regexp.UCDLoadError = function (sUCDScript, sHTTPScript) {
   arguments.callee._super.call(this,
     "Unable to load the Unicode Character Database."
     + " Please include " + sUCDScript + " or " + sHTTPScript + ".");
@@ -709,7 +716,7 @@ jsx.regexp.UCDLoadError = function(sUCDScript, sHTTPScript) {
  * @param sMsg
  * @extends jsx.object#ObjectError
  */
-jsx.regexp.UnknownPropertyClassError = function(sMsg) {
+jsx.regexp.UnknownPropertyClassError = function (sMsg) {
   arguments.callee._super.call(
     this, "Unknown property class" + (arguments.length > 0 ? (": " + sMsg) : ""));
 }.extend(jsx.object.ObjectError, {name: "jsx.regexp.UnknownPropertyClassError"});

@@ -944,9 +944,10 @@ jsx.tryThis =
  * optimizations in code reuse moved it here.
  *
  * @function
- * @param errorType : string
- *   Identifier of the constructor for the error type.
- *   Use a false-value (e.g., <code>""</code> or <code>null</code>)
+ * @param errorType : string|Function|Error
+ *   Expression for the constructor of the error type, or a reference
+ *   to an object inheriting from <code>Error.prototype</code>.
+ *   Use a false-value (e.g., <code>""</code> or  <code>null</code>)
  *   to throw an unqualified exception.
  * @param sMessage : string|Array
  *   Error message to be displayed.  If an <code>Array</code>,
@@ -971,10 +972,20 @@ jsx.throwThis = (function() {
   
   return function(errorType, message, context) {
     var sErrorType = errorType;
+    var isError = false;
     
-    if (jsx_object.isMethod(errorType))
+    if (Error.prototype.isPrototypeOf(errorType))
     {
+      isError = true;
       sErrorType = "errorType";
+    }
+    else if (jsx_object.isMethod(errorType))
+    {
+      sErrorType = "new errorType";
+    }
+    else if (typeof errorType == "string")
+    {
+      sErrorType = "new " + errorType;
     }
     
     var sContext = "";
@@ -1010,12 +1021,21 @@ jsx.throwThis = (function() {
     }
   
     /* DEBUG */
-    var throwStmt = 'throw ' + (sErrorType ? 'new ' + sErrorType : '')
-                  + '(' + (message || "") + ');';
+    var throwStmt = 'throw ' + (sErrorType ? sErrorType : '')
+                  + (isError ? '' : '(' + (message || "") + ')') + ';';
     
     eval(throwStmt);
   };
 }());
+
+/**
+ * Rethrows arbitrary exceptions
+ * 
+ * @param exception
+ */
+jsx.rethrowThis = function (exception) {
+  eval("throw exception");
+};
 
 /**
  * Returns a feature of an object
@@ -1799,6 +1819,31 @@ Function.prototype.extend = (function() {
   };
 }());
 
+/* Defines Array.isArray() if not already defined */
+jsx.object.addProperties(
+  {
+    /**
+     * Determines if a value refers to an {@link Array}.
+     * <p>
+     * Returns <code>true</code> if the value is a reference to an object
+     * whose <code>class</code> internal property is <code>"Array"</code>;
+     * <code>false</code> otherwise.
+     * </p>
+     * @memberOf Array
+     * @function
+     * @return boolean
+     * @see ECMAScript Language Specification, Edition 5.1, section 15.4.3.2
+     */
+    isArray: (function () {
+      var _getClass = jsx.object.getClass;
+      
+      return function (a) {
+        return (_getClass(a) === "Array");
+      };
+    }())
+  },
+  Array);
+
 /* Defines Array.prototype.indexOf and .map() if not already defined */
 jsx.object.addProperties(
   {
@@ -1821,6 +1866,8 @@ jsx.object.addProperties(
      *   The first index at which a given element can be found in
      *   the array, or -1 if it is not present.
      * @author Courtesy of developer.mozilla.org, unverified
+     * @memberOf Array.prototype
+     * @see ECMAScript Language Specification, Edition 5.1, section 15.4.4.14
      */
     indexOf: function(searchElement, fromIndex) {
       "use strict";
@@ -1866,14 +1913,15 @@ jsx.object.addProperties(
       
       return -1;
     },
+    
     /**
      * Maps one array to another
      * 
-     * @memberOf Array.prototype
      * @param callback : Callable
      * @param oThis : optional Object
      * @return {Array}
      *   The original array with <var>callback</var> applied to each element.
+     * @see ECMAScript Language Specification, Edition 5.1, section 15.4.4.19
      */
     map: function(callback, oThis) {
       var jsx_object = jsx.object;
