@@ -1,9 +1,10 @@
+"use strict";
 /**
  * @fileOverview <title>Thread-unsafe map implementations</title>
  * @file $Id$
  * @requires object.js
  * 
- * @author (C) 2009-2011 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
+ * @author (C) 2009-2012 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
  * 
  * @partof PointedEars' JavaScript Extensions (JSX)
  * 
@@ -75,18 +76,18 @@ jsx.map.Map = (
      */
     function Map(map)
     {
-      var me = arguments.callee;
+//      var Map = arguments.callee;
       
       /* Allows to use this as a factory */
-      if (this.constructor != me)
+      if (!this || this.constructor != Map)
       {
-        return new me(map);
+        return new Map(map);
       }
       
       var
         /** @private map */
         _items = {},
-        _size = 0;
+        _size = 0,
         
         _hasOwnProperty = function(o, p) {
           return jsx.object.isMethod(o, "hasOwnProperty")
@@ -406,33 +407,13 @@ jsx.map.Map = (
        * @public
        */
       this.destruct = function() {
-        me = _items = null;
+        _items = null;
       };
     }
     
     return Map;
   }
 )();
-
-/**
- * Returns <code>true</code> if the argument is a {@link jsx.map#Map Map}
- *
- * @param o : Object
- * @return boolean
- */
-jsx.map.Map.isInstance = function(o) {
-  return !!o && o.constructor === this;
-};
-
-jsx.map.KeyError = function() {
-  arguments.callee._super.call(this, "KeyError");
-};
-jsx.map.Map.KeyError.extend(jsx.object.PropertyError);
-
-jsx.map.InvalidLengthError = function() {
-  arguments.callee._super.call(this, "InvalidLengthError");
-};
-jsx.map.InvalidLengthError.extend(jsx.object.PropertyError);
 
 /**
  * Returns a shallow copy of this map
@@ -467,3 +448,22 @@ jsx.map.Map.prototype.putAll = function(map) {
     this.put(o[0], o[1]);
   }
 };
+/**
+ * Returns <code>true</code> if the argument is a {@link jsx.map#Map Map}
+ *
+ * @param o : Object
+ * @return boolean
+ */
+jsx.map.Map.isInstance = function(o) {
+  return !!o && o.constructor === this;
+};
+
+jsx.map.KeyError = function (key) {
+  jsx.object.PropertyError.call(this, key);
+};
+jsx.map.KeyError.extend(jsx.object.PropertyError);
+
+jsx.map.InvalidLengthError = function() {
+  jsx.object.PropertyError.call(this, "InvalidLengthError");
+};
+jsx.map.InvalidLengthError.extend(jsx.object.PropertyError);

@@ -46,7 +46,7 @@ function playSound(sSoundFile, Loop, sAttrib)
         b,
         "unload",
         function() {
-          for (var i in me.sounds)
+          for (var i = me.sounds && me.sounds.length; i--;)
           {
             b.removeChild(me.sounds[i]);
           }

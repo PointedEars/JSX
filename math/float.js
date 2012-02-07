@@ -24,6 +24,22 @@
  * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+if (typeof jsx == "undefined")
+{
+  /**
+   * @namespace
+   */
+  var jsx = {};
+}
+
+if (typeof jsx.math == "undefined")
+{
+  /**
+   * @namespace
+   */
+  jsx.math = {};
+}
+
 /**
  * @return the minimum value passed by its arguments.
  * If an argument is an object (incl. Array objects),
@@ -31,7 +47,7 @@
  * evaluated.  If no arguments are provided, returns
  * <code>Number.POSITIVE_INFINITY</code>.
  */
-Math.minN = function() {
+jsx.math.min = function() {
   var result = Number.POSITIVE_INFINITY;
   var min_el;
     
@@ -40,12 +56,11 @@ Math.minN = function() {
     var a = arguments[i];
     if (isArray(a))
     {
-      for (var j = 0, len2 = a.length; j < len2; ++j)
+      var a2 = a.slice();
+      a2.sort(function (a, b) { return a - b; });
+      if (a2[0] < result)
       {
-        if ((min_el = Math.min(a[j])) < result)
-        {
-          result = min_el;
-        }
+        result = a2[0];
       }
     }
     else if (typeof a == "object")
@@ -74,7 +89,7 @@ Math.minN = function() {
  * evaluated.  If no arguments are provided, returns
  * <code>Number.NEGATIVE_INFINITY</code>.
  */
-Math.maxN = function() {
+jsx.math.max = function() {
   var result = Number.NEGATIVE_INFINITY;
   
   for (var i = 0, len = arguments.length; i < len; ++i)
@@ -82,19 +97,18 @@ Math.maxN = function() {
     var a = arguments[i], max_el;
     if (isArray(a))
     {
-      for (var j = 0, len2 = a.length; j < len2; ++j)
+      var a2 = a.slice();
+      a2.sort(function (a, b) { return b - a; });
+      if (a2[0] > result)
       {
-        if ((max_el = Math.maxN(a[j])) > result)
-        {
-          result = max_el;
-        }
+        result = a2[0];
       }
     }
     else if (typeof a == "object")
     {
       for (j in a)
       {
-        if ((max_el = Math.maxN(a[j])) > result)
+        if ((max_el = jsx.math.max(a[j])) > result)
         {
           result = max_el;
         }
@@ -117,7 +131,7 @@ Math.maxN = function() {
  *   evaluated.  If no arguments are provided, returns
  *   <code>0</code>.
  */
-Math.avgN = function() {
+jsx.math.avg = function() {
   var sum = 0;
   var count = 0;
 
@@ -129,7 +143,7 @@ Math.avgN = function() {
       for (var j = 0; j < a.length; j++)
       {
         count++;
-        sum += Math.avgN(a[j]);
+        sum += jsx.math.avg(a[j]);
       }
     }
     else if (typeof a == "object")
@@ -137,7 +151,7 @@ Math.avgN = function() {
       for (j in a)
       {
         count++;
-        sum += Math.avgN(a[j]);
+        sum += jsx.math.avg(a[j]);
       }
     }
     else
@@ -159,7 +173,7 @@ Math.avgN = function() {
  * @return number
  *   The <var>iRoot</var>-th root of <var>n</var>
  */
-Math.root = function(n, iRoot) {
+jsx.math.root = function(n, iRoot) {
   return (iRoot % 2 && n < 0 ? -1 : +1)
          * Math.pow(Math.abs(n), 1/Math.floor(iRoot));
 };
@@ -170,7 +184,7 @@ Math.root = function(n, iRoot) {
  *   <var>n</var> squared, i.e. <code>Math.pow(n, 2)</code>.
  * @author (c) 2003  Thomas Lahn &lt;math.js@PointedEars.de&gt;
  */
-Math.sqr = function(n) {
+jsx.math.sqr = function(n) {
   return Math.pow(n, 2);
 };
 
@@ -181,7 +195,7 @@ Math.sqr = function(n) {
  *   <code>Math.pow(n, 3)</code>.
  * @author (c) 2000  Thomas Lahn &lt;math.js@PointedEars.de&gt;
  */
-Math.cub = function(n) {
+jsx.math.cub = function(n) {
   return Math.pow(n, 3);
 };
 
@@ -193,8 +207,8 @@ Math.cub = function(n) {
  *   with negative values of <code>n</code>.
  * @author (c) 2000  Thomas Lahn &lt;math.js@PointedEars.de&gt;
  */
-Math.cubrt = function(n) {
-  return root(n, 3);
+jsx.math.cubrt = function(n) {
+  return jsx.math.root(n, 3);
 };
 
 
@@ -276,7 +290,7 @@ function roundDigits_deprecated(x, n) {
  *   <var>n</var> rounded to the number of specified digits, optionally
  *   with leading zeroes.
  */
-Math.roundDigits = function(n, iSigDecimals, iForceDecimals,
+jsx.math.roundDigits = function(n, iSigDecimals, iForceDecimals,
                             bForceLeadingZero, sDecSeparator)
 {
   if (! iSigDecimals)
@@ -374,7 +388,7 @@ Math.roundDigits = function(n, iSigDecimals, iForceDecimals,
  *   The period of <code>n</code> as a string;
  *   "0" if there is none.
  */
-Math.getPeriod = function(n, bLoose, iPrecision) {
+jsx.math.getPeriod = function(n, bLoose, iPrecision) {
   var s = String(n);
   for (var i = 3; i < s.length; i++)
   {
@@ -396,7 +410,7 @@ Math.getPeriod = function(n, bLoose, iPrecision) {
  * @return string
  *   The representation of <var>fDec</var> in whole fractions
  */
-Math.toFraction = function(fDec) {
+jsx.math.toFraction = function(fDec) {
   /**
    * I:        x = 0.111111111111111      y = 1
    * II:     10x = 1.111111111111111
@@ -409,13 +423,13 @@ Math.toFraction = function(fDec) {
    * 4. RESULT = 'A "/" (10^Y - 1)'
    */
   
-  var y = Math.getPeriod(fDec).length;
+  var y = jsx.math.getPeriod(fDec).length;
   var z = fDec * Math.pow(10, y);
   var dividend = Math.round(z - fDec);
   var divisor = Math.round((Math.pow(10, y) - 1));
 
   /* "shorten" the fraction */
-  var d = Math.gcd(dividend, divisor);
+  var d = jsx.math.gcd(dividend, divisor);
   if (d > 1)
   {
     dividend /= d;
@@ -430,9 +444,9 @@ Math.toFraction = function(fDec) {
 
 /** @subsection Trigonometry */
 
-Math.dtRad  = 0;
-Math.dtDeg  = 1;
-Math.dtGrad = 2;
+jsx.math.dtRad  = 0;
+jsx.math.dtDeg  = 1;
+jsx.math.dtGrad = 2;
 
 /**
  * Unlike the {@link js#Math built-in methods}, the following
@@ -448,14 +462,14 @@ Math.dtGrad = 2;
  * @return number
  *   The sine of <var>x</var>
  */
-Math.sinX = function(x, iArgType) {
+jsx.math.sinX = function(x, iArgType) {
   switch (iArgType)
   {
-    case Math.dtDeg:
+    case jsx.math.dtDeg:
       x = x/180 * Math.PI;
       break;
 
-    case Math.dtGrad:
+    case jsx.math.dtGrad:
       x = x/300 * Math.PI;
   }
 
@@ -468,14 +482,14 @@ Math.sinX = function(x, iArgType) {
  * @return number
  *   The cosine of <var>x</var>
  */
-Math.cosX = function(x, iArgType) {
+jsx.math.cosX = function(x, iArgType) {
   switch (iArgType)
   {
-    case Math.dtDeg:
+    case jsx.math.dtDeg:
       x = x/180 * Math.PI;
       break;
       
-    case Math.dtGrad:
+    case jsx.math.dtGrad:
       x = x/300 * Math.PI;
   }
   
@@ -491,16 +505,16 @@ Math.cosX = function(x, iArgType) {
  *   defined above.
  * @requires jsx.object#isMethod()
  */
-Math.tanX = function(x, iArgType) {
+jsx.math.tanX = function(x, iArgType) {
   var jsx_object = jsx.object;
   
   switch (iArgType)
   {
-    case Math.dtDeg:
+    case jsx.math.dtDeg:
       x = x/180 * Math.PI;
       break;
       
-    case Math.dtGrad:
+    case jsx.math.dtGrad:
       x = x/300 * Math.PI;
   }
   
@@ -509,14 +523,8 @@ Math.tanX = function(x, iArgType) {
     return Math.tan(x);
   }
   
-  return (Math.sinX(x) / Math.cosX(x));
+  return (jsx.math.sinX(x) / jsx.math.cosX(x));
 };
-
-if (!jsx.object.isMethod(Math, "tan"))
-{
-  Math.tan = Math.tanX;
-}
-
 
 /** @subsection Complex numbers */
 
@@ -524,12 +532,12 @@ if (!jsx.object.isMethod(Math, "tan"))
  * @param nRe : number
  * @param nIm : number
  */
-Math.Complex = function(nRe, nIm) {
+jsx.math.Complex = function(nRe, nIm) {
   Number.call(this);
   this.re = Number(nRe) || 0;
   this.im = Number(nIm) || 0;
 };
-Math.Complex.extend(Number);
+jsx.math.Complex.extend(Number);
 
 /**
  * @param a : Complex
@@ -537,10 +545,10 @@ Math.Complex.extend(Number);
  * @return Complex
  *   The complex sum of <var>a</var> and <var>b</var>
  */
-Math.addComplex =
-Math.Complex.prototype.add = function(a, b) {
+jsx.math.addComplex =
+jsx.math.Complex.prototype.add = function(a, b) {
   var result = null;
-  var math = Math;
+  var math = jsx.math;
 
   if (this instanceof math.Complex)
   {
@@ -552,7 +560,7 @@ Math.Complex.prototype.add = function(a, b) {
   {
     if (!(a instanceof math.Complex))
     {
-      a = new Math.Complex(a);
+      a = new math.Complex(a);
     }
 
     if (!(b instanceof math.Complex))
@@ -570,11 +578,11 @@ Math.Complex.prototype.add = function(a, b) {
  * @return Complex
  *   The complex product of <var>a</var> and <var>b</var>
  */
-Math.mulComplex =
-Math.Complex.prototype.mul = function(a, b) {
+jsx.math.mulComplex =
+jsx.math.Complex.prototype.mul = function(a, b) {
   var result = null;
 
-  if (this instanceof Math.Complex)
+  if (this instanceof jsx.math.Complex)
   {
     b = a;
     a = this;
@@ -582,19 +590,19 @@ Math.Complex.prototype.mul = function(a, b) {
 
   if (a && b)
   {
-    if (!(a instanceof Math.Complex))
+    if (!(a instanceof jsx.math.Complex))
     {
-      a = new Math.Complex(a);
+      a = new jsx.math.Complex(a);
     }
 
-    if (!(b instanceof Math.Complex))
+    if (!(b instanceof jsx.math.Complex))
     {
-      b = new Math.Complex(b);
+      b = new jsx.math.Complex(b);
     }
      
     //  a.re, a.im     b.re, b.im
     // (a,    b   ) * (c,    d   ) = (a * c - b * d, a * d + b * c)
-    return new Math.Complex(
+    return new jsx.math.Complex(
       a.re * b.re - a.im * b.im,
       a.re * b.im + a.im * b.re);
   }

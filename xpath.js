@@ -136,8 +136,7 @@ jsx.xpath = {
                 iResultType, objResult);
             },
             function (e) {
-              /* TODO: Rethrow exception without function wrapper */
-              jsx.throwThis(function() { return e; });
+              jsx.rethrowThis(e);
             }
           );
         }
