@@ -30,11 +30,24 @@
  * Refer math.htm file for general documentation.
  */
 
-jsx.math.version   = "1.16.2005052117";
-jsx.math.copyright = "Copyright \xA9 1999-2005";
-jsx.math.author    = "Thomas Lahn";
-jsx.math.email     = "math.js@PointedEars.de";
-jsx.math.path      = "http://pointedears.de/scripts/";
+if (typeof jsx == "undefined")
+{
+  /**
+   * @namespace
+   */
+  var jsx = {};
+}
+
+/**
+ * @namespace
+ */
+jsx.math = {
+  version:   "1.16.2005052117",
+  copyright: "Copyright \xA9 1999-2005",
+  author:    "Thomas Lahn",
+  email:     "math.js@PointedEars.de",
+  path:      "http://pointedears.de/scripts/"
+};
 // jsx.math.docURL = jsx.math.path + "math.htm";
 
 /* User interface language */

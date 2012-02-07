@@ -45,7 +45,7 @@ jsx.test.AssertionError = function (s) {
 jsx.test.AssertionError.extend((typeof Error != "undefined") ? Error : null);
 
 /**
- * Asserts that a condition is true.  If it isn't, it throws
+ * Asserts that a condition converts to true.  If it does not, it throws
  * an <code>AssertionError</code> with a default message.
  *
  * @param x : string|any
@@ -63,7 +63,7 @@ jsx.test.AssertionError.extend((typeof Error != "undefined") ? Error : null);
  *   <code>true</code>, if the assertion is met.
  * @see Global#eval(String)
  */
-jsx.test.assertTrue = jsx.test.assert = function (x) {
+jsx.test.assert = function (x) {
   var origX = x;
   if (typeof x == "string")
   {
@@ -71,6 +71,45 @@ jsx.test.assertTrue = jsx.test.assert = function (x) {
   }
   
   if (!x)
+  {
+    (
+      function () {
+        eval('throw new jsx.test.AssertionError('
+             + '"assert(" + (typeof origX == "string" ? origX : "...") + ");");');
+      }
+    )();
+  }
+  
+  return !!x;
+};
+
+/**
+ * Asserts that a condition is boolean <code>true</code>.  If it isn't,
+ * it throws an <code>AssertionError</code> with a default message.
+ *
+ * @param x : string|any
+ *   If a string, it is evaluated as a <i>Program</i>; the assertion
+ *   fails if its result, type-converted to <i>boolean</i>, is
+ *   <code>false</code>.
+ *   If not a string, the value is type-converted to <i>boolean</i>;
+ *   the assertion fails if the result of the conversion is
+ *   <code>false</code>.
+ * @throws
+ *   <code>AssertionError</code> if the assertion fails and this exception
+ *   can be thrown.
+ * @return boolean
+ *   <code>false</code>, if the assertion fails and no exception can be thrown;
+ *   <code>true</code>, if the assertion is met.
+ * @see Global#eval(String)
+ */
+jsx.test.assertTrue = function (x) {
+  var origX = x;
+  if (typeof x == "string")
+  {
+    x = eval(x);
+  }
+  
+  if (typeof x != "boolean" || !x)
   {
     (
       function () {
@@ -116,7 +155,7 @@ jsx.test.assertFalse = function (x, bThrow, sContext) {
     x = eval(x);
   }
   
-  if (x)
+  if (typeof x != "boolean" || x)
   {
     if (typeof bThrow == "undefined" || bThrow)
     {
@@ -131,6 +170,60 @@ jsx.test.assertFalse = function (x, bThrow, sContext) {
     {
       jsx.dmsg((sContext ? sContext + ": " : "") + "Assertion failed: "
         + (typeof origX == "string" ? origX : "Value") + " must be false.", "warn");
+    }
+  }
+  
+  return !!x;
+};
+
+/**
+ * Asserts that a condition is <code>undefined</code>.  If it isn't, it throws
+ * an <code>AssertionError</code> with a default message.
+ *
+ * @param x : string|any
+ *   If a string, it is evaluated as a <i>Program</i>; the assertion
+ *   fails if its result, type-converted to <i>boolean</i>, is
+ *   <code>true</code>.
+ *   If not a string, the value is type-converted to <i>boolean</i>;
+ *   the assertion fails if the result of the conversion is
+ *   <code>true</code>.
+ * @param bThrow : optional boolean = true
+ *   If <code>true</code> (default), an exception will be thrown if
+ *   the assertion fails, otherwise a warning will be issued to the
+ *   error console in that case.
+ * @param sContext : optional String
+ *   Description of the context in which the assertion was made.
+ *   Ignored if <code><var>bThrow</var> == true</code>.
+ * @throws
+ *   <code>AssertionError</code> if the assertion fails and this exception
+ *   can be thrown.
+ * @return boolean
+ *   <code>false</code>, if the assertion fails and no exception can be thrown;
+ *   <code>true</code>, if the assertion is met.
+ * @see Global#eval(String)
+ */
+jsx.test.assertUndefined = function (x, bThrow, sContext) {
+  var origX = x;
+  if (typeof x == "string")
+  {
+    x = eval(x);
+  }
+  
+  if (typeof x != "undefined")
+  {
+    if (typeof bThrow == "undefined" || bThrow)
+    {
+      (
+        function () {
+          eval('throw new jsx.test.AssertionError('
+               + '"assertUndefined(" + (typeof origX == "string" ? origX : "...") + ");");');
+        }
+      )();
+    }
+    else
+    {
+      jsx.dmsg((sContext ? sContext + ": " : "") + "Assertion failed: "
+        + (typeof origX == "string" ? origX : "Value") + " must be undefined.", "warn");
     }
   }
   
@@ -240,21 +333,23 @@ jsx.test.runner = {
    *        <td>Test cases</td>
    *      </tr>
    *   </table>
-   * @function
    */
   run: (function() {
     var isNativeMethod = jsx.object.isNativeMethod;
     
-    return function(spec) {
+    return function (spec) {
+      var hasSetUp = false;
+      var hasTearDown = false;
+      
       if (spec)
       {
-        var hasSetUp = isNativeMethod(spec, 'setUp');
+        hasSetUp = isNativeMethod(spec, 'setUp');
         if (hasSetUp)
         {
           this._setUp = spec.setUp;
         }
         
-        var hasTearDown = isNativeMethod(spec, 'tearDown');
+        hasTearDown = isNativeMethod(spec, 'tearDown');
         if (hasTearDown)
         {
           this._tearDown = spec.tearDown;
@@ -298,7 +393,7 @@ jsx.test.runner = {
         catch (e)
         {
           ++result.failed;
-          jsx.warn("Test " + number  + name
+          jsx.warn("Test " + number + name
             + " threw " + e + (e.stack ? "\n\n" + e.stack : ""));
         }
 
