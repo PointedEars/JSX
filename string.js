@@ -1297,7 +1297,8 @@ var pad = jsx.string.pad = function(s, n, c, bRight, iStart) {
   var a = [];
   var missingLength = n - iStart + 1;
   
-  if (typeof a.join === "function" && (missingLength < Math.pow(2, 32)))
+  if (typeof a.join === "function"
+      && (missingLength > -1) && (missingLength < Math.pow(2, 32)))
   {
     a.length = missingLength;
     var rep = a.join(c);
