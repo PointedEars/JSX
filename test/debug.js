@@ -36,10 +36,6 @@ jsx.debug = {
 
 // debug.docURL = debug.path + "../debug.htm";
 
-/* reference to the Global Object */
-var sGlobal = "_global";
-this[sGlobal] = this;
-
 /* global undefined value (for implementations without it) */
 var undefined;
 
@@ -549,6 +545,7 @@ var synhl = (function () {
   var
     jsx_debug = jsx.debug,
     jsx_object = jsx.object,
+    isMethod = jsx_object.isMethod,
     jsx_xpath = jsx.xpath,
     reservedWords = [
       /* ES5 keywords */
@@ -1484,7 +1481,7 @@ jsx.object.addProperties({
         'object',
         Object),
       new NonEnumProperties(
-        new RegExp(sGlobal), /* global object */
+        /jsx\.global/, /* global object */
         [
           "NaN", "Infinity", "length", "undefined",
           "parseInt", "parseFloat", "isNaN", "isFinite",
@@ -1655,13 +1652,13 @@ jsx.object.addProperties({
             '    this.target = eval(dotsToBrackets(sObject));',
             '  } catch (e) {',
             '    try {',
-            '      this.target = _global["' + sObject + '"];',
+            '      this.target = jsx.global["' + sObject + '"];',
             '    } catch (e) {',
             '      this.target = null;',
             '    }',
             '  }',
             '}').join("\n"));
-        _global.onerror = null;
+        window.onerror = null;
         if (! tc)
         {
           this.target = null;
@@ -1880,7 +1877,7 @@ function getObjInfo(sObject, aWhat, sStyle, sHeader, sFooter, sInspectorPath)
           '    var o = eval(sObject);',
           // alert("3: " + sObject + "[" + typeof sObject + "]");
           '  } catch (e) {',
-          '    sObject = "_global." + sObject;',
+          '    sObject = "jsx.global." + sObject;',
           // alert("4: " + sObject + "[" + typeof sObject + "]");
           '    try {',
           '      var o = eval(sObject);', // TODO

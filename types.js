@@ -22,10 +22,13 @@
  * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* a more compatible approach */
 if (typeof jsx == "undefined")
 {
-  var jsx = {};
+  var jsx = {
+    options: {
+      emulate: true
+    }
+  };
 }
 
 jsx.types = {
