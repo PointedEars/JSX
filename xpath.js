@@ -6,7 +6,7 @@
  *
  * @section Copyright & Disclaimer
  *
- * @author (C) 2008‒2011  Thomas Lahn <js@PointedEars.de>
+ * @author (C) 2008‒2012  Thomas Lahn <js@PointedEars.de>
  * 
  * @partof PointedEars' JavaScript Extensions (JSX)
  * 
@@ -485,7 +485,9 @@ jsx.xpath = {
    * 
    * @function
    */
-  InvalidImplementationError: (function () {}).extend(jsx.Error, {
+  InvalidImplementationError: (function () {
+    jsx.Error.call(this);
+  }).extend(jsx.Error, {
     name: "jsx.xpath.InvalidImplementationError"
   }),
   
@@ -495,7 +497,7 @@ jsx.xpath = {
    * @function
    */
   InvalidNodeError: (function (contextNode) {
-    arguments.callee._super.call(this, contextNode);
+    jsx.Error.call(this, contextNode);
   }).extend(jsx.Error, {
     name: "jsx.xpath.InvalidNodeError"
   })

@@ -20,23 +20,36 @@
  * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * @namespace
- */
-var jsx = {
+if (typeof jsx == "undefined")
+{
   /**
    * @namespace
    */
-  object: {
-    /**
-     * @version
-     */
-    version:   "0.2.$Revision$ ($Date$)",
-    copyright: "Copyright \xA9 2004-2011",
-    author:    "Thomas Lahn",
-    email:     "js@PointedEars.de",
-    path:      "http://PointedEars.de/scripts/"
-  }
+  var jsx = {};
+}
+
+if (typeof jsx.options == "undefined")
+{
+  /**
+   * @namespace
+   */
+  jsx.options = {
+    emulate: true
+  };
+}
+
+/**
+ * @namespace
+ */
+jsx.object = {
+  /**
+   * @version
+   */
+  version:   "0.2.$Revision$ ($Date$)",
+  copyright: "Copyright \xA9 2004-2011",
+  author:    "Thomas Lahn",
+  email:     "js@PointedEars.de",
+  path:      "http://PointedEars.de/scripts/"
 };
   
 // jsx.object.docURL = jsx.object.path + "object.htm";
@@ -1440,6 +1453,8 @@ jsx.object.getProperty = function(obj, sProperty, aDefault) {
   return aDefault;
 };
 
+if (jsx.options.emulate)
+{
 /* Disabled until ECMAScript allows to hide properties from iteration */
 //addProperties({
 //    addProperties  : addProperties,
@@ -1449,142 +1464,143 @@ jsx.object.getProperty = function(obj, sProperty, aDefault) {
 //  },
 //  Object.prototype);
 
-if (jsx.object.isMethod(this, "eval"))
-{
-  /*
-   * KJS 3.5.1 does not support named FunctionExpressions within Object
-   * literals if the literal is an AssignmentExpression (right-hand side
-   * of an assignment or a passed function argument).
-   * fixed since <http://bugs.kde.org/show_bug.cgi?id=123529>
-   */
-
-  jsx.object.addProperties(
-    {
-      /**
-       * Applies a method of another object in the context
-       * of a different object (the calling object).
-       *
-       * @memberOf Function#prototype
-       * @function
-       * @param thisArg : object
-       *   Reference to the calling object.
-       * @param argArray : Array
-       *   Arguments for the object.
-       */
-      apply: (function() {
-        var
-          jsx_object = jsx.object,
-          jsx_global = jsx.global;
+  if (jsx.object.isMethod(this, "eval"))
+  {
+    /*
+     * KJS 3.5.1 does not support named FunctionExpressions within Object
+     * literals if the literal is an AssignmentExpression (right-hand side
+     * of an assignment or a passed function argument).
+     * fixed since <http://bugs.kde.org/show_bug.cgi?id=123529>
+     */
+  
+    jsx.object.addProperties(
+      {
+        /**
+         * Applies a method of another object in the context
+         * of a different object (the calling object).
+         *
+         * @memberOf Function#prototype
+         * @function
+         * @param thisArg : object
+         *   Reference to the calling object.
+         * @param argArray : Array
+         *   Arguments for the object.
+         */
+        apply: (function() {
+          var
+            jsx_object = jsx.object,
+            jsx_global = jsx.global;
+          
+          return function(thisArg, argArray) {
+            if (!thisArg)
+            {
+              thisArg = jsx_global;
+            }
+            
+            var
+              o = {},
+              p = jsx_object.findNewProperty(o);
+            
+            if (p)
+            {
+              o[p] = thisArg || this;
+  
+              var a = new Array();
+              for (var i = 0, len = argArray.length; i < len; i++)
+              {
+                a[i] = "argArray[" + i + "]";
+              }
         
-        return function(thisArg, argArray) {
+              eval("o[p](" + a + ")");
+              
+              delete o[p];
+            }
+          };
+        }()),
+    
+        /**
+         * Calls (executes) a method of another object in the
+         * context of a different object (the calling object).
+         *
+         * @memberOf Function#prototype
+         * @param thisArg : Object
+         *   Reference to the calling object.  SHOULD NOT
+         *   be a host object, since augmentation is required.
+         * @arguments _ _
+         *   Arguments for the object.
+         */
+        call: function(thisArg) {
+          var a = new Array();
+          
+          for (var i = 1, len = arguments.length; i < len; i++)
+          {
+            a[i] = "arguments[" + i + "]";
+          }
+      
           if (!thisArg)
           {
-            thisArg = jsx_global;
+            thisArg = jsx.global;
           }
           
           var
             o = {},
-            p = jsx_object.findNewProperty(o);
+            p = jsx.object.findNewProperty(o);
           
           if (p)
           {
-            o[p] = thisArg || this;
-
-            var a = new Array();
-            for (var i = 0, len = argArray.length; i < len; i++)
-            {
-              a[i] = "argArray[" + i + "]";
-            }
-      
+            o[p] = this;
             eval("o[p](" + a + ")");
-            
             delete o[p];
+            o = null;
           }
-        };
-      }()),
-  
-      /**
-       * Calls (executes) a method of another object in the
-       * context of a different object (the calling object).
-       *
-       * @memberOf Function#prototype
-       * @param thisArg : Object
-       *   Reference to the calling object.  SHOULD NOT
-       *   be a host object, since augmentation is required.
-       * @arguments _ _
-       *   Arguments for the object.
-       */
-      call: function(thisArg) {
-        var a = new Array();
+        },
         
-        for (var i = 1, len = arguments.length; i < len; i++)
-        {
-          a[i] = "arguments[" + i + "]";
-        }
+        /**
+         * Constructs a new object using the calling object as constructor
+         * and elements of the referred array as items of the arguments list.
+         * <p>
+         * Example:
+         * <pre><code>var d = Date.construct([2009, 8, 1]);</code></pre>
+         * is equivalent to
+         * <pre><code>var d = new Date(2009, 8, 1);</code></pre>
+         * but, by contrast, allows for passing an arbitrary number of
+         * arguments per the array's elements.
+         * </p>
+         * @memberOf Function#prototype
+         * @function
+         * @param argArray : Array
+         * @return {Object} the newly constructed object
+         */
+        construct: function(argArray) {
+          var a = new Array();
+          for (var i = 0, len = argArray.length; i < len; ++i)
+          {
+            a[i] = "argArray[" + i + "]";
+          }
+                 
+          return eval("new this(" + a + ")");
+        },
+        
+        /**
+         * @author Courtesy of Asen Bozhilov, slightly adapted
+         * @function
+         * @memberOf Function#prototype
+         * @param argArray : Array
+         * @return {Object} the newly constructed object
+         */
+        construct2: (function() {
+          function Dummy(constructor, argArray) {
+            constructor.apply(this, argArray);
+          }
     
-        if (!thisArg)
-        {
-          thisArg = jsx.global;
-        }
-        
-        var
-          o = {},
-          p = jsx.object.findNewProperty(o);
-        
-        if (p)
-        {
-          o[p] = this;
-          eval("o[p](" + a + ")");
-          delete o[p];
-          o = null;
-        }
+          return function(argArray) {
+            Dummy.prototype = this.prototype;
+            return new Dummy(this, argArray);
+          };
+        }())
       },
-      
-      /**
-       * Constructs a new object using the calling object as constructor
-       * and elements of the referred array as items of the arguments list.
-       * <p>
-       * Example:
-       * <pre><code>var d = Date.construct([2009, 8, 1]);</code></pre>
-       * is equivalent to
-       * <pre><code>var d = new Date(2009, 8, 1);</code></pre>
-       * but, by contrast, allows for passing an arbitrary number of
-       * arguments per the array's elements.
-       * </p>
-       * @memberOf Function#prototype
-       * @function
-       * @param argArray : Array
-       * @return {Object} the newly constructed object
-       */
-      construct: function(argArray) {
-        var a = new Array();
-        for (var i = 0, len = argArray.length; i < len; ++i)
-        {
-          a[i] = "argArray[" + i + "]";
-        }
-               
-        return eval("new this(" + a + ")");
-      },
-      
-      /**
-       * @author Courtesy of Asen Bozhilov, slightly adapted
-       * @function
-       * @memberOf Function#prototype
-       * @param argArray : Array
-       * @return {Object} the newly constructed object
-       */
-      construct2: (function() {
-        function Dummy(constructor, argArray) {
-          constructor.apply(this, argArray);
-        }
-  
-        return function(argArray) {
-          Dummy.prototype = this.prototype;
-          return new Dummy(this, argArray);
-        };
-      }())
-    },
-    Function.prototype);
+      Function.prototype);
+  }
 }
 
 /**
@@ -1819,134 +1835,137 @@ Function.prototype.extend = (function() {
   };
 }());
 
-/* Defines Array.isArray() if not already defined */
-jsx.object.addProperties(
-  {
-    /**
-     * Determines if a value refers to an {@link Array}.
-     * <p>
-     * Returns <code>true</code> if the value is a reference to an object
-     * whose <code>class</code> internal property is <code>"Array"</code>;
-     * <code>false</code> otherwise.
-     * </p>
-     * @memberOf Array
-     * @function
-     * @return boolean
-     * @see ECMAScript Language Specification, Edition 5.1, section 15.4.3.2
-     */
-    isArray: (function () {
-      var _getClass = jsx.object.getClass;
-      
-      return function (a) {
-        return (_getClass(a) === "Array");
-      };
-    }())
-  },
-  Array);
-
-/* Defines Array.prototype.indexOf and .map() if not already defined */
-jsx.object.addProperties(
-  {
-    /**
-     * Returns the first index at which a given element can be found in
-     * the array, or -1 if it is not present.
-     * 
-     * @param searchElement
-     *   Element to locate in the array.
-     * @param fromIndex : number
-     *   The index at which to begin the search. Defaults to 0, i.e.
-     *   the whole array will be searched. If the index is greater than
-     *   or equal to the length of the array, -1 is returned, i.e.
-     *   the array will not be searched. If negative, it is taken as
-     *   the offset from the end of the array. Note that even when
-     *   the index is negative, the array is still searched from front
-     *   to back. If the calculated index is less than 0, the whole array
-     *   will be searched.
-     * @returns
-     *   The first index at which a given element can be found in
-     *   the array, or -1 if it is not present.
-     * @author Courtesy of developer.mozilla.org, unverified
-     * @memberOf Array.prototype
-     * @see ECMAScript Language Specification, Edition 5.1, section 15.4.4.14
-     */
-    indexOf: function(searchElement, fromIndex) {
-      "use strict";
-      if (this === void 0 || this === null)
-      {
-        throw new TypeError();
-      }
-      
-      var t = Object(this);
-      
-      var len = t.length >>> 0;
-      if (len === 0) {
-        return -1;
-      }
-      
-      var n = 0;
-      if (arguments.length > 0)
-      {
-        n = Number(fromIndex);
-        if (n !== n) {
-          /* shortcut for verifying if it's NaN */
-          n = 0;
-        }
-        else if (n !== 0 && n !== Infinity && n !== -Infinity)
-        {
-          n = (n > 0 || -1) * Math.floor(Math.abs(n));
-        }
-      }
-      
-      if (n >= len)
-      {
-        return -1;
-      }
-      
-      var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
-      for (; k < len; k++)
-      {
-        if (k in t && t[k] === searchElement)
-        {
-          return k;
-        }
-      }
-      
-      return -1;
-    },
-    
-    /**
-     * Maps one array to another
-     * 
-     * @param callback : Callable
-     * @param oThis : optional Object
-     * @return {Array}
-     *   The original array with <var>callback</var> applied to each element.
-     * @see ECMAScript Language Specification, Edition 5.1, section 15.4.4.19
-     */
-    map: function(callback, oThis) {
-      var jsx_object = jsx.object;
-    
-      if (!jsx_object.isMethod(callback))
-      {
-        jsx.throwThis("TypeError",
-          (jsx_object.isMethod(callback, "toSource") ? callback.toSource() : callback)
-            + " is not callable",
-          this + ".map");
-      }
-      
-      var
-        len = this.length >>> 0,
-        res = [];
+if (jsx.options.emulate)
+{
+  /* Defines Array.isArray() if not already defined */
+  jsx.object.addProperties(
+    {
+      /**
+       * Determines if a value refers to an {@link Array}.
+       * <p>
+       * Returns <code>true</code> if the value is a reference to an object
+       * whose <code>class</code> internal property is <code>"Array"</code>;
+       * <code>false</code> otherwise.
+       * </p>
+       * @memberOf Array
+       * @function
+       * @return boolean
+       * @see ECMAScript Language Specification, Edition 5.1, section 15.4.3.2
+       */
+      isArray: (function () {
+        var _getClass = jsx.object.getClass;
         
-      for (var i = 0; i < len; i++)
-      {
-        res[i] = callback.call(oThis, this[i], i, this);
+        return function (a) {
+          return (_getClass(a) === "Array");
+        };
+      }())
+    },
+    Array);
+
+  /* Defines Array.prototype.indexOf and .map() if not already defined */
+  jsx.object.addProperties(
+    {
+      /**
+       * Returns the first index at which a given element can be found in
+       * the array, or -1 if it is not present.
+       * 
+       * @param searchElement
+       *   Element to locate in the array.
+       * @param fromIndex : number
+       *   The index at which to begin the search. Defaults to 0, i.e.
+       *   the whole array will be searched. If the index is greater than
+       *   or equal to the length of the array, -1 is returned, i.e.
+       *   the array will not be searched. If negative, it is taken as
+       *   the offset from the end of the array. Note that even when
+       *   the index is negative, the array is still searched from front
+       *   to back. If the calculated index is less than 0, the whole array
+       *   will be searched.
+       * @returns
+       *   The first index at which a given element can be found in
+       *   the array, or -1 if it is not present.
+       * @author Courtesy of developer.mozilla.org, unverified
+       * @memberOf Array.prototype
+       * @see ECMAScript Language Specification, Edition 5.1, section 15.4.4.14
+       */
+      indexOf: function(searchElement, fromIndex) {
+        "use strict";
+        if (this === void 0 || this === null)
+        {
+          throw new TypeError();
+        }
+        
+        var t = Object(this);
+        
+        var len = t.length >>> 0;
+        if (len === 0) {
+          return -1;
+        }
+        
+        var n = 0;
+        if (arguments.length > 0)
+        {
+          n = Number(fromIndex);
+          if (n !== n) {
+            /* shortcut for verifying if it's NaN */
+            n = 0;
+          }
+          else if (n !== 0 && n !== Infinity && n !== -Infinity)
+          {
+            n = (n > 0 || -1) * Math.floor(Math.abs(n));
+          }
+        }
+        
+        if (n >= len)
+        {
+          return -1;
+        }
+        
+        var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
+        for (; k < len; k++)
+        {
+          if (k in t && t[k] === searchElement)
+          {
+            return k;
+          }
+        }
+        
+        return -1;
+      },
+      
+      /**
+       * Maps one array to another
+       * 
+       * @param callback : Callable
+       * @param oThis : optional Object
+       * @return {Array}
+       *   The original array with <var>callback</var> applied to each element.
+       * @see ECMAScript Language Specification, Edition 5.1, section 15.4.4.19
+       */
+      map: function(callback, oThis) {
+        var jsx_object = jsx.object;
+      
+        if (!jsx_object.isMethod(callback))
+        {
+          jsx.throwThis("TypeError",
+            (jsx_object.isMethod(callback, "toSource") ? callback.toSource() : callback)
+              + " is not callable",
+            this + ".map");
+        }
+        
+        var
+          len = this.length >>> 0,
+          res = [];
+          
+        for (var i = 0; i < len; i++)
+        {
+          res[i] = callback.call(oThis, this[i], i, this);
+        }
+      
+        return res;
       }
-    
-      return res;
-    }
-  },
-  Array.prototype);
+    },
+    Array.prototype);
+}
   
 /**
  * General exception
