@@ -1,6 +1,32 @@
 /**
+ * <title>PointedEars' JSX: Arbitrary precision decimals</title>
+ * $Id$
+ * @requires math.js
+ *
+ * @section Copyright & Disclaimer
+ *
+ * @author
+ *   (C) 2011  Thomas Lahn &lt;math.js@PointedEars.de&gt;
+ *
+ * @partof PointedEars' JavaScript Extensions (JSX)
+ *
+ * JSX is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * JSX is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
  * Arbitrary precision decimal
- * 
+ *
  * @param value : Number[optional]
  *   If <var>scale</var> is not provided: Value to be translated to a
  *   <code>BigDecimal</code>; the default is <code>NaN</code>.
@@ -20,15 +46,15 @@ jsx.math.BigDecimal = function (value, scale) {
   }
 
   var originalValue, unscaledValue;
-  
+
   /* null or undefined */
   if (scale == null)
   {
     this.originalValue = value;
-    
+
     var s = (+value).toString();
     var digits = (s.match(/\.(\d+)$/) || [, ""])[1];
-  
+
     this.scale = digits.length;
     this.unscaledValue = value * Math.pow(10, this.scale);
   }
@@ -38,7 +64,7 @@ jsx.math.BigDecimal = function (value, scale) {
     this.unscaledValue = +value;
     this.scale = +scale;
   }
-  
+
   /**
    *  @return Number
    */
@@ -81,11 +107,11 @@ jsx.math.BigDecimal = function (value, scale) {
 
 /**
  * Returns the normalization of two <code>BigDecimal</code> values.
- * 
+ *
  * The normalization of two <code>BigDecimal</code> values are two
  * <code>BigDecimal</code> values that represent the same values as
  * before but with the same scale.
- * 
+ *
  * @param value1 : jsx.math.BigDecimal
  * @param value2 : jsx.math.BigDecimal
  * @returns Array of the normalized values, in the order in which their
@@ -93,7 +119,7 @@ jsx.math.BigDecimal = function (value, scale) {
  */
 jsx.math.BigDecimal.normalize = (function () {
   var BigDecimal = jsx.math.BigDecimal;
-  
+
   return function (value1, value2) {
     var scale1 = value1.getScale();
     var scale2 = value2.getScale();
@@ -101,7 +127,7 @@ jsx.math.BigDecimal.normalize = (function () {
     {
       return [value1, value2];
     }
-    
+
     var switched = false;
     if (scale1 < scale2)
     {
@@ -109,33 +135,48 @@ jsx.math.BigDecimal.normalize = (function () {
       var tmp = value2;
       value2 = value1;
       value1 = tmp;
-  
+
       var tmp = scale2;
       scale2 = scale1;
       scale1 = tmp;
     }
-    
+
     value2 = new BigDecimal(
       value2.getUnscaledValue() * Math.pow(10, scale1 - scale2),
-      Math.max(scale1, scale2));
-    
+      scale1);
+
     if (switched)
     {
       tmp = value2;
       value2 = value1;
       value1 = tmp;
     }
-    
+
     return [value1, value2];
   };
 }());
 
 jsx.math.BigDecimal.extend(null, {
   /**
+   * Returns a <code>BigDecimal</code> whose value is
+   * (<code>-this.getUnscaledValue()</code>),
+   * and whose scale is <code>this.getScale()</code>.
+   *
+   * @memberOf jsx.math.BigDecimal.prototype
+   * @return BigDecimal
+   */
+  negate: (function () {
+    var BigDecimal = jsx.math.BigDecimal;
+
+    return function () {
+      return new BigDecimal(-this.getUnscaledValue(), this.getScale());
+    };
+  }()),
+
+  /**
    * Adds a number to the <code>BigDecimal</code> and returns the result.
    * The original internal value remains unchanged.
-   * 
-   * @memberOf jsx.math.BigDecimal.prototype
+   *
    * @param summand2 : jsx.math.BigDecimal|number
    *   The <code>BigDecimal</code> or <code>Number</code> to be added.
    *   If a <code>Number</code>, <var>summand2</var> is converted to a
@@ -150,12 +191,12 @@ jsx.math.BigDecimal.extend(null, {
       {
         summand2 = new BigDecimal(summand2);
       }
-      
+
       var normalized = BigDecimal.normalize(this, summand2);
-      
+
       var summand1 = normalized[0].getUnscaledValue();
       var summand2 = normalized[1].getUnscaledValue();
-      
+
       /* Improve precision by using the smaller summand first */
       if (summand2 < summand1)
       {
@@ -163,17 +204,17 @@ jsx.math.BigDecimal.extend(null, {
         summand1 = summand2;
         summand2 = tmp;
       }
-      
+
       var d = new BigDecimal(summand1 + summand2, normalized[0].getScale());
-      
+
       return d;
     };
   }()),
-  
+
   /**
    * Subtracts a number from the <code>BigDecimal</code> and returns the result.
    * The original internal value remains unchanged.
-   * 
+   *
    * @memberOf jsx.math.BigDecimal.prototype
    * @param subtrahend : jsx.math.BigDecimal|number
    *   The <code>BigDecimal</code> or <code>Number</code> to be subtracted.
@@ -182,14 +223,23 @@ jsx.math.BigDecimal.extend(null, {
    * @returns {jsx.math.BigDecimal}
    * @see jsx.math.BigDecimal.prototype#add
    */
-  subtract: function (subtrahend) {
-    return this.add(-subtrahend);
-  },
-  
+  subtract: (function () {
+    var BigDecimal = jsx.math.BigDecimal;
+
+    return function (subtrahend) {
+      if (!(subtrahend instanceof BigDecimal))
+      {
+        subtrahend = new BigDecimal(subtrahend);
+      }
+
+      return this.add(subtrahend.negate());
+    };
+  }()),
+
   /**
    * Multiplies the <code>jsx.math.BigDecimal</code> with a number and returns the result.
    * The original internal value remains unchanged.
-   * 
+   *
    * @param factor2 : jsx.math.BigDecimal|number
    *   The <code>jsx.math.BigDecimal</code> or <code>Number</code> to be multiplied by.
    *   If a <code>Number</code>, <var>summand2</var> is converted to a
@@ -198,27 +248,27 @@ jsx.math.BigDecimal.extend(null, {
    */
   multiply: (function () {
     var BigDecimal = jsx.math.BigDecimal;
-    
+
     return function (factor2) {
       if (!(factor2 instanceof BigDecimal))
       {
         factor2 = new BigDecimal(factor2);
       }
-      
+
       var normalized = BigDecimal.normalize(this, factor2);
-      
+
       var factor1_value = normalized[0].getUnscaledValue();
       var factor2_value = normalized[1].getUnscaledValue();
-      
+
       var d = new BigDecimal(factor1_value * factor2_value, 2 * normalized[0].getScale());
-      
+
       return d;
     };
   }()),
-  
+
   /**
    * Compares this <code>BigDecimal</code> with the specified BigDecimal.
-   * 
+   *
    * @param d : jsx.math.BigDecimal
    * @return Number
    *   <code>&lt; -1</code> if this <code>BigDecimal</code> is smaller than <var>d</var>,
@@ -227,42 +277,42 @@ jsx.math.BigDecimal.extend(null, {
    */
   compareTo: (function () {
     var BigDecimal = jsx.math.BigDecimal;
-    
+
     return function (d) {
       if (!(d instanceof BigDecimal))
       {
         d = new BigDecimal(d);
       }
-      
+
       var normalized = BigDecimal.normalize(this, d);
-      
+
       return normalized[0].getUnscaledValue() - normalized[1].getUnscaledValue();
     };
   }()),
-  
+
   equals: (function () {
     var BigDecimal = jsx.math.BigDecimal;
-    
+
     return function (d) {
       if (!(d instanceof BigDecimal))
       {
         d = new BigDecimal(d);
       }
-      
+
       return this.getUnscaledValue() == d.getUnscaledValue()
         && this.getScale() == d.getScale();
     };
   }()),
-  
+
   /**
    * Returns a <code>BigDecimal</code> which is numerically equal to
    * this one but with any trailing zeros removed from the representation.
-   * 
+   *
    * @return jsx.math.BigDecimal
    */
   stripTrailingZeros: (function () {
     var BigDecimal = jsx.math.BigDecimal;
-    
+
     return function () {
       var unscaledString = this.getUnscaledValue().toString();
       /* FIXME: new BigDecimal(2, 21) */
@@ -274,7 +324,7 @@ jsx.math.BigDecimal.extend(null, {
           unscaledString.substring(0, unscaledString.length - insignificantLength),
           -insignificantLength);
       }
-      
+
       return this;
     };
   }()),
@@ -282,16 +332,16 @@ jsx.math.BigDecimal.extend(null, {
   /**
    * Returns the <code>Number</code> value represented by the
    * <code>BigDecimal</code>.
-   * 
+   *
    * @returns {Number}
    */
   valueOf: function () {
     return this.getUnscaledValue() * Math.pow(10, -this.getScale());
   },
-  
+
   /**
    * Returns the JSON representation of the <code>BigDecimal</code>
-   * 
+   *
    * @returns {String}
    */
   toJSON: function () {
@@ -306,7 +356,7 @@ jsx.math.BigDecimal.extend(null, {
   /**
    * Returns the string representation of value represented by the
    * <code>BigDecimal</code>, without using exponent notation.
-   * 
+   *
    * @returns {String}
    */
   toPlainString: function () {
@@ -316,7 +366,7 @@ jsx.math.BigDecimal.extend(null, {
     var scale = this.getScale();
     var result;
     var a = [];
-    
+
     if (scale - unscaledLength > 0)
     {
       a.length = scale - unscaledLength + 1;
@@ -325,13 +375,24 @@ jsx.math.BigDecimal.extend(null, {
     else if (scale - unscaledLength < 0)
     {
       a.length = -scale + 1;
-      
+
       var decimals = unscaledString.substring(unscaledLength - scale);
       result = unscaledString.slice(0, unscaledLength - scale)
         + a.join("0")
         + (decimals ? "." + decimals : "");
     }
-    
+
     return result;
+  },
+
+  /**
+   * Returns the string representation of the value of
+   * the <code>BigDecimal</code>, rounded if necessary.
+   *
+   * @returns string
+   * @see jsx.math.BigDecimal.prototype#valueOf()
+   */
+  toString: function () {
+    return this.valueOf().toString();
   }
 });
