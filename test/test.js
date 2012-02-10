@@ -329,7 +329,27 @@ jsx.test.runner = {
    *      </tr>
    *      <tr>
    *        <th><code>tests</code></th>
-   *        <td><code>Array</code> of <code>Function</code></td>
+   *        <td><code>Array</code> of <code>Function</code>s or of
+   *            <code>Object</code>s with the following properties:
+   *            <table>
+   *              <thead>
+   *                <th>Property</th>
+   *                <th>Type</th>
+   *                <th>Meaning</th>
+   *              </thead>
+   *              <tbody>
+   *                <tr>
+   *                  <th><code>name</code></th>
+   *                  <td><code>String</code></td>
+   *                  <td>Name of the test case</td>
+   *                </tr>
+   *                <tr>
+   *                  <th><code>code</code></th>
+   *                  <td><code>Function</code></td>
+   *                  <td>Test case</td>
+   *                </tr>
+   *              </tbody>
+   *            </table></td>
    *        <td>Test cases</td>
    *      </tr>
    *   </table>
