@@ -61,7 +61,7 @@ if (!function_exists('lcfirst'))
 class ResourceBuilder
 {
   /**
- 	 * Class version
+    * Class version
    * @var string
    */
   protected $_version = '0.4.3';
@@ -89,7 +89,7 @@ class ResourceBuilder
    *   Maps MIME media types to file extensions
    */
   protected $_typeMap = array(
-  	'text/javascript' => 'js',
+    'text/javascript' => 'js',
     'text/css' => 'css'
   );
   
@@ -301,7 +301,7 @@ class ResourceBuilder
     return preg_replace('#^[\\t ]*//.*(?:\\r?\\n|\\n)*#m', '',
       preg_replace('/^\\s+|\\s+$/', '',
 //         preg_replace(
-//      		  '#/[\\t ]*\\*.*?\\*/[\\t ]*(?:\\r?\\n|\\n)*#s', '',
+//            '#/[\\t ]*\\*.*?\\*/[\\t ]*(?:\\r?\\n|\\n)*#s', '',
           $s
 //         )
       )
@@ -309,7 +309,7 @@ class ResourceBuilder
   }
 
   /**
-   -Returns the passed string with all JSdoc comments but the first one removed
+   * Returns the passed string with all JSdoc comments but the first one removed
    *
    * @param string $s Source code to process
    * @return string Processed source code
@@ -318,7 +318,7 @@ class ResourceBuilder
   protected function stripJSdoc($s)
   {
     $s = preg_replace_callback(
-    	'#/[\\t ]*\\*\\*.*?\\*/[\\t ]*(\\r?\\n|\\n)*#s',
+      '#/[\\t ]*\\*\\*.*?\\*/[\\t ]*(\\r?\\n|\\n)*#s',
       array('self', 'commentReplacer'),
       $s);
     
@@ -365,10 +365,10 @@ class ResourceBuilder
                * the script
                */
               /* Insert dependencies */
-    					/*
-    					 * events   http ---> string
-    					 *  |         |        |
-    					 *  v         v        v
+              /*
+               * events   http ---> string
+               *  |         |        |
+               *  v         v        v
                * dom ---> types --> object <--- xpath
                *  ^          ^      ^
                *  |           \    /
@@ -396,11 +396,11 @@ class ResourceBuilder
         . ($this->verbose
             ?   " * Type:          {$this->contentType}\n"
               . " * Common Prefix: " . ($prefix ? $prefix : '<none>') . "\n"
-           		. " * Resources:     " . implode(', ', $this->sources) . "\n"
+               . " * Resources:     " . implode(', ', $this->sources) . "\n"
             : '')
         . " *\n"
         . " * Please see the original files for the complete source code.\n"
-    		. " */\n\n";
+        . " */\n\n";
     
     $verbose = $this->verbose;
     
@@ -462,12 +462,12 @@ class ResourceBuilder
       }
       
       echo implode("\n", array(
-      	'/*',
-      	" * {$file}"
-      	  . ($verbose
-      	     ? ": {$originalSizeFormatted} bytes reduced to {$compactedSizeFormatted} bytes"
+        '/*',
+        " * {$file}"
+          . ($verbose
+             ? ": {$originalSizeFormatted} bytes reduced to {$compactedSizeFormatted} bytes"
                . " ({$ratioFormatted})"
-      	     : ""),
+             : ""),
         " */\n"
       ));
       
