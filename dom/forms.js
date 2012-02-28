@@ -170,65 +170,36 @@ jsx.dom.removeOptions = function(oSelect, bAllowReload) {
  * Adds an option to an HTMLSelectElement object.
  *
  * @author
- *   (C) 2003  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   (C) 2003, 2012  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
- *   http://pointedears.de/scripts/dhtml.js
+ *   http://pointedears.de/scripts/dom/forms.js
  * @param oSelect : HTMLSelectElement
  *   Required reference to an HTMLSelectElement object.
  * @param sText : string
  *   Required text of the new HTMLOptionElement object.
- * @param iPosition : optional number
- *   Optional. If supported, inserts the new option there;
- *   otherwise the option is appended as last item.
  * @param sValue : optional string
  *   Optional value of the new HTMLOptionElement object.
  * @return object
  *   A reference to the new option if successful,
  *   <code>null</code> otherwise.
  */
-jsx.dom.addOption = function(oSelect, sText, iPosition, sValue) {
-  if (oSelect
-      && oSelect.tagName
-      && typeof oSelect.tagName == "string"
-      && oSelect.tagName.toLowerCase
-      && oSelect.tagName.toLowerCase() == "select")
+jsx.dom.addOption = function (oSelect, sText, sValue) {
+  if (!(oSelect
+        && oSelect.tagName
+        && typeof oSelect.tagName == "string"
+        && oSelect.tagName.toLowerCase
+        && oSelect.tagName.toLowerCase() == "select"
+        && oSelect.options))
   {
-    var oNew = new Option(sText);
-
-    var o = oSelect.options;
-    if (o)
-    {
-      if (o.add)
-      {
-        if (arguments.length >= 4
-            && typeof oNew.value != "undefined")
-        {
-          oNew.value = sValue;
-        }
-
-        if (arguments.length > 2)
-        {
-          o.add(oNew, iPosition);
-        }
-        else
-        {
-          o.add(oNew);
-        }
-      }
-      else
-      {
-        o[o.length] = oNew;
-        o[o.length - 1].value =
-          (arguments.length < 4
-            ? ""
-            : sValue);
-      }
-
-      return oNew;
-    }
+    return null;
   }
+  
+  var oNew = new Option(sText, (arguments.length < 3) ? "" : sValue);
+  
+  var o = oSelect.options;
+  o[o.length] = oNew;
 
-  return null;
+  return oNew;
 };
 
 /**
