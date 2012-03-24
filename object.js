@@ -33,10 +33,10 @@ if (typeof jsx.options == "undefined")
   /**
    * @namespace
    */
-  jsx.options = {
-    emulate: true
-  };
+  jsx.options = {};
 }
+
+jsx.options.emulate = true;
 
 /**
  * @namespace

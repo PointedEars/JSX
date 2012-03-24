@@ -82,7 +82,8 @@ jsx.debug.test = function (expression, trueValue, falseValue) {
   
   jsx.setErrorHandler();
   
-  if (jsx.tryThis(expression))
+  /* NOTE: Must pass "false" so that any exception is considered failure */
+  if (jsx.tryThis(expression, "false"))
   {
     result = (arguments.length > 1 ? trueValue : sDefault);
   }

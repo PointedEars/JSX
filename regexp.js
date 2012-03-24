@@ -454,22 +454,62 @@ jsx.regexp.RegExp = (function () {
         }
       }
       
+      var _rangesStack = [];
+      _rangesStack.toString = function () {
+        return this.join(" --> ");
+      };
+      
+      var _propertyClassReplacer = function (match, propertySpecifier, propertyClass) {
+        if (propertySpecifier !== "p")
+        {
+          jsx.throwThis("jsx.regexp.InvalidPropertyClassError",
+            _rangesStack.pop()
+            + " contains the negative property specifier \\P{" + propertyClass + "}");
+          return;
+        }
+
+        return _getRanges(propertyClass);
+      };
+
       /**
        * Retrieves class ranges by property class, and throws a specialized
        * exception if this fails.
        * 
        * @param propertyClass : String
-       * @throws jsx.regexp#UnknownPropertyClassError
+       * @throws jsx.regexp#UndefinedPropertyClassError
        */
       var _getRanges = function (propertyClass) {
         return jsx.tryThis(
           function () {
-            return jsx_object.getProperty(propertyClasses, propertyClass);
+            if (_rangesStack.indexOf(propertyClass) > -1)
+            {
+              jsx.throwThis("jsx.regexp.InvalidPropertyClassError",
+                propertyClass + " is cyclically defined ("
+                + _rangesStack + " --> " + propertyClass
+                + ")");
+              return;
+            }
+            
+            _rangesStack.push(propertyClass);
+            
+            var unescapedRange = jsx_object.getProperty(propertyClasses, propertyClass);
+            
+            /*
+             * Resolve property class references in property class values,
+             * watch for cyclic structures.
+             */
+            var rxPropertyEscapes = new RegExp(sPropertyEscapes, "gi");
+            unescapedRange = unescapedRange.replace(rxPropertyEscapes, _propertyClassReplacer);
+            
+            _rangesStack.pop();
+            
+            return unescapedRange;
           },
           function (e) {
             if (e.name == "jsx.object.PropertyError")
             {
-              jsx.throwThis("jsx.regexp.UnknownPropertyClassError", propertyClass);
+              jsx.throwThis("jsx.regexp.UndefinedPropertyClassError",
+                propertyClass + " in " + _rangesStack);
             }
             else
             {
@@ -716,8 +756,20 @@ jsx.regexp.UCDLoadError = function (sUCDScript, sHTTPScript) {
  * @param sMsg
  * @extends jsx.object#ObjectError
  */
-jsx.regexp.UnknownPropertyClassError = function (sMsg) {
+jsx.regexp.UndefinedPropertyClassError = function (sMsg) {
   arguments.callee._super.call(
-    this, "Unknown property class" + (arguments.length > 0 ? (": " + sMsg) : ""));
-}.extend(jsx.object.ObjectError, {name: "jsx.regexp.UnknownPropertyClassError"});
+    this, "Undefined property class" + (arguments.length > 0 ? (": " + sMsg) : ""));
+}.extend(jsx.object.ObjectError, {name: "jsx.regexp.UndefinedPropertyClassError"});
+
+/**
+ * Exception thrown if a property class value cannot be expanded
+ * 
+ * @constructor
+ * @param sMsg
+ * @extends jsx.object#ObjectError
+ */
+jsx.regexp.InvalidPropertyClassError = function (sMsg) {
+  arguments.callee._super.call(
+    this, "Invalid property class value" + (arguments.length > 0 ? (": " + sMsg) : ""));
+}.extend(jsx.object.ObjectError, {name: "jsx.regexp.InvalidPropertyClassError"});
  
