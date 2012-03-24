@@ -2,12 +2,13 @@
  * <title>Debug Library<title>
  *
  * @filename debug.js
+ * @version $Id$
  * @requires object.js, types.js, array.js (for #Properties)
  *
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2001‒2011  Thomas Lahn &lt;js@PointedEars.de&gt;
+ *   (C) 2001‒2012  Thomas Lahn &lt;js@PointedEars.de&gt;
  * 
  * @partof PointedEars' JavaScript Extensions (JSX)
  * 
@@ -26,8 +27,8 @@
  */
 
 jsx.debug = {
-  version:   /** @version */ "0.99.9.2010071614",
-  copyright: "Copyright \xA9 1999-2010",
+  version:   /** @version */ "0.99.$Revision$",
+  copyright: "Copyright \xA9 1999-2012",
   author:    "Thomas Lahn",
   email:     "js@PointedEars.de",
   path:      "http://pointedears.de/scripts/test/",
