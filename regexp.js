@@ -6,7 +6,7 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2005‒2011  Thomas Lahn &lt;js@PointedEars.de&gt;
+ *   (C) 2005‒2012  Thomas Lahn &lt;js@PointedEars.de&gt;
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -38,7 +38,7 @@ if (typeof jsx != "object")
 jsx.regexp = {
   /** @version */
   version:   "0.1.$Revision$",
-  copyright: "Copyright \xA9 2005-2011",
+  copyright: "Copyright \xA9 2005-2012",
   author:    "Thomas Lahn",
   email:     "js@PointedEars.de",
   path:      "http://pointedears.de/scripts/"
