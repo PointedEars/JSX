@@ -1,3 +1,4 @@
+/* vim:set fileencoding=utf-8 tabstop=2 shiftwidth=2 softtabstop=2 expandtab: */
 /**
  * <title>PointedEars' JSX: RegExp Library</title>
  * @filename regexp.js
@@ -47,7 +48,8 @@ jsx.regexp = {
 // jsx.regexp.docURL = jsx.regexp.path + "regexp.htm";
 
 /**
- * Returns the string representation of a {@link RegExp} without delimiters.
+ * Returns the string representation of a {@link RegExp}
+ * without delimiters.
  *
  * @param rx : RegExp
  * @return string
@@ -159,7 +161,8 @@ var regexp_concat = jsx.regexp.concat = function () {
 RegExp.prototype.concat = regexp_concat;
 
 /**
- * Returns a {@link RegExp} that is an alternation of two regular expressions.
+ * Returns a {@link RegExp} that is an alternation of two
+ * regular expressions.
  *
  * @param pattern2
  * @param pattern1
@@ -241,8 +244,8 @@ var regexp_intersect = jsx.regexp.intersect = function (pattern2, pattern1) {
 RegExp.prototype.intersect = regexp_intersect;
 
 /**
- * Returns an escaped version of the string that can be
- * passed as an argument to {@link Global#RegExp(string, string) RegExp()}
+ * Returns an escaped version of the string that can be passed
+ * as an argument to {@link Global#RegExp(string, string) RegExp()}
  * to match that string.
  *
  * @param s : string
@@ -259,28 +262,55 @@ var strRegExpEscape = jsx.regexp.escape = function (s) {
 String.prototype.regExpEscape = strRegExpEscape;
 
 /**
- * Creates an extended {@link RegExp} where you can use some features
- * of Perl-compatible Regular Expressions (PCRE).
+ * Creates an extended {@link RegExp} where you can use some
+ * features of Perl-compatible regular expressions (PCRE).
  * 
  * The following PCRE features are currently supported:
  * <ul>
+ *   <li>Flags:
+ *     <ul>
+ *       <li><tt>s</tt> (PCRE_DOTALL)</tt> – the <tt>.</tt> metacharacter
+ *         matches newline as well.</li>
+ *       <li><tt>x</zz> (PCRE_EXTENDED)</tt> – whitespace within
+ *         the pattern is ignored, so that it is easier human-readable.</li>
+ *     </ul>
+ *   </li>
  *   <li>Unicode property classes using e.g. the \p{…} notation</li>
- *   <li>Named subpatterns by passing strings with the
+ *   <li>Named capturing groups by passing strings with the
  *       <tt>(?P&lt;name>…)</tt> or <tt>(?P'name'…)</tt> notation,
  *       where the <tt>P</tt> is optional, respectively.</li>
  * </ul><p>
- * There are the following possibilities to make Unicode property classes
- * known to this constructor:
+ * This is facilitated with replacing certain substrings in the
+ * passed pattern:
+ * </p><ul>
+ *   <li>Flags:
+ *     <ul>
+ *       <li>With <tt>s</tt> (PCRE_DOTALL)</tt>, unescaped <tt>.</tt>
+ *         characters are replaced by the character class <tt>[\S\s]</tt>.</li>
+ *       <li>With <tt>x</zz> (PCRE_EXTENDED)</tt>, whitespace is removed
+ *         from the pattern.</li>
+ *     </ul>
+ *   </li>
+ *   <li>\p{…} and \P{…} escpae sequences are replaced by the corresponding
+ *       character classes</li>
+ *   <li><tt>(?P&lt;name>…)</tt> and <tt>(?P'name'…)</tt> generate
+ *       properties of a user-defined <tt>group</tt> property of the
+ *       extended RegExp that are used when matching it against a
+ *       string using its <tt>match(…)</tt> method.</li>
+ * </ul><p>
+ * There are the following possibilities to make Unicode property
+ * classes known to this constructor:
  * </p><ol>
  *   <li>Provide the Unicode Character Database, or parts thereof,
  *       as an Object;</li>
  *   <li>Provide the Unicode Character Database, or parts thereof,
- *       as a plain text resource that is accessed with XMLHttpRequest;</li>
+ *       as a plain text resource that is accessed with
+ *       XMLHttpRequest;</li>
  *   <li>Define property classes manually</li>
  * </ol>
  * <p>
- * Variant #1 requires you to define a mapping object with the following
- * namespace and structure:
+ * Variant #1 requires you to define a mapping object with
+ * the following namespace and structure:
  * </p>
  * <pre><code>
  *   jsx.regexp.RegExp.propertyClasses = {
@@ -290,39 +320,45 @@ String.prototype.regExpEscape = strRegExpEscape;
  *   };
  * </code></pre>
  * <p>
- * The property name is the name of the Unicode property class (here:
- * <tt>Sc</tt>).  The property value (a string) defines which characters
- * belong to that class.  You may use "-" to specify character ranges,
- * i.e., the range of characters including the characters having
- * the boundaries as code point, and all characters that have a code point
+ * The property name is the name of the Unicode property class
+ * (here: <tt>Sc</tt>).  The property value (a string) defines
+ * which characters belong to that class.  You may use "-"
+ * to specify character ranges, i.e., the range of characters
+ * including the characters having the boundaries as code point
+ * value, and all characters that have a code point value
  * in-between.  (For a literal "-", you may use "\\-".)
- * An example file to mirror the Unicode 5.0 Character Database, UnicodeData.js,
- * is distributed with this file.  Include it <em>after</em> the file
- * that declares the constructor (this file) to use it.  If you do not include
- * it, but use the <code>\p{...}</code> notation, an attempt will be made to
- * load the file specified by the <code>ucdScriptPath</code> (default:
- * <code>"/scripts/UnicodeData.js"</code>) using synchronous XHR (see below).
+ * An example file to mirror the Unicode 5.0 Character Database,
+ * UnicodeData.js, is distributed with this file.  Include it
+ * <em>after</em> the file that declares the constructor (this
+ * file) to use it.  If you do not include it, but use the
+ * <code>\p{...}</code> notation, an attempt will be made to load
+ * the file specified by the <code>ucdScriptPath</code> (default:
+ * <code>"/scripts/UnicodeData.js"</code>) using synchronous XHR
+ * (see below).
  * </p>
  * <p>
- * Variant #2 is going to support two different methods: Synchronous and
- * asynchronous request-response handling.  Synchronous request-response
- * handling requests the (partial) Unicode Character Database from the
- * resource specified by the <code>ucdTextPath</code> property (default:
- * <code>"/scripts/UnicodeData.txt"</code>) and halts execution until
- * a response has been received or the connection timed out.
- * Asynchronous request-response handling allows script execution to continue
- * while the request and response are in progress, but you need to provide a
- * callback as third argument where actions related to the regular expression
- * must be performed.  Asynchronous handling is recommended for applications
- * that need to be responsive to user input.
- * <strong>Currently, only synchronous handling is implemented.</strong>
+ * Variant #2 is going to support two different methods:
+ * Synchronous and asynchronous request-response handling.
+ * Synchronous request-response handling requests the (partial)
+ * Unicode Character Database from the resource specified by
+ * the <code>ucdTextPath</code> property (default:
+ * <code>"/scripts/UnicodeData.txt"</code>) and halts execution
+ * until a response has been received or the connection timed out.
+ * Asynchronous request-response handling allows script execution
+ * to continue while the request and response are in progress, but
+ * you need to provide a callback as third argument where actions
+ * related to the regular expression must be performed.
+ * Asynchronous handling is recommended for applications that need
+ * to be responsive to user input. <strong>Currently, only
+ * synchronous handling is implemented.</strong>
  * </p>
  * <p>
- * Variant #3 can be combined with the other variants.  The constructor
- * has a definePropertyClasses() method which can be used to define and
- * redefine property classes.  This allows an extended RegExp object
- * to support only a subset of Unicode property classes, and to support
- * user-defined character property classes.
+ * Variant #3 can be combined with the other variants.
+ * The constructor has a definePropertyClasses() method which can
+ * be used to define and redefine property classes.  This allows
+ * an extended RegExp object to support only a subset of Unicode
+ * property classes, and to support user-defined character
+ * property classes.
  * </p>
  *
  * @function
@@ -330,8 +366,9 @@ String.prototype.regExpEscape = strRegExpEscape;
  * @param expression : String|RegExp
  * @param sFlags : String
  * @return RegExp
- *   A regular expression with the property class escape sequences expanded
- *   according to the specified data, with the specified flags set.
+ *   A regular expression with the property class escape sequences
+ *   expanded according to the specified data, with the specified
+ *   flags set.
  */
 jsx.regexp.RegExp = (function () {
   var
@@ -339,7 +376,8 @@ jsx.regexp.RegExp = (function () {
     rxPropertyEscapes = new RegExp(sPropertyEscapes, "gi"),
     sNonPropEscInRange = "([^\\]\\\\]|\\\\[^p])*",
     sEscapes =
-      "\\[(\\^?(" + sNonPropEscInRange + "(" + sPropertyEscapes + ")+" + sNonPropEscInRange + ")+)\\]"
+      "\\[(\\^?(" + sNonPropEscInRange + "(" + sPropertyEscapes
+      + ")+" + sNonPropEscInRange + ")+)\\]"
       + "|" + sPropertyEscapes + "",
     rxEscapes = new RegExp(sEscapes, "gi"),
     jsx_object = jsx.object,
@@ -460,24 +498,24 @@ jsx.regexp.RegExp = (function () {
       };
       
       var _propertyClassReplacer = function (match, propertySpecifier, propertyClass) {
-        if (propertySpecifier !== "p")
+        if (propertySpecifier === "P")
         {
           jsx.throwThis("jsx.regexp.InvalidPropertyClassError",
             _rangesStack.pop()
             + " contains the negative property specifier \\P{" + propertyClass + "}");
           return;
         }
-
+  
         return _getRanges(propertyClass);
       };
 
-      /**
-       * Retrieves class ranges by property class, and throws a specialized
-       * exception if this fails.
-       * 
-       * @param propertyClass : String
-       * @throws jsx.regexp#UndefinedPropertyClassError
-       */
+        /**
+         * Retrieves class ranges by property class, and throws a specialized
+         * exception if this fails.
+         * 
+         * @param propertyClass : String
+         * @throws jsx.regexp#UndefinedPropertyClassError
+         */
       var _getRanges = function (propertyClass) {
         return jsx.tryThis(
           function () {
@@ -492,14 +530,14 @@ jsx.regexp.RegExp = (function () {
             
             _rangesStack.push(propertyClass);
             
-            var unescapedRange = jsx_object.getProperty(propertyClasses, propertyClass);
+            var escapedRange = jsx_object.getProperty(propertyClasses, propertyClass);
             
             /*
              * Resolve property class references in property class values,
              * watch for cyclic structures.
              */
             var rxPropertyEscapes = new RegExp(sPropertyEscapes, "gi");
-            unescapedRange = unescapedRange.replace(rxPropertyEscapes, _propertyClassReplacer);
+            var unescapedRange = escapedRange.replace(rxPropertyEscapes, _propertyClassReplacer);
             
             _rangesStack.pop();
             
@@ -509,7 +547,7 @@ jsx.regexp.RegExp = (function () {
             if (e.name == "jsx.object.PropertyError")
             {
               jsx.throwThis("jsx.regexp.UndefinedPropertyClassError",
-                propertyClass + " in " + _rangesStack);
+                propertyClass + (_rangesStack.length > 1 ? " in " + _rangesStack : ""));
             }
             else
             {
@@ -594,18 +632,36 @@ jsx.regexp.RegExp = (function () {
 
     var originalSource = expression;
     
-    /* Support for the PCRE `x' modifier */
-    if (sFlags && sFlags.indexOf("x") > -1)
+    if (sFlags)
     {
-      expression = expression.replace(/(\\\s|\[([^\\\]]|\\.)*\])|\s+/g, "$1");
-      sFlags = sFlags.replace(/x/g, "");
+      /* Support for the PCRE `x' option flag (PCRE_EXTENDED) */
+      if (sFlags.indexOf("x") > -1)
+      {
+        expression = expression.replace(/(\\\s|\[([^\\\]]|\\.)*\])|\s+/g, "$1");
+        sFlags = sFlags.replace(/x/g, "");
+      }
+    
+      /* Support for the PCRE 's' option flag (PCRE_DOTALL) */
+      if (sFlags.indexOf("s") > -1)
+      {
+        expression = expression.replace(/(\\\.)|\./g, function (m, p1) {
+          if (p1)
+          {
+            return p1;
+          }
+          
+          return "[\\S\\s]";
+        });
+        
+        sFlags = sFlags.replace(/s/g, "");
+      }
     }
 
     var groupCount = 0;
     this.groups = {};
     var me = this;
     
-    /* Support for named subpatterns (PCRE-compliant) */
+    /* Support for named capturing groups (PCRE-compliant) */
     expression = expression.replace(/(\\\()|(\((\?P?(<([^>]+)>|'([^']+)'))?)/g,
       function (match, escapedLParen, group, namedGroup, bracketsOrQuotes,
                  bracketedName, quotedName) {
@@ -741,7 +797,7 @@ jsx.regexp.String.prototype.toString = jsx.regexp.String.prototype.valueOf =
    * @param sHTTPScript : String
    *   The script that contains the HTTP request type to load the UCD
    *   dynamically
-   * @extends jsx.object#ObjectError
+   * @extends jsx#Error
    */
 jsx.regexp.UCDLoadError = function (sUCDScript, sHTTPScript) {
   arguments.callee._super.call(this,
@@ -754,12 +810,12 @@ jsx.regexp.UCDLoadError = function (sUCDScript, sHTTPScript) {
  * 
  * @constructor
  * @param sMsg
- * @extends jsx.object#ObjectError
+ * @extends jsx.object#PropertyError
  */
 jsx.regexp.UndefinedPropertyClassError = function (sMsg) {
   arguments.callee._super.call(
     this, "Undefined property class" + (arguments.length > 0 ? (": " + sMsg) : ""));
-}.extend(jsx.object.ObjectError, {name: "jsx.regexp.UndefinedPropertyClassError"});
+}.extend(jsx.object.PropertyError, {name: "jsx.regexp.UndefinedPropertyClassError"});
 
 /**
  * Exception thrown if a property class value cannot be expanded

@@ -636,8 +636,8 @@ jsx.dom.css.Color.prototype.toObjectString = function() {
  */
 jsx.dom.css.makeMono = function() {
   var
-    selectorList = new jsx.dom.css.SelectorList(),
-    iter = selectorList.iterator(),
+    ruleList = new jsx.dom.css.RuleList(),
+    iter = ruleList.iterator(),
     selector,
     color = new jsx.dom.css.Color(),
     colorProperties = [
