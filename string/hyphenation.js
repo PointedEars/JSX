@@ -15,6 +15,7 @@ if (typeof jsx.string == "undefined")
 };
   
 jsx.string.hyphenation = (function () {
+  "use strict";
   var _dictionary = Object.create(null);
   var _hyphenateAll = false;
   var _rxWord = /(^|\s)(\S+)([\s,;:.?!\)\]]|$)/g;
@@ -22,6 +23,7 @@ jsx.string.hyphenation = (function () {
   var _rxHyphen = /[-·]/g;
   var _chShy = "\u00ad";
   
+  var _compiled = false;
   var _compile = function () {
     _rxWords = new RegExp("(^|\\s)("
       + Object.keys(_dictionary).join("|")
