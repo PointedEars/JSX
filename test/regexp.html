@@ -22,7 +22,7 @@
             code: function() {
               assert(typeof RegExp2.propertyClasses != "undefined");
               var rx = new RegExp2("\\p{Zp}");
-              assert(rx.source == "[\\u2029]");
+              assert(rx.source == "[\u2029]");
               if (!jsx.info(rx))
               {
                 out.push(rx);
@@ -33,9 +33,8 @@
             name: "Load UCD dynamically with XHR",
             code: function() {
               delete RegExp2.propertyClasses;
-              jsx._import("../http.js");
               var rx = new RegExp2("\\p{Zp}");
-              assert(rx.source == "[\\u2029]");
+              assert(rx.source == "[\u2029]");
               if (!jsx.info(rx))
               {
                 out.push(rx);
@@ -56,7 +55,7 @@
                   }
                 },
                 function (e) {
-                  if (e.name == "jsx.regexp.UnknownPropertyClassError")
+                  if (e.name == "jsx.regexp.UndefinedPropertyClassError")
                   {                  
                     thrown = true;
                     if (!jsx.info(e))
@@ -73,7 +72,55 @@
             }
           },
           {
-            name: "Named subpatterns",
+            name: "PCRE option flags: `x' (PCRE_EXTENDED)",
+            code: function () {
+              var rx = new RegExp2(" x ", "x");
+              assert(rx.source === "x");
+            }
+          },
+          {
+            name: "PCRE option flags: `s' (PCRE_DOTALL)",
+            code: function () {
+              var rx = new RegExp2(".", "s");
+              assert(rx.source === "[\\S\\s]");
+              
+              assert("\n".match(rx)[0] === "\n");
+            }
+          },
+          {
+            name: "PCRE named subpatterns: ?<name> (Perl style)",
+            code: function () {
+              var rx = new RegExp2("(?<foo>bar)");
+              assert(rx.groups[1] === "foo");
+              
+              var s = new jsx.regexp.String("bar");
+              assert(s == "bar");
+              assert("bar" == s);
+              assertFalse(s === "bar");
+              assertFalse("bar" === s);
+              
+              var m = s.match(rx);
+              assert(m.groups.foo === "bar");
+            }
+          },
+          {
+            name: "PCRE named subpatterns: ?'name' (Perl style)",
+            code: function () {
+              var rx = new RegExp2("(?P'foo'bar)");
+              assert(rx.groups[1] === "foo");
+              
+              var s = new jsx.regexp.String("bar");
+              assert(s == "bar");
+              assert("bar" == s);
+              assertFalse(s === "bar");
+              assertFalse("bar" === s);
+              
+              var m = s.match(rx);
+              assert(m.groups.foo === "bar");
+            }
+          },
+          {
+            name: "PCRE named subpatterns: ?P<name> (Python style)",
             code: function () {
               var rx = new RegExp2("(?P<foo>bar)");
               assert(rx.groups[1] === "foo");
