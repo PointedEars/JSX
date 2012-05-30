@@ -1580,3 +1580,81 @@ jsx.dom.isDescendantOfOrSelf = function(node, ancestor) {
 
   return false;
 };
+
+/**
+ * Applies hyphenation to the context node.
+ * 
+ * Improves the readability of text by inserting soft hyphens
+ * in text nodes as specified by the {@link jsx.string#hyphenation}
+ * dictionary.
+ * 
+ * @param contextNode : Node
+ *   Hyphenation is applied to this node and its descendant.
+ *   text nodes.  The default is the document node referred
+ *   by the <code>document</code> property of the next
+ *   fitting object in the scope chain (usually the Global
+ *   Object).
+ * @requires jsx.string.hyphenation#hyphenate()
+ */
+jsx.dom.hyphenate = (function () {
+  var _getClass = jsx.object.getClass;
+  var _hyphenation, _hyphenate, _me;
+  
+  return function (contextNodes, hyphenateAll) {
+    /* imports */
+    if (!_hyphenate)
+    {
+      _hyphenation = jsx.string.hyphenation;
+      _hyphenate = _hyphenation.hyphenate;
+    }
+    
+    _hyphenation.setHyphenateAll(hyphenateAll);
+    
+    if (!_me)
+    {
+      _me = jsx.dom.hyphenate;
+    }
+    
+    /* optional arguments */
+    if (typeof contextNodes == "undefined")
+    {
+      contextNodes = document;
+    }
+    
+    if (!contextNodes)
+    {
+      return jsx.warn("jsx.dom.hyphenate: Invalid context node: " + contextNodes);
+    }
+    
+    if (_getClass(contextNodes) != "Array")
+    {
+      contextNodes = [contextNodes];
+    }
+    
+    for ( var i = 0, len = contextNodes.length; i < len; ++i)
+    {
+      var contextNode = contextNodes[i];
+      
+      if (!contextNode)
+      {
+        jsx.warn("jsx.dom.hyphenate: Invalid context node " + (i + 1) + ": " + contextNode);
+        continue;
+      }
+      
+      for (var j = 0, nodes = contextNode.childNodes, len = nodes.length;
+           j < len; ++j)
+      {
+        var node = nodes[j];
+        
+        if (node.nodeType == 1)
+        {
+          _me(node, hyphenateAll);
+        }
+        else
+        {
+          node.nodeValue = _hyphenate(node.nodeValue);
+        }
+      }
+    }
+  };
+}());

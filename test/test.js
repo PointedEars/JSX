@@ -222,8 +222,8 @@ jsx.test.assertUndefined = function (x, bThrow, sContext) {
     }
     else
     {
-      jsx.dmsg((sContext ? sContext + ": " : "") + "Assertion failed: "
-        + (typeof origX == "string" ? origX : "Value") + " must be undefined.", "warn");
+      jsx.warn((sContext ? sContext + ": " : "") + "Assertion failed: "
+        + (typeof origX == "string" ? origX : "Value") + " must be undefined.");
     }
   }
   
@@ -305,6 +305,10 @@ jsx.test.assertArrayEquals = function (expecteds, actuals) {
 jsx.test.runner = {
   tests: [],
   
+  printMsg: function (msg, msgType) {
+    return jsx[msgType]("jsx.test.runner: " + msg);
+  },
+  
   /**
    * Runs test cases
    * 
@@ -382,6 +386,11 @@ jsx.test.runner = {
         }
       }
       
+      if (this._tests.length == 0)
+      {
+        return this.printMsg("No tests defined.", "info");
+      }
+      
       var result = {
         failed: 0,
         passed: 0
@@ -389,37 +398,38 @@ jsx.test.runner = {
       
       for (var i = 0, len = this._tests.length; i < len; ++i)
       {
-        var f = this._tests[i];
+        var test = this._tests[i];
         var number = i + 1;
         var name = "";
         
-        if (f && typeof f != "function")
+        if (test && typeof test != "function")
         {
-          name = ' "' + f.name + '"';
-          f = f.code;
+          name = ' "' + test.name + '"';
+          test = test.code;
         }
           
         if (hasSetUp)
         {
-          this._setUp(i, f);
+          this._setUp(i, test);
         }
         
         try
         {
-          f(i);
+          test(i);
           ++result.passed;
-          jsx.info("Test " + number + name + " passed.");
+          this.printMsg("Test " + number + name + " passed.", "info");
         }
         catch (e)
         {
           ++result.failed;
-          jsx.warn("Test " + number + name
-            + " threw " + e + (e.stack ? "\n\n" + e.stack : ""));
+          this.printMsg("Test " + number + name
+            + " threw " + e + (e.stack ? "\n\n" + e.stack : ""),
+            "warn");
         }
 
         if (hasTearDown)
         {
-          this._tearDown(i, f);
+          this._tearDown(i, test);
         }
       }
 
@@ -429,7 +439,7 @@ jsx.test.runner = {
         msg = "warn";
       }
       
-      jsx[msg]("Failed: " + result.failed + ". Passed: " + result.passed + ".");
+      this.printMsg("Failed: " + result.failed + ". Passed: " + result.passed + ".", msg);
     };
   }()),
   
