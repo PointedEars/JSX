@@ -9,7 +9,7 @@
  *   (C) 2005-2011 Thomas Lahn <js@PointedEars.de>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
- * 
+ *
  * JSX is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -50,7 +50,7 @@ jsx.dom.css = {
 /**
  * Returns the computed style of an {@link Element} or the
  * computed value of an <code>Element</code>'s style property.
- * 
+ *
  * @function
  * @param o : Element
  *   Element for which the computed style should be retrieved.
@@ -71,14 +71,14 @@ jsx.dom.getComputedStyle = (function () {
     },
     jsx_object = jsx.object,
     jsx_dom = jsx.dom;
-  
+
   return function(oElement, sPseudoEl, sProperty) {
     if (hasGCS || typeof oElement.currentStyle != "undefined")
     {
       var compStyle = (hasGCS
         ? document.defaultView.getComputedStyle(oElement, sPseudoEl || null)
         : oElement.currentStyle);
-      
+
       return (sProperty
         ? compStyle[
             jsx_dom.camelize(
@@ -86,10 +86,10 @@ jsx.dom.getComputedStyle = (function () {
           ]
         : compStyle);
     }
-    
+
     var emptyResult = {};
     emptyResult[sProperty] = "";
-    
+
     return (sProperty ? emptyResult : null);
   };
 }());
@@ -453,7 +453,7 @@ jsx.dom.css.selectors = {
 };
 
 /**
- * A <code>SelectorList</code> object encapsulates
+ * A <code>RuleList</code> object encapsulates
  * all CSS selectors linked to from a document in a
  * {@link Collection}.
  *
@@ -461,25 +461,25 @@ jsx.dom.css.selectors = {
  * @param oDocument : optional Object
  *   Object reference to override the default
  *   <code>document</code> object reference.
- * @return jsx.dom.css.SelectorList
+ * @return jsx.dom.css.RuleList
  */
-jsx.dom.css.SelectorList = function(oDocument) {
+jsx.dom.css.RuleList = function(oDocument) {
   arguments.callee._super.call(this);
   this.document = oDocument || document;
   this.get();
 };
 
-jsx.dom.css.SelectorList.extend(jsx.Collection, {
+jsx.dom.css.RuleList.extend(jsx.Collection, {
   /**
    * @type Document
    */
   document: null,
-  
+
   /**
    * Populates the collection with the selectors
    * of the document.
    *
-   * @memberOf jsx.dom.css.SelectorList#prototype
+   * @memberOf jsx.dom.css.RuleList#prototype
    * @param oDocument : optional Object
    *   Object reference to override the default
    *   <code>document</code> object reference.
@@ -490,15 +490,16 @@ jsx.dom.css.SelectorList.extend(jsx.Collection, {
     {
       this.document = oDocument;
     }
-    
+
     this.clear();
-    
+
     var d, oSheets;
     if ((d = this.document) && (oSheets = d.styleSheets))
     {
       for (var i = 0, oRules; i < oSheets.length; i++)
       {
-        if ((oRules = oSheets[i].cssRules || oSheets[i].rules))
+        var oSheet = oSheets[i];
+        if ((oRules = oSheet.cssRules || oSheet.rules))
         {
           for (var j = 0; j < oRules.length; j++)
           {
@@ -506,70 +507,75 @@ jsx.dom.css.SelectorList.extend(jsx.Collection, {
           }
         }
       }
-      
+
       return true;
     }
-    
+
     return false;
   },
-  
+
   /**
-   * Returns a reference to the selector
-   * containing a simple selector.
+   * Returns a reference to the first rule
+   * with a simple selector.
    *
    * @param sSelector : String
    *   Simple selector
    * @return CSSStyleRule | Null
    */
-  findSimpleSelector: function(sSelector) {
+  findBySimpleSelector: function (sSelector) {
     var i = this.iterator();
-    while ((s = i.next()))
+    while ((s = i.next()) != null)
     {
-      if ((new RegExp("(^|\\s)" + sSelector + "([+>\\s]|$)")).test(s.selectorText))
+      if ((new RegExp("(^|\\s)" + sSelector + "([+>\\s]|$)")).test(s.value.selectorText))
       {
-        return s;
+        return s.value;
       }
     }
-    
+
     return null;
   }
 });
 
 jsx.dom.css.findRules = (function () {
-  var slice = Array.prototype.slice;
-  function toArray(obj)
+  var a = [];
+  var _slice = a.slice;
+  var _concat = a.concat;
+
+  function toArray (obj)
   {
-    return slice.call(obj);
+    return _slice.call(obj || a);
   }
-  
-  return function (selectorText, exactMatch) {
+
+  return function (selector, exactMatch) {
     var prefix = "(^|\\s)";
     if (exactMatch)
     {
       prefix = "^\\s*";
     }
-    
-    var rx = new RegExp(prefix + selectorText.replace(/[$.(){}\[\]^]/g, "\\$&") + "\\s*$");
-    
+
+    var rxSelector = new RegExp(
+      prefix + selector.replace(/[$.(){}\[\]^]/g, "\\$&") + "\\s*$");
+
     var hits = toArray(document.styleSheets).map(function (styleSheet) {
-      return toArray(styleSheet.cssRules || styleSheet.rules).filter(function (rule) {
-        return rx.test(rule.selectorText);
+      return toArray(styleSheet.cssRules || styleSheet.rules).filter(
+        function (rule) {
+          return rxSelector.test(rule.selectorText);
+        });
+      }).filter(function (hit) {
+        return hit.length > 0;
       });
-    }).filter(function (hit) {
-      return hit.length > 0;
-    });
-  
-    return Array.prototype.concat.apply([], hits);
+
+    return _concat.apply([], hits);
   };
 }());
 
 /**
  * Calculate the specificity of a CSS3 selector
- * 
+ *
  * @param selector : String
  * @return Number
  *   The specificity of <var>selector</var> where the value modulo 100
- *   is the number of ID selectors, the value module 10 is the number of
+ *   is the number of ID selectors, the value modulo 10 is the number of
  *   class selectors, attributes selectors, and pseudo-classes, and the
  *   value modulo 1 is the number of element names and pseudo-elements
  *   in the selector.
@@ -589,14 +595,14 @@ jsx.dom.css.getSpecificity = (function () {
     var idNum = (selector.match(rxID) || []).length;
     var attrNum = (selector.match(rxAttr) || []).length;
     var elemNum = (selector.match(rxElem) || []).length;
-  
+
     return (idNum * 100) + (attrNum * 10) + elemNum;
   };
 }());
 
 /**
  * Retrieves all elements matching all specified CSS class names
- * 
+ *
  * @param sClassNames : Array|String
  * @param oContextNode : optional Element
  * @return Array
@@ -607,7 +613,7 @@ jsx.dom.css.getElemByClassName = jsx.dom.css.gEBCN = (function() {
   var _hasOwnProperty = jsx.object._hasOwnProperty;
   var _getElemByTagName = jsx.dom.getElemByTagName;
   var sWhiteSpace = "[ \\t\\f\\u200B\\r\\n]+";
-  
+
   return function (sClassNames, contextNode) {
     var
       result = [],
@@ -615,14 +621,14 @@ jsx.dom.css.getElemByClassName = jsx.dom.css.gEBCN = (function() {
         ? String(sClassNames || "").split(/\s+/)
         : sClassNames,
       classNameSet = {};
-    
+
     if (classNames.length > 0)
     {
       for (var i = classNames.length; i--;)
       {
         classNameSet[classNames[i]] = true;
       }
-    
+
       classNames = [];
       if (typeof Object.keys == "function")
       {
@@ -657,7 +663,7 @@ jsx.dom.css.getElemByClassName = jsx.dom.css.gEBCN = (function() {
       {
         var element = aElements[i];
         var elementClassName = element.className;
-        
+
         for (var j = classNames.length; j--;)
         {
           if (!new RegExp("(^|" + sWhiteSpace + ")" + classNames[j]
@@ -678,10 +684,10 @@ jsx.dom.css.getElemByClassName = jsx.dom.css.gEBCN = (function() {
 
 jsx.dom.css.showByClassName = (function() {
   var _getEBCN = jsx.dom.css.getElemByClassName;
-  
+
   /**
    * Shows or hides elements with a certain class name.
-   * 
+   *
    * @param {string} sClassName
    *   Class name of the elements to be hidden/shown.
    * @param {boolean} bShow (optional)
@@ -693,19 +699,19 @@ jsx.dom.css.showByClassName = (function() {
    */
   return function(sClassName, bShow) {
     var newDisplay = bShow ? "" : "none";
-    var selectorList, selector;
+    var ruleList, selector;
     if (typeof jsx.dom.css != "undefined"
-        && typeof jsx.dom.css.SelectorList == "function"
-        && (selectorList = new jsx.dom.css.SelectorList())
+        && typeof jsx.dom.css.RuleList == "function"
+        && (ruleList = new jsx.dom.css.RuleList())
         && (selector =
-              selectorList.findSimpleSelector("\\." + sClassName)))
+              ruleList.findBySimpleSelector("\\." + sClassName)))
     {
       selector.display = newDisplay;
       return (selector.display == newDisplay);
     }
-  
+
     var es = _getEBCN(sClassName);
-    
+
     for (var i = es.length; i--; 0)
     {
       var o = es[i];
@@ -714,7 +720,7 @@ jsx.dom.css.showByClassName = (function() {
         o.display = newDisplay;
       }
     }
-    
+
     return true;
   };
 }());
@@ -722,13 +728,13 @@ jsx.dom.css.showByClassName = (function() {
 /**
  * Returns the computed style of an element or
  * the computed value of a style property of an element.
- * 
+ *
  * @param obj : Element
  * @param cssProperty : string
  * @return CSSStyleDeclaration|string
  *   The return value depends on both the passed arguments
  *   and the capabilities of the user agent:
- * 
+ *
  *   If the UA supports either ViewCSS::getComputedStyle()
  *   from W3C DOM Level 2 CSS or MSHTML's currentStyle
  *   property, then
@@ -737,7 +743,7 @@ jsx.dom.css.showByClassName = (function() {
  *        it is a string if the property is supported;
  *     b) if <var>cssProperty</var> was not passed, the corresponding
  *        style object is returned
- * 
+ *
  *   If the UA supports neither of the above, `undefined' is
  *   returned.
  * @type string|CSSStyleDeclaration|currentStyle
@@ -745,10 +751,10 @@ jsx.dom.css.showByClassName = (function() {
 jsx.dom.css.getComputedStyle = (function() {
   var _isMethod = jsx.object.isMethod,
   _defaultView;
-  
+
   return function(obj, cssProperty) {
     var computedStyle;
-    
+
     if (_isMethod(document, "defaultView", "getComputedStyle")
         && (typeof _defaultView != "undefined" || (_defaultView = document.defaultView))
         && (computedStyle = _defaultView.getComputedStyle(obj, null)))
@@ -759,7 +765,7 @@ jsx.dom.css.getComputedStyle = (function() {
         {
           return computedStyle.getPropertyValue(cssProperty);
         }
-        
+
         return jsx.throwThis(null, "Unable to retrieve computed style property");
       }
     }
@@ -770,33 +776,33 @@ jsx.dom.css.getComputedStyle = (function() {
         return computedStyle[cssProperty];
       }
     }
-  
+
     return computedStyle;
   };
 }());
 
 /**
  * Makes all non-default stylesheet declarations for an element inline
- * 
+ *
  * @param obj : Element
  */
 jsx.dom.css.makeInline = (function () {
   var defaultValues = {
     "background-image": "none"
   };
-  
+
   return function (obj) {
     var computedStyle = jsx.dom.css.getComputedStyle(obj);
     if (!computedStyle)
     {
       return;
     }
-    
+
     for (var i = 0, len = computedStyle.length; i < len; ++i)
     {
       var propertyName = computedStyle[i];
       var propertyValue = computedStyle.getPropertyValue(propertyName);
-      
+
       if (propertyValue != defaultValues[propertyName])
       {
         obj.style.setProperty(propertyName, propertyValue);
@@ -807,7 +813,7 @@ jsx.dom.css.makeInline = (function () {
 
 jsx.dom.css.isHidden = (function() {
   var _getComputedStyle = jsx.dom.css.getComputedStyle;
-  
+
   return function(o) {
     while (o)
     {
@@ -818,10 +824,10 @@ jsx.dom.css.isHidden = (function() {
       {
         return true;
       }
-  
+
       o = o.parentNode;
     }
-  
+
     return false;
   };
 }());
@@ -838,7 +844,7 @@ jsx.dom.css.focusElement = function(s) {
 /**
  * Removes all occurences of a CSS class name from the
  * <code>class</code> attribute of an {@link Element}.
- * 
+ *
  * @param o : Element
  * @param sClassName : string
  */
@@ -858,11 +864,11 @@ jsx.dom.css.removeClassName = function (o, sClassName) {
 
 jsx.dom.css.addClassName = (function() {
   var removeClassName = jsx.dom.css.removeClassName;
-  
+
   /**
    * Adds a CSS class name to the <code>class</code> attribute of
    * an {@link Element}.
-   * 
+   *
    * @param o : Element
    * @param sClassName : string
    * @param bRemove : boolean
@@ -877,7 +883,7 @@ jsx.dom.css.addClassName = (function() {
    */
   return function(o, sClassName, bRemove) {
     var rx = new RegExp("(^\\s*|\\s+)" + sClassName + "(\\s*$|\\s)");
-    
+
     if (bRemove)
     {
       removeClassName(o, sClassName);
@@ -886,7 +892,7 @@ jsx.dom.css.addClassName = (function() {
     {
       return true;
     }
-    
+
     if (sClassName)
     {
       if (/\S/.test(o.className))
@@ -897,7 +903,7 @@ jsx.dom.css.addClassName = (function() {
       {
         o.className = sClassName;
       }
-      
+
       return rx.test(o.className);
     }
   };

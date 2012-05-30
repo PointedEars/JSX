@@ -28,6 +28,18 @@ if (typeof jsx == "undefined")
   var jsx = {};
 }
 
+/*
+ * NOTE: Cannot use addProperties() for the following
+ * because values have not been defined yet!
+ * 
+ * TODO: Should syntactic sugar be provided to work around
+ * this issue?  See Function.prototype.extend().
+ */
+
+jsx.MSG_INFO = "info";
+jsx.MSG_WARN = "warn";
+jsx.MSG_DEBUG = "debug";
+
 if (typeof jsx.options == "undefined")
 {
   /**
@@ -41,17 +53,195 @@ jsx.options.emulate = true;
 /**
  * @namespace
  */
-jsx.object = {
-  /**
-   * @version
-   */
-  version:   "0.2.$Revision$ ($Date$)",
-  copyright: "Copyright \xA9 2004-2012",
-  author:    "Thomas Lahn",
-  email:     "js@PointedEars.de",
-  path:      "http://PointedEars.de/scripts/"
-};
-  
+jsx.object = (function (global) {
+  return {
+    /**
+     * @version
+     */
+    version:   "0.2.$Revision$ ($Date$)",
+    copyright: "Copyright \xA9 2004-2012",
+    author:    "Thomas Lahn",
+    email:     "js@PointedEars.de",
+    path:      "http://PointedEars.de/scripts/",
+
+    /**
+     * @type number
+     *   Used by {@link jsx.object#addProperties()} to overwrite existing
+     *   properties.
+     */
+    ADD_OVERWRITE: 1,
+    
+    /**
+     * @type number
+     *   Used by {@link jsx.object#addProperties()} and {@link jsx.object#clone()}
+     *   to make a shallow copy of all enumerable properties (default).
+     */
+    COPY_ENUM: 0,
+
+    /**
+     * @type number
+     *   Used by {@link jsx.object#addProperties()} and {@link jsx.object#clone()}
+     *   to make a deep copy of all enumerable properties.
+     */
+    COPY_ENUM_DEEP: 2,
+    
+    /**
+     * @type number
+     *   Used by {@link jsx.object#addProperties()} and {@link jsx.object#clone()}
+     *   to copy a property by inheritance.
+     */
+    COPY_INHERIT: 4,
+    
+    /**
+     * Determines whether an object is, or several objects are,
+     * likely to be callable.
+     * 
+     * @author (C) 2003-2010  <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
+     * @memberOf jsx.object
+     * @function
+     * @param obj : Object which should be tested for a method, or checked
+     *   for being a method if no further arguments are provided.
+     *   <p>
+     *   <em>NOTE: If you pass a primitive value for this argument,
+     *   the properties of the object created from that value are considered.
+     *   In particular, if you pass a string value containing
+     *   a <i>MemberExpression</i>, the properties of the corresponding
+     *   <code>String</code> instance are considered, not of the object that
+     *   the <i>MemberExpression</i> might refer to.  If you need to use such
+     *   a string to refer to an object (e.g., if you do not know whether it
+     *   is safe to refer to the object), use the return value of
+     *   {@link jsx#tryThis jsx.tryThis("<var>MemberExpression</var>")}
+     *   as argument to this method instead.</em>
+     *   </p>
+     * @param prop : optional string|Array
+     *   Path of the property to be determined a method, i.e. a reference to
+     *   a callable object assigned as property of another object.
+     *   Use a string argument for each component of the path, e.g.
+     *   the argument list <code>(o, "foo", "bar")</code> for testing whether
+     *   <code>o.foo.bar</code> is a method.
+     *   If the last argument is an {@link Array}, all elements of
+     *   this array are used for property names; e.g.
+     *   <code>(o, "foo", ["bar", "baz"])</code>.  This allows for testing
+     *   several properties of the same object with one call.
+     * @return boolean
+     *   <code>true</code> if all arguments refer to methods,
+     *   <code>false</code> otherwise.
+     * @see jsx.object#isMethodType()
+     */
+    isMethod: (function() {
+      var
+        rxUnknown = /^\s*unknown\s*$/i,
+        rxNativeMethod = /^\s*function\s*$/i,
+        rxMethod = /^\s*(function|object)\s*$/i,
+        areNativeMethods = null;
+      
+      return function(obj, prop) {
+        var len = arguments.length;
+        if (len < 1)
+        {
+          jsx.throwThis("jsx.InvalidArgumentError",
+            ["Not enough arguments", "saw 0", "(obj : Object[, prop : string])"]);
+          return false;
+        }
+      
+        /*
+         * Determine if we were apply'd by jsx.object.areNativeMethods;
+         * NOTE: cache reference
+         */
+        var checkNative =
+          (this == (areNativeMethods
+                     || (areNativeMethods = jsx.object.areNativeMethods)));
+        
+        var t = typeof obj;
+      
+        /* When no property names are provided, test if the first argument is a method */
+        if (len < 2)
+        {
+          if (checkNative)
+          {
+            return rxNativeMethod.test(t) && obj && true || false;
+          }
+
+          return rxUnknown.test(t) || rxMethod.test(t) && obj && true || false;
+        }
+        
+        /* otherwise the first argument must refer to a suitable object */
+        if (rxUnknown.test(t) || !obj)
+        {
+          return false;
+        }
+          
+        for (var i = 1; i < len; i++)
+        {
+          prop = arguments[i];
+          
+          /* NOTE: Handle null _and_ undefined */
+          if (prop == null)
+          {
+            return false;
+          }
+          
+          var isLastSeg = (i == len - 1);
+          if (isLastSeg)
+          {
+            if (typeof prop.valueOf() == "string")
+            {
+              prop = [prop];
+            }
+            
+            var aProp = prop;
+          }
+          
+          for (var j = (isLastSeg && aProp.length || 1); j--;)
+          {
+            if (isLastSeg)
+            {
+              prop = aProp[j];
+            }
+            
+            t = typeof obj[prop];
+            
+            /*
+             * NOTE: Test for "unknown" required in any case;
+             * this order speeds up evaluation
+             */
+            if (rxUnknown.test(t) || (rxMethod.test(t) && obj[prop]))
+            {
+              if (i < len - 1)
+              {
+                obj = obj[prop];
+                if (!(rxUnknown.test(typeof obj) || obj))
+                {
+                  return false;
+                }
+              }
+              else if (checkNative && !rxNativeMethod.test(t))
+              {
+                return false;
+              }
+            }
+            else
+            {
+              return false;
+            }
+          }
+        }
+        
+        return true;
+      };
+    }())
+  };
+}(this));
+
+/**
+ * @property Global
+ *   Reference to the ECMAScript Global Object
+ */
+jsx.global = this;
+
+jsx.object.areMethods =
+  jsx.object.isHostMethod = jsx.object.areHostMethods = jsx.object.isMethod;
+    
 // jsx.object.docURL = jsx.object.path + "object.htm";
 
 /* allows for de.pointedears.jsx.object */
@@ -75,191 +265,6 @@ if (typeof de.pointedears == "undefined")
  * @namespace
  */
 de.pointedears.jsx = jsx;
-
-/**
- * @property Global
- *   Reference to the ECMAScript Global Object
- */
-jsx.global = this;
-
-/*
- * NOTE: Cannot use addProperties() for the following
- * because values have not been defined yet!
- * 
- * TODO: Should syntactic sugar be provided to work around
- * this issue?  See Function.prototype.extend().
- */
-
-/**
- * @type number
- *   Used by {@link jsx.object#addProperties()} to overwrite existing
- *   properties.
- */
-jsx.object.ADD_OVERWRITE = 1;
-
-/**
- * @type number
- *   Used by {@link jsx.object#addProperties()} and {@link jsx.object#clone()}
- *   to make a shallow copy of all enumerable properties (default).
- */
-jsx.object.COPY_ENUM = 0;
-
-/**
- * @type number
- *   Used by {@link jsx.object#addProperties()} and {@link jsx.object#clone()}
- *   to make a deep copy of all enumerable properties.
- */
-jsx.object.COPY_ENUM_DEEP = 2;
-
-/**
- * @type number
- *   Used by {@link jsx.object#addProperties()} and {@link jsx.object#clone()}
- *   to copy a property by inheritance.
- */
-jsx.object.COPY_INHERIT = 4;
-
-jsx.MSG_INFO = "info";
-jsx.MSG_WARN = "warn";
-jsx.MSG_DEBUG = "debug";
-
-/**
- * Determines whether an object is, or several objects are,
- * likely to be callable.
- * 
- * @author (C) 2003-2010  <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
- * @function
- * @param obj : Object which should be tested for a method, or checked
- *   for being a method if no further arguments are provided.
- *   <p>
- *   <em>NOTE: If you pass a primitive value for this argument,
- *   the properties of the object created from that value are considered.
- *   In particular, if you pass a string value containing
- *   a <i>MemberExpression</i>, the properties of the corresponding
- *   <code>String</code> instance are considered, not of the object that
- *   the <i>MemberExpression</i> might refer to.  If you need to use such
- *   a string to refer to an object (e.g., if you do not know whether it
- *   is safe to refer to the object), use the return value of
- *   {@link jsx#tryThis jsx.tryThis("<var>MemberExpression</var>")}
- *   as argument to this method instead.</em>
- *   </p>
- * @param prop : optional string|Array
- *   Path of the property to be determined a method, i.e. a reference to
- *   a callable object assigned as property of another object.
- *   Use a string argument for each component of the path, e.g.
- *   the argument list <code>(o, "foo", "bar")</code> for testing whether
- *   <code>o.foo.bar</code> is a method.
- *   If the last argument is an {@link Array}, all elements of
- *   this array are used for property names; e.g.
- *   <code>(o, "foo", ["bar", "baz"])</code>.  This allows for testing
- *   several properties of the same object with one call.
- * @return boolean
- *   <code>true</code> if all arguments refer to methods,
- *   <code>false</code> otherwise.
- * @see jsx.object#isMethodType()
- */
-jsx.object.isMethod = jsx.object.areMethods =
-jsx.object.isHostMethod = jsx.object.areHostMethods = (function() {
-  var
-    rxUnknown = /^\s*unknown\s*$/i,
-    rxNativeMethod = /^\s*function\s*$/i,
-    rxMethod = /^\s*(function|object)\s*$/i,
-    areNativeMethods = null;
-  
-  return function(obj, prop) {
-    var len = arguments.length;
-    if (len < 1)
-    {
-      jsx.throwThis("jsx.InvalidArgumentError",
-        ["Not enough arguments", "saw 0", "(obj : Object[, prop : string])"]);
-      return false;
-    }
-  
-    /*
-     * Determine if we were apply'd by jsx.object.areNativeMethods;
-     * NOTE: cache reference
-     */
-    var checkNative =
-      (this == (areNativeMethods
-                 || (areNativeMethods = jsx.object.areNativeMethods)));
-    
-    var t = typeof obj;
-  
-    /* When no property names are provided, test if the first argument is a method */
-    if (len < 2)
-    {
-      if (checkNative)
-      {
-        return rxNativeMethod.test(t) && obj && true || false;
-      }
-
-      return rxUnknown.test(t) || rxMethod.test(t) && obj && true || false;
-    }
-    
-    /* otherwise the first argument must refer to a suitable object */
-    if (rxUnknown.test(t) || !obj)
-    {
-      return false;
-    }
-      
-    for (var i = 1; i < len; i++)
-    {
-      prop = arguments[i];
-      
-      /* NOTE: Handle null _and_ undefined */
-      if (prop == null)
-      {
-        return false;
-      }
-      
-      var isLastSeg = (i == len - 1);
-      if (isLastSeg)
-      {
-        if (typeof prop.valueOf() == "string")
-        {
-          prop = [prop];
-        }
-        
-        var aProp = prop;
-      }
-      
-      for (var j = (isLastSeg && aProp.length || 1); j--;)
-      {
-        if (isLastSeg)
-        {
-          prop = aProp[j];
-        }
-        
-        t = typeof obj[prop];
-        
-        /*
-         * NOTE: Test for "unknown" required in any case;
-         * this order speeds up evaluation
-         */
-        if (rxUnknown.test(t) || (rxMethod.test(t) && obj[prop]))
-        {
-          if (i < len - 1)
-          {
-            obj = obj[prop];
-            if (!(rxUnknown.test(typeof obj) || obj))
-            {
-              return false;
-            }
-          }
-          else if (checkNative && !rxNativeMethod.test(t))
-          {
-            return false;
-          }
-        }
-        else
-        {
-          return false;
-        }
-      }
-    }
-    
-    return true;
-  };
-}());
 
 /**
  * Determines whether an object is, or several objects are,
@@ -399,23 +404,7 @@ jsx.warn = function(sMsg) {
   return jsx.dmsg(sMsg, jsx.MSG_WARN);
 };
 
-/**
- * Lets one object inherit from another
- *
- * @function
- * @param obj : optional Object
- *   Object from which to inherit.  The default is <code>Object.prototype</code>.
- * @return Object
- *   Inheriting (child) object
- */
-jsx.object.inheritFrom = (function() {
-  function Dummy() {}
-  
-  return function(obj) {
-    Dummy.prototype = obj || Object.prototype;
-    return new Dummy();
-  };
-}());
+
 
 /**
  * Creates a duplicate (clone) of an object
@@ -769,7 +758,7 @@ jsx.object.hasPropertyValue = function(obj, needle, params) {
  *       see Message-ID <2152411.FhMhkbZ0Pk@PointedEars.de>
  */
 jsx.clearErrorHandler = function() {
-  if (typeof window != "undefined" && window.onerror)
+  if (typeof window != "undefined")
   {
     /*
      * debug.js 0.99.5.2006041101 BUGFIX:
@@ -819,7 +808,6 @@ jsx.setErrorHandler = (function() {
     }
     
     if (typeof window != "undefined"
-        && typeof window.onerror != "undefined"
         && typeof fHandler != "undefined")
     {
       /*
@@ -1049,6 +1037,88 @@ jsx.throwThis = (function() {
 jsx.rethrowThis = function (exception) {
   eval("throw exception");
 };
+
+/**
+ * Lets one object inherit from another
+ *
+ * @function
+ * @param obj : optional Object
+ *   Object from which to inherit.  The default is <code>Object.prototype</code>.
+ * @return Object
+ *   Inheriting (child) object
+ */
+jsx.object.inheritFrom = (function() {
+  function Dummy() {}
+  
+  return function(obj) {
+    Dummy.prototype = (typeof obj == "undefined")
+                    ? Object.prototype
+                    : (obj || null);
+    return new Dummy();
+  };
+}());
+
+if (jsx.options.emulate && !jsx.object.isNativeMethod(jsx.tryThis("Object"), "create"))
+{
+  if (!jsx.object.isNativeMethod(jsx.tryThis("Object"), "defineProperties"))
+  {
+    if (!jsx.object.isNativeMethod(jsx.tryThis("Object"), "getOwnPropertyNames"))
+    {
+      Object.getOwnPropertyNames = (function () {
+        var _hasOwnProperty = jsx.object._hasOwnProperty;
+        
+        return function (o) {
+          var names = [];
+          
+          for (var p in o)
+          {
+            if (_hasOwnProperty(o, p))
+            {
+              names.push(p);
+            }
+          }
+          
+          return names;
+        };
+      }());
+    }
+    
+    Object.defineProperties = function (o, descriptor) {
+      var properties = Object.getOwnPropertyNames(descriptor);
+      for (var i = 0, len = properties.length; i < len; ++i)
+      {
+        var property = properties[i];
+        
+        o[property] = descriptor[property].value;
+      }
+      
+      return o;
+    };
+  }
+  
+  /**
+   * Creates a new object and initializes its properties.
+   * 
+   * Emulation of the Object.create() method from ES 5.1,
+   * section 15.2.3.5.
+   * 
+   * @param prototype : Object|Null
+   * @param descriptor : optional Object
+   *   Properties descriptor, where each own property name
+   *   is a property name of the new object, and each corresponding
+   *   property value is a reference to an object that defines the
+   *   attributes of that property.  Supported properties of
+   *   that defining object include <code>value</code> only
+   *   at this time.
+   * @return Reference to the new object
+   * @type Object
+   */
+  Object.create = function (prototype, descriptor) {
+    var o = jsx.object.inheritFrom(prototype);
+    Object.defineProperties(o, descriptor);
+    return o;
+  };
+}
 
 /**
  * Returns a feature of an object
@@ -1767,7 +1837,10 @@ Function.prototype.extend = (function() {
      * @return Object
      * @deprecated
      */
-    this.prototype.iterator = iterator;
+    if (typeof this.prototype.iterator == "undefined")
+    {
+      this.prototype.iterator = iterator;
+    }
     
     /* Optimize iteration if ECMAScript 5 features are available */
     if (jsx_object.isMethod(jsx.tryThis("Object"), "defineProperties"))
@@ -1835,32 +1908,30 @@ Function.prototype.extend = (function() {
   };
 }());
 
+/**
+ * Determines if a value refers to an {@link Array}.
+ * <p>
+ * Returns <code>true</code> if the value is a reference to an object
+ * whose <code>class</code> internal property is <code>"Array"</code>;
+ * <code>false</code> otherwise.
+ * </p>
+ * 
+ * @function
+ * @return boolean
+ * @see ECMAScript Language Specification, Edition 5.1, section 15.4.3.2
+ */
+jsx.object.isArray = (function () {
+  var _getClass = jsx.object.getClass;
+  
+  return function (a) {
+    return (_getClass(a) === "Array");
+  };
+}());
+
 if (jsx.options.emulate)
 {
   /* Defines Array.isArray() if not already defined */
-  jsx.object.addProperties(
-    {
-      /**
-       * Determines if a value refers to an {@link Array}.
-       * <p>
-       * Returns <code>true</code> if the value is a reference to an object
-       * whose <code>class</code> internal property is <code>"Array"</code>;
-       * <code>false</code> otherwise.
-       * </p>
-       * @memberOf Array
-       * @function
-       * @return boolean
-       * @see ECMAScript Language Specification, Edition 5.1, section 15.4.3.2
-       */
-      isArray: (function () {
-        var _getClass = jsx.object.getClass;
-        
-        return function (a) {
-          return (_getClass(a) === "Array");
-        };
-      }())
-    },
-    Array);
+  jsx.object.addProperties({isArray: jsx.object.isArray}, Array);
 
   /* Defines Array.prototype.indexOf and .map() if not already defined */
   jsx.object.addProperties(
