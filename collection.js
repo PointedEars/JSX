@@ -42,6 +42,8 @@
  * 
  * You could compare this behavior to an associative array in PHP,
  * only that ECMAScript has no built-in concept of associative arrays.
+ * 
+ * @TODO Inherit from jsx.map.Map, remove duplicate methods
  */
 
 /**
@@ -247,28 +249,27 @@ jsx.Iterator.prototype.prev = function () {
         this.currItem = t.length;
       }
       
+      this.nextItem = this.currItem;
+      
+      var i = this.currItem;
+      
       /* start from next possible item */
-      var i = this.currItem - 1;
-
       /* run through only one time */
-      while (i != this.currItem && typeof t[i] == "undefined")
+      while (--i > -1 && typeof t[i] == "undefined")
       {
-        if (--i < 0)
-        {
-          i = t.length - 1;
-        }
+        ;
       }
 
       if (typeof t[i] != "undefined")
       {
-        this.prevItem = -1;
         this.currItem = i;
-        this.nextItem = -1;
-        result = i;
+        result = t[i];
       }
     }
   }
   
+  this.prevItem = -1;
+    
   return result;
 };
 
@@ -294,33 +295,37 @@ jsx.Iterator.prototype.next = function () {
     else if (typeof t.length != "undefined")
     {
       if (this.currItem < 0
-          || this.currItem > t.length - 2)
+          || this.currItem > t.length - 1)
       {
         this.currItem = -1;
       }
+      
+      this.prevItem = this.currItem;
+      
+      var i = this.currItem;
     
       /* start from next possible item */
-      var i = this.currItem + 1;
-      
       /* run through only one time */
-      while (i != this.currItem && typeof t[i] == "undefined")
+      while (++i < t.length && typeof t[i] == "undefined")
       {
-        if (++i > t.length - 1)
-        {
-          i = 0;
-        }
+        ;
       }
 
       if (typeof t[i] != "undefined")
       {
-        this.prevItem = -1;
         this.currItem = i;
-        this.nextItem = -1;
-        result = i;
+        result = t[i];
+      }
+      else
+      {
+        this.currItem = -1;
+        result = null;
       }
     }
   }
   
+  this.nextItem = -1;
+
   return result;
 };
 
@@ -348,15 +353,12 @@ jsx.Iterator.prototype.hasPrev = function () {
     }
 
     /* start from next possible item */
-    var i = this.currItem - 1;
+    var i = this.currItem;
           
     /* run through only one time */
-    while (i != this.currItem && typeof t[i] == "undefined")
+    while (--i > -1 && typeof t[i] == "undefined")
     {
-      if (--i < 0)
-      {
-        i = t.length - 1;
-      }
+      ;
     }
 
     if (typeof t[i] != "undefined")
@@ -387,21 +389,18 @@ jsx.Iterator.prototype.hasNext = function () {
   if (t)
   {
     if (this.currItem < 0
-        || this.currItem > t.length - 2)
+        || this.currItem > t.length - 1)
     {
       this.currItem = -1;
     }
 
     /* start from next possible item */
-    var i = this.currItem + 1;
+    var i = this.currItem;
     
     /* run through only one time */
-    while (i != this.currItem && typeof t[i] == "undefined")
+    while (++i < t.length && typeof t[i] == "undefined")
     {
-      if (++i > t.length - 1)
-      {
-        i = 0;
-      }
+      ;
     }
 
     if (typeof t[i] != "undefined")
