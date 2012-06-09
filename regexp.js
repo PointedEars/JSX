@@ -291,7 +291,7 @@ String.prototype.regExpEscape = strRegExpEscape;
  *         from the pattern.</li>
  *     </ul>
  *   </li>
- *   <li>\p{…} and \P{…} escpae sequences are replaced by the corresponding
+ *   <li>\p{…} and \P{…} escape sequences are replaced by the corresponding
  *       character classes</li>
  *   <li><tt>(?P&lt;name>…)</tt> and <tt>(?P'name'…)</tt> generate
  *       properties of a user-defined <tt>group</tt> property of the
