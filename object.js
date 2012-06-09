@@ -1447,10 +1447,10 @@ jsx._import = (function() {
  *   Object from the script to be imported (optional)
  * @param properties : Array
  *   Properties of the object from the script to be imported (optional)
- * @requires jsx.net.http#Request
  * @return boolean
  *   <code>true</code> if the script could be successfully <em>loaded</em>
  *   (not: included), <code>false</code> otherwise.
+ * @requires jsx.net.http#Request
  */
 jsx.importFrom = (function() {
   /* Imports */
