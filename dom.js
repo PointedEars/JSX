@@ -1631,7 +1631,7 @@ jsx.dom.hyphenate = (function () {
       contextNodes = [contextNodes];
     }
     
-    for ( var i = 0, len = contextNodes.length; i < len; ++i)
+    for (var i = 0, len = contextNodes.length; i < len; ++i)
     {
       var contextNode = contextNodes[i];
       
@@ -1641,8 +1641,11 @@ jsx.dom.hyphenate = (function () {
         continue;
       }
       
-      for (var j = 0, nodes = contextNode.childNodes, len = nodes.length;
-           j < len; ++j)
+      for (var j = 0,
+                nodes = contextNode.childNodes,
+                len2 = nodes && nodes.length;
+           j < len2;
+           ++j)
       {
         var node = nodes[j];
         
@@ -1652,7 +1655,7 @@ jsx.dom.hyphenate = (function () {
         }
         else
         {
-          node.nodeValue = _hyphenate(node.nodeValue);
+          node.nodeValue = _hyphenate(node.nodeValue, hyphenateAll);
         }
       }
     }
