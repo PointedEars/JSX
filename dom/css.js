@@ -613,17 +613,19 @@ jsx.dom.css.getElemByClassName = jsx.dom.css.gEBCN = (function() {
   var _hasOwnProperty = jsx.object._hasOwnProperty;
   var _getElemByTagName = jsx.dom.getElemByTagName;
   var sWhiteSpace = "[ \\t\\f\\u200B\\r\\n]+";
+  var rxWhiteSpace = new RegExp(sWhiteSpace);
 
   return function (sClassNames, contextNode) {
     var
       result = [],
       classNames = !Array.isArray(sClassNames)
-        ? String(sClassNames || "").split(/\s+/)
+        ? String(sClassNames || "").split(rxWhiteSpace)
         : sClassNames,
       classNameSet = {};
 
     if (classNames.length > 0)
     {
+      /* Remove duplicates */
       for (var i = classNames.length; i--;)
       {
         classNameSet[classNames[i]] = true;
@@ -632,12 +634,7 @@ jsx.dom.css.getElemByClassName = jsx.dom.css.gEBCN = (function() {
       classNames = [];
       if (typeof Object.keys == "function")
       {
-        var keys = Object.keys(classNameSet);
-        var len = keys.length;
-        for (i = 0; i < len; ++i)
-        {
-          classNames.push(classNameSet[keys[i]]);
-        }
+        classNames = Object.keys(classNameSet);
       }
       else
       {
