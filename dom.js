@@ -119,9 +119,9 @@ if (typeof document != "undefined")
           return null;
         };
       }
-      
+
       var jsx_object = jsx.object;
-      
+
       if (jsx_object.isMethod(document, "getElementById"))
       {
         /**
@@ -160,12 +160,12 @@ if (typeof document != "undefined")
     {
       return null;
     }
-    
+
     if (typeof document == "undefined")
     {
       return dummy;
     }
-    
+
     if (jsx.object.isMethod(document, "getElementsByName"))
     {
       /* W3C DOM Level 2 HTML */
@@ -207,7 +207,7 @@ if (typeof document != "undefined")
         return result;
       };
     }
-    
+
     return dummy;
   }());
 
@@ -215,7 +215,7 @@ if (typeof document != "undefined")
 
   jsx.dom.getElemByTagName = jsx.dom.gEBTN = (function() {
     var jsx_object = jsx.object;
-    
+
     if (jsx_object.isMethod(jsx, "xpath", "evaluate"))
     {
       /* W3C DOM Level 3 XPath */
@@ -233,7 +233,7 @@ if (typeof document != "undefined")
         {
           sTagName = '*';
         }
-        
+
         if (arguments.length > 2 && typeof index != "number")
         {
           var tmp = oContextNode;
@@ -243,7 +243,7 @@ if (typeof document != "undefined")
 
         var result = jsx.xpath.evaluate('.//' + sTagName, oContextNode || null,
           null, XPathResult.ORDERED_NODE_ITERATOR_TYPE);
-        
+
         if (result)
         {
           if (!isNaN(index) && index > -1)
@@ -275,7 +275,7 @@ if (typeof document != "undefined")
         {
           sTagName = '*';
         }
-        
+
         if (arguments.length > 2 && typeof index != "number")
         {
           var tmp = oContextNode;
@@ -287,18 +287,18 @@ if (typeof document != "undefined")
         {
           oContextNode = document;
         }
-        
+
         if (!jsx.object.isMethod(oContextNode, "getElementsByTagName"))
         {
           return null;
         }
-        
+
         var result = oContextNode.getElementsByTagName(sTagName);
         if (result && !isNaN(index) && index > -1)
         {
           result = result[index];
         }
-        
+
         return result;
       };
     }
@@ -321,23 +321,23 @@ if (typeof document != "undefined")
           oContextNode = index;
           index = tmp;
         }
-        
+
         if (!oContextNode)
         {
           oContextNode = document;
         }
-        
+
         if (!jsx.object.isMethod(oContextNode, "all", "tags"))
         {
           return null;
         }
-        
+
         var result = oContextNode.all.tags(sTagName);
         if (result && !isNaN(index) && index > -1)
         {
           result = result[index];
         }
-        
+
         return result;
       };
     }
@@ -354,12 +354,12 @@ if (typeof document != "undefined")
     {
       return null;
     }
-    
+
     if (typeof document == "undefined")
     {
       return dummy;
     }
-    
+
     if (jsx.dom.hasGetElementsByTagName)
     {
       /**
@@ -455,13 +455,13 @@ jsx.dom.DHTMLException = function(sMessage) {
   {
     return false;
   }
-  
+
   jsx.dom.allowExceptionMsg = false;
 
   jsx.setErrorHandler();
   var stackTrace =
     jsx.object.isMethod(_global, "Error") && (new Error()).stack || "";
-  
+
   jsx.clearErrorHandler();
 
   alert(
@@ -484,11 +484,11 @@ jsx.dom.DHTMLException = function(sMessage) {
 
 jsx.dom.write = function(s) {
   var result = false;
-  
+
   result = jsx.tryThis(
     function() {
       document.write(s);
-            
+
       return true;
     },
     function() {
@@ -505,14 +505,14 @@ jsx.dom.write = function(s) {
           {
             scripts = document.getElementsByTagName("script");
           }
-          
+
           if (scripts && scripts.length > 0)
           {
             var lastScript = scripts[scripts.length - 1];
             result2 = !!lastScript.parentNode.insertBefore(
               document.createTextNode(s), lastScript.nextSibling);
           }
-          
+
           return result2;
         });
     });
@@ -854,7 +854,7 @@ jsx.dom.getAttr = function(oElement, sAttrName) {
  */
 jsx.dom.camelize = (function() {
   var jsx_object = jsx.object;
-  
+
   if ("x".replace(/x/, function() { return "u"; }) != "u")
   {
     /*
@@ -871,13 +871,13 @@ jsx.dom.camelize = (function() {
             result = this,
             m,
             i = searchValue.global ? -1 : 1;
-              
+
           while (i-- && (m = searchValue.exec(result)))
           {
             result = result.replace(m[0],
               String(replaceValue.apply(null, m.concat(m.index, this))));
           }
-          
+
           return result;
         }
 
@@ -886,14 +886,14 @@ jsx.dom.camelize = (function() {
         {
           return replaceValue(String(searchValue), i, this);
         }
-        
+
         return this;
       }
 
       return origReplace.apply(this, arguments);
     };
   }
-  
+
   if (typeof Map == "function")
   {
     var cache = new Map();
@@ -901,22 +901,22 @@ jsx.dom.camelize = (function() {
   else
   {
     var prefix = " ", suffix = "";
-    
+
     cache = {};
     cache.get = function(s) {
       return jsx_object.getProperty(this, prefix + s + suffix, false);
     };
-    
+
     cache.put = function(s, v) {
       this[prefix + s + suffix] = v;
     };
   }
-  
+
   function f(match, p1)
   {
     return p1.toUpperCase();
   }
-  
+
   /**
    * @param sProperty : String
    * @return string
@@ -1020,7 +1020,7 @@ jsx.dom.setAttr = function(o, sAttrName, attrValue) {
       strToValue =
         /**
          * Converts a string, if possible, to a number
-         * 
+         *
          * @param s
          * @return string|number
          *   The converted value
@@ -1086,38 +1086,43 @@ jsx.dom.setAttr = function(o, sAttrName, attrValue) {
  * @see <a href="dom2-core#ID-2141741547">DOM Level 2 Core: Document::createElement()</a>
  * @see <a href="msdn#workshop/author/dhtml/reference/methods/createelement.asp">MSDN Library: createElement()</a>
  */
-jsx.dom.createElement = function(sTag) {
-  var o = null;
+jsx.dom.createElement = (function () {
+  var _setAttr = jsx.dom.setAttr;
 
-  if (sTag
-      && typeof document != "undefined"
-      && jsx.object.isMethod(document, "createElement"))
-  {
-    /*@cc_on @*/
-    /*@if (@_jscript)
-      o = document.createElement(sTag);
-    @end @*/
+  return function(sTag) {
+    var o = null;
 
-    if (!o)
+    if (sTag
+        && typeof document != "undefined"
+        && jsx.object.isMethod(document, "createElement"))
     {
-      var aTagComponents = sTag.replace(/^<?\s*|\s*>?$/g, "")
-        .replace(/\s+/, " ").replace(/ = /g, "=").split(" ");
-      o = document.createElement(aTagComponents[0]);
-      if (o)
+      /*@cc_on @*/
+      /*@if (@_jscript)
+        o = document.createElement(sTag);
+      @end @*/
+
+      if (!o)
       {
-        aTagComponents.shift();
-        var attrs = aTagComponents.join(" ");
-        var m;
-        while ((m = /([^\s=]+)\s*(=\s*(\S+)\s*)?/g.exec(attrs)))
+        /* NOTE: Use RegExp() to work around misconfigured PHP (short_open_tag=1) */
+        var aTagComponents = sTag.replace(new RegExp("^<\?\\s*|\\s*>?$", "g"), "")
+          .replace(/\s*=\s*/g, "=").split(/\s+/);
+        o = document.createElement(aTagComponents[0]);
+        if (o)
         {
-          setAttr(o, m[1].toLowerCase(), m[3]);
+          aTagComponents.shift();
+          var attrs = aTagComponents.join(" ");
+          var m;
+          while ((m = /([^\s=]+)\s*(=\s*(\S+)\s*)?/g.exec(attrs)))
+          {
+            _setAttr(o, m[1].toLowerCase(), m[3]);
+          }
         }
       }
     }
-  }
 
-  return o;
-};
+    return o;
+  };
+}());
 
 /**
  * @param data
@@ -1213,13 +1218,13 @@ jsx.dom.html2nodes = function(sHTML) {
       node.appendChild(document.createTextNode(m[4]));
     }
   }
-  
+
   return node;
 };
 
 jsx.dom.HTMLSerializer = (
   function() {
-  
+
   }
 ).extend("Object", {
   serializeToString: (function() {
@@ -1272,10 +1277,10 @@ jsx.dom.HTMLSerializer = (
         empty: true
       }
     };
-    
+
     return function(oNode, bIncludeProprietary) {
       var me = arguments.callee;
-    
+
       if (oNode.tagName)
       {
         var
@@ -1283,17 +1288,17 @@ jsx.dom.HTMLSerializer = (
           startTag = "<" + t,
           content = [],
           endTag = "";
-        
+
         for (var i = 0, c = oNode.childNodes, len = c && c.length; i < len; i++)
         {
           content.push(me(oNode, bIncludeProprietary));
         }
-        
+
         if (typeof elemInfo[t] != "undefined" && !elemInfo[t].empty)
         {
           endTag = "</" + t + ">";
         }
-        
+
         return startTag + content.join("") + endTag;
       }
 
@@ -1335,7 +1340,7 @@ jsx.dom.getFirstChild = function(oNode) {
 
 /**
  * Returns the parent node of a node
- * 
+ *
  * @param oNode : Node
  * @returns {Node} The parent node of <var>oNode</var>
  */
@@ -1400,7 +1405,7 @@ jsx.dom.loadScript = function(sURI, sType, sLanguage, bReload) {
     me = arguments.callee,
     jsx_object = jsx.object,
     result = false;
-    
+
   if (typeof me.registry != "undefined"
       && jsx_object.getProperty(me.registry, sURI, false)
       && !bReload)
@@ -1413,18 +1418,18 @@ jsx.dom.loadScript = function(sURI, sType, sLanguage, bReload) {
   {
     return false;
   }
-  
+
   if (!jsx_object.isMethod(document, "createElement"))
   {
     return false;
   }
-  
+
   var oScript = document.createElement("script");
   if (!oScript)
   {
     return false;
   }
-  
+
   /* no exception handling for backwards compatibility reasons */
   if (typeof oScript.src != "undefined")
   {
@@ -1458,14 +1463,14 @@ jsx.dom.loadScript = function(sURI, sType, sLanguage, bReload) {
     oHead.insertAdjacentElement("beforeEnd", oScript);
     result = true;
   }
-  
+
   if (result)
   {
     if (typeof me.registry == "undefined")
     {
       me.registry = {};
     }
-    
+
     me.registry[sURI] = true;
   }
 
@@ -1583,11 +1588,11 @@ jsx.dom.isDescendantOfOrSelf = function(node, ancestor) {
 
 /**
  * Applies hyphenation to the context node.
- * 
+ *
  * Improves the readability of text by inserting soft hyphens
  * in text nodes as specified by the {@link jsx.string#hyphenation}
  * dictionary.
- * 
+ *
  * @param contextNode : Node
  *   Hyphenation is applied to this node and its descendant.
  *   text nodes.  The default is the document node referred
@@ -1599,7 +1604,7 @@ jsx.dom.isDescendantOfOrSelf = function(node, ancestor) {
 jsx.dom.hyphenate = (function () {
   var _getClass = jsx.object.getClass;
   var _hyphenation, _hyphenate, _me;
-  
+
   return function (contextNodes, hyphenateAll) {
     /* imports */
     if (!_hyphenate)
@@ -1607,40 +1612,40 @@ jsx.dom.hyphenate = (function () {
       _hyphenation = jsx.string.hyphenation;
       _hyphenate = _hyphenation.hyphenate;
     }
-    
+
     _hyphenation.setHyphenateAll(hyphenateAll);
-    
+
     if (!_me)
     {
       _me = jsx.dom.hyphenate;
     }
-    
+
     /* optional arguments */
     if (typeof contextNodes == "undefined")
     {
       contextNodes = document;
     }
-    
+
     if (!contextNodes)
     {
       return jsx.warn("jsx.dom.hyphenate: Invalid context node: " + contextNodes);
     }
-    
+
     if (_getClass(contextNodes) != "Array")
     {
       contextNodes = [contextNodes];
     }
-    
+
     for (var i = 0, len = contextNodes.length; i < len; ++i)
     {
       var contextNode = contextNodes[i];
-      
+
       if (!contextNode)
       {
         jsx.warn("jsx.dom.hyphenate: Invalid context node " + (i + 1) + ": " + contextNode);
         continue;
       }
-      
+
       for (var j = 0,
                 nodes = contextNode.childNodes,
                 len2 = nodes && nodes.length;
@@ -1648,7 +1653,7 @@ jsx.dom.hyphenate = (function () {
            ++j)
       {
         var node = nodes[j];
-        
+
         if (node.nodeType == 1)
         {
           _me(node, hyphenateAll);
