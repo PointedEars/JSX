@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+  "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>grammar.js Test Case</title>
+    <script type="text/javascript" src="../object.js"></script>
+    <script type="text/javascript" src="../grammar.js"></script>
+    <script type="text/javascript" src="test.js"></script>
+    <script type="text/javascript">
+      var Grammar2 = jsx.grammar.Grammar2;
+    
+      jsx.test.runner.run({
+        tests: [
+          function () {
+            var g = new Grammar2({
+              ID: "#{nmchar}+",
+              nmchar: "[_a-z0-9-]|{nonascii}|{escape}",
+              nonascii: "[\\xA0-\\xFF]",
+              escape: "{unicode}|\\\\[^\\r\\n\\f0-9a-f]",
+              unicode: "\\\\{h}\\{1,6\\}(\\r\\n|[ \\t\\r\\n\\f])?",
+              h: "[0-9a-f]",
+              CLASS: "\\.{IDENT}",
+              IDENT: "-?{nmstart}{nmchar}*",
+              nmstart: "[_a-z]|{nonascii}|{escape}",
+              ATTRIBUTE: "\\[\\s*({IDENT}\\|)?{IDENT}\\s*((=|{INCLUDES}|{DASHMATCH})\\s*({IDENT}|{STRING})\\s*)?\\]",
+              INCLUDES: "~=",
+              DASHMATCH: "\\|=",
+              STRING: "{string1}|{string2}",
+              string1: '"([^\\n\\r\\f\\\\"]|\\\\{nl}|{escape})*"', 
+              string2: "'([^\\n\\r\\f\\\\']|\\\\{nl}|{escape})*'",
+              nl: "(\\n|\\r\n|\\r|\\f)",
+              PSEUDOCLASS: ":(link|visited|hover|active|focus|target|lang"
+                + "|enabled|disabled|checked|indeterminate"
+                + "|root|nth-child|nth-last-child|nth-of-type|nth-last-of-type"
+                + "|first-child|last-child|first-of-type|last-of-type"
+                + "|only-child|only-of-type|empty|not)\\b",
+              ELEMENT: "(^|\\s)(({IDENT}|\\*)\\|)?{IDENT}",
+              PSEUDOELEMENT: "::?(first-line|first-letter|before|after)\\b"
+            },
+            true);
+          }
+        ]
+      })
+    </script>
+  </head>
+
+  <body>
+    <h1>grammar.js Test Case</h1>
+  </body>
+</html>
