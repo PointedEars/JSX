@@ -219,7 +219,7 @@ if (typeof Number.prototype.toFixed == "undefined")
     
     if (decLen <= iPrecision)
     {
-      result = pad(result, iPrecision, '0', true, decLen);
+      result = jsx.string.pad(result, iPrecision, '0', true, decLen);
     }
     else
     {
@@ -1044,16 +1044,15 @@ function leadingCaps(s)
  * @see
  *   #pad(string, number, string)
  */
-function leadingZero(s, n)
-{
+var leadingZero = jsx.string.leadingZero = function (s, n) {
   var c;
   if ((c = this.constructor) && c == String && typeof s != "string")
   {
     s = this;
   }
    
-  return pad(s, n, "0");
-}
+  return jsx.string.pad(s, n, "0");
+};
 
 /*
 int LevenshteinDistance(char s[1..n], char t[1..m])

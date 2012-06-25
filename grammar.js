@@ -82,3 +82,80 @@ function Literal(sValue)
 Literal.prototype.toString = function() {
   return "'" + this.value + "'";
 };
+
+if (typeof jsx == "undefined")
+{
+  var jsx = {};
+}
+
+jsx.grammar = {
+  Grammar2: function (productions, autoResolve) {
+    for (var property in productions)
+    {
+      productions[property] = {
+        value: productions[property],
+        enumerable: true,
+        writable: true
+      };
+    }
+    
+    this.productions = Object.create(null, productions);
+    if (autoResolve)
+    {
+      this.resolve();
+    }
+  }.extend(null, {
+    /**
+     * @memberOf jsx.grammar.Grammar2.prototype
+     */
+    resolve: function () {
+      var productions = this.productions;
+      for (var symbol in productions)
+      {
+        var production = productions[symbol];
+        var rxSymbol = /\\\{|\{([^\}]+)\}/g;
+        var resolverStack = [];
+        resolverStack.toString = function () {
+          return this.join(" --> ");
+        };
+        
+        productions[symbol] = production.replace(rxSymbol,
+          function resolver (match, symbolRef) {
+            if (!symbolRef)
+            {
+              return match;
+            }
+          
+            if (resolverStack.indexOf(symbolRef) > -1)
+            {
+              throw new Error(
+                "Grammar is not finite, goal symbol '" + symbolRef
+                + "' is cyclically defined: " + resolverStack);
+            }
+            
+            resolverStack.push(symbolRef);
+            
+            var unresolved = productions[symbolRef];
+            
+            if (typeof unresolved != "undefined")
+            {
+              /* Resolve references recursively */
+              var rxSymbol = /\\\{|\{([^\}]+)\}/g;
+              var resolved = unresolved.replace(rxSymbol, resolver);
+            }
+            else
+            {
+              throw new Error(
+                "Goal symbol '" + symbolRef
+                + "' referenced in definition of goal symbol '" + symbol
+                + "' is not defined");
+            }
+            
+            resolverStack.pop();
+            
+            return resolved;
+          });
+      }
+    }
+  })
+};

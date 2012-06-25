@@ -34,10 +34,17 @@ if (typeof jsx == "undefined")
 
 if (typeof jsx.dom == "undefined")
 {
-  /**
-   * @namespace
-   */
-  jsx.dom = {};
+  if (typeof jsx.importFrom == "function")
+  {
+    jsx.importFrom(jsx.absPath("../dom.js", jsx.importFrom.lastImport));
+  }
+  else
+  {
+    /**
+     * @namespace
+     */
+    jsx.dom = {};
+  }
 }
 
 /**
