@@ -694,6 +694,9 @@ jsx.net.http.Request.prototype = {
       jsx.tryThis(
         function () {
           x.setRequestHeader("Content-Type", me.requestType);
+          
+          /* FIXME: Never fetch resource from HTTP/1.1 cache */
+          x.setRequestHeader("Cache-Control", "max-age=0");
         }
       );
     }

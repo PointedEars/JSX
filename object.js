@@ -1434,6 +1434,38 @@ jsx._import = (function() {
 }());
 
 /**
+ * Returns the absolute path for a URI-reference
+ * 
+ * @param relativePath : String
+ * @param basePath : String
+ * @return string
+ */
+jsx.absPath = function (relativePath, basePath) {
+  var uri = (basePath || document.URL).replace(/[?#].*$/, "").split("/");
+  relativePath = relativePath.split("/");
+  
+  if (uri[uri.length - 1] != "")
+  {
+    uri.pop();
+  }
+    
+  for (var i = 0, len = relativePath.length; i < len; ++i)
+  {
+    var component = relativePath[i];
+    if (component == "..")
+    {
+      uri.pop();
+    }
+    else if (component != ".")
+    {
+      uri.push(component);
+    }
+  }
+  
+  return uri.join("/");
+};
+
+/**
  * Imports a script, and optionally the object it defines, or some of their
  * properties, into the global namespace.
  * 
@@ -1441,6 +1473,7 @@ jsx._import = (function() {
  * execution until a response is received or the request times out.
  * Can therefore not be used to import jsx.net.http.
  * 
+ * @function
  * @param uri : string
  *   URI of the script to be imported
  * @param obj : Object
@@ -1464,7 +1497,8 @@ jsx.importFrom = (function() {
       Request = jsx.net.http.Request;
     }
     
-    var req = new Request(uri, "GET", false, function(response) {
+    arguments.callee.lastImport = uri;
+    var req = new Request(uri, "GET", false, function (response) {
       /*
        * NOTE: Passing response.responseText to eval() is not ES5-compatible;
        *       conforming implementations create a new execution context with
@@ -1482,7 +1516,8 @@ jsx.importFrom = (function() {
         script.text = response.responseText;
       }
      
-      document.getElementsByTagName("head")[0].appendChild(script);
+      /* NOTE: document.head was introduced with HTML5 WD */
+      (document.head || document.getElementsByTagName("head")[0]).appendChild(script);
       
       if (arguments.length > 1)
       {
