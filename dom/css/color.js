@@ -83,13 +83,26 @@ if (typeof jsx.dom.css == "undefined")
  *   Blue value.
  * @property opacity : Number
  *   Opacity value
+ * @return jsx.dom.css.Color
  */
 jsx.dom.css.Color = function(iRed, iGreen, iBlue, fOpacity) {
-  this.set(iRed, iGreen, iBlue, fOpacity);
+  return this.set(iRed, iGreen, iBlue, fOpacity);
 };
 
 jsx.dom.css.Color.MIN_VALUE = 0;
 jsx.dom.css.Color.MAX_VALUE = 255;
+
+/**
+ * Returns the difference between two colors.
+ * 
+ * @param color1 : jsx.dom.css.Color|String
+ * @param color2 : jsx.dom.css.Color|String
+ * @returns {red, green, blue, opacity}
+ * @see jsx.dom.css.Color.prototype.diff()
+ */
+jsx.dom.css.Color.diff = function (color1, color2) {
+  return (new jsx.dom.css.Color(color1)).diff(color2);
+};
 
 /**
  * Returns a <code>Color</code> object, identifying a color in the
@@ -184,7 +197,7 @@ jsx.dom.css.Color.extend(null, {
   _setComponent: function(sComponent, value) {
     if (String(value).indexOf("%") > -1)
     {
-      value = 255 * (parseInt(value, 10) / 100);
+      value = this.constructor.MAX_VALUE * (parseInt(value, 10) / 100);
     }
     
     if (isNaN(value))
@@ -239,29 +252,20 @@ jsx.dom.css.Color.extend(null, {
    *   may be negative, the result is normalized through
    *   {@link jsx.dom.css.Color.prototype#fix} if its properties
    *   are used for creating a <code>Color</code> object.
-   * @type {red, green, blue}
+   * @type {red, green, blue, opacity}
    */
-  diff: function (color2, color1) {
-    if (color1.constructor != jsx.dom.css.Color)
+  diff: function (color2) {
+    var _Color = jsx.dom.css.Color;
+    if (color2.constructor != _Color)
     {
-      if (this.constructor == jsx.dom.css.Color)
-      {
-        color1 = this;
-      }
-      else
-      {
-        jsx.throwException(
-          "TypeError",
-          "Color.prototype.diff(color2, color1):"
-          + " Caller must be a Color object if color1 does not refer to one");
-      }
+      color2 = new _Color(color2);
     }
     
     return {
-      red:     color2.red     - color1.red,
-      green:   color2.green   - color1.green,
-      blue:    color2.blue    - color1.blue,
-      opacity: color2.opacity - color1.opacity
+      red:     color2.red     - this.red,
+      green:   color2.green   - this.green,
+      blue:    color2.blue    - this.blue,
+      opacity: color2.opacity - this.opacity
     };
   },
   
@@ -273,15 +277,20 @@ jsx.dom.css.Color.extend(null, {
    * @return jsx.dom.css#Color
    */
   fix: function() {
+    var rgbMin = 0;
+    var rgbMax = this.constructor.MAX_VALUE;
     for (var component in {red: 1, green: 1, blue: 1})
     {
-      if (typeof this[component] == "undefined" || this[component] < 0)
+      if (typeof this[component] == "undefined" || this[component] < rgbMin)
       {
-        this[component] = 0;
+        this[component] = rgbMin;
       }
-      else if (this[component] > 255)
+      else
       {
-        this[component] = 255;
+        if (this[component] > rgbMax)
+        {
+          this[component] = rgbMax;
+        }
       }
     }
   
@@ -689,6 +698,52 @@ jsx.dom.css.Color.extend(null, {
 });
 
 /**
+ * Revives a <code>Color</code> instance from its JavaScript Object Notation.
+ * 
+ * Pass as second argument to {@link JSON#parse()} or call in another reviver:
+ * <pre><code>  var Color = jsx.dom.css.Color;
+ *  var myColor = JSON.parse(new Color("#f00"), Color.reviver);</code></pre>
+ * 
+ * @see jsx.dom.css.Color#fromJSON
+ * @return number|jsx.dom.css.Color
+ */
+jsx.dom.css.Color.reviver = function (property, value) {
+  return (typeof value == "object")
+    ? new this(value.red, value.green, value.blue, value.opacity)
+    : value;
+};
+
+/**
+ * Creates a <code>Color</code> instance from JavaScript Object Notation.
+ * 
+ * @param sJSON : String
+ * @return jsx.dom.css.Color|null
+ *   The <code>Color</code> if successful, <code>null</code> otherwise.
+ */
+jsx.dom.css.Color.fromJSON = function (sJSON) {
+  if (jsx.isNativeMethod(jsx.tryThis("JSON"), "parse"))
+  {
+    return JSON.parse(sJSON, this.reviver);
+  }
+
+  var
+    color = null,
+    error = null;
+  
+  jsx.tryThis(
+    function () { color = eval("(" + sJSON + ")"); },
+    function (e) { error = e; }
+  );
+  
+  if (!color || error && error.name == "SyntaxError")
+  {
+    return null;
+  }
+  
+  return new this(color.red, color.green, color.blue, color.opacity);
+};
+
+/**
  * Returns the color as a string
  * <code>rgba(<var>red</var>,<var>green</var>,<var>blue</var>, <var>opacity</var>)</code>
  * representation supported by CSS.
@@ -713,6 +768,14 @@ jsx.dom.css.Color.prototype.toRGBAString = function() {
  * @param fSaturation : float
  * @param fValue : float
  * @constructor
+ * @property hue : int
+ *   Hue value
+ * @property saturation : float
+ *   Saturation value
+ * @property value : float
+ *   Value component
+ * @property opacity : float
+ *   Opacity value
  */
 jsx.dom.css.HSVColor = function (iHue, fSaturation, fValue, fOpacity) {
   this.setHue(iHue);
@@ -775,7 +838,7 @@ jsx.dom.css.HSVColor.extend(null, {
       
       if (this.saturation == 0.0)
       {
-        return new _Color(v * rgbMax, v * 255, v * 255);
+        return new _Color(v * rgbMax, v * rgbMax, v * rgbMax);
       }
     
       var
@@ -821,53 +884,6 @@ jsx.dom.css.HSVColor.extend(null, {
   }())
 });
 
-
-/**
- * Revives a <code>Color</code> instance from its JavaScript Object Notation.
- * 
- * Pass as second argument to {@link JSON#parse()} or call in another reviver:
- * <pre><code>  var Color = jsx.dom.css.Color;
- *  var myColor = JSON.parse(new Color("#f00"), Color.reviver);</code></pre>
- * 
- * @see jsx.dom.css.Color#fromJSON
- * @return number|jsx.dom.css.Color
- */
-jsx.dom.css.Color.reviver = function (property, value) {
-  return (typeof value == "object")
-    ? new this(value.red, value.green, value.blue, value.opacity)
-    : value;
-};
-
-/**
- * Creates a <code>Color</code> instance from JavaScript Object Notation.
- * 
- * @param sJSON : String
- * @return jsx.dom.css.Color|null
- *   The <code>Color</code> if successful, <code>null</code> otherwise.
- */
-jsx.dom.css.Color.fromJSON = function (sJSON) {
-  if (jsx.isNativeMethod(jsx.tryThis("JSON"), "parse"))
-  {
-    return JSON.parse(sJSON, this.reviver);
-  }
-
-  var
-    color = null,
-    error = null;
-  
-  jsx.tryThis(
-    function () { color = eval("(" + sJSON + ")"); },
-    function (e) { error = e; }
-  );
-  
-  if (!color || error && error.name == "SyntaxError")
-  {
-    return null;
-  }
-  
-  return new this(color.red, color.green, color.blue, color.opacity);
-};
-
 /**
  * Creates a HSL color value (not to be confused with
  * {@link jsx.dom.css#HSVColor}).
@@ -882,8 +898,16 @@ jsx.dom.css.Color.fromJSON = function (sJSON) {
  * @param fLightness : float
  *   Lightness per cent
  * @param fOpacity : float
- *   Opacity between 0 (0%) and 1 (100%)
+ *   Opacity between 0 (0%) and 1 (100%) inclusive
  * @constructor
+ * @property hue : int
+ *   Hue value
+ * @property saturation : float
+ *   Saturation value
+ * @property lightness : float
+ *   Lightness value
+ * @property opacity : float
+ *   Opacity value
  */
 jsx.dom.css.HSLColor = function (iHue, fSaturation, fLightness, fOpacity) {
   this.setHue(iHue);
@@ -909,11 +933,13 @@ jsx.dom.css.HSLColor.reviver = function (property, value) {
 };
 
 /**
- * Creates a <code>Color</code> instance from JavaScript Object Notation.
+ * Creates a <code>HSLColor</code> instance from JavaScript Object Notation.
  * 
  * @param sJSON : String
- * @return jsx.dom.css.Color|null
- *   The <code>Color</code> if successful, <code>null</code> otherwise.
+ * @return jsx.dom.css.HSLColor|null
+ *   The <code>HSLColor</code> if successful,
+ *   <code>null</code> otherwise.
+ * @see JSON#parse(String, Function)
  */
 jsx.dom.css.HSLColor.fromJSON = function (sJSON) {
   if (jsx.isNativeMethod(jsx.tryThis("JSON"), "parse"))
@@ -983,7 +1009,7 @@ jsx.dom.css.HSLColor.extend(null, {
     
     return function () {
       /* Cf. <http://www5.informatik.tu-muenchen.de/lehre/vorlesungen/graphik/info/csc/COL_26.htm#topic25> */
-      function rgbValue(n1, n2, hue)
+      function getRGBValue(n1, n2, hue)
       {
         if (hue > 360)
         {
@@ -994,26 +1020,26 @@ jsx.dom.css.HSLColor.extend(null, {
           hue = hue + 360;
         }
     
-        var v;
+        var value;
         
         if (hue < 60)
         {
-          v = n1 + (n2 - n1) * hue / 60;
+          value = n1 + (n2 - n1) * hue / 60;
         }
         else if (hue < 180)
         {
-          v = n2;
+          value = n2;
         }
         else if (hue < 240)
         {
-          v = n1 + (n2 - n1) * (240 - hue) / 60;
+          value = n1 + (n2 - n1) * (240 - hue) / 60;
         }
         else
         {
-          v = n1;
+          value = n1;
         }
     
-        return v;
+        return value;
       }
       
       var
@@ -1039,9 +1065,9 @@ jsx.dom.css.HSLColor.extend(null, {
       }
       else
       {
-        red = rgbValue(m1, m2, hue + 120);
-        green = rgbValue(m1, m2, hue);
-        blue = rgbValue(m1, m2, hue - 120);
+        red = getRGBValue(m1, m2, hue + 120);
+        green = getRGBValue(m1, m2, hue);
+        blue = getRGBValue(m1, m2, hue - 120);
       }
       
       var rgbMax = _Color.MAX_VALUE;
@@ -1087,41 +1113,45 @@ jsx.dom.css.HSLColor.prototype.toHSLAString = function () {
 /**
  * Changes the current document into a monochrome version of itself.
  * 
- * @requires dhtml.js
+ * @function
  */
-jsx.dom.css.makeMono = function() {
-  var
-    ruleList = new jsx.dom.css.RuleList(),
-    iter = ruleList.iterator(),
-    selector,
-    color = new jsx.dom.css.Color(),
-    colorProperties = [
-      'backgroundColor', 'borderColor', 'borderTopColor',
-      'borderRightColor', 'borderBottomColor', 'borderLeftColor',
-      'outlineColor', 'color'
-    ],
-    j, propertyValue;
-    
-  while ((selector = iter.next()))
-  {
-    for (j = colorProperties.length; j--;)
-    {
-      if ((propertyValue = selector[colorProperties[j]]))
-      {
-        selector[colorProperties[j]] = color.setMono(propertyValue).toString();
-      }
-    }
-  }
+jsx.dom.css.makeMono = (function () {
+  var _Color = new jsx.dom.css.Color();
   
-  for (var elems = dhtml.getElemByTagName('*'), i = elems && elems.length; i--;)
-  {
-    var elem = elems[i];
-    for (j = colorProperties.length; j--;)
+  return function () {
+    var
+      ruleList = new jsx.dom.css.RuleList(),
+      iter = ruleList.iterator(),
+      rule,
+      colorProperties = [
+        'backgroundColor', 'borderColor', 'borderTopColor',
+        'borderRightColor', 'borderBottomColor', 'borderLeftColor',
+        'outlineColor', 'color'
+      ],
+      j, propertyValue;
+      
+    while ((rule = iter.next()))
     {
-      if ((propertyValue = elem.style[colorProperties[j]]))
+      for (j = colorProperties.length; j--;)
       {
-        elem.style[colorProperties[j]] = color.setMono(propertyValue).toString();
+        propertyValue = rule[colorProperties[j]];
+        if (propertyValue)
+        {
+          rule[colorProperties[j]] = _Color.setMono(propertyValue).toString();
+        }
       }
     }
-  }
-};
+    
+    for (var elems = dhtml.getElemByTagName('*'), i = elems && elems.length; i--;)
+    {
+      var elem = elems[i];
+      for (j = colorProperties.length; j--;)
+      {
+        if ((propertyValue = elem.style[colorProperties[j]]))
+        {
+          elem.style[colorProperties[j]] = _Color.setMono(propertyValue).toString();
+        }
+      }
+    }
+  };
+}());
