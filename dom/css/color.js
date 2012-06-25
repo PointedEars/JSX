@@ -234,19 +234,14 @@ jsx.dom.css.Color.extend(null, {
   /**
    * Returns the difference between two colors.
    * 
-   * @param {Color} color2
-   * @param {Color} color1 (optional)
+   * @param color2 : jsx.dom.css.Color
    * @return {Object}
    *   The difference between the current color (A)
-   *   and another color (B) as a tuple (object) consisting
-   *   of the differences between each RGB color component
-   *   of each color.  That is, if A := (r1, g1, b1) and
-   *   B := (r2, g2, b2) then <code>A.diff(B)</code> returns
-   *   B - A := (r2 - r1, g2 - g1, b2 - b1).
-   * 
-   *   If this method is passed a second <code>Color</code> object
-   *   as argument, color A will be that object instead of
-   *   the calling object.
+   *   and another color (B) as a tuple (Object) consisting
+   *   of the differences between each RGB color component and
+   *   the opacity of each color.  That is, if A := (r1, g1, b1, o1)
+   *   and B := (r2, g2, b2, o2) then <code>A.diff(B)</code>
+   *   returns B - A := (r2 - r1, g2 - g1, b2 - b1, o2 - o1).
    * 
    *   Note that since each component value of the result
    *   may be negative, the result is normalized through
