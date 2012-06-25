@@ -197,7 +197,7 @@ jsx.dom.css.Color.extend(null, {
   _setComponent: function(sComponent, value) {
     if (String(value).indexOf("%") > -1)
     {
-      value = this.constructor.MAX_VALUE * (parseInt(value, 10) / 100);
+      value = this.constructor.MAX_VALUE * (parseFloat(value, 10) / 100);
     }
     
     if (isNaN(value))
@@ -206,7 +206,7 @@ jsx.dom.css.Color.extend(null, {
         ["Invalid component value", String(value), "number"]);
     }
     
-    this[sComponent] = parseInt(value, 10);
+    this[sComponent] = parseFloat(value, 10);
   },
     
   setRed: function(value) {
@@ -272,8 +272,9 @@ jsx.dom.css.Color.extend(null, {
    * @return jsx.dom.css#Color
    */
   fix: function() {
-    var rgbMin = 0;
+    var rgbMin = this.constructor.MIN_VALUE;
     var rgbMax = this.constructor.MAX_VALUE;
+    
     for (var component in {red: 1, green: 1, blue: 1})
     {
       if (typeof this[component] == "undefined" || this[component] < rgbMin)
@@ -346,9 +347,9 @@ jsx.dom.css.Color.extend(null, {
         break;
     }
   
-    this.red   += (parseInt(iRed, 10) || 0);
-    this.green += (parseInt(iGreen, 10) || 0);
-    this.blue  += (parseInt(iBlue, 10) || 0);
+    this.red   += (parseFloat(iRed, 10) || 0);
+    this.green += (parseFloat(iGreen, 10) || 0);
+    this.blue  += (parseFloat(iBlue, 10) || 0);
     
     return this.fix();
   },
@@ -361,9 +362,24 @@ jsx.dom.css.Color.extend(null, {
    * @return jsx.dom.css#Color
    */
   setRGB: function(v) {
+    /*
+     * <http://www.w3.org/TR/css3-values/#percentages>:
+     * "A percentage value is denoted by <percentage>, consists of
+     *  a <number> immediately followed by a percent sign ‘%’."
+     * "A number is either an integer, or zero or more decimal
+     *  digits followed by a dot (.) followed by one or more
+     *  decimal digits."
+     */
+    var
+      integer = "\\d+",
+      number = "(" + integer + "|\\d*\\.\\d+)",
+      percentage_opt = number + "%?";
+    
     var rx = new RegExp(
-      "rgb(a)?\\(\\s*(\\d{1,3}%?)\\s*,\\s*(\\d{1,3}%?)\\s*,\\s*(\\d{1,3}%?)"
-      + "(\\s*,\\s*(\\d+|\\d*\\.\\d+))?\\s*\\)"
+      "rgb(a)?\\(\\s*(" + percentage_opt + ")"
+      + "\\s*,\\s*(" + percentage_opt + ")"
+      + "\\s*,\\s*(" + percentage_opt + ")"
+      + "(\\s*,\\s*("+ number + "))?\\s*\\)"
       + "|#([0-9a-f]{3})([0-9a-f]{3})?",
       "i");
     
@@ -374,11 +390,11 @@ jsx.dom.css.Color.extend(null, {
       var
         rgba    = m[1],
         red     = m[2],
-        green   = m[3],
-        blue    = m[4],
-        opacity = m[6],
-        hex3    = m[7],
-        hex6    = m[8];
+        green   = m[4],
+        blue    = m[6],
+        opacity = m[9],
+        hex3    = m[11],
+        hex6    = m[12];
   
       if (red)
       {
