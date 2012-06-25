@@ -860,14 +860,14 @@ jsx.animation.Interpolator = {
    */
   LINEAR: (function() {
     var
-      jsx_object = jsx.object,
-      Color = jsx.dom.css.Color;
+      _isInstanceOf = jsx.object.isInstanceOf,
+      _Color = jsx.dom.css.Color;
 
     return function(startValue, endValue, fraction) {
-      if (jsx_object.isInstanceOf(startValue, Color)
-          && jsx_object.isInstanceOf(endValue, Color))
+      if (_isInstanceOf(startValue, _Color)
+          && _isInstanceOf(endValue, _Color))
       {
-        return new Color(
+        return new _Color(
           startValue.red   + (endValue.red - startValue.red) * fraction,
           startValue.green + (endValue.green - startValue.green) * fraction,
           startValue.blue  + (endValue.blue - startValue.blue) * fraction
