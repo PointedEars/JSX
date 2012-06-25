@@ -386,7 +386,16 @@ class ResourceBuilder
   
   public function output()
   {
-    header("Content-Type: {$this->contentType}");
+    header('Content-Type: ' . $this->contentType);
+    
+    header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+
+    /* Cached resource expires in HTTP/1.1 caches 24h after last retrieval */
+    header('Cache-Control: max-age=86400, s-maxage=86400, must-revalidate, proxy-revalidate');
+    
+    /* Cached resource expires in HTTP/1.0 caches 24h after last retrieval */
+    header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 86400) . ' GMT');
+
     $prefix = $this->prefix;
     
 //     $this->resolveDeps();
