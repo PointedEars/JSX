@@ -461,34 +461,38 @@ jsx.dom.css.Color.extend(null, {
    * @return jsx.dom.css#Color
    */
   getWebSafe: function() {
-    function getNearestSafeValue(v)
+    function getNearestSafeValue (value)
     {
-      if (v >= 0xFF)
+      if (value >= 0xFF)
       {
         return 0xFF;
       }
             
-      if (v <= 0)
+      if (value <= 0)
       {
         return 0;
       }
   
-      for (var a = [0, 0x33, 0x66, 0x99, 0xCC, 0xFF], i = a.length-1;
+      for (var safeValues = [0, 0x33, 0x66, 0x99, 0xCC, 0xFF],
+                i = safeValues.length - 1;
            i--;)
       {
-        if (v >= a[i])
+        var item = safeValues[i];
+        
+        if (value >= item)
         {
-          if (v == a[i])
+          if (value == item)
           {
-            return v;
+            return value;
           }
           
-          if (v - a[i] < a[i+1] - v)
+          var nextItem = safeValues[i + 1];
+          if (value - item < nextItem - value)
           {
-            return a[i];
+            return item;
           }
   
-          return a[i+1];
+          return nextItem;
         }
       }
       return -1;
