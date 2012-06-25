@@ -54,7 +54,7 @@ jsx.math.min = function() {
   for (var i = 0, len = arguments.length; i < len; ++i)
   {
     var a = arguments[i];
-    if (isArray(a))
+    if (jsx.object.isArray(a))
     {
       var a2 = a.slice();
       a2.sort(function (a, b) { return a - b; });
@@ -95,7 +95,7 @@ jsx.math.max = function() {
   for (var i = 0, len = arguments.length; i < len; ++i)
   {
     var a = arguments[i], max_el;
-    if (isArray(a))
+    if (jsx.object.isArray(a))
     {
       var a2 = a.slice();
       a2.sort(function (a, b) { return b - a; });
@@ -138,7 +138,7 @@ jsx.math.avg = function() {
   for (var i = 0, len = arguments.length; i < len; i++)
   {
     var a = arguments[i];
-    if (isArray(a))
+    if (jsx.object.isArray(a))
     {
       for (var j = 0; j < a.length; j++)
       {
