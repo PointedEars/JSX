@@ -1058,6 +1058,35 @@ jsx.object.inheritFrom = (function() {
   };
 }());
 
+/**
+ * Determines if an object has a (non-inherited) property
+ *
+ * @param obj : optional Object
+ *   Object which property should be checked for existence.
+ * @param sProperty : string
+ *   Name of the property to check.
+ * @return boolean
+ *   <code>true</code> if there is such a property;
+ *   <code>false</code> otherwise.
+ */
+jsx.object._hasOwnProperty = function(obj, sProperty) {
+  if (arguments.length < 2 && obj)
+  {
+    sProperty = obj;
+    obj = this;
+  }
+
+  var proto;
+
+  return (jsx.object.isMethod(obj, "hasOwnProperty")
+    ? obj.hasOwnProperty(sProperty)
+    : (typeof obj[sProperty] != "undefined"
+        && ((typeof obj.constructor != "undefind"
+              && (proto = obj.constructor.prototype)
+              && typeof proto[sProperty] == "undefined")
+            || (typeof obj.constructor == "undefined"))));
+};
+
 if (jsx.options.emulate && !jsx.object.isNativeMethod(jsx.tryThis("Object"), "create"))
 {
   if (!jsx.object.isNativeMethod(jsx.tryThis("Object"), "defineProperties"))
@@ -1344,35 +1373,6 @@ jsx.object.getClass = (function() {
  */
 jsx.object.isMethodType = function(s) {
   return /^\s*(function|object|unknown)\s*$/i.test(s);
-};
-
-/**
- * Determines if an object has a (non-inherited) property
- * 
- * @param obj : optional Object
- *   Object which property should be checked for existence.
- * @param sProperty : string
- *   Name of the property to check.
- * @return boolean
- *   <code>true</code> if there is such a property;
- *   <code>false</code> otherwise.
- */
-jsx.object._hasOwnProperty = function(obj, sProperty) {
-  if (arguments.length < 2 && obj)
-  {
-    sProperty = obj;
-    obj = this;
-  }
-  
-  var proto;
-
-  return (jsx.object.isMethod(obj, "hasOwnProperty")
-    ? obj.hasOwnProperty(sProperty)
-    : (typeof obj[sProperty] != "undefined"
-        && ((typeof obj.constructor != "undefind"
-              && (proto = obj.constructor.prototype)
-              && typeof proto[sProperty] == "undefined")
-            || (typeof obj.constructor == "undefined"))));
 };
 
 /**
