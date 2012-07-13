@@ -396,7 +396,7 @@ jsx.dom.createEventListener = function(f) {
      * so values need to be copied
      */
     var e2 = {originalEvent: e};
-    var properties = ["type", "charCode", "keyCode", "keyIdentifier",
+    var properties = ["type", "charCode", "keyCode", "which", "keyIdentifier",
                       "clientX", "clientY", "offsetX", "offsetY",
                       "shiftKey", "ctrlKey", "altKey", "metaKey"];
     for (var i = properties.length; i--;)

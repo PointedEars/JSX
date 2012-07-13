@@ -351,7 +351,7 @@ jsx.dom.widgets.NumberInput = function(oTarget, oParent, oProperties) {
     }
   });
 
-  if (this.oninput == "function")
+  if (typeof this.oninput == "function")
   {
     jsx.dom.addEventListener(target, 'input', this.oninput);
   }
@@ -387,6 +387,15 @@ jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
     if (target.type == "number")
     {
       /* HTML5 support */
+      if (this.minValue != -Infinity)
+      {
+        target.min = this.minValue;
+    }
+
+      if (this.maxValue != Infinity)
+      {
+        target.max = this.maxValue;
+      }
     }
   },
 
@@ -407,7 +416,7 @@ jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
 
       if (isNaN(v))
       {
-        v = 1;
+        v = 0;
       }
 
       if (this.minValue != -Infinity && v < this.minValue)
