@@ -39,42 +39,264 @@ jsx.map = {
 
 /**
  * An object that maps keys to values.
- * A map cannot contain duplicate keys; each key can map to at most one value.
+ * 
+ * A map cannot contain duplicate keys; each key can map to at most
+ * one value.  Keys may be object references.
  */
 jsx.map.Map = (
   /**
    * @return jsx.map#Map
    */
-  function() {
+  function () {
     /**
      * A value in the map, to distinguish it from built-in types
      *
-     * @param v  Value to be stored
+     * @param value  Value to be stored
+     * @param key    Optional key for the value. Used by {@link _Bucket}.
      * @private
      */
-    function _Value(v)
+    function _ValueContainer(value, key)
     {
-      /**
-       * Stored value
-       */
-      this.value = v;
+      this.putValue(value, key);
     }
     
-     /**
-      * @param v : mixed
-      * @return <code>true</code> if <var>v</var> was created using
-      *   {@link _Value}, otherwise <code>false</code>
-      */
-    _Value.isInstance = function(v) {
-      return !!v && v.constructor === this;
+    /**
+     * @param value : mixed
+     * @return <code>true</code> if <var>v</var> was created using
+     *   {@link _ValueContainer}, otherwise <code>false</code>
+     */
+    _ValueContainer.isInstance = function (value) {
+      return !!value && value.constructor === this;
+    };
+
+    _ValueContainer.prototype.putValue = function (value, key) {
+      this._value = value;
+      this._key = key;
+    };
+       
+    _ValueContainer.prototype.getValue = function () {
+      return this._value;
     };
     
+    _ValueContainer.prototype.getKey = function () {
+      return this._key;
+    };
+    
+    var _getDataObject = jsx.object.getDataObject;
+
+    /**
+     * In order not to overwrite or shadow built-in properties, if a key is
+     * the name of such a property, an alias property name is used instead.
+     * A maximum length of the alias property name is necessary to avoid
+     * infinite iteration for finding an alias if the previously computed
+     * alias is already used as name of a built-in property.
+     */
+    var _maxAliasLength = 255;
+    
+    /**
+     * Returns a safe key, that is, a property name that is not yet used
+     * by the ECMAScript implementation.
+     *
+     * @param unsafeKey
+     *   Potentially unsafe key, that is, a property name that may be
+     *   already used by the ECMAScript implementation.
+     * @return string
+     * @throws jsx.map#KeyError if the user-defined maximum key length
+     *   does not suffice to satisfy a safe key.
+     * @private
+     */
+    function _getSafeKey (obj, unsafeKey)
+    {
+      var
+        safeKey = unsafeKey,
+        constructor = obj.constructor,
+        proto = (constructor ? constructor.prototype : null);
+      
+      if (_isObjectRef(unsafeKey))
+      {
+        var _class = jsx.object.getClass(unsafeKey);
+        var constructorName = jsx.object.getFunctionName(unsafeKey.constructor);
+        safeKey = (_class ? "[" + _class + "]" : "")
+                + (constructorName ? constructorName + "()" : "")
+                + (typeof unsafeKey.nodeName != "undefined"
+                    ? unsafeKey.nodeName
+                    : "")
+                + (typeof unsafeKey.className != "undefined"
+                  ? "." + unsafeKey.className
+                  : "")
+                + (typeof unsafeKey.id != "undefined"
+                  ? "#" + unsafeKey.id
+                    : "");
+      }
+      
+      /*
+       * Try until an unused (not inherited and not own non-_ValueContainer) property
+       * was found or the maximum alias key length has been reached
+       */
+      while (proto && (_hasOwnProperty(proto, safeKey)
+             || (_hasOwnProperty(obj, safeKey)
+                 && !_ValueContainer.isInstance(obj[safeKey]))))
+      {
+        if (safeKey.length > _maxAliasLength)
+        {
+          jsx.throwThis("jsx.map.KeyError", unsafeKey);
+        }
+        
+        safeKey += "_";
+      }
+      
+      return safeKey;
+    }
+    
+    function _Bucket()
+    {
+      this._items = _getDataObject();
+    }
+    
+    /**
+     * @param value : mixed
+     * @return <code>true</code> if <var>v</var> was created using
+     *   {@link _Bucket}, otherwise <code>false</code>
+     */
+    _Bucket.isInstance = function (value) {
+      return !!value && value.constructor === this;
+    };
+
+    _Bucket._nextId = 1;
+
+    _Bucket.extend(null, {
+      /**
+       * Returns the next string key for this bucket
+       * 
+       * @memberOf _Bucket.prototype
+       * @private
+       * @return {String}
+       */
+      _getNextId: function () {
+        return "key" + (_Bucket._nextId++) + "_";
+      },
+      
+      /**
+       * Puts a value in the bucket
+       * 
+       * @param oKey
+       * @return string
+       *   The string key for the object key
+       */
+      put: function (oKey, value) {
+        var sKey = this.find(oKey);
+        if (!sKey)
+        {
+          sKey = _getSafeKey(this._items, this._getNextId());
+        }
+         
+        this._items[sKey] = new _ValueContainer(value, oKey);
+  
+        return sKey;
+      },
+      
+      /**
+       * Gets a value from the bucket
+       * 
+       * @param oKey
+       * @return string
+       *   The value for the object key
+       */
+      get: function (oKey) {
+        var sKey = this.find(oKey);
+        if (!sKey)
+        {
+          return void 0;
+        }
+        
+        return this._items[sKey];
+      },
+      
+      /**
+       * Returns the string key of an object
+       * 
+       * @param oKey
+       * @return string|boolean
+       *   The string key of <var>oKey</var> if it is in the bucket,
+       *   <code>false</code> otherwise.
+       */
+      find: function (oKey) {
+        var items = this._items;
+        for (var sKey in items)
+        {
+          var value = items[sKey];
+          if (_ValueContainer.isInstance(value) && value.getKey() == oKey)
+          {
+            return sKey;
+          }
+        }
+        
+        return false;
+      },
+      
+      /**
+       * Removes an object key from the bucket
+       * 
+       * @param oKey
+       * @return string|boolean
+       *   The removed value for the object key,
+       *   or <code>false</code> if it was not in the bucket.
+       */
+      remove: function (oKey) {
+        var sKey = this.find(oKey);
+        if (sKey)
+        {
+          var value = this._items[sKey];
+          delete this._items[sKey];
+        }
+  
+        return value;
+      },
+      
+      keys: function () {
+        var a = [];
+        
+        var items = this._items;
+        for (var key in items)
+        {
+          var o = items[key];
+          if (_ValueContainer.isInstance(o))
+          {
+            a.push(o.getKey());
+          }
+        }
+        
+        return a;
+      },
+      
+      mappings: function() {
+        var a = [];
+        
+        var items = this._items;
+        for (var p in items)
+        {
+          var o = items[p];
+          
+          if (_ValueContainer.isInstance(o))
+          {
+            a.push([o.getKey(), o.getValue()]);
+          }
+        }
+        
+        return a;
+      }
+    });
+    
+    /* Imports */
+    var _isObjectRef = jsx.object.isObject;
+    var _hasOwnProperty = jsx.object._hasOwnProperty;
+
     /**
      * @param map : jsx.map#Map
      *   The map whose mappings are to be placed in this map
      * @constructor
      */
-    function Map(map)
+    function Map (map)
     {
 //      var Map = arguments.callee;
       
@@ -86,61 +308,9 @@ jsx.map.Map = (
       
       var
         /** @private map */
-        _items = {},
-        _size = 0,
-        
-        _hasOwnProperty = function(o, p) {
-          return jsx.object.isMethod(o, "hasOwnProperty")
-            ? o.hasOwnProperty(p)
-            : typeof o[p] != "undefined";
-        },
-        
-        _maxAliasLength = 255,
-        
-        /**
-         * Returns a safe key, that is, a property name that is not yet used
-         * by the ECMAScript implementation.
-         *
-         * @param unsafeKey
-         *   Potentially unsafe key, that is, a property name that may be
-         *   already used by the ECMAScript implementation.
-         * @return string
-         * @throws jsx.map#KeyError if the user-defined maximum key length
-         *   does not suffice to satisfy a safe key.
-         * @private
-         */
-        _getSafeKey = function(unsafeKey) {
-          var
-            safeKey = unsafeKey,
-            proto = _items.constructor.prototype;
-          
-          /*
-           * Try until an unused (not inherited and not own non-_Value) property
-           * was found or the maximum alias key length has been reached
-           */
-          while (_hasOwnProperty(proto, safeKey)
-                 || (_hasOwnProperty(_items, safeKey)
-                     && !_Value.isInstance(_items[safeKey])))
-          {
-            if (safeKey.length > _maxAliasLength)
-            {
-              jsx.throwThis("jsx.map.KeyError", unsafeKey);
-            }
-            
-            safeKey += "_";
-          }
-          
-          return safeKey;
-        };
-        
-      /**
-       * In order not to overwrite or shadow built-in properties, if a key is
-       * the name of such a property, an alias property name is used instead.
-       * A maximum length of the alias property name is necessary to avoid
-       * infinite iteration for finding an alias if the previously computed
-       * alias is already used as name of a built-in property.
-       */
-      
+        _items = _getDataObject(),
+        _size = 0;
+              
       /**
        * Gets the maximum alias property name length
        * for further storage and retrieval operations.  The default is 255.
@@ -214,7 +384,16 @@ jsx.map.Map = (
        * @public
        */
       this.get = function(key, defaultValue) {
-        var v = _items[_getSafeKey(key)];
+        var v = _items[_getSafeKey(_items, key)];
+        
+        if (_isObjectRef(key))
+        {
+          if (_Bucket.isInstance(v))
+          {
+            v = v.get(key);
+          }
+        }
+
         if (!v)
         {
           if (arguments.length > 1)
@@ -224,8 +403,8 @@ jsx.map.Map = (
           
           jsx.throwThis("jsx.map.KeyError", key);
         }
-    
-        return v.value;
+        
+        return v.getValue();
       };
       
       /**
@@ -235,8 +414,10 @@ jsx.map.Map = (
        * @return boolean
        * @public
        */
-      this.containsKey = function(key) {
-        return _Value.isInstance(_items[_getSafeKey(key)]);
+      this.containsKey = function (key) {
+        var value = _items[_getSafeKey(_items, key)];
+        return _ValueContainer.isInstance(value)
+          || (_Bucket.isInstance(value) && !!value.find(key));
       };
       
       /**
@@ -252,19 +433,42 @@ jsx.map.Map = (
        * @throws jsx.map#KeyError
        * @public
        */
-      this.put = function(key, value) {
-        var k = _getSafeKey(key);
-        var v = new _Value(value);
+      this.put = function (key, value) {
+        var k = _getSafeKey(_items, key);
+        var v;
         var prevValue = _items[k];
         
-        if (!prevValue)
+        if (_isObjectRef(key))
         {
-          _size++;
+          var bucket = prevValue;
+          if (_Bucket.isInstance(bucket))
+          {
+            if (!bucket.find(key))
+            {
+              ++_size;
+            }
+          }
+          else
+          {
+            bucket = new _Bucket();
+            ++_size;
+          }
+
+          bucket.put(key, value);
+          v = bucket;
+        }
+        else
+        {
+          v = new _ValueContainer(value);
+          if (!prevValue)
+          {
+            ++_size;
+          }
         }
         
         _items[k] = v;
         
-        return prevValue && prevValue.value;
+        return prevValue && prevValue.getValue();
       };
       
       if (arguments.length > 0)
@@ -278,7 +482,7 @@ jsx.map.Map = (
        * @param key
        *   Key whose mapping is to be removed from the map
        * @return mixed
-       *   The previous value associated with <var>key</var>,
+       *   The previous value associated with <var>key</var>,_value
        *   or <code>undefined</code> if there was no mapping for <var>key</var>.
        *   (An <code>undefined</code> return can also indicate that the map
        *   previously associated <code>undefined</code> with <var>key</var>.)
@@ -286,14 +490,33 @@ jsx.map.Map = (
        * @public
        */
       this.remove = function(key) {
-        var k = _getSafeKey(key);
+        var k = _getSafeKey(_items, key);
         var prevValue = _items[k];
         
         if (prevValue)
         {
+          if (_isObjectRef(key))
+          {
+            if (_Bucket.isInstance(prevValue))
+            {
+              var prevValue = prevValue.remove(key);
+              if (_ValueContainer.isInstance(prevValue))
+              {
+                --_size;
+                return prevValue.getValue();
+              }
+              
+              return prevValue;
+            }
+            else
+            {
+              return void 0;
+            }
+          }
+                    
           delete _items[k];
-          _size--;
-          return prevValue.value;
+          --_size;
+          return prevValue && prevValue.getValue();
         }
         
         return prevValue;
@@ -306,7 +529,7 @@ jsx.map.Map = (
        * @public
        */
       this.clear = function() {
-        _items = {};
+        _items = _getDataObject();
         _size = 0;
       };
       
@@ -320,12 +543,17 @@ jsx.map.Map = (
        *   to the specified value
        * @public
        */
-      this.containsValue = function(value) {
+      this.containsValue = function (value) {
         for (var p in _items)
         {
           var o = _items[p];
           
-          if (_Value.isInstance(o) && o.value === value)
+          if (_ValueContainer.isInstance(o) && o.getValue() === value)
+          {
+            return true;
+          }
+
+          if (_Bucket.isInstance(o) && o.containsValue(value))
           {
             return true;
           }
@@ -340,14 +568,19 @@ jsx.map.Map = (
        * @return Array
        * @public
        */
-      this.keys = function() {
+      this.keys = function () {
         var a = [];
         
         for (var p in _items)
         {
-          if (_Value.isInstance(_items[p]))
+          var o = _items[p];
+          if (_ValueContainer.isInstance(o))
           {
             a.push(p);
+          }
+          else if (_Bucket.isInstance(o))
+          {
+            a.push.apply(a, o.keys());
           }
         }
         
@@ -367,9 +600,13 @@ jsx.map.Map = (
         {
           var o = _items[p];
           
-          if (_Value.isInstance(o))
+          if (_ValueContainer.isInstance(o))
           {
-            a.push(o.value);
+            a.push(o.getValue());
+          }
+          else if (_Bucket.isInstance(o))
+          {
+            a.push.apply(a, o.values());
           }
         }
         
@@ -392,9 +629,17 @@ jsx.map.Map = (
         {
           var o = _items[p];
           
-          if (_Value.isInstance(o))
+          if (_ValueContainer.isInstance(o))
           {
-            a.push([p, o.value]);
+            a.push([p, o.getValue()]);
+          }
+          else if (_Bucket.isInstance(o))
+          {
+            var bucketMappings = o.mappings();
+            for (var i = 0, len = bucketMappings.length; i < len; ++i)
+            {
+              a.push(a, bucketMappings[i]);
+            }
           }
         }
         
@@ -412,8 +657,7 @@ jsx.map.Map = (
     }
     
     return Map;
-  }
-)();
+  }());
 
 /**
  * Returns a shallow copy of this map
@@ -459,9 +703,12 @@ jsx.map.Map.isInstance = function(o) {
 };
 
 jsx.map.KeyError = function (key) {
-  jsx.object.PropertyError.call(this, key);
+  jsx.object.PropertyError.call(this);
+  this.message = "No such key: " + key;
 };
-jsx.map.KeyError.extend(jsx.object.PropertyError);
+jsx.map.KeyError.extend(jsx.object.PropertyError, {
+  name: "jsx.map.KeyError"
+});
 
 jsx.map.InvalidLengthError = function() {
   jsx.object.PropertyError.call(this, "InvalidLengthError");

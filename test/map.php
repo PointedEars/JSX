@@ -79,8 +79,10 @@
               code: function () {
                 assertTrue(m.setMaxAliasLength(255));
                 assertTrue(m.size() === 0);
+                
                 m.put("baz", "bla");
                 assertTrue(m.size() === 1);
+
                 m.remove("baz");
                 assertTrue(m.size() === 0);
               }
@@ -106,6 +108,7 @@
               code: function () {
                 m.put("foo");
                 assertFalse(m.isEmpty());
+                
                 m.remove("foo");
                 assertTrue(m.isEmpty());
               }
@@ -116,6 +119,7 @@
               code: function () {
                 assertFalse(m.containsKey("constructor"));
                 assertFalse(m.containsKey("foo"));
+
                 m.put("foo", "bar");
                 assertFalse(m.containsKey("constructor"));
                 assertTrue(m.containsKey("foo"));
@@ -139,6 +143,121 @@
                 assertTrue(m2.containsKey("foo"));
                 assertTrue(m2.get("answer", false) === 42);
               }
+            },
+            
+            {
+              name: "put()ing and get()ing with object key",
+              code: function() {
+                var o = {};
+                assertUndefined(m.put(o, "bar"));
+                assertTrue(m.get(o) == "bar");
+              }
+            },
+
+            {
+              name: "remove() with object key",
+              code: function () {
+                var o = {};
+                assertUndefined(m.put(o, "bar"));
+                assertTrue(m.get(o) == "bar");
+                    
+                assertTrue(m.remove(o) == "bar");
+                assertFalse(m.get(o, false));
+              }
+            },
+
+            {
+              name: "Undefined object key, no default --> KeyError",
+              code: function () {
+                var x = 0;
+                
+                jsx.tryThis(
+                  function () {
+                    var o = {};
+                    m.get(o);
+                  },
+                  function (e) {
+                    x = e;
+                  });
+        
+                assertTrue(x.constructor === KeyError);
+              }
+            },
+
+            {
+              name: "size() with object key",
+              code: function () {
+                assertTrue(m.setMaxAliasLength(255));
+                assertTrue(m.size() === 0);
+
+                var o = {};
+                m.put(o, "bla");
+                assertTrue(m.size() === 1);
+
+                m.remove(o);
+                assertTrue(m.size() === 0);
+              }
+            },
+
+            {
+              name: "mappings() with object key",
+              code: function () {
+                var mappings = m.mappings();
+
+                if (typeof dmsg == "function") dmsg(mappings);
+                assertFalse(mappings.length > 0);
+
+                var o = {};
+                m.put(o, 42);
+                mappings = m.mappings();
+                if (typeof dmsg == "function") dmsg(mappings);
+                assertTrue(mappings.length > 0);
+              }
+            },
+
+            {
+              name: "isEmpty() with object key",
+              code: function () {
+                var o = {};
+                m.put(o);
+                assertFalse(m.isEmpty());
+
+                m.remove(o);
+                assertTrue(m.isEmpty());
+              }
+            },
+
+            {
+              name: "containsKey() with object key",
+              code: function () {
+                var o = {};
+                assertFalse(m.containsKey("constructor"));
+                assertFalse(m.containsKey(o));
+                
+                m.put(o, "bar");
+                assertFalse(m.containsKey("constructor"));
+                assertTrue(m.containsKey(o));
+              }
+            },
+
+            {
+              name: "putAll() with object key",
+              code: function () {
+                m.put("answer", 42);
+                var o = {};
+                m.put(o, "bar");
+                
+                var m2 = new Map();
+                m2.put("answer", 23);
+                m2.putAll(m);
+                assertTrue(m2.containsKey("answer"));
+                assertTrue(m2.get("answer", false) === 42);
+                assertTrue(m2.containsKey(o));
+                
+                m2 = new Map(m);
+                assertTrue(m2.containsKey(o));
+                assertTrue(m2.get("answer", false) === 42);
+              }
             }
           ]
         });
@@ -159,10 +278,10 @@
             . preg_replace('/[^\/]+$/', '', $_SERVER['REQUEST_URI']);
           ?>../map.js">use view-source scheme</a>)</li>
       
-      <li><a href="jsunit/testRunner?testPage=<?php
+      <!-- <li><a href="jsunit/testRunner?testPage=<?php
         echo urlencode(htmlentities($_SERVER['REQUEST_URI']));
         ?>&amp;autoRun=true"
-        >Run unit test</a></li>
+        >Run unit test</a></li> -->
     </ul>
   </body>
 </html>
