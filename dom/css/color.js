@@ -546,6 +546,8 @@ jsx.dom.css.Color.extend(null, {
   toHSL: function () {
     /* Cf. <http://www5.informatik.tu-muenchen.de/lehre/vorlesungen/graphik/info/csc/COL_26.htm#topic25> */
     
+    jsx.importOnce(jsx.absPath("../../math/float.js", jsx.importFrom.lastImport));
+    
     var
       red = this.red,
       green = this.green,

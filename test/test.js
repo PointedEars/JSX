@@ -38,7 +38,12 @@ if (typeof jsx.test == "undefined")
  * @param s : string
  */
 jsx.test.AssertionError = function (s) {
-  Error.call(this);
+  var _super = arguments.callee._super;
+  if (_super)
+  {
+    _super.call(this);
+  }
+  
   this.message = "Assertion failed: " + s;
 };
 
