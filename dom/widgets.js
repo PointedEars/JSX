@@ -442,6 +442,12 @@ jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
     };
   }()),
 
+  /**
+   * @protected
+   * @param valueType
+   * @param value
+   * @returns
+   */
   _setBoundary: function(valueType, value) {
     value = parseFloat(value);
 
@@ -683,6 +689,89 @@ jsx.dom.widgets.SpinnerInput.extend(jsx.dom.widgets.NumberInput, {
       {
         target.onchange();
       }
+    };
+  }())
+});
+
+/**
+ * A <code>Table</code> widget provides a default <code>TABLE</code>
+ * element object with additional features, such as filtering rows.
+ *
+ */
+jsx.dom.widgets.Table = function (oTarget, oParent, oProperties) {
+  arguments.callee._super.apply(this, arguments);
+};
+
+jsx.dom.widgets.Table.extend(jsx.dom.widgets.Widget, {
+  filterColumns: [],
+
+  /**
+   * Filters the rows of the table's first tbody, searching a filter
+   * string in the filter columns.
+   *
+   * @function
+   * @memberOf jsx.dom.widgets.Table#prototype
+   * @param filterString : String
+   *   The string by which rows should be filtered
+   * @return boolean
+   *   <code>true</code> if the filter could be applied,
+   *   <code>false</code> otherwise.  Note that <code>true</code> means only
+   *   that the filter could be applied, not that any rows are filtered out.
+   */
+  applyFilter: (function () {
+    var _getContent = jsx.dom.getContent;
+
+    return function (filterString) {
+      /* Imports */
+      var _escape = jsx.regexp.escape;
+
+      var filterColumns = this.filterColumns;
+
+      if (!filterColumns || filterColumns.length < 1)
+      {
+        return false;
+      }
+
+      var expressions = [];
+
+      for (var rows = this.target.tBodies[0].rows, i = rows.length; i--;)
+      {
+        var row = rows[i];
+        row.style.display = "none";
+
+        for (var j = 0, len = filterColumns.length; j < len; ++j)
+        {
+          var column = filterColumns[j];
+
+          if (!expressions[j])
+          {
+            var srx = (column.prefix ? "^" : "") + filterString;
+            jsx.tryThis(
+              function () {
+                expressions[j] = column.ignoreCase ? new RegExp(srx, "i") : new RegExp(srx);
+              },
+              function (e) {
+                if (e.name == "SyntaxError")
+                {
+                  srx = (column.prefix ? "^" : "") + _escape(filterString);
+                  expressions[j] = column.ignoreCase ? new RegExp(srx, "i") : new RegExp(srx);
+                }
+                else
+                {
+                  jsx.rethrowThis(e);
+                }
+              });
+          }
+
+          if (expressions[j].test(_getContent(row.cells[column.index])))
+          {
+            row.style.display = "";
+            break;
+          }
+        }
+      }
+
+      return true;
     };
   }())
 });
