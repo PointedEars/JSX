@@ -482,7 +482,7 @@ jsx.dom.DHTMLException = function(sMessage) {
   return false;
 };
 
-jsx.dom.write = function(s) {
+jsx.dom.write = function (s) {
   var result = jsx.tryThis(
     function() {
       document.write(s);
@@ -807,6 +807,7 @@ jsx.dom.setTextContent = function(oNode, sContent) {
       result = (oNode.innerText == sContent);
     }
   }
+
   return result;
 };
 
@@ -1132,9 +1133,9 @@ jsx.dom.createNodesFromObj = (function () {
 
   return function (data) {
     if (typeof data.valueOf() == "string")
-  {
-    return document.createTextNode(data);
-  }
+    {
+      return document.createTextNode(data);
+    }
 
     /* Support ES5 strict mode */
     var me = jsx.dom.createNodeFromObj;
@@ -1152,64 +1153,64 @@ jsx.dom.createNodesFromObj = (function () {
       return a;
     }
 
-  var el = document.createElement(data.type);
-  if (!el)
-  {
-    return null;
-  }
-
-  var properties = data.properties;
-  if (properties)
-  {
-    for (var prop in properties)
+    var el = document.createElement(data.type);
+    if (!el)
     {
-      if (!properties.hasOwnProperty(prop))
-      {
-        continue;
-      }
+      return null;
+    }
 
-      if (prop == "style")
+    var properties = data.properties;
+    if (properties)
+    {
+      for (var prop in properties)
       {
-        var style = properties[prop];
-        for (var styleProp in style)
+        if (!properties.hasOwnProperty(prop))
         {
-          if (!style.hasOwnProperty(styleProp))
-          {
-            continue;
-          }
+          continue;
+        }
 
-          var targetProp = styleProp;
-          if (targetProp === "float")
+        if (prop == "style")
+        {
+          var style = properties[prop];
+          for (var styleProp in style)
           {
-            if (typeof style.cssFloat != "undefined")
+            if (!style.hasOwnProperty(styleProp))
             {
-              targetProp = "cssFloat";
-            }
-            else if (typeof style.styleFloat != "undefined")
-            {
-              targetProp = "styleFloat";
+              continue;
             }
 
-          }
+            var targetProp = styleProp;
+            if (targetProp === "float")
+            {
+              if (typeof style.cssFloat != "undefined")
+              {
+                targetProp = "cssFloat";
+              }
+              else if (typeof style.styleFloat != "undefined")
+              {
+                targetProp = "styleFloat";
+              }
 
-          el.style[targetProp] = style[styleProp];
+            }
+
+            el.style[targetProp] = style[styleProp];
+          }
+        }
+        else
+        {
+          el[prop] = properties[prop];
         }
       }
-      else
-      {
-        el[prop] = properties[prop];
-      }
     }
-  }
 
-  var nodes = data.childNodes;
-  for (var i = 0, len = nodes && nodes.length; i < len; ++i)
-  {
-    el.appendChild(me(nodes[i]));
-  }
+    var nodes = data.childNodes;
+    for (var i = 0, len = nodes && nodes.length; i < len; ++i)
+    {
+      el.appendChild(me(nodes[i]));
+    }
 
-  return el;
-};
+    return el;
+  };
 }());
 
 /**
@@ -1218,24 +1219,20 @@ jsx.dom.createNodesFromObj = (function () {
  * @param parentNode : Node
  * @param childNodes : NodeList|Array
  * @return boolean
- *   An Array of appended <code>nodes</code> on success,
- *   <code>null</code> otherwise.
+ *   <code>true</code> on success, <code>false</code> otherwise.
  */
 jsx.dom.appendChildren = function (parentNode, childNodes) {
   if (parentNode)
   {
-    var a = [];
-
     for (var i = 0, len = childNodes.length; i < len; ++i)
     {
-      a[i] = childNodes[i];
       parentNode.appendChild(childNodes[i]);
     }
 
-    return a;
+    return true;
   }
 
-  return null;
+  return false;
 };
 
 /**
@@ -1243,28 +1240,24 @@ jsx.dom.appendChildren = function (parentNode, childNodes) {
  *
  * @param parentNode : Node
  * @param childNodes : NodeList|Array
- * @return Array|null
- *   An Array of removed <code>nodes</code> on success,
- *   <code>null</code> otherwise.
+ * @return boolean
+ *   <code>true</code> on success, <code>false</code> otherwise.
  */
 jsx.dom.removeChildren = function (parentNode, childNodes) {
   if (parentNode)
   {
-    var a = [];
-
     for (var i = childNodes.length; i--;)
     {
-      a[i] = childNodes[i];
       parentNode.removeChild(childNodes[i]);
     }
 
-    return a;
+    return true;
   }
 
-  return null;
+  return false;
 };
 
-jsx.dom.html2nodes = function (sHTML) {
+jsx.dom.html2nodes = function(sHTML) {
   var m,
     rx = /(<([^\s>]+)(\s+[^>]*)?>)|([^<]+)/g,
     node = document.createElement("html");
