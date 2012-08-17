@@ -483,9 +483,7 @@ jsx.dom.DHTMLException = function(sMessage) {
 };
 
 jsx.dom.write = function(s) {
-  var result = false;
-
-  result = jsx.tryThis(
+  var result = jsx.tryThis(
     function() {
       document.write(s);
 
@@ -1103,7 +1101,7 @@ jsx.dom.createElement = (function () {
 
       if (!o)
       {
-        /* NOTE: Use RegExp() to work around misconfigured PHP (short_open_tag=1) */
+        /* NOTE: Uses RegExp() to work around misconfigured PHP (short_open_tag=1) */
         var aTagComponents = sTag.replace(new RegExp("^<\?\\s*|\\s*>?$", "g"), "")
           .replace(/\s*=\s*/g, "=").split(/\s+/);
         o = document.createElement(aTagComponents[0]);
@@ -1125,14 +1123,34 @@ jsx.dom.createElement = (function () {
 }());
 
 /**
- * @param data
- * @return Element|TextNode
+ * @param data : Array|Object
+ * @return TextNode|Array[Node]|Element
  */
-jsx.dom.createElementFromObj = function (data) {
-  if (typeof data == "string")
+jsx.dom.createElementFromObj = jsx.dom.createNodeFromObj =
+jsx.dom.createNodesFromObj = (function () {
+  var _isArray = jsx.object.isArray;
+
+  return function (data) {
+    if (typeof data.valueOf() == "string")
   {
     return document.createTextNode(data);
   }
+
+    /* Support ES5 strict mode */
+    var me = jsx.dom.createNodeFromObj;
+
+    /* If input is an Array, output is an Array of Nodes */
+    if (_isArray(data))
+    {
+      var a = [];
+
+      for (var i = 0, len = data.length; i < len; ++i)
+      {
+        a[i] = me(data[i]);
+      }
+
+      return a;
+    }
 
   var el = document.createElement(data.type);
   if (!el)
@@ -1165,7 +1183,7 @@ jsx.dom.createElementFromObj = function (data) {
           {
             if (typeof style.cssFloat != "undefined")
             {
-              var targetProp = "cssFloat";
+              targetProp = "cssFloat";
             }
             else if (typeof style.styleFloat != "undefined")
             {
@@ -1187,13 +1205,66 @@ jsx.dom.createElementFromObj = function (data) {
   var nodes = data.childNodes;
   for (var i = 0, len = nodes && nodes.length; i < len; ++i)
   {
-    el.appendChild(arguments.callee(nodes[i]));
+    el.appendChild(me(nodes[i]));
   }
 
   return el;
 };
+}());
 
-jsx.dom.html2nodes = function(sHTML) {
+/**
+ * Appends several child nodes to a parent node in the specified order.
+ *
+ * @param parentNode : Node
+ * @param childNodes : NodeList|Array
+ * @return boolean
+ *   An Array of appended <code>nodes</code> on success,
+ *   <code>null</code> otherwise.
+ */
+jsx.dom.appendChildren = function (parentNode, childNodes) {
+  if (parentNode)
+  {
+    var a = [];
+
+    for (var i = 0, len = childNodes.length; i < len; ++i)
+    {
+      a[i] = childNodes[i];
+      parentNode.appendChild(childNodes[i]);
+    }
+
+    return a;
+  }
+
+  return null;
+};
+
+/**
+ * Removes several child nodes of a parent node in reverse order.
+ *
+ * @param parentNode : Node
+ * @param childNodes : NodeList|Array
+ * @return Array|null
+ *   An Array of removed <code>nodes</code> on success,
+ *   <code>null</code> otherwise.
+ */
+jsx.dom.removeChildren = function (parentNode, childNodes) {
+  if (parentNode)
+  {
+    var a = [];
+
+    for (var i = childNodes.length; i--;)
+    {
+      a[i] = childNodes[i];
+      parentNode.removeChild(childNodes[i]);
+    }
+
+    return a;
+  }
+
+  return null;
+};
+
+jsx.dom.html2nodes = function (sHTML) {
   var m,
     rx = /(<([^\s>]+)(\s+[^>]*)?>)|([^<]+)/g,
     node = document.createElement("html");
@@ -1315,7 +1386,7 @@ jsx.dom.HTMLSerializer = (
  * MSHTML removes white-space text nodes from the document tree, while
  * standards-compliant DOMs do not.  In particular, it does <em>NOT</em>
  * return the first child <em>element</em> node, and return values do vary
- * across DOMs..
+ * across DOMs.
  * </p>
  * @param oNode : Node
  * @returns {Node} The first child node of another node.
@@ -1602,7 +1673,7 @@ jsx.dom.isDescendantOfOrSelf = function(node, ancestor) {
  * @requires jsx.string.hyphenation#hyphenate()
  */
 jsx.dom.hyphenate = (function () {
-  var _getClass = jsx.object.getClass;
+  var _isArray = jsx.object.isArray;
   var _hyphenation, _hyphenate, _me;
 
   return function (contextNodes, hyphenateAll) {
@@ -1631,7 +1702,7 @@ jsx.dom.hyphenate = (function () {
       return jsx.warn("jsx.dom.hyphenate: Invalid context node: " + contextNodes);
     }
 
-    if (_getClass(contextNodes) != "Array")
+    if (!_isArray(contextNodes))
     {
       contextNodes = [contextNodes];
     }
