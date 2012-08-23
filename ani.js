@@ -1,6 +1,6 @@
 /**
  * @author PointedEars
- * @depends dhtml.js
+ * @requires dom.js
  */
 
 /**
@@ -59,7 +59,7 @@ jsx.animation = {
  *   </dl>
  * @throws jsx.InvalidArgumentError if no parameters were specified
  */
-jsx.animation.Animation = function(oParams) {
+jsx.animation.Animation = function (oParams) {
   if (!oParams)
   {
     jsx.throwThis("jsx.InvalidArgumentError", ["Not enough arguments", typeof oParams, "Object"]);
@@ -204,7 +204,7 @@ jsx.animation.Timeline = (function() {
       return a.compareTo(b);
     };
   
-  return function(oParams) {
+  return function (oParams) {
     if (!oParams)
     {
       jsx.throwThis("jsx.InvalidArgumentError", ["Not enough arguments", typeof oParams, "Object"]);
@@ -953,3 +953,27 @@ jsx.animation.KeyValue.prototype = {
 
   value: null
 };
+
+//jsx.animation.CSSAnimation = function CSSAnimation (oParams) {
+//  CSSAnimation._super.call(this, oParams);
+//};
+//
+//jsx.animation.CSSAnimation.extend(jsx.animation.Animation);
+
+jsx.animation.CSSTimeline = function CSSTimeline (oParams) {
+  CSSTimeline._super.call(this, oParams);
+};
+
+jsx.animation.CSSTimeline.extend(jsx.animation.Timeline, {
+  /**
+   * @memberOf jsx.animation.CSSTimeline.prototype
+   */
+  play: function () {
+    var keyFrames = this.keyFrames;
+    var time = 0;
+    for (var i = 0, len = keyFrames.length; i < len; ++i)
+    {
+      
+    }
+  }
+});

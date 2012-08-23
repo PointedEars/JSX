@@ -6,7 +6,7 @@
  * @section Copyright & Disclaimer
  * 
  * @author
- *   (C) 2000-2011  Thomas Lahn &lt;math.js@PointedEars.de&gt;
+ *   (C) 2000-2012  Thomas Lahn &lt;math.js@PointedEars.de&gt;
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  * 
@@ -451,9 +451,9 @@ jsx.math.dtGrad = 2;
 /**
  * Unlike the {@link js#Math built-in methods}, the following
  * functions accept a second argument to determine if the argument
- * should be handled as radiant (dtRad == 0 [default];
- * x = n*[0..2*Math.PI], degree (dtDeg == 1; x = n*[0..360]?)
- * or gradiant (dtGrad == 2; x = n*[0..300]grd) value.
+ * should be handled as radian (dtRad == 0 [default];
+ * x = n*[0..2*Math.PI], degree (dtDeg == 1; x = n*[0..360])
+ * or gradian (dtGrad == 2; x = n*[0..400] gon) value.
  */
 
 /**
@@ -470,7 +470,7 @@ jsx.math.sinX = function(x, iArgType) {
       break;
 
     case jsx.math.dtGrad:
-      x = x/300 * Math.PI;
+      x = x/200 * Math.PI;
   }
 
   return Math.sin(x);
@@ -490,7 +490,7 @@ jsx.math.cosX = function(x, iArgType) {
       break;
       
     case jsx.math.dtGrad:
-      x = x/300 * Math.PI;
+      x = x/200 * Math.PI;
   }
   
   return Math.cos(x);
@@ -515,7 +515,7 @@ jsx.math.tanX = function(x, iArgType) {
       break;
       
     case jsx.math.dtGrad:
-      x = x/300 * Math.PI;
+      x = x/200 * Math.PI;
   }
   
   if (jsx_object.isMethod(Math, "tan"))
@@ -546,7 +546,7 @@ jsx.math.Complex.extend(Number);
  *   The complex sum of <var>a</var> and <var>b</var>
  */
 jsx.math.addComplex =
-jsx.math.Complex.prototype.add = function(a, b) {
+jsx.math.Complex.prototype.add = function (a, b) {
   var result = null;
   var math = jsx.math;
 
