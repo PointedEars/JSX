@@ -38,6 +38,7 @@ if (typeof jsx == "undefined")
 
 jsx.MSG_INFO = "info";
 jsx.MSG_WARN = "warn";
+jsx.MSG_ERROR = "error";
 jsx.MSG_DEBUG = "debug";
 
 if (typeof jsx.options == "undefined")
@@ -411,6 +412,16 @@ jsx.info = function(sMsg) {
  */
 jsx.warn = function(sMsg) {
   return jsx.dmsg(sMsg, jsx.MSG_WARN);
+};
+
+/**
+ * Issues an error message, if possible.
+ *
+ * @param sMsg : String  Message
+ * @see jsx#dmsg
+ */
+jsx.error = function(sMsg) {
+  return jsx.dmsg(sMsg, jsx.MSG_ERROR);
 };
 
 
