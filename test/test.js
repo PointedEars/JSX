@@ -1,12 +1,13 @@
 /**
  * <title>PointedEars' JSX: Test Library<title>
+ * @version $Id$
  *
  * @filename test.js
  * @requires object.js
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2011  Thomas Lahn &lt;js@PointedEars.de&gt;
+ *   (C) 2011, 2012 Thomas Lahn &lt;js@PointedEars.de&gt;
  * 
  * @partof PointedEars' JavaScript Extensions (JSX)
  * 
@@ -33,6 +34,8 @@ if (typeof jsx.test == "undefined")
 {
   jsx.test = {};
 }
+
+jsx.test.version = "$Revision$";
 
 /**
  * @param s : string
@@ -310,13 +313,217 @@ jsx.test.assertArrayEquals = function (expecteds, actuals) {
 jsx.test.runner = {
   tests: [],
   
-  printMsg: function (msg, msgType) {
+  _table: null,
+  
+  /**
+   * @protected
+   */
+  _appendTable: function () {
+    if (typeof document == "object" && document)
+    {
+      if (document.body)
+      {
+        var id = "test-results" + new Date().getTime();
+        var style = document.createElement("style");
+        style.type = "text/css";
+        style.appendChild(
+          document.createTextNode(
+              " table#" + id + " { border: 2px solid black; border-collapse: collapse; }"
+            + " table#" + id + " thead { border-bottom: 1px solid black; }"
+            + " table#" + id + " tfoot { border-top: 1px solid black; }"
+            + " table#" + id + " thead th { text-align: left; }"
+            + " table#" + id + " thead th:first-child { text-align: right; }"
+            + " table#" + id + " tbody th { text-align: right; }"
+            + " table#" + id + " tbody td.info { background-color: green; color: white; }"
+            + " table#" + id + " tbody td.error { background-color: red; color: white; }"
+            + " table#" + id + " thead th,"
+            + " table#" + id + " tbody th,"
+            + " table#" + id + " tbody td,"
+            + " table#" + id + " tfoot td { padding: 0 0.5em; }"
+          ));
+        document.getElementsByTagName("head")[0].appendChild(style);
+        
+        var table = document.createElement("table");
+        table.id = id;
+        
+        var thead = document.createElement("thead");
+        var tr = document.createElement("tr");
+        
+        var th = document.createElement("th");
+        th.appendChild(document.createTextNode("#"));
+        tr.appendChild(th);
+
+        th = document.createElement("th");
+        th.appendChild(document.createTextNode("Source File"));
+        tr.appendChild(th);
+        
+        th = document.createElement("th");
+        th.appendChild(document.createTextNode("Feature"));
+        tr.appendChild(th);
+        
+        th = document.createElement("th");
+        th.appendChild(document.createTextNode("Testcase Description"));
+        tr.appendChild(th);
+        
+        th = document.createElement("th");
+        th.appendChild(document.createTextNode("Result"));
+        tr.appendChild(th);
+        
+        thead.appendChild(tr);
+        table.insertBefore(thead, table.firstChild);
+
+        var tbody = document.createElement("tbody");
+        table.appendChild(tbody);
+        
+        document.body.appendChild(table);
+        this._table = table;
+      }
+      else
+      {
+        this._printMsg(
+          "No document.body found (at this point)."
+          + " Use {updateDocument: false} if not in HTML context,"
+          + " or wait until document.body exists (`load' event).",
+          "warn");
+      }
+    }
+  },
+  
+  /**
+   * @protected
+   * @param text : String
+   */
+  _htmlEscape: function (text) {
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  },
+  
+  /**
+   * @protected
+   */
+  _appendEntry: function (num, file, feature, desc, result, msgType) {
+    if (this._table)
+    {
+      var tbody = this._table.tBodies[0];
+      
+      var tr = document.createElement("tr");
+      tr.className = msgType;
+      
+      var th = document.createElement("th");
+      th.appendChild(document.createTextNode(num));
+      tr.appendChild(th);
+      
+      var td = document.createElement("td");
+      if (file)
+      {
+        var tt = document.createElement("tt");
+        tt.appendChild(document.createTextNode(this._htmlEscape(file)));
+        td.appendChild(tt);
+      }
+      tr.appendChild(td);
+      
+      td = document.createElement("td");
+      if (feature)
+      {
+        var code = document.createElement("code");
+        code.appendChild(document.createTextNode(this._htmlEscape(feature)));
+        td.appendChild(code);
+      }
+      tr.appendChild(td);
+
+      td = document.createElement("td");
+      if (desc)
+      {
+        td.innerHTML = desc;
+      }
+      tr.appendChild(td);
+      
+      td = document.createElement("td");
+      td.appendChild(document.createTextNode(this._htmlEscape(result)));
+      td.className = msgType;
+      tr.appendChild(td);
+      
+      tbody.appendChild(tr);
+    }
+  },
+  
+  /**
+   * @protected
+   */
+  _appendSummary: function (text) {
+    if (this._table)
+    {
+      var tbody = this._table.tBodies[0];
+      
+      var tfoot = document.createElement("tfoot");
+      var tr = document.createElement("tr");
+      var td = document.createElement("td");
+      td.colSpan = 5;
+      td.appendChild(document.createTextNode(text));
+      tr.appendChild(td);
+      tfoot.appendChild(tr);
+      
+      this._table.insertBefore(tfoot, tbody);
+    }
+  },
+  
+  /**
+   * @protected
+   * @param msg : String
+   * @param msgType : String
+   */
+  _printMsg: function (msg, msgType) {
     return jsx[msgType]("jsx.test.runner: " + msg);
+  },
+  
+  /**
+   * Strips tags from markup and unescapes basic character
+   * entity references.
+   * 
+   * @protected
+   * @param markup : String
+   */
+  _stripTags: function (markup) {
+    return markup
+      .replace(/<\/?[^\s>]+(:[^\s>]+)?(\s+[^\s=>]+(\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)?)?)*\s*>/g, "")
+      .replace(/&lt;/, "<").replace(/&gt;/, ">").replace(/&amp;/, "&");
+  },
+  
+  /**
+   * Prints the result to the error console, and, if supported,
+   * to the document.
+   * 
+   * @protected
+   * @param num
+   * @param file
+   * @param feature
+   * @param desc
+   * @param result
+   * @param msgType
+   */
+  _printResult: function (num, file, feature, desc, result, msgType) {
+    this._appendEntry(num, file, feature, desc, result, msgType);
+    this._printMsg("Test " + num
+      + (file || feature ? ", " : "")
+      + (file ? file + ":" : "")
+      + feature
+      + (file || feature ? "," : "")
+      + (desc ? ' "' + this._stripTags(desc) + '"' : "")
+      + (file || feature ? "," : "")
+      + " " + result,
+      msgType);
+  },
+  
+  _printSummary: function (result) {
+    var summary = "Failed: " + result.failed + ". Passed: " + result.passed + ".";
+    this._appendSummary(summary);
+    this._printMsg(summary, "info");
   },
   
   /**
    * Runs test cases
    * 
+   * @function
    * @param spec : Object
    *   Test specifaction.  Supported properties incude:
    *   <table>
@@ -348,9 +555,17 @@ jsx.test.runner = {
    *              </thead>
    *              <tbody>
    *                <tr>
-   *                  <th><code>name</code></th>
+   *                  <th><code>file</code></th>
    *                  <td><code>String</code></td>
-   *                  <td>Name of the test case</td>
+   *                  <td>Name of the file that contains the code
+   *                      to be tested</td>
+   *                </tr>
+   *                <tr>
+   *                  <th><code>name</code> | <code>description</code></th>
+   *                  <td><code>String</code></td>
+   *                  <td>Name/description of the test case.
+   *                      Use <code>description</code> for newer
+   *                      test code.</td>
    *                </tr>
    *                <tr>
    *                  <th><code>code</code></th>
@@ -360,6 +575,16 @@ jsx.test.runner = {
    *              </tbody>
    *            </table></td>
    *        <td>Test cases</td>
+   *      </tr>
+   *      <tr>
+   *        <th><code>updateDocument</code></th>
+   *        <td><code>boolean</code></td>
+   *        <td>If <code>false<code>, the (X)HTML document
+   *            containing or including the call is not updated, and
+   *            diagnostics are only written to the error console.
+   *            The default is <code>true</code>.  Set to
+   *            <code>false</code> automatically if there is
+   *            no <code>document.body</code> object.</td>
    *      </tr>
    *   </table>
    */
@@ -372,6 +597,8 @@ jsx.test.runner = {
       
       if (spec)
       {
+        this._file = jsx.object.getProperty(spec, 'file', "");
+
         hasSetUp = isNativeMethod(spec, 'setUp');
         if (hasSetUp)
         {
@@ -393,7 +620,7 @@ jsx.test.runner = {
       
       if (this._tests.length == 0)
       {
-        return this.printMsg("No tests defined.", "info");
+        return this._printMsg("No tests defined.", "info");
       }
       
       var result = {
@@ -401,15 +628,29 @@ jsx.test.runner = {
         passed: 0
       };
       
+      this._appendTable();
+      
       for (var i = 0, len = this._tests.length; i < len; ++i)
       {
         var test = this._tests[i];
         var number = i + 1;
-        var name = "";
+        var file = this._file;
+        var feature = "";
+        var description = "";
         
         if (test && typeof test != "function")
         {
-          name = ' "' + test.name + '"';
+          if (test.file)
+          {
+            file = test.file;
+          }
+          
+          if (test.feature)
+          {
+            feature = test.feature;
+          }
+          
+          description = test.description || test.name;
           test = test.code;
         }
           
@@ -422,14 +663,15 @@ jsx.test.runner = {
         {
           test(i);
           ++result.passed;
-          this.printMsg("Test " + number + name + " passed.", "info");
+          this._printResult(number, file, feature, description,
+            "passed", "info");
         }
         catch (e)
         {
           ++result.failed;
-          this.printMsg("Test " + number + name
-            + " threw " + e + (e.stack ? "\n\n" + e.stack : ""),
-            "warn");
+          this._printResult(number, file, feature, description,
+            "threw " + e + (e.stack ? "\n\n" + e.stack : ""),
+            "error");
         }
 
         if (hasTearDown)
@@ -438,13 +680,7 @@ jsx.test.runner = {
         }
       }
 
-      var msg = "info";
-      if (result.failed > 0)
-      {
-        msg = "warn";
-      }
-      
-      this.printMsg("Failed: " + result.failed + ". Passed: " + result.passed + ".", msg);
+      this._printSummary(result);
     };
   }()),
   
@@ -457,7 +693,7 @@ jsx.test.runner = {
     
     this._setUp = f;
   },
-  
+    
   setTearDown: function(f) {
     if (!jsx.object.isNativeMethod(f))
     {
