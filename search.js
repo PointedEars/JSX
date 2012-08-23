@@ -88,7 +88,7 @@ function SearchString(s)
   {
     var value_pair, sName, sValue;
 
-    if (isMethodType(typeof this.text.split))
+    if (jsx.object.isMethodType(typeof this.text.split))
     {
       var value_pairs = this.text.split(new RegExp("[&;]")), len;
       for (i = 0, len = value_pairs.length; i < len; i++)
