@@ -288,11 +288,11 @@ if (typeof document != "undefined")
           oContextNode = document;
         }
 
-        if (!jsx.object.isMethod(oContextNode, "getElementsByTagName"))
+        if (!jsx_object.isMethod(oContextNode, "getElementsByTagName"))
         {
           return null;
         }
-
+        
         var result = oContextNode.getElementsByTagName(sTagName);
         if (result && !isNaN(index) && index > -1)
         {
@@ -1153,7 +1153,7 @@ jsx.dom.createNodesFromObj = (function () {
       return a;
     }
 
-    var el = document.createElement(data.type);
+    var el = document.createElement(data.elementType || data.type);
     if (!el)
     {
       return null;
