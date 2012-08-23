@@ -1,3 +1,4 @@
+"use strict";
 /**
  * <title>PointedEars' DOM Library: Widgets</title>
  *
@@ -66,11 +67,11 @@ jsx.dom.widgets = {
  *   attach it.
  * @param oProperties : Object
  */
-jsx.dom.widgets.Widget = function(oTarget, oParent, oProperties) {
-  this.target = oTarget || document.createElement(this.elementType);
+jsx.dom.widgets.Widget = function (oTarget, oParent, oProperties) {
+  this._target = oTarget || document.createElement(this.elementType);
   this._parent = oParent || null;
 
-  for ( var propertyName in oProperties)
+  for (var propertyName in oProperties)
   {
     /* Do not overwrite methods */
     if (typeof this[propertyName] != "function")
@@ -87,7 +88,7 @@ jsx.dom.widgets.Widget = function(oTarget, oParent, oProperties) {
     }
   }
 
-  if (this.target)
+  if (this._target)
   {
     this.init();
     this.update();
@@ -105,28 +106,34 @@ jsx.dom.widgets.Widget.extend(null, {
   /**
    * @type Element
    */
-  target: null,
+  _target: null,
 
   /**
    * Defines actions to be performed when the widget is initialized;
    * overridden by inheriting types.
    */
-  init: function() {
+  init: function () {
     /* stub */
   },
 
   /**
    * Defines actions to be performed when the widget's canvas should be
-   * updated to reflect its current status; should be overridden by
-   * inheriting types.
+   * updated to reflect its current status; should be overridden
+   * and called by inheriting types.
    */
-  update: function() {
-    var style = this.style;
-    for (var styleProperty in style)
-    {
-      this.target.style[styleProperty] = style[styleProperty];
-    }
-  },
+  update: (function () {
+    var _setStyleProperty = jsx.dom.setStyleProperty;
+    
+    return function () {
+      var style = this.style;
+      for (var styleProperty in style)
+      {
+        _setStyleProperty(this._target, styleProperty, style[styleProperty]);
+      }
+      
+      return this;
+    };
+  }()),
 
   /**
    * Causes the widget to be rendered, and attached to the document tree
@@ -137,31 +144,36 @@ jsx.dom.widgets.Widget.extend(null, {
    *   which the widget should be appended as child. The default is
    *   document.body.
    */
-  render: function(parent) {
+  render: function (parent) {
+    this.update();
     this.appendTo(parent);
-    this.target.style.display = "";
+    this._target.style.display = "";
+    return this;
   },
 
   /**
    * Causes the widget not to be rendered, without removing it from the
    * document tree.
    */
-  unrender: function() {
-    this.target.style.display = "none";
+  unrender: function () {
+    this._target.style.display = "none";
+    return this;
   },
 
   /**
    * Shows the widget
    */
-  show: function() {
-    target.style.display.visibility = "visible";
+  show: function () {
+    this._target.style.visibility = "visible";
+    return this;
   },
 
   /**
    * Hides the widget, but keeps its box
    */
-  hide: function() {
-    this.target.style.display.visibility = "hidden";
+  hide: function () {
+    this._target.style.visibility = "hidden";
+    return this;
   },
 
   /**
@@ -170,7 +182,7 @@ jsx.dom.widgets.Widget.extend(null, {
    * @param parent
    * @returns
    */
-  appendTo: function(parent) {
+  appendTo: function (parent) {
     var result = null;
 
     if (typeof parent == "undefined")
@@ -178,7 +190,7 @@ jsx.dom.widgets.Widget.extend(null, {
       parent = this._parent;
     }
 
-    var target = this.target;
+    var target = this._target;
     if (!target.parentNode || (parent != target.parentNode))
     {
       result = parent.appendChild(target);
@@ -190,20 +202,96 @@ jsx.dom.widgets.Widget.extend(null, {
   /**
    * Removes the widget from the document
    */
-  remove: function() {
-    return this.target.parentNode.removeChild(this.target);
+  remove: function () {
+    return this._target.parentNode.removeChild(this._target);
   },
 
   /**
    * @memberOf jsx.dom.widgets.Widget#prototype
    */
-  _getSetterFor: function(propertyName) {
+  _getSetterFor: function (propertyName) {
     var setterName =
       "set" + propertyName.charAt(0).toUpperCase() + propertyName.substring(1);
     var setter = this[setterName];
     return (typeof setter == "function") ? setter : null;
   }
 });
+
+/**
+ * <code>Container</code>s are widgets that may have content, such
+ * as other widgets and text.
+ */
+jsx.dom.widgets.Container = function (oTarget, oParent, oProperties) {
+  jsx.dom.widgets.Container._super.apply(this, arguments);
+};
+
+jsx.dom.widgets.Container.extend(jsx.dom.widgets.Widget, {
+  text: "",
+  innerHTML: null,
+    
+  /*
+   * (non JSdoc)
+   * @see Widget.prototype#update
+   */
+  /**
+   * @memberOf jsx.dom.widgets.Container#prototype
+   */
+  update: (function () {
+    var _isArray = jsx.object.isArray;
+    var _createNodesFromObj = jsx.dom.createNodesFromObj;
+    var _setTextContent = jsx.dom.setTextContent;
+    var update = jsx.dom.widgets.Widget.prototype.update;
+
+    return function () {
+      update.call(this);
+
+      var target = this._target;
+
+      var html = this.innerHTML;
+      if (html !== null)
+      {
+        if (typeof html.valueOf() == "string")
+        {
+          target.innerHTML = html;
+        }
+        else
+        {
+          jsx.dom.removeChildren(target, target.childNodes);
+          
+          if (_isArray(html))
+          {
+            html = _createNodesFromObj(html);
+          }
+          
+          jsx.dom.appendChildren(target, html);
+        }
+      }
+      else
+      {
+        _setTextContent(target, this.text || "");
+      }
+      
+      target.onclick = this.onclick || null;
+      target.onmouseover = this.onmouseover || null;
+      target.onmousedown = this.onmousedown || null;
+      
+      return this;
+    };
+  }()),
+  
+  setText: function (text) {
+    this.text = text;
+    this.innerHTML = null;
+    return this;
+  },
+
+  setInnerHTML: function (html) {
+    this.text = "";
+    this.innerHTML = html;
+    return this;
+  }
+});
+
 
 /**
  * An <code>Input</code> widget enhances the default
@@ -224,11 +312,11 @@ jsx.dom.widgets.Widget.extend(null, {
  *        Object
  * @see Widget
  */
-jsx.dom.widgets.Input = function(oTarget, oParent, oProperties) {
-  arguments.callee._super.apply(this, arguments);
+jsx.dom.widgets.Input = function (oTarget, oParent, oProperties) {
+  jsx.dom.widgets.Input._super.apply(this, arguments);
 
   var me = this;
-  jsx.dom.addEventListener(this.target, 'keypress', jsx.dom.createEventListener(
+  jsx.dom.addEventListener(this._target, 'keypress', jsx.dom.createEventListener(
     function (e) {
       var charCode =
         (typeof e.charCode != "undefined")
@@ -266,56 +354,39 @@ jsx.dom.widgets.Input.extend(jsx.dom.widgets.Widget, {
 
       if (typeof this.tabIndex != "undefined")
       {
-        this.target.tabIndex = this.tabIndex;
+        this._target.tabIndex = this.tabIndex;
       }
+      
+      return this;
     };
   }())
 });
 
-jsx.dom.widgets.Button = function(oTarget, oParent, oProperties) {
-  arguments.callee._super.apply(this, arguments);
+jsx.dom.widgets.Button = function (oTarget, oParent, oProperties) {
+  jsx.dom.widgets.Button._super.apply(this, arguments);
 };
 
-jsx.dom.widgets.Button.extend(jsx.dom.widgets.Input, {
+jsx.dom.widgets.Button.extend(jsx.dom.widgets.Container, {
   /**
    * @memberOf jsx.dom.widgets.Button#prototype
    */
   elementType: "button",
 
-  init: function() {
+  init: function () {
     var me = this;
 
     jsx.tryThis(
       function ()  {
-        me.target.type = "button";
+        me._target.type = "button";
       },
 
       function () {
         /* IE 7 and other borken UAs that don't support inline-block properly */
         jsx.throwThis("jsx.dom.widgets.InitError", "jsx.dom.widgets.Button",
-          arguments.callee);
+          jsx.dom.widgets.Button.prototype.init);
       }
     );
   },
-
-  /*
-   * (non JSdoc)
-   *
-   * @see Widget.prototype#update
-   */
-  update: (function () {
-    var update = jsx.dom.widgets.Input.prototype.update;
-
-    return function () {
-      update.call(this);
-
-      var t = this.target;
-      t.appendChild(document.createTextNode(this.text || ""));
-      t.onclick = this.onclick || null;
-      t.onmouseover = this.onmouseover || null;
-      t.onmousedown = this.onmousedown || null;
-    };
-  }())
 });
 
 /**
@@ -334,17 +405,17 @@ jsx.dom.widgets.Button.extend(jsx.dom.widgets.Input, {
  * @param oProperties : Object
  * @see jsx.dom.widgets#Input
  */
-jsx.dom.widgets.NumberInput = function(oTarget, oParent, oProperties) {
-  arguments.callee._super.apply(this, arguments);
+jsx.dom.widgets.NumberInput = function (oTarget, oParent, oProperties) {
+  jsx.dom.widgets.NumberInput._super.apply(this, arguments);
 
   var me = this;
 
-  var target = this.target;
-  jsx.dom.addEventListener(target, 'blur', function() {
+  var target = this._target;
+  jsx.dom.addEventListener(target, 'blur', function () {
     me.update();
   });
 
-  jsx.dom.addEventListener(target, 'focus', function() {
+  jsx.dom.addEventListener(target, 'focus', function () {
     if (me.leadingZero)
     {
       this.value = parseInt(this.value, 10);
@@ -376,8 +447,8 @@ jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
    */
   maxValue: Infinity,
 
-  init: function() {
-    var target = this.target;
+  init: function () {
+    var target = this._target;
 
     if (target.type != "number")
     {
@@ -407,10 +478,10 @@ jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
   update: (function () {
     var update = jsx.dom.widgets.Input.prototype.update;
 
-    return function() {
+    return function () {
       update.call(this);
 
-      var target = this.target;
+      var target = this._target;
 
       var v = parseFloat(target.value);
 
@@ -439,6 +510,8 @@ jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
       {
         target.value = v;
       }
+      
+      return this;
     };
   }()),
 
@@ -448,15 +521,15 @@ jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
    * @param value
    * @returns
    */
-  _setBoundary: function(valueType, value) {
+  _setBoundary: function (valueType, value) {
     value = parseFloat(value);
 
     if (!isNaN(value))
     {
-      if (this.target.type == "number")
+      if (this._target.type == "number")
       {
         /* HTML5 support */
-        this.target[valueType] = String(value);
+        this._target[valueType] = String(value);
       }
 
       this[valueType + "Value"] = value;
@@ -469,11 +542,11 @@ jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
     return this[valueType + "Value"];
   },
 
-  setMinValue: function(value) {
+  setMinValue: function (value) {
     return this._setBoundary("min", value);
   },
 
-  setMaxValue: function(value) {
+  setMaxValue: function (value) {
     return this._setBoundary("max", value);
   }
 
@@ -506,12 +579,12 @@ jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
  * @param oProperties : Object
  * @see jsx.dom.widgets#NumberInput
  */
-jsx.dom.widgets.SpinnerInput = function(oTarget, oParent, oProperties) {
+jsx.dom.widgets.SpinnerInput = function (oTarget, oParent, oProperties) {
   var me = this;
 
-  arguments.callee._super.apply(this, arguments);
+  jsx.dom.widgets.SpinnerInput._super.apply(this, arguments);
 
-  var target = this.target;
+  var target = this._target;
   if (target.type != "number")
   {
     /* If no HTML5 support, try adding arrow controls */
@@ -528,12 +601,12 @@ jsx.dom.widgets.SpinnerInput = function(oTarget, oParent, oProperties) {
             padding: "0",
             lineHeight: "1em"
           },
-          onclick: function() {
+          onclick: function () {
             me.inc();
 
-            if (typeof me.target.onchange == "function")
+            if (typeof me._target.onchange == "function")
             {
-              me.target.onchange();
+              me._target.onchange();
             }
           }
         });
@@ -549,12 +622,12 @@ jsx.dom.widgets.SpinnerInput = function(oTarget, oParent, oProperties) {
             padding: "0",
             lineHeight: "1em"
           },
-          onclick: function() {
+          onclick: function () {
             me.dec();
 
-            if (typeof me.target.onchange == "function")
+            if (typeof me._target.onchange == "function")
             {
-              me.target.onchange();
+              me._target.onchange();
             }
           }
         });
@@ -564,8 +637,8 @@ jsx.dom.widgets.SpinnerInput = function(oTarget, oParent, oProperties) {
         buttonContainer.style.lineHeight = "1em";
         buttonContainer.style.verticalAlign = "middle";
 
-        buttonContainer.appendChild(me.buttonUp.target);
-        buttonContainer.appendChild(me.buttonDown.target);
+        buttonContainer.appendChild(me.buttonUp._target);
+        buttonContainer.appendChild(me.buttonDown._target);
         target.parentNode.insertBefore(buttonContainer, target.nextSibling);
       },
 
@@ -649,8 +722,8 @@ jsx.dom.widgets.SpinnerInput.extend(jsx.dom.widgets.NumberInput, {
    *
    * @memberOf jsx.dom.widgets.SpinnerInput#prototype
    */
-  inc: function() {
-    var v, t = this.target;
+  inc: function () {
+    var v, t = this._target;
 
     if ( (this.maxValue == Infinity || t.value < this.maxValue)
       && !isNaN(v = parseInt(t.value, 10) + 1)
@@ -663,8 +736,8 @@ jsx.dom.widgets.SpinnerInput.extend(jsx.dom.widgets.NumberInput, {
   /**
    * Decreases the value of the input by 1
    */
-  dec: function() {
-    var v, t = this.target;
+  dec: function () {
+    var v, t = this._target;
 
     if ( (this.minValue == -Infinity || t.value > this.minValue)
       && !isNaN(v = parseInt(t.value, 10) - 1)
@@ -681,16 +754,169 @@ jsx.dom.widgets.SpinnerInput.extend(jsx.dom.widgets.NumberInput, {
    */
   update: (function () {
     var update = jsx.dom.widgets.NumberInput.prototype.update;
+    
     return function () {
       update.call(this);
 
-      var target = this.target;
+      var target = this._target;
       if (typeof target.onchange == "function")
       {
         target.onchange();
       }
+      
+      return this;
     };
   }())
+});
+
+jsx.dom.widgets.ListItem = function () {
+  jsx.dom.widgets.ListItem._super.apply(this, arguments);
+};
+
+jsx.dom.widgets.ListItem.extend(jsx.dom.widgets.Container, {
+  elementType: "li"
+});
+
+jsx.dom.widgets.List = function () {
+  jsx.dom.widgets.List._super.apply(this, arguments);
+};
+
+jsx.dom.widgets.List.extend(jsx.dom.widgets.Widget, {
+  /**
+   * @memberOf jsx.dom.widgets.List#prototype
+   * @param listItem : jsx.dom.widgets.ListItem
+   */
+  addItem: function (listItem) {
+    if (!this.items)
+    {
+      this.items = [];
+    }
+    
+    this.items.push(listItem);
+  },
+
+  /**
+   * @param listItem : jsx.dom.widgets.ListItem
+   */
+  removeItem: function (listItem) {
+    var items = this.items;
+    if (items)
+    {
+      var i = items.indexOf(listItem);
+      if (i > -1)
+      {
+        items.splice(i, 1);
+      }
+    }
+  },
+  
+  init: function () {
+    var items = this.items;
+    if (items && items.length === 0)
+    {
+      var listItems = jsx.dom.getElemByTagName("li", -1, this._target);
+      var ListItem = jsx.dom.widgets.ListItem;
+      for (var i = 0, len = listItems.length; i < len; ++i)
+      {
+        this.addItem(new ListItem(listItems[i], this));
+      }
+    }
+  },
+  
+  update: (function () {
+    var jsx_dom = jsx.dom;
+    var _gEBTN = jsx_dom.getElemByTagName;
+    var update = jsx_dom.widgets.Widget.prototype.update;
+    
+    return function () {
+      update.call(this);
+      
+      var items = this.items;
+      var i;
+      var len = items && items.length || 0;
+      
+      for (i = len; i--;)
+      {
+        items[i].update();
+      }
+      
+      var target = this._target;
+      var listItems = _gEBTN("li", -1, target);
+      var len2 = listItems.length;
+      for (i = 0; i < len && i < len2; ++i)
+      {
+        var listItem = listItems[i];
+        var item = items[i];
+        if (listItem != item._target)
+        {
+          target.replaceChild(item._target, listItem);
+        }
+      }
+      
+      for (var j = listItems.length; j-- > i;)
+      {
+        target.removeChild(listItems[j]);
+      }
+      
+      for (++j; j < len; ++j)
+      {
+        items[j].appendTo(target);
+      }
+      
+      return this;
+    };
+  }())
+});
+
+jsx.dom.widgets.OrderedList = function () {
+  jsx.dom.widgets.OrderedList._super.apply(this, arguments);
+};
+
+jsx.dom.widgets.OrderedList.extend(jsx.dom.widgets.List, {
+  /**
+   * @memberOf jsx.dom.widgets.OrderedList#prototype
+   */
+  elementType: "ol",
+});
+
+jsx.dom.widgets.UnorderedList = function () {
+  jsx.dom.widgets.UnorderedList._super.apply(this, arguments);
+};
+
+jsx.dom.widgets.UnorderedList.extend(jsx.dom.widgets.List, {
+  /**
+   * @memberOf jsx.dom.widgets.UnorderedList#prototype
+   */
+  elementType: "ul",
+});
+
+jsx.dom.widgets.Tree = function (oTarget, oParent, oProperties) {
+  jsx.dom.widgets.Tree._super.apply(this, arguments);
+};
+
+jsx.dom.widgets.Tree.extend(jsx.dom.widgets.Widget, {
+  /**
+   * @memberOf jsx.dom.widgets.Tree#prototype
+   */
+  _list: null,
+  
+  init: function () {
+    if (!this._list)
+    {
+      this._list = new jsx.dom.widget.UnorderedList();
+      this._list.addItem(new jsx.dom.widget.ListItem());
+    }
+  },
+  
+  update: (function () {
+    var update = jsx.dom.widgets.Tree._super.prototype.update;
+    
+    return function () {
+      update.call(this);
+      
+      return this;
+    };
+  })
 });
 
 /**
@@ -699,7 +925,7 @@ jsx.dom.widgets.SpinnerInput.extend(jsx.dom.widgets.NumberInput, {
  *
  */
 jsx.dom.widgets.Table = function (oTarget, oParent, oProperties) {
-  arguments.callee._super.apply(this, arguments);
+  jsx.dom.widgets.Table._super.apply(this, arguments);
 };
 
 jsx.dom.widgets.Table.extend(jsx.dom.widgets.Widget, {
@@ -734,7 +960,7 @@ jsx.dom.widgets.Table.extend(jsx.dom.widgets.Widget, {
 
       var expressions = [];
 
-      for (var rows = this.target.tBodies[0].rows, i = rows.length; i--;)
+      for (var rows = this._target.tBodies[0].rows, i = rows.length; i--;)
       {
         var row = rows[i];
         row.style.display = "none";
@@ -795,14 +1021,14 @@ jsx.dom.widgets.Table.extend(jsx.dom.widgets.Widget, {
  * @base jsx.dom.Widget
  * @see NumberWidget
  */
-jsx.dom.widgets.Timer = function(oTarget, oParent, oProperties) {
-  arguments.callee._super.apply(this, arguments);
+jsx.dom.widgets.Timer = function (oTarget, oParent, oProperties) {
+  jsx.dom.widgets.Timer._super.apply(this, arguments);
 };
 
 jsx.dom.widgets.Timer.extend(jsx.dom.widgets.Widget);
 
 jsx.dom.widgets.InitError = function (widgetType) {
-  arguments.callee._super.call(this, widgetType);
+  jsx.dom.widgets.InitError._super.call(this, widgetType);
 };
 
 jsx.dom.widgets.InitError.extend(jsx.Error, {
@@ -814,7 +1040,7 @@ function handleKeypress(e)
   console.log("e = ", e);
   if (e)
   {
-    var t = e.target || e.srcElement;
+    var t = e._target || e.srcElement;
     console.log("t = ", t);
     if (t && /^\s*\binput\b\s*$/i.test(t.tagName)
       && /^\s*\btext\b\s*$/i.test(t.type))

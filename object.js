@@ -1090,8 +1090,8 @@ jsx.object.inheritFrom = (function() {
  * 
  * Returns a new object that, if supported, does not inherit or
  * have any properties.  This is accomplished by either cutting
- * its existing prototype chain or not creating one for it in
- * the first place.
+ * off its existing prototype chain or not creating one for it
+ * in the first place.
  * 
  * @function
  * @return Object
