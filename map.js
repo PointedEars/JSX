@@ -93,6 +93,8 @@ jsx.map.Map = (
      */
     var _maxAliasLength = 255;
     
+    var _isObjectRef = jsx.object.isObject;
+    
     /**
      * Returns a safe key, that is, a property name that is not yet used
      * by the ECMAScript implementation.
@@ -288,7 +290,6 @@ jsx.map.Map = (
     });
     
     /* Imports */
-    var _isObjectRef = jsx.object.isObject;
     var _hasOwnProperty = jsx.object._hasOwnProperty;
 
     /**

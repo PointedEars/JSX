@@ -954,21 +954,25 @@ function format1k(s, s1kDelim)
 
 /**
  * String.hashCode() as defined in the Sun Java2 1.4 API.
- * The function takes a string as argument.  The ASCII or
- * Unicode value (depending on the implementation) of each
- * character (from right to left) is added to the product
- * of the current sum (starting at 0) multiplied with x,
- * where x = 37 if the string is no longer than 15
- * characters, x = 39 otherwise.  If the string is 16
+ * 
+ * The function takes a string as argument, or
+ * the <code>this</code> value if the argument is missing or
+ * a false-value, and the <code>this</code> value refers
+ * to an object that has a true-valued <code>charCodeAt</code>
+ * property.  The ASCII or Unicode value (depending on the
+ * implementation) of each character (from right to left) is
+ * added to the product of the current sum (starting at 0)
+ * multiplied with x, where x = 37 if the string is no longer
+ * than 15 characters, x = 39 otherwise.  If the string is 16
  * characters long or longer, at the average every eighth
  * character is not included in the sum.
  * 
  * @author
- *   JavaScript implementation
+ *   Implementation in ECMAScript
  *   (C) 2003 Thomas Lahn &lt;hashCode.js@PointedEars.de&gt;
  * @param s : optional string
  *   Optional string of which the hash code is computed. If
- *   not provided or <code>false</code>, it is assumed that
+ *   not provided or a false-value, it is assumed that
  *   the function is used as method of the String prototype,
  *   applied to a String object or literal.
  * @return number
