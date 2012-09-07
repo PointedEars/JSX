@@ -181,28 +181,36 @@ jsx.string.parser.Lexer.extend(null, {
     
     return this;
   },
-  
-  _RegExp: jsx.object.getFeature(jsx, "regexp", "RegExp") || RegExp,
-  
+    
   /**
    * Compiles <code>_expression</code> from token patterns
    * 
    * @protected
    */
-  _compile: function () {
-    var pattern = this._tokens.map(function (e) {
-      return e.pattern.source ? e.pattern.source : e.pattern;
-    });
-
-    this._expression = new this._RegExp(
-      "(" + pattern.join(")|(") + ")",
-      "g" + (this._ignoreCase ? 'i' : '')
-          + (this._dotAll ? 's' : '')
-      );
-    this._compiled = true;
-
-    return this._expression;
-  },
+  _compile: (function () {
+    var _jsx_RegExp;
+    var _RegExp;
+    
+    return function () {
+      var pattern = this._tokens.map(function (e) {
+        return e.pattern.source ? e.pattern.source : e.pattern;
+      });
+  
+      if (!_RegExp)
+      {
+        _jsx_RegExp = jsx.object.getFeature(jsx, "regexp", "RegExp");
+        _RegExp = _jsx_RegExp || RegExp;
+      }
+      
+      this._expression = new _RegExp(
+        "(" + pattern.join(")|(") + ")",
+        "g" + (this._ignoreCase ? 'i' : '')
+            + ((_RegExp == _jsx_RegExp && this._dotAll) ? 's' : ''));
+      this._compiled = true;
+  
+      return this._expression;
+    };
+  }()),
   
   /**
    * Returns the next token in an input string.
