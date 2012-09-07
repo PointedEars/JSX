@@ -110,7 +110,7 @@ function StringException(Msg)
  *   is supported, the original string otherwise.
  * @type string
  */
-function addSlashes(s)
+function addSlashes (s)
 {
   var c;
   if ((c = this.constructor) && c == String && typeof s != "string")
@@ -139,7 +139,7 @@ function addSlashes(s)
  * @see jsx.object#isMethod()
  * @author Copyright (c) 2006-2008 Thomas Lahn <cljs@PointedEars.de>
  */
-var esc = (function() {
+var esc = (function () {
   var
     jsx_global = jsx.global,
     jsx_object = jsx.object;
@@ -148,7 +148,7 @@ var esc = (function() {
           ? encodeURIComponent
           : (jsx_object.isMethod(jsx_global, "escape")
              ? escape
-             : function(s) { return s; }));
+             : function (s) { return s; }));
 }());
 
 /**
@@ -166,7 +166,7 @@ var escURI = (function (s) {
 
   return (jsx_object.isMethod(jsx_global, "encodeURI")
           ? encodeURI
-          : function(s) { return s; });
+          : function (s) { return s; });
 }());
 
 /**
@@ -182,7 +182,7 @@ var escURI = (function (s) {
  * @see jsx.object#isMethod()
  * @author Copyright (c) 2006-2008 Thomas Lahn <cljs@PointedEars.de>
  */
-var unesc = (function() {
+var unesc = (function () {
   var
     jsx_global = jsx.global,
     jsx_object = jsx.object;
@@ -191,7 +191,7 @@ var unesc = (function() {
           ? decodeURIComponent
           : (jsx_object.isMethod(jsx_global, "unescape")
              ? unescape
-             : function(s) { return s; }));
+             : function (s) { return s; }));
 }());
 
 /*
@@ -458,7 +458,7 @@ var parseFloat = jsx.string.parseFloat = (function () {
 //                  case "X": a = a.toUnsigned().toString(16); break;
 //                  default:
 //                    var sError = 'Invalid conversion specifier';
-//                    _global.onerror = function()
+//                    _global.onerror = function ()
 //                    {
 //                      alert('format: ' + sError);
 //                      _global.onerror = null;
@@ -564,7 +564,7 @@ jsx.string._rxFormatSpec = new RegExp(
  * @param sFormat
  * @return string
  */
-jsx.string.sprintf = function(sFormat) {
+jsx.string.sprintf = function (sFormat) {
   var
     rxFormatSpec = jsx.string._rxFormatSpec,
     args = arguments,
@@ -574,7 +574,7 @@ jsx.string.sprintf = function(sFormat) {
   
   return String(sFormat).replace(
     rxFormatSpec,
-    function(m, p1, propertyName, flags,
+    function (m, p1, propertyName, flags,
               fieldWidth, argFieldWidth, p4, uFieldWidthArg, p6,
               precision, argPrecision, p9, uPrecisionArg,
               memberDelim, convSpecifier) {
@@ -785,7 +785,7 @@ jsx.string.sprintf = function(sFormat) {
 /**
  * Formats a string
  */
-String.prototype.format = jsx.string.format = (function() {
+String.prototype.format = jsx.string.format = (function () {
   var _getClass = jsx.object.getClass;
   var _hasOwnProperty = jsx.object._hasOwnProperty;
 
@@ -793,7 +793,7 @@ String.prototype.format = jsx.string.format = (function() {
     * @param format
     * @return {String}
     */
-  return function(s) {
+  return function (s) {
     var start = 1;
     
     if (_getClass(this) === "String")
@@ -834,7 +834,7 @@ String.prototype.format = jsx.string.format = (function() {
  * @param format : String
  * @return Array
  */
-jsx.string.sscanf = (function() {
+jsx.string.sscanf = (function () {
   var formatSpec = {
     dec: "([+-]?(?:0|[1-9]\\d+)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)",
     "int": "([+-]?(?:0|[1-9]\\d+)(?:[eE][+-]?\\d+)?)"
@@ -847,7 +847,7 @@ jsx.string.sscanf = (function() {
     },
     "%i": {
       spec: formatSpec["int"],
-      parser: function(value) {
+      parser: function (value) {
         return parseInt(value, 10);
       }
     }
@@ -866,7 +866,7 @@ jsx.string.sscanf = (function() {
   
   var rxFormatSpec = jsx.string._rxFormatSpec;
 
-  return function(s, format) {
+  return function (s, format) {
     var replaced = [];
     format = format.replace(rxFormatSpec, replacer);
     var matches = s.match(new RegExp(format));
@@ -1264,7 +1264,7 @@ function nl2br(s)
  * @return string
  *   The padded input string so that its length is n.
  */
-var pad = jsx.string.pad = function(s, n, c, bRight, iStart) {
+var pad = jsx.string.pad = function (s, n, c, bRight, iStart) {
   var constr;
   if ((constr = this.constructor) && constr == String
       && typeof s != "string")
@@ -2092,7 +2092,7 @@ function pyUTF8toString(s)
 {
   return unesc(
     s.replace(/[\x80-\xff]/g,
-      function(m) {
+      function (m) {
         return "%" + m.charCodeAt(0).toString(16);
       }));
 }
