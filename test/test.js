@@ -324,22 +324,24 @@ jsx.test.runner = {
       if (document.body)
       {
         var id = "test-results" + new Date().getTime();
+        var context = "table#" + id;
         var style = document.createElement("style");
         style.type = "text/css";
         style.appendChild(
           document.createTextNode(
-              " table#" + id + " { border: 2px solid black; border-collapse: collapse; }"
-            + " table#" + id + " thead { border-bottom: 1px solid black; }"
-            + " table#" + id + " tfoot { border-top: 1px solid black; }"
-            + " table#" + id + " thead th { text-align: left; }"
-            + " table#" + id + " thead th:first-child { text-align: right; }"
-            + " table#" + id + " tbody th { text-align: right; }"
-            + " table#" + id + " tbody td.info { background-color: green; color: white; }"
-            + " table#" + id + " tbody td.error { background-color: red; color: white; }"
-            + " table#" + id + " thead th,"
-            + " table#" + id + " tbody th,"
-            + " table#" + id + " tbody td,"
-            + " table#" + id + " tfoot td { padding: 0 0.5em; }"
+              context + " { border: 2px solid black; border-collapse: collapse; }"
+            + context + " thead { border-bottom: 1px solid black; }"
+            + context + " thead th { vertical-align: baseline; }"
+            + context + " tfoot { border-top: 1px solid black; }"
+            + context + " thead th { text-align: left; }"
+            + context + " thead th:first-child { text-align: right; }"
+            + context + " tbody th { text-align: right; }"
+            + context + " tbody td.info { background-color: green; color: white; }"
+            + context + " tbody td.error { background-color: red; color: white; }"
+            + context + " thead th,"
+            + context + " tbody th,"
+            + context + " tbody td,"
+            + context + " tfoot td { padding: 0 0.5em; vertical-align: top; }"
           ));
         document.getElementsByTagName("head")[0].appendChild(style);
         
@@ -515,7 +517,11 @@ jsx.test.runner = {
   },
   
   _printSummary: function (result) {
-    var summary = "Failed: " + result.failed + ". Passed: " + result.passed + ".";
+    var failed = result.failed;
+    var passed = result.passed;
+    var total = failed + passed;
+    var summary = "Failed: " + failed + " (" + (failed * 100 / total).toFixed(1) + "\xA0%)."
+      + " Passed: " + passed + " (" + (passed * 100 / total).toFixed(1) + "\xA0%).";
     this._appendSummary(summary);
     this._printMsg(summary, "info");
   },
@@ -561,10 +567,16 @@ jsx.test.runner = {
    *                      to be tested</td>
    *                </tr>
    *                <tr>
-   *                  <th><code>name</code> | <code>description</code></th>
+   *                  <th><code>feature</code></th>
    *                  <td><code>String</code></td>
-   *                  <td>Name/description of the test case.
-   *                      Use <code>description</code> for newer
+   *                  <td>Code describing the feature that is tested</td>
+   *                </tr>
+   *                <tr>
+   *                  <th><code>description</code> | <code>desc</code> | <code>name</code></th>
+   *                  <td><code>String</code></td>
+   *                  <td>Description/name of the test case.
+   *                      Use <code>description</code> or
+   *                      <code>desc</code> for newer
    *                      test code.</td>
    *                </tr>
    *                <tr>
@@ -588,7 +600,7 @@ jsx.test.runner = {
    *      </tr>
    *   </table>
    */
-  run: (function() {
+  run: (function () {
     var isNativeMethod = jsx.object.isNativeMethod;
     
     return function (spec) {
@@ -650,7 +662,7 @@ jsx.test.runner = {
             feature = test.feature;
           }
           
-          description = test.description || test.name;
+          description = test.description || test.desc || test.name;
           test = test.code;
         }
           
@@ -684,7 +696,12 @@ jsx.test.runner = {
     };
   }()),
   
-  setSetUp: function(f) {
+  setFile: function (file) {
+    this._file = file;
+    return this;
+  },
+  
+  setSetUp: function (f) {
     if (!jsx.object.isNativeMethod(f))
     {
       jsx.throwThis("jsx.InvalidArgumentError",
@@ -692,18 +709,20 @@ jsx.test.runner = {
     }
     
     this._setUp = f;
+    return this;
   },
     
-  setTearDown: function(f) {
+  setTearDown: function (f) {
     if (!jsx.object.isNativeMethod(f))
     {
       jsx.throwThis("jsx.InvalidArgumentError", ["", typeof f, "function"]);
     }
     
     this._tearDown = f;
+    return this;
   },
   
-  setTests: function(tests) {
+  setTests: function (tests) {
     var _class = jsx.object.getClass(tests);
     if (_class != "Array")
     {
@@ -711,5 +730,6 @@ jsx.test.runner = {
     }
      
     this._tests = tests;
+    return this;
   }
 };
