@@ -125,7 +125,6 @@ if (typeof jsx.net == "undefined")
  * 
  * @end
  */
-
 jsx.net.http = {
   /** @version */
   version:   "0.1.$Revision$ ($Date$)",
@@ -143,6 +142,11 @@ jsx.net.http = {
    * and {@link jsx.net.http.Request.prototype#setErrorListener setErrorListener()};
    * then call {@link jsx.net.http.Request.prototype#send send()} to submit
    * the request.
+   * 
+   * NOTE: The objects so created are not thread-safe.  You should
+   * not modify their properties while another request with the same
+   * object is in progress.  When in doubt, create a new object for
+   * each request.  (This issue may be fixed in a later version.)
    * 
    * @param sURL : optional string=document.URL
    *   Request URL.  The default is the URL of the sending resource.
@@ -262,9 +266,11 @@ jsx.net.http.Request.prototype = {
    */
   _xhr: null,
   
+  requestHeaders: jsx.object.getDataObject(),
+  
   /**
    * Method to be called onreadystatechange
-   * 
+   *
    * @private
    * @function
    * @param x : XMLHttpRequest
@@ -274,7 +280,7 @@ jsx.net.http.Request.prototype = {
       Request = jsx.net.http.Request,
       jsx_object = jsx.object,
       oStatus = Request.status;
-    
+
     return function (response) {
       if (response.readyState === Request.readyState.COMPLETED)
       {
@@ -296,10 +302,10 @@ jsx.net.http.Request.prototype = {
       }
     };
   }()),
-  
+
   /**
    * Sets the <code>URL</code> property.
-   * 
+   *
    * @param sURL : string
    *   If not provided or a false-value, the
    *   URL of the sending recource is set.
@@ -312,7 +318,7 @@ jsx.net.http.Request.prototype = {
     {
       sURL = escURI(sURL);
     }
-    
+
     this.URL = (sURL || document.URL);
   },
 
@@ -320,7 +326,7 @@ jsx.net.http.Request.prototype = {
    * Sets the <code>method</code> property.  Use the
    * <code>HTTPRequest.method.(GET|POST)</code> properties
    * to avoid problems with character case and typos.
-   * 
+   *
    * @param sMethod : optional string
    *   If not provided or a false-value, the value
    *   of <code>HTTPRequest.method.GET</code> is used.
@@ -337,18 +343,18 @@ jsx.net.http.Request.prototype = {
    * the response was fully received) or asynchronous (waiting for the
    * response to be fully received in the background, this is the default
    * and recommended).
-   * 
+   *
    * @param bAsync : optional boolean
    *   If not provided or a true-value, the request will be asynchronous.
    */
   setAsync: function (bAsync) {
     this.async = (typeof bAsync != "undefined" ? !!bAsync : true);
   },
-  
+
   /**
    * Defines the response Listener method to be used for handling
    * requests.
-   * 
+   *
    * A <code>HTTPRequest</code> object is always initialized with
    * an inherited default response Listener that calls
    * {@link HTTPRequest.prototype#successListener() successListener()}
@@ -358,7 +364,7 @@ jsx.net.http.Request.prototype = {
    * non-callable object as argument, throws an
    * {@link jsx#InvalidArgumentError InvalidArgumentError}
    * exception.
-   * 
+   *
    * @param fResponseListener : HTTPResponseListener
    * @throws jsx.InvalidArgumentError
    */
@@ -386,14 +392,14 @@ jsx.net.http.Request.prototype = {
   /**
    * Defines a response listener method to be used for handling
    * successful requests.
-   * 
+   *
    * An <code>HTTPRequest</code> object is always initialized with
    * an inherited dummy success listener (a {@link jsx.net.http.ResponseListener}
    * instance) that does nothing, if you do not specify one.  Once initialized,
    * passing a reference to a non-callable object as argument throws an
    * {@link jsx#InvalidArgumentError InvalidArgumentError}
    * exception.
-   * 
+   *
    * @param fSuccessListener : HTTPResponseListener
    * @return boolean <code>true</code> if the listener could be successfully
    *   set or changed; <code>false</code> on error, unless an exception is thrown.
@@ -419,11 +425,11 @@ jsx.net.http.Request.prototype = {
       return false;
     }
   },
-  
+
   /**
    * Defines the response listener method to be used for handling
    * unsuccessful requests.
-   * 
+   *
    * An <code>HTTPRequest</code> object is always initialized with
    * an inherited dummy error listener that does nothing (a
    * {@link jsx.net.http.ResponseListener} instance), if you
@@ -431,7 +437,7 @@ jsx.net.http.Request.prototype = {
    * to a non-callable object as argument throws an
    * {@link jsx#InvalidArgumentError InvalidArgumentError}
    * exception.
-   * 
+   *
    * @param fErrorListener : HTTPResponseListener
    * @throws jsx.InvalidArgumentError
    */
@@ -457,7 +463,7 @@ jsx.net.http.Request.prototype = {
 
   /**
    * Sets the <code>data</code> property.
-   * 
+   *
    * @param sData : optional string
    *   If not provided or a false-value, sets
    *   the property to the empty string.
@@ -466,10 +472,10 @@ jsx.net.http.Request.prototype = {
   setData: function (sData) {
     this.data = (sData || "");
   },
-    
+
   /**
    * Resets the <code>data</code> property to the empty string.
-   * 
+   *
    * @see HTTPRequest.prototype#setData()
    */
   resetData: function () {
@@ -479,7 +485,7 @@ jsx.net.http.Request.prototype = {
   /**
    * Retrieves the data to send in the request, and optionally the request
    * method, from an (X)HTML form.  TODO: select[multiple] elements
-   * 
+   *
    * @param f : HTMLFormElement
    * @param bUseFormMethod: optional boolean
    *   If <code>true</code>, the form's request method becomes the
@@ -496,7 +502,7 @@ jsx.net.http.Request.prototype = {
       {
         this.method = f.method;
       }
-      
+
       var aData = [];
 
       for (var i = 0; i < len; i++)
@@ -520,20 +526,63 @@ jsx.net.http.Request.prototype = {
    * "application/x-www-form-urlencoded" to indicate form submission,
    * which is what Web browsers send as default then, although this
    * media type is currently not registered with IANA.
-   * 
+   *
    * @param sRequestType : string
    *   <code>"application/x-www-form-urlencoded"</code>, if omitted or
    *   a false-value (like "", the empty string).
+   * @return {jsx.net.http.Request}
+   *   This object
    */
   setRequestType: function (sRequestType) {
     this.requestType = sRequestType || "application/x-www-form-urlencoded";
+    return this;
   },
+
+  /**
+   * Sets a request header field value
+   *
+   * @param name
+   * @param value
+   * @returns {jsx.net.http.Request}
+   *   This object
+   */
+  setRequestHeader: function (name, value) {
+    this.requestHeaders[name] = value;
+    return this;
+  },
+
+  /**
+   * Sets additional request header field values
+   *
+   * @param obj : Object
+   *   Object specifying the additional header fields for the
+   *   next request.  Names of own properties of this object
+   *   define the header field names, their values the corresponding
+   *   field values.
+   * @returns {jsx.net.http.Request}
+   *   This object
+   */
+  setRequestHeaders: (function () {
+    var _hasOwnProperty = jsx.object._hasOwnProperty;
+
+    return function (obj) {
+      for (var name in obj)
+      {
+        if (_hasOwnProperty(obj, name))
+        {
+          this.requestHeaders[name] = obj[name];
+        }
+      }
+
+      return this;
+    };
+  }()),
 
   /**
    * Returns a reference to an XML HTTP Request object.  Reuses an existing
    * object if possible (if it has processed the previous request); creates
    * a new object if necessary;
-   * 
+   *
    * @protected
    * @return IXMLHttpRequest
    *   A reference to an XML HTTP Request object or <code>null</code>,
@@ -551,7 +600,7 @@ jsx.net.http.Request.prototype = {
     {
       return x;
     }
-          
+
     /*
      * Create new XHR instance:
      * Feature detection based on Jim Ley's XML HTTP Request tutorial
@@ -575,7 +624,7 @@ jsx.net.http.Request.prototype = {
           {
             // TODO: Try this first?
             // new ActiveXObject("Msxml2.XMLHTTP");
-            
+
             // MSXML 3.0-
             x = new ActiveXObject("Microsoft.XMLHTTP");
           }
@@ -585,7 +634,7 @@ jsx.net.http.Request.prototype = {
           }
         @end @*/
     }
-    
+
     /* Gecko and Opera 8.1+ */
     if (!x && jsx_object.isMethod(jsx_global, "XMLHttpRequest"))
     {
@@ -593,7 +642,7 @@ jsx.net.http.Request.prototype = {
         function () { x = new XMLHttpRequest(); },
         function () { x = null; });
     }
-    
+
     /* IceBrowser */
     if (!x && typeof window != "undefined"
            && jsx_object.isMethod(window, "createRequest"))
@@ -608,13 +657,13 @@ jsx.net.http.Request.prototype = {
     {
       this._xhr = x;
     }
-    
+
     return x;
   },
-  
+
   /**
    * Submits the HTTP request.
-   * 
+   *
    * @param sData : optional string
    *   The data to form the request body.  If the request method is "GET",
    *   this argument is ignored and <code>null</code> is used instead (no body).
@@ -652,29 +701,29 @@ jsx.net.http.Request.prototype = {
     {
       return false;
     }
-    
+
     /* Assume everything goes smoothly from here */
     var result = true;
-    
+
     if (arguments.length < 1)
     {
       sData = this.data;
     }
-    
+
     if (arguments.length < 2)
     {
       sURL = this.URL;
     }
-    
+
     if (arguments.length < 3)
     {
       sMethod = this.method;
     }
-    
+
     var bGET = (sMethod == C.method.GET);
 
     bAsync = (arguments.length > 3) ? !!bAsync : this.async;
-    
+
     x.open(
       sMethod.toUpperCase(),
       sURL
@@ -687,35 +736,46 @@ jsx.net.http.Request.prototype = {
       bAsync);
 
     var me = this;
-    
+
     if (jsx_object.isMethod(x, "setRequestHeader"))
     {
       /* NOTE: Failure to call this method is _not_ considered a fatal error. */
       jsx.tryThis(
         function () {
           x.setRequestHeader("Content-Type", me.requestType);
-          
+
           /* FIXME: Never fetch resource from HTTP/1.1 cache */
           x.setRequestHeader("Cache-Control", "max-age=0");
+
+          var _hasOwnProperty = jsx.object._hasOwnProperty;
+          var requestHeaders = me.requestHeaders;
+
+          for (var name in requestHeaders)
+          {
+            if (_hasOwnProperty(requestHeaders, name))
+            {
+              x.setRequestHeader(name, requestHeaders[name]);
+            }
+          }
         }
       );
     }
-  
+
     if (bAsync)
     {
       x.onreadystatechange = (function(x2) {
         return function () {
           // alert(x.readyState);
           // alert(x.status);
-          
+
           // console.log("readyState = %i, status = %i", x.readyState, x.status);
           // console.log(C.status.OK_EXPR);
-          
+
           if (jsx_object.isMethod(me._responseListener))
           {
             me._responseListener(x2);
           }
-          
+
           /* Let the garbage collector handle this per the closure */
 //          if (x2.readyState == C.readyState.COMPLETED)
 //          {
@@ -724,18 +784,18 @@ jsx.net.http.Request.prototype = {
         };
       }(x));
     }
-    
+
     jsx.tryThis(
       function () { x.send(bGET ? null : (sData || me.data)); },
       function () { result = false; me.errorListener(x); });
-    
+
     if (!bAsync)
     {
       if (jsx_object.isMethod(this._responseListener))
       {
         result = this._responseListener(x);
       }
-        
+
       /* Handle stopped servers */
 //      jsx.tryThis(
 //        function () {
@@ -748,7 +808,7 @@ jsx.net.http.Request.prototype = {
       /* TODO: Is this error-prone? */
 //      x = null;
     }
-    
+
     return result;
   }
 };
