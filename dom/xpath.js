@@ -56,10 +56,18 @@ if (typeof jsx == "undefined")
   var jsx = {};
 }
 
+if (typeof jsx.dom == "undefined")
+{
+  /**
+   * @namespace
+   */
+  jsx.dom = {};
+}
+
 /**
  * @namespace
  */
-jsx.xpath = {
+jsx.dom.xpath = {
   version:   "0.1.$Revision$ ($Date$)",
   copyright: "Copyright \xA9 2008-2011",
   author:    "Thomas Lahn",
@@ -75,7 +83,7 @@ jsx.xpath = {
    *   to indicate a default namespace of the context node (that XPath
    *   usually cannot resolve directly).  You then need to provide a custom
    *   namespace resolver, like one created with
-   *   {@link jsx.xpath#createCustomNSResolver}, to return the namespace
+   *   {@link jsx.dom.xpath#createCustomNSResolver}, to return the namespace
    *   URI for those prefixes.  This workaround is necessary because MSXML
    *   XPath for JScript does not require or support a custom namespace
    *   resolver for elements in the default namespace, and those virtual
@@ -84,7 +92,7 @@ jsx.xpath = {
    *   Context node
    * @param namespaceResolver : Function
    *   Namespace resolver.  If not provided, a default namespace
-   *   resolver will be created using {@link jsx.xpath#createDefaultNSResolver}.
+   *   resolver will be created using {@link jsx.dom.xpath#createDefaultNSResolver}.
    *   Is ignored if MSXML is used, as MSXML for JScript supports only
    *   the default namespace resolver.  See the section
    *   {@ref "Namespace Resolvers"} for details.
@@ -124,7 +132,7 @@ jsx.xpath = {
           var nsResolver = namespaceResolver
             || (
                  createDefaultNSResolver
-                 || (createDefaultNSResolver = jsx.xpath.createDefaultNSResolver)
+                 || (createDefaultNSResolver = jsx.dom.xpath.createDefaultNSResolver)
                )(contextNode, documentNode);
           var iResultType = resultType || 0;
           var objResult = oResult || null;
@@ -223,7 +231,7 @@ jsx.xpath = {
               break;
             
             default:
-              jsx.throwThis("jsx.xpath.InvalidImplementationError");
+              jsx.throwThis("jsx.dom.xpath.InvalidImplementationError");
               result = null;
           }
         }
@@ -242,7 +250,7 @@ jsx.xpath = {
  * 
  * JSX:xpath.js provides three ways to create a namespace resolver:
  * <ul>
- *   <li>{@link jsx.xpath#createDefaultNSResolver} creates a built-in
+ *   <li>{@link jsx.dom.xpath#createDefaultNSResolver} creates a built-in
  *       namespace resolver (if available) that can resolve elements
  *       and attributes in the document in the null namespace (in no
  *       namespace) or in namespaces with prefixes (declared with
@@ -250,13 +258,13 @@ jsx.xpath = {
  *       It cannot resolve elements and attributes in a default
  *       namespace (declared with <code>xmlns="<var>URI</var>"</code>).
  *   </li>
- *   <li>{@link jsx.xpath#createCustomNSResolver} creates a custom
+ *   <li>{@link jsx.dom.xpath#createCustomNSResolver} creates a custom
  *       namespace resolver that can resolve only namespace prefixes
  *       that you specify.  You can use this kind of resolver
  *       to select elements and attributes in known default namespaces,
  *       by giving those prefixes starting with <code>_</code>, and
  *       namespaces with other prefixes.</li>
- *   <li>{@link jsx.xpath#createFullNSResolver} gives you the
+ *   <li>{@link jsx.dom.xpath#createFullNSResolver} gives you the
  *       best of both worlds. It creates a customizable namespace
  *       resolver that scans the document starting from a given context
  *       node (the document element node by default) for the first
@@ -272,7 +280,7 @@ jsx.xpath = {
    * 
    * Note that despite its name a default namespace resolver cannot
    * resolve elements in a default namespace.  Use
-   * {@link jsx.xpath#createCustomNSResolver()} to create such a resolver
+   * {@link jsx.dom.xpath#createCustomNSResolver()} to create such a resolver
    * instead.
    * 
    * @param contextNode : Node
@@ -303,7 +311,7 @@ jsx.xpath = {
    * Collects the namespace prefixes and URIs of <var>contextNode</var> and
    * its descendant element nodes.  Duplicate prefixes with different namespace
    * URI are ignored and must be resolved manually using the <var>namespaces</var>
-   * argument of {@link jsx.xpath#createFullNSResolver()}.
+   * argument of {@link jsx.dom.xpath#createFullNSResolver()}.
    * 
    * @param namespaces : Object
    *   Contains the collected namespace declarations.  Existing properties
@@ -315,10 +323,10 @@ jsx.xpath = {
    * @return {Object}
    *   The resulting value of <var>namespaces</var> if successful,
    *   <code>null</code> otherwise.
-   * @throws jsx.xpath.InvalidNodeError if a value has been specified
+   * @throws jsx.dom.xpath.InvalidNodeError if a value has been specified
    *   for <var>contextNode</var> that is not a reference to a Document
    *   node or an Element node.
-   * @see jsx.xpath#createFullNSResolver()
+   * @see jsx.dom.xpath#createFullNSResolver()
    */
   collectNamespaces: function jsx_xpath_collectNamespaces (namespaces, contextNode) {
     if (!namespaces)
@@ -341,7 +349,7 @@ jsx.xpath = {
     
     if (!contextNode || contextNode.nodeType != 1)
     {
-      jsx.throwThis("jsx.xpath.InvalidNodeError", contextNode);
+      jsx.throwThis("jsx.dom.xpath.InvalidNodeError", contextNode);
       return null;
     }
     
@@ -390,7 +398,7 @@ jsx.xpath = {
             jsx_xpath_collectNamespaces(namespaces, childNode);
           },
           function (e) {
-            if (e.name === "jsx.xpath.InvalidArgumentError")
+            if (e.name === "jsx.dom.xpath.InvalidArgumentError")
             {
               jsx.throwThis(e);
             }
@@ -407,11 +415,11 @@ jsx.xpath = {
    * This method exists primarily to facilitate the matching of elements
    * that are in the default namespace as XPath defines <tt>QNames</tt>
    * without prefix to match only elements in the null namespace.  Use it
-   * instead of {@link jsx.xpath#createFullNSResolver} if you only want
+   * instead of {@link jsx.dom.xpath#createFullNSResolver} if you only want
    * to match elements in custom default namespaces.
    * 
    * See also the description of the <var>expression</var> argument of
-   * {@link jsx.xpath#evaluate} for details.
+   * {@link jsx.dom.xpath#evaluate} for details.
    * 
    * @param namespaces : Object
    *   Namespace declarations.  The property names are the namespace
@@ -432,15 +440,15 @@ jsx.xpath = {
    * Creates and returns a customizable namespace resolver that
    * considers the namespaces already declared in the document first.
    * 
-   * Like {@link jsx.xpath#createCustomNSResolver}, this method exists
+   * Like {@link jsx.dom.xpath#createCustomNSResolver}, this method exists
    * primarily to facilitate the matching of elements that are in a
    * default namespace.  Use it instead of
-   * {@link jsx.xpath#createCustomNSResolver} if you need to match elements
+   * {@link jsx.dom.xpath#createCustomNSResolver} if you need to match elements
    * in the context node's default namespace, or in one of the namespaces
    * with prefix declared in the context node or its descendant elements.
    * 
    * See also the description of the <var>expression</var> argument of
-   * {@link jsx.xpath#evaluate} for details.
+   * {@link jsx.dom.xpath#evaluate} for details.
    * 
    * @param namespaces : Object
    *   Namespace declarations.  The property names are the namespace
@@ -452,10 +460,10 @@ jsx.xpath = {
    * @return {Function} A namespace resolver that can resolve the
    *   declared namespaces.  A selector in an undeclared namespace is
    *   considered to be in the null namespace.
-   * @throws jsx.xpath#InvalidNodeError if a value has been specified
+   * @throws jsx.dom.xpath#InvalidNodeError if a value has been specified
    *   for <var>contextNode</var> that is not a reference to a Document
    *   node or an Element node.
-   * @see jsx.xpath#collectNamespaces(string, Element|Document)
+   * @see jsx.dom.xpath#collectNamespaces(string, Element|Document)
    * @function
    */
   createFullNSResolver: (function () {
@@ -470,7 +478,7 @@ jsx.xpath = {
         }
                
         (
-          collectNamespaces || (collectNamespaces = jsx.xpath.collectNamespaces)
+          collectNamespaces || (collectNamespaces = jsx.dom.xpath.collectNamespaces)
         )(namespaces, contextNode);
       }
       
@@ -488,7 +496,7 @@ jsx.xpath = {
   InvalidImplementationError: (function () {
     jsx.Error.call(this);
   }).extend(jsx.Error, {
-    name: "jsx.xpath.InvalidImplementationError"
+    name: "jsx.dom.xpath.InvalidImplementationError"
   }),
   
   /**
@@ -499,6 +507,6 @@ jsx.xpath = {
   InvalidNodeError: (function (contextNode) {
     jsx.Error.call(this, contextNode);
   }).extend(jsx.Error, {
-    name: "jsx.xpath.InvalidNodeError"
+    name: "jsx.dom.xpath.InvalidNodeError"
   })
 };

@@ -31,10 +31,10 @@
                   var doc = x.responseXML;
                   
                   /* 6. Create the namespace resolver that fits your query best */
-                  var nsResolver = jsx.xpath.createFullNSResolver(null, doc); 
+                  var nsResolver = jsx.dom.xpath.createFullNSResolver(null, doc); 
                   
                   /* 7. Make the XPath query */
-                  var nodes = jsx.xpath.evaluate("//res:UNDO_COUNT/text()", doc, nsResolver);
+                  var nodes = jsx.dom.xpath.evaluate("//res:UNDO_COUNT/text()", doc, nsResolver);
                   
                   assert(nodes);
                   assert(nodes.length == 1);
@@ -42,7 +42,7 @@
                   assert(nodes[0].data == "1.0");
 
                   /*
-                   * 8. Process the result.  jsx.xpath.evaluate() returns a reference
+                   * 8. Process the result.  jsx.dom.xpath.evaluate() returns a reference
                    * to an Array instance if you do not specify the result type.
                    */
 

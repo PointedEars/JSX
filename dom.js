@@ -2,8 +2,8 @@
  * <title>PointedEars' DOM Library</title>
  * @partof
  *   PointedEars JavaScript Extensions (JSX)
- * @requires types.js
- * @recommends xpath.js
+ * @requires object.js
+ * @recommends types.js, dom/xpath.js
  * @source Based upon
  *   @link{
  *     selfhtml#dhtml/beispiele/dhtml_bibliothek.htm,
@@ -241,7 +241,7 @@ if (typeof document != "undefined")
           index = tmp;
         }
 
-        var result = jsx.xpath.evaluate('.//' + sTagName, oContextNode || null,
+        var result = jsx.dom.xpath.evaluate('.//' + sTagName, oContextNode || null,
           null, XPathResult.ORDERED_NODE_ITERATOR_TYPE);
 
         if (result)
