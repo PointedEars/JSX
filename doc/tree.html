@@ -5,20 +5,166 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>Object Hierarchy &#8212; JSX API Documentation</title>
     <base target="main">
-    <link rel="stylesheet" href="../../style.css" type="text/css">
     <link rel="stylesheet" href="../style.css" type="text/css">
     <style type="text/css">
       <!--
       ul {
         padding-left: 1em;
+        margin-top: 0;
         list-style: none;
+      }
+      
+      ul  {
+        padding-left: 0;
+      }
+
+      li:before {
+        content: "\251C";
+      }
+
+      li li:before {
+        content: "\2502 \251C";
+      }
+
+      li:last-child li:before {
+        content: "\2000 \251C";
+      }
+
+      li:last-child li li:before {
+        content: "\2000 \2502 \251C";
+      }
+
+      li:last-child li:last-child li:before {
+        content: "\2000 \2000 \251C";
+      }
+
+      li li li:before {
+        content: "\2502 \2502 \251C";
+      }
+
+      li li li li:before {
+        content: "\2502 \2502 \2502 \251C";
+      }
+
+      li:last-child:before {
+        content: "\2514";
+      }
+
+      li li:last-child:before {
+        content: "\2502 \2514";
+      }
+
+      li:last-child li:last-child:before {
+        content: "\2000 \2514";
+      }
+
+      li li li:last-child:before {
+        content: "\2502 \2502 \2514";
+      }
+
+      li li li:last-child:before li {
+        content: "\2502 \2502 \2000 \2514";
+      }
+
+      li li li li:last-child:before {
+        content: "\2502 \2502 \2502 \2514";
+      }
+
+      li:last-child li li:last-child:before {
+        content: "\2000 \2502 \2514";
+      }
+
+      li li:last-child li:last-child:before {
+        content: "\2502 \2000 \2514";
+      }
+
+      li:last-child li:last-child li:last-child:before {
+        content: "\2000 \2000 \2514";
+      }
+      
+      li:last-child li:last-child li:last-child li:last-child:before {
+        content: "\2000 \2000 \2000 \2514";
+      }
+      
+      [title] {
+        cursor: help;
       }
       -->
     </style>
+    <script type="text/javascript" src="../builder.php?src=object,dom"></script>
+    <script type="text/javascript">
+      var traverseHistory = []
+    
+      function buildTree (root, path)
+      {
+        var ul = document.createElement("ul");
+        var ownProperties = Object.getOwnPropertyNames(root);
+        ownProperties.sort();
+        for (var i = 0, len = ownProperties.length; i < len; ++i)
+        {
+          var li = document.createElement("li");
+          var code = document.createElement("code");
+          var propertyName = ownProperties[i];
+          var propertyValue = root[propertyName];
+          
+          switch (typeof propertyValue)
+          {
+            case "boolean":
+              li.appendChild(document.createTextNode("[B] "));
+              break;
+
+            case "function":
+              li.appendChild(document.createTextNode("[F] "));
+              break;
+
+            case "number":
+              li.appendChild(document.createTextNode("[N] "));
+              break;
+
+            case "object":
+              li.appendChild(document.createTextNode("[O] "));
+              break;
+
+            case "string":
+              li.appendChild(document.createTextNode("[S] "));
+              break;
+
+            default:
+              break;
+          }
+          
+          code.appendChild(document.createTextNode(propertyName));
+          code.title = path + "." + propertyName;
+          li.appendChild(code);
+          if (((typeof propertyValue == "object" && propertyValue)
+              || (propertyName == "prototype"))
+              && propertyValue != jsx.global
+              && traverseHistory.indexOf(propertyValue) < 0)
+          {
+            traverseHistory.push(propertyValue);
+            li.appendChild(buildTree(propertyValue, code.title));
+            traverseHistory.pop();
+          }
+          
+          ul.appendChild(li);
+        }
+        
+        return ul;
+      }
+
+      function startTree ()
+      {
+        document.body.appendChild(jsx.dom.createElementFromObj({type: "code", childNodes: ["Function"]}));
+        document.body.appendChild(buildTree(Function, "Function"));
+        document.body.appendChild(jsx.dom.createElementFromObj({type: "code", childNodes: ["jsx"]}));
+        document.body.appendChild(buildTree(jsx, "jsx"));
+      }
+    </script>
   </head>
 
-  <body>
+  <body onload="startTree()">
     <h1>Object Hierarchy</h1>
+<!--     
     <ul>
       <li><code>de</code>
         <ul>
@@ -29,6 +175,9 @@
         </ul></li>
       <li><code><a href="jsx/object#jsx">jsx</a></code>
         <ul>
+          <li><code>MSG_INFO</code></li>
+          <li><code>MSG_WARN</code></li>
+          <li><code>MSG_DEBUG</code></li>
           <li><code>animation</code>
             <ul>
               <li><a href="jsx/animation/Animation"><code>Animation</code></a></li>
@@ -40,8 +189,17 @@
               <li><a href="jsx/animation/Timeline"><code>Timeline</code></a></li>
             </ul></li>
           <li><code>dom</code></li>
-          <li><code><a href="jsx/object#jsx.object">object</a></code></li>
+          <li><code><a href="jsx/object#jsx.object">object</a></code>
+            <ul>
+              <li><code>ADD_OVERWRITE</code></li>
+              <li><code>COPY_ENUM</code></li>
+            </ul></li>
+          <li><code>options</code>
+            <ul>
+              <li><code>emulate</code></li>
+            </ul></li>
         </ul></li>
     </ul>
+ -->    
   </body>
 </html>

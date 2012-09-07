@@ -548,7 +548,7 @@ var synhl = (function () {
     jsx_debug = jsx.debug,
     jsx_object = jsx.object,
     isMethod = jsx_object.isMethod,
-    jsx_xpath = jsx.xpath,
+    jsx_xpath = jsx.dom.xpath,
     reservedWords = [
       /* ES5 keywords */
       "break", "case", "catch", "continue", "debugger", "default", "delete",

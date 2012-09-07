@@ -41,128 +41,301 @@ if (typeof jsx.math == "undefined")
 }
 
 /**
- * @return the minimum value passed by its arguments.
- * If an argument is an object (incl. Array objects),
- * the values of its enumerable properties are also
- * evaluated.  If no arguments are provided, returns
- * <code>Number.POSITIVE_INFINITY</code>.
+ * Returns the numerical value of an object.
+ * 
+ * @param obj : Object
+ * @return {number}
+ *   <code>NaN</code> if <var>obj</var> does not refer to an object
+ *   or does not have a <code>valueOf()</code> method that returns
+ *   a number value; the return value of the object's
+ *   <code>valueOf()</code> method otherwise.
  */
-jsx.math.min = function() {
-  var result = Number.POSITIVE_INFINITY;
-  var min_el;
+jsx.math.getValue = function (obj) {
+  var value = (typeof obj != "undefined" && (typeof obj == "object" && obj)
+                 && typeof obj.valueOf == "function")
+            ? obj.valueOf()
+            : value;
+  
+  if (typeof value == "number")
+  {
+    return value;
+  }
+  
+  return NaN;
+};
+
+/**
+ * Returns the value of the smallest argument.
+ * 
+ * @return {number}
+ *   The value of the smallest argument.
+ *   If an argument is an object but not an <code>Array</code>,
+ *   and has a <code>valueOf()</code> method that returns a number,
+ *   the return value is used; if it does not have such a
+ *   method or is an <code>Array</code>, the values of its
+ *   enumerable non-function properties or (with Arrays) its
+ *   number-indexed properties are evaluated.
+ *   If no arguments are provided, <code>Number.POSITIVE_INFINITY</code>
+ *   is returned.
+ */
+jsx.math.min = (function () {
+  var getValue = jsx.math.getValue;
+  
+  return function () {
+    var result = Number.POSITIVE_INFINITY;
+    var min_el;
+      
+    for (var i = 0, len = arguments.length; i < len; ++i)
+    {
+      var a = arguments[i];
+      if (jsx.object.isArray(a))
+      {
+        var a2 = a.slice();
+        a2.sort(function (a, b) { return a - b; });
+        if (a2[0] < result)
+        {
+          result = a2[0];
+        }
+      }
+      else if (typeof a == "object")
+      {
+        var value = getValue(a);
+        if (value)
+        {
+          if (value < result)
+          {
+            result = value;
+          }
+        }
+        else
+        {
+          for (var j in a)
+          {
+            if ((min_el = jsx.math.min(a[j])) < result)
+            {
+              result = min_el;
+            }
+          }
+        }
+      }
+      else if (a < result)
+      {
+        result = a;
+      }
+    }
     
-  for (var i = 0, len = arguments.length; i < len; ++i)
-  {
-    var a = arguments[i];
-    if (jsx.object.isArray(a))
-    {
-      var a2 = a.slice();
-      a2.sort(function (a, b) { return a - b; });
-      if (a2[0] < result)
-      {
-        result = a2[0];
-      }
-    }
-    else if (typeof a == "object")
-    {
-      for (j in a)
-      {
-        if ((min_el = Math.min(a[j])) < result)
-        {
-          result = min_el;
-        }
-      }
-    }
-    else if (a < result)
-    {
-      result = a;
-    }
-  }
-  
-  return result;
-};
+    return result;
+  };
+}());
 
 /**
- * @return the maximum value passed by its arguments.
- * If an argument is an object (incl. Array objects),
- * the values of its enumerable properties are also
- * evaluated.  If no arguments are provided, returns
- * <code>Number.NEGATIVE_INFINITY</code>.
+ * Returns the value of the greatest argument.
+ * 
+ * @return {number}
+ *   The value of the greatest argument.
+ *   If an argument is an object but not an <code>Array</code>,
+ *   and has a <code>valueOf()</code> method that returns a number,
+ *   the return value is used; if it does not have such a
+ *   method or is an <code>Array</code>, the values of its
+ *   enumerable non-function properties or (with Arrays) its
+ *   number-indexed properties are evaluated.
+ *   If no arguments are provided, <code>Number.NEGATIVE_INFINITY</code>
+ *   is returned.
  */
-jsx.math.max = function() {
-  var result = Number.NEGATIVE_INFINITY;
+jsx.math.max = (function () {
+  var getValue = jsx.math.getValue;
   
-  for (var i = 0, len = arguments.length; i < len; ++i)
-  {
-    var a = arguments[i], max_el;
-    if (jsx.object.isArray(a))
+  return function () {
+    var result = Number.NEGATIVE_INFINITY;
+    
+    for (var i = 0, len = arguments.length; i < len; ++i)
     {
-      var a2 = a.slice();
-      a2.sort(function (a, b) { return b - a; });
-      if (a2[0] > result)
+      var a = arguments[i], max_el;
+      if (jsx.object.isArray(a))
       {
-        result = a2[0];
-      }
-    }
-    else if (typeof a == "object")
-    {
-      for (j in a)
-      {
-        if ((max_el = jsx.math.max(a[j])) > result)
+        var a2 = a.slice();
+        a2.sort(function (a, b) { return b - a; });
+        if (a2[0] > result)
         {
-          result = max_el;
+          result = a2[0];
         }
       }
+      else if (typeof a == "object")
+      {
+        var value = getValue(a);
+        if (value)
+        {
+          if (value > result)
+          {
+            result = value;
+          }
+        }
+        else
+        {
+          for (var j in a)
+          {
+            if ((max_el = jsx.math.max(a[j])) > result)
+            {
+              result = max_el;
+            }
+          }
+        }
+      }
+      else if (a > result)
+      {
+        result = a;
+      }
     }
-    else if (a > result)
-    {
-      result = a;
-    }
-  }
-  
-  return result;
-};
+    
+    return result;
+  };
+}());
 
 /**
+ * Returns the average value of the arguments.
+ * 
  * @return number
- *   The average value of its arguments.
- *   If an argument is an object (incl. Array objects),
- *   the values of its enumerable properties are also
- *   evaluated.  If no arguments are provided, returns
- *   <code>0</code>.
+ *   The average value of the arguments.
+ *   If an argument is an object but not an <code>Array</code>,
+ *   and has a <code>valueOf()</code> method that returns a number,
+ *   the return value is used; if it does not have such a
+ *   method or is an <code>Array</code>, the values of its
+ *   enumerable non-function properties or (with Arrays) its
+ *   number-indexed properties are evaluated.
+ *   If no arguments are provided, <code>NaN</code> is returned.
  */
-jsx.math.avg = function() {
-  var sum = 0;
-  var count = 0;
-
-  for (var i = 0, len = arguments.length; i < len; i++)
-  {
-    var a = arguments[i];
-    if (jsx.object.isArray(a))
+jsx.math.avg = (function () {
+  var getValue = jsx.math.getValue;
+  
+  return function () {
+    var sum = 0;
+    var count = 0;
+  
+    for (var i = 0, len = arguments.length; i < len; i++)
     {
-      for (var j = 0; j < a.length; j++)
+      var a = arguments[i];
+      if (jsx.object.isArray(a))
+      {
+        for (var j = 0; j < a.length; j++)
+        {
+          ++count;
+          sum += jsx.math.avg(a[j]);
+        }
+      }
+      else if (typeof a == "object")
+      {
+        var value = getValue(a);
+        if (value)
+        {
+          ++count;
+          sum += value;
+        }
+        else
+        {
+          for (j in a)
+          {
+            ++count;
+            sum += jsx.math.avg(a[j]);
+          }
+        }
+      }
+      else
       {
         count++;
-        sum += jsx.math.avg(a[j]);
+        sum += parseFloat(a);
       }
     }
-    else if (typeof a == "object")
+    
+    return (sum / count);
+  };
+}());
+
+/**
+ * Returns the arithmetic median of the arguments.
+ * 
+ * The [arithmetic (one-dimensional)] median is [defined] as
+ * the numerical value separating the higher half of a sample
+ * from the lower half of a sample.  If there is an even number
+ * of observations, then there is no single middle value; the
+ * median is then […] defined to be the mean of the two middle
+ * values. (From Wikipedia, the free encyclopedia)
+ * 
+ * @return number
+ *   The arithmetic median of the arguments.
+ *   If an argument is an object but not an <code>Array</code>,
+ *   and has a <code>valueOf()</code> method that returns a number,
+ *   the return value is used; if it does not have such a
+ *   method or is an <code>Array</code>, the values of its
+ *   enumerable non-function properties or (with Arrays) its
+ *   number-indexed properties are evaluated.
+ *   If no arguments are provided, <code>NaN</code> is returned.
+ */
+jsx.math.median = (function () {
+  var getValue = jsx.math.getValue;
+  
+  return function () {
+    var values = [];
+    var result;
+  
+    for (var i = 0, len = arguments.length; i < len; i++)
     {
-      for (j in a)
+      var a = arguments[i];
+      if (jsx.object.isArray(a))
       {
-        count++;
-        sum += jsx.math.avg(a[j]);
+        for (var j = 0; j < a.length; j++)
+        {
+          values.push(a[j]);
+        }
       }
+      else if (typeof a == "object")
+      {
+        var value = getValue(a);
+        if (value)
+        {
+          values.push(value);
+        }
+        else
+        {
+          for (j in a)
+          {
+            values.push(a[j]);
+          }
+        }
+      }
+      else
+      {
+        values.push(parseFloat(a));
+      }
+    }
+    
+    values.sort(function (a, b) { return a - b; });
+    
+    len = values.length;
+    if (len > 1)
+    {
+      var middle = (len / 2) - 1;
+      if (len % 2 == 0)
+      {
+        result = jsx.math.avg(
+          values[Math.floor(middle)], values[Math.ceil(middle)]);
+      }
+      else
+      {
+        result = values[middle];
+      }
+    }
+    else if (len > 0)
+    {
+      result = values[0];
     }
     else
     {
-      count++;
-      sum += parseFloat(a);
+      result = NaN;
     }
-  }
-  
-  return (sum / count);
-};
+
+    return result;
+  };
+}());
 
 /**
  * @param n : number
@@ -428,7 +601,7 @@ jsx.math.toFraction = function(fDec) {
   var dividend = Math.round(z - fDec);
   var divisor = Math.round((Math.pow(10, y) - 1));
 
-  /* "shorten" the fraction */
+  /* Cancel-out the fraction */
   var d = jsx.math.gcd(dividend, divisor);
   if (d > 1)
   {
@@ -444,9 +617,9 @@ jsx.math.toFraction = function(fDec) {
 
 /** @subsection Trigonometry */
 
-jsx.math.dtRad  = 0;
-jsx.math.dtDeg  = 1;
-jsx.math.dtGrad = 2;
+jsx.math.UNIT_RAD  = 0;
+jsx.math.UNIT_DEG  = 1;
+jsx.math.UNIT_GRAD = 2;
 
 /**
  * Unlike the {@link js#Math built-in methods}, the following
@@ -457,64 +630,89 @@ jsx.math.dtGrad = 2;
  */
 
 /**
+ * Returns the sine of an angle.
+ * 
+ * Call this method instead of <code>jsx.math.sinX()</code>,
+ * which is deprecated.
+ * 
  * @param x : number
  * @param iArgType : number
  * @return number
  *   The sine of <var>x</var>
  */
-jsx.math.sinX = function(x, iArgType) {
+jsx.math.sin = function(x, iArgType) {
   switch (iArgType)
   {
-    case jsx.math.dtDeg:
+    case jsx.math.UNIT_DEG:
       x = x/180 * Math.PI;
       break;
 
-    case jsx.math.dtGrad:
+    case jsx.math.UNIT_GRAD:
       x = x/200 * Math.PI;
   }
 
   return Math.sin(x);
 };
 
+/* (non-JSdoc)
+ * @deprecated
+ */
+jsx.math.sinX = jsx.math.sin;
+
 /**
+ * Returns the cosine of an angle.
+ * 
+ * Call this method instead of <code>jsx.math.cosX()</code>,
+ * which is deprecated.
+ * 
  * @param x : number
  * @param iArgType : number
  * @return number
  *   The cosine of <var>x</var>
  */
-jsx.math.cosX = function(x, iArgType) {
+jsx.math.cos = function(x, iArgType) {
   switch (iArgType)
   {
-    case jsx.math.dtDeg:
+    case jsx.math.UNIT_DEG:
       x = x/180 * Math.PI;
       break;
       
-    case jsx.math.dtGrad:
+    case jsx.math.UNIT_GRAD:
       x = x/200 * Math.PI;
   }
   
   return Math.cos(x);
 };
 
+/* (non-JSdoc)
+ * @deprecated
+ */
+jsx.math.cosX = jsx.math.cos;
+
 /**
+ * Returns the tangent of an angle.
+ * 
+ * Call this method instead of <code>jsx.math.tanX()</code>,
+ * which is deprecated.
+ * 
  * @param x : number
  * @param iArgType : number
  * @return number
- *   The tangent of x.  If @link{js#Math.tan()} is
- *   undefined, it uses @link{#sinX()} and @link{#cosX()}
- *   defined above.
+ *   The tangent of <var>x</var>.  If @link{js#Math.tan()} is
+ *   undefined, it uses @link{jsx.math#sin()} and
+ *   @link{jsx.math#cos()}.
  * @requires jsx.object#isMethod()
  */
-jsx.math.tanX = function(x, iArgType) {
+jsx.math.tan = function(x, iArgType) {
   var jsx_object = jsx.object;
   
   switch (iArgType)
   {
-    case jsx.math.dtDeg:
+    case jsx.math.UNIT_DEG:
       x = x/180 * Math.PI;
       break;
       
-    case jsx.math.dtGrad:
+    case jsx.math.UNIT_GRAD:
       x = x/200 * Math.PI;
   }
   
@@ -523,8 +721,13 @@ jsx.math.tanX = function(x, iArgType) {
     return Math.tan(x);
   }
   
-  return (jsx.math.sinX(x) / jsx.math.cosX(x));
+  return (jsx.math.sin(x) / jsx.math.cos(x));
 };
+
+/* (non-JSdoc)
+ * @deprecated
+ */
+jsx.math.tanX = jsx.math.tan;
 
 /** @subsection Complex numbers */
 
@@ -532,11 +735,12 @@ jsx.math.tanX = function(x, iArgType) {
  * @param nRe : number
  * @param nIm : number
  */
-jsx.math.Complex = function(nRe, nIm) {
+jsx.math.Complex = function (nRe, nIm) {
   Number.call(this);
   this.re = Number(nRe) || 0;
   this.im = Number(nIm) || 0;
 };
+
 jsx.math.Complex.extend(Number);
 
 /**
