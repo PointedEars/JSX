@@ -382,7 +382,58 @@ jsx.regexp.RegExp = (function () {
       + "|" + sPropertyEscapes + "",
     rxEscapes = new RegExp(sEscapes, "gi"),
     jsx_object = jsx.object,
-
+    
+    _normalizeCharClass = function (charClassContent, bUnicodeMode) {
+      var negEscapes = [];
+      
+      if (charClassContent == "")
+      {
+        return "[]";
+      }
+      
+      if (charClassContent == "^")
+      {
+        return "[^]";
+      }
+      
+      var reduced = charClassContent.replace(
+        /\\((P)\{([^\}]+)\}|(W))/g,
+        function (m, p1, cP, charProperty, cW) {
+          var escapeChar = cP || cW;
+          if (escapeChar == "P" || bUnicodeMode)
+          {
+            negEscapes.push("\\" + escapeChar.toLowerCase()
+              + (charProperty ? "{" + charProperty + "}" : ""));
+            return "";
+          }
+          
+          return m;
+        });
+      
+      if (negEscapes.length > 0)
+      {
+        /* Do not let negated empty class from reduction match everything */
+        if (reduced == "^")
+        {
+          reduced = "";
+        }
+        
+        if (reduced != "")
+        {
+          jsx.warn(
+            "jsx.RegExp: Combined negative escapes in character classes"
+              + " require support for non-capturing parentheses");
+        }
+          
+        return (reduced ? "(?:[" + reduced + "]|" : "")
+          + "[" + (charClassContent.charAt(0) == "^" ? "" : "^")
+          + negEscapes.join("") + "]"
+          + (reduced ? ")" : "");
+      }
+      
+      return "[" + reduced + "]";
+    },
+    
     fEscapeMapper = function (match, classRanges, p2, p3, p4, p5, p6, p7,
                                standalonePropSpec, standaloneClass) {
       var
@@ -510,13 +561,13 @@ jsx.regexp.RegExp = (function () {
         return _getRanges(propertyClass);
       };
 
-        /**
-         * Retrieves class ranges by property class, and throws a specialized
-         * exception if this fails.
-         *
-         * @param propertyClass : String
-         * @throws jsx.regexp#UndefinedPropertyClassError
-         */
+      /**
+       * Retrieves class ranges by property class, and throws a specialized
+       * exception if this fails.
+       *
+       * @param propertyClass : String
+       * @throws jsx.regexp#UndefinedPropertyClassError
+       */
       var _getRanges = function (propertyClass) {
         return jsx.tryThis(
           function () {
@@ -557,7 +608,7 @@ jsx.regexp.RegExp = (function () {
           });
       };
 
-      /* We can handle standalone class references */
+      /* We can handle standalone class references … */
       if (standaloneClass)
       {
         var result = _getRanges(standaloneClass);
@@ -565,48 +616,15 @@ jsx.regexp.RegExp = (function () {
       }
       else
       {
-        /* and class references in character classes */
-        var negPropClasses = [];
-
-        /* Shift any negative property classes, expand positive ones */
-        result = classRanges.replace(rxPropertyEscapes,
-          function (match, propertySpecifier, propertyClass) {
-            if (propertySpecifier == "P")
-            {
-              negPropClasses.push(match);
-              return "";
-            }
-
-            var ranges = _getRanges(propertyClass);
-            return ranges;
-          });
-
-        if (result)
-        {
-          result = "[" + result + "]";
-        }
-
-        if (negPropClasses.length > 0)
-        {
-          negPropClasses = negPropClasses.join("");
-
-          if (result)
-          {
-            jsx.warn(
-              "jsx.RegExp: [...\\P{...}...] requires support for"
-                + " non-capturing parentheses");
-
-            result = "(?:" + result + "|";
-          }
-
-          result += "[^"
-            + negPropClasses.replace(rxPropertyEscapes,
-                function (match, propertySpecifier, propertyClass) {
-                  return _getRanges(propertyClass);
-                })
-            + "]"
-            + (result ? ")" : "");
-        }
+        /* … and class references in character classes */
+        result = _normalizeCharClass(classRanges);
+        
+        result = result.replace(
+            rxPropertyEscapes,
+            function (match, propertySpecifier, propertyClass) {
+              var ranges = _getRanges(propertyClass);
+              return ranges;
+            });
       }
 
       return result;
@@ -645,16 +663,66 @@ jsx.regexp.RegExp = (function () {
       /* Support for the PCRE 's' option flag (PCRE_DOTALL) */
       if (sFlags.indexOf("s") > -1)
       {
-        expression = expression.replace(/(\\\.)|\./g, function (m, p1) {
-          if (p1)
-          {
-            return p1;
-          }
+        expression = expression.replace(
+          /\[([^\\\]]|\\.)*\]|\\\.|(\.)/g,
+          function (m, classDot, plainDot) {
+            if (plainDot)
+            {
+              return "[\\S\\s]";
+            }
 
-          return "[\\S\\s]";
-        });
+            return m;
+          });
 
         sFlags = sFlags.replace(/s/g, "");
+      }
+      
+      if (sFlags.indexOf("u") > -1)
+      {
+        expression = expression.replace(
+          /\[(([^\\\]]|\\.)*)\]|(\\(w))/gi,
+          function (m, charClassContent, p2, wordCharacter, escapeLetter) {
+            var wordClass = "\\p{L}\\p{M}\\p{Pc}_";
+            
+            if (charClassContent)
+            {
+              var normalized = _normalizeCharClass(charClassContent, true);
+              
+              return normalized.replace(
+                /\\\\|(\\(w))/gi,
+                function (m, wordCharacter, escapeLetter) {
+                  if (wordCharacter)
+                  {
+                    if (escapeLetter == "W")
+                    {
+                      if (charClassContent.charAt(0) != "^")
+                      {
+                        jsx.warn("jsx.RegExp: [...\\W{...}...] in Unicode mode"
+                          + " not yet supported. Use [^...\\w...]"
+                          + " in the meantime.");
+
+                        return wordCharacter;
+                      }
+                    }
+                    
+                    return wordClass;
+                  }
+                  
+                  return m;
+                });
+            }
+            
+            if (wordCharacter)
+            {
+              return "["
+                + (escapeLetter === "W" ? "^" : "")
+                + wordClass + "]";
+            }
+            
+            return m;
+          });
+        
+        sFlags = sFlags.replace(/u/g, "");
       }
     }
 
@@ -663,7 +731,8 @@ jsx.regexp.RegExp = (function () {
     var me = this;
 
     /* Support for named capturing groups (PCRE-compliant) */
-    expression = expression.replace(/(\\\()|(\((\?P?(<([^>]+)>|'([^']+)'))?)/g,
+    expression = expression.replace(
+      /(\\\()|(\((\?P?(<([^>]+)>|'([^']+)'))?)/g,
       function (match, escapedLParen, group, namedGroup, bracketsOrQuotes,
                  bracketedName, quotedName) {
         if (group)
@@ -706,25 +775,21 @@ jsx.regexp.RegExp.isInstance = function (rx) {
   return !!rx.originalSource;
 };
 
-jsx.regexp.RegExp.exec = (function () {
-  var isInstance = jsx.regexp.RegExp.isInstance;
+jsx.regexp.RegExp.exec = function (rx, s) {
+  var matches = rx.exec(s);
 
-  return function (rx, s) {
-    var matches = rx.exec(s);
+  if (matches && !rx.global && this.isInstance(rx))
+  {
+    matches.groups = {};
 
-    if (matches && !rx.global && isInstance(rx))
+    for (var i = 1, len = matches.length; i < len; ++i)
     {
-      matches.groups = {};
-
-      for (var i = 1, len = matches.length; i < len; ++i)
-      {
-        matches.groups[rx.groups[i]] = matches[i];
-      }
+      matches.groups[rx.groups[i]] = matches[i];
     }
+  }
 
-    return matches;
-  };
-}());
+  return matches;
+};
 
 jsx.regexp.RegExp.ucdScriptPath = "/scripts/UnicodeData.js";
 jsx.regexp.RegExp.ucdTextPath = "/scripts/UnicodeData.txt";
@@ -740,8 +805,8 @@ jsx.regexp.RegExp.deletePropertyClass = function (p) {
   return (delete this.propertyClasses[p]);
 };
 
-jsx.regexp.String = function (s) {
-  if (this.constructor != arguments.callee)
+jsx.regexp.String = function jsx_regexp_String (s) {
+  if (this.constructor != jsx_regexp_String)
   {
     jsx.throwThis("jsx.Error", "Must be called as constructor",
       "jsx.regexp.String");
@@ -800,8 +865,8 @@ jsx.regexp.String.prototype.toString = jsx.regexp.String.prototype.valueOf =
    *   dynamically
    * @extends jsx#Error
    */
-jsx.regexp.UCDLoadError = function (sUCDScript, sHTTPScript) {
-  arguments.callee._super.call(this,
+jsx.regexp.UCDLoadError = function UCDLoadError (sUCDScript, sHTTPScript) {
+  UCDLoadError._super.call(this,
     "Unable to load the Unicode Character Database."
     + " Please include " + sUCDScript + " or " + sHTTPScript + ".");
 }.extend(jsx.Error, {name: "jsx.regexp.UCDLoadError"});
@@ -813,8 +878,8 @@ jsx.regexp.UCDLoadError = function (sUCDScript, sHTTPScript) {
  * @param sMsg
  * @extends jsx.object#PropertyError
  */
-jsx.regexp.UndefinedPropertyClassError = function (sMsg) {
-  arguments.callee._super.call(this);
+jsx.regexp.UndefinedPropertyClassError = function UndefinedPropertyClassError (sMsg) {
+  UndefinedPropertyClassError._super.call(this);
   this.message = "Undefined property class" + (arguments.length > 0 ? (": " + sMsg) : "");
 }.extend(jsx.object.PropertyError, {name: "jsx.regexp.UndefinedPropertyClassError"});
 
@@ -825,7 +890,7 @@ jsx.regexp.UndefinedPropertyClassError = function (sMsg) {
  * @param sMsg
  * @extends jsx.object#ObjectError
  */
-jsx.regexp.InvalidPropertyClassError = function (sMsg) {
-  arguments.callee._super.call(this);
+jsx.regexp.InvalidPropertyClassError = function InvalidPropertyClassError (sMsg) {
+  InvalidPropertyClassError._super.call(this);
   this.message = "Invalid property class value" + (arguments.length > 0 ? (": " + sMsg) : "");
 }.extend(jsx.object.ObjectError, {name: "jsx.regexp.InvalidPropertyClassError"});
