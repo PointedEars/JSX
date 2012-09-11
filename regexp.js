@@ -656,7 +656,16 @@ jsx.regexp.RegExp = (function () {
       /* Support for the PCRE `x' option flag (PCRE_EXTENDED) */
       if (sFlags.indexOf("x") > -1)
       {
-        expression = expression.replace(/(\\\s|\[([^\\\]]|\\.)*\])|\s+/g, "$1");
+        /* Remove comments */
+        expression = expression.replace(/#.*$/mg, "");
+        
+        /* Remove unescaped whitespace */
+        expression = expression.replace(
+          /(\\(\s)|\[([^\\\]]|\\.)*\])|\s+/g,
+          function (m, p1, escapedWS) {
+            return escapedWS || p1 || "";
+          });
+        
         sFlags = sFlags.replace(/x/g, "");
       }
 

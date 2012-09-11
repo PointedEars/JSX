@@ -89,14 +89,17 @@
             {
               name: '<acronym title="Perl-Compatible Regular Expressions"'
                   + '>PCRE<\/acronym> option flags:'
-                  + ' <code>x<\/code> (PCRE_EXTENDED)',
+                  + ' <code>x<\/code> (PCRE_EXTENDED)'
+                  + ' – remove single-line comments'
+                  + ' and unescaped whitespace',
               code: function () {
-                var rx = new RegExp2(" x ", "x");
-                assert(rx.source === "x");
+                var rx = new RegExp2(" x#foo\n\\ y#bar", "x");
+                assert(rx.source === "x y");
               }
             },
             {
-              name: "PCRE option flags: <code>s<\/code> (PCRE_DOTALL)",
+              name: "PCRE option flags: <code>s<\/code> (PCRE_DOTALL)"
+                  + " – <code>.</code> matches newline too",
               code: function () {
                 var rx = new RegExp2(".", "s");
                 assert(rx.source === "[\\S\\s]");
@@ -210,6 +213,6 @@
     <div><a href="view-source:http://<?php
       echo $_SERVER['HTTP_HOST'] . htmlspecialchars($_SERVER['REQUEST_URI']);
       ?>">View source</a></div>
-    <p>See error console for details.</p>
+    <p><strong>See error console for details.</strong></p>
   </body>
 </html>
