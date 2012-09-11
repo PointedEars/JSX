@@ -19,6 +19,7 @@
   
         jsx.test.runner.run({
           file: "regexp.js",
+          feature: "jsx.regexp.RegExp",
           tests: [
             {
               name: "Use statically loaded UCD",
@@ -139,38 +140,37 @@
               }
             },
             {
-              name: "Unicode mode: <code>\\w</code> matches non-ASCII letter",
+              name: "PCRE Unicode mode: <code>\\w</code> matches non-ASCII letter",
               code: function () {
                 var rx = new RegExp2("\\w", "u");
                 assert(rx.exec("ä") != null);
               }
             },
             {
-              name: "Unicode mode: <code>[\\w]</code> matches non-ASCII letter",
+              name: "PCRE Unicode mode: <code>[\\w]</code> matches non-ASCII letter",
               code: function () {
                 var rx = new RegExp2("[\\w]", "u");
                 assert((rx.exec("ä") || [])[0] == "ä");
               }
             },
             {
-              name: "Unicode mode: <code>\\W</code> does not match non-ASCII letter",
+              name: "PCRE Unicode mode: <code>\\W</code> does not match non-ASCII letter",
               code: function () {
                 var rx = new RegExp2("\\W", "u");
                 assert(rx.exec("ä") === null);
               }
             },
             {
-              name: "Unicode mode: <code>[\\W]</code> does not match non-ASCII letter",
+              name: "PCRE Unicode mode: <code>[\\W]</code> does not match non-ASCII letter",
               code: function () {
                 var rx = new RegExp2("[\\W]", "u");
                 assert(rx.exec("ä") === null);
               }
             },
             {
-              name: "Unicode mode: <code>[^\\W]</code> matches non-ASCII letter",
+              name: "PCRE Unicode mode: <code>[^\\W]</code> matches non-ASCII letter",
               code: function () {
                 var rx = new RegExp2("[^\\W]", "u");
-                console.log(rx);
                 assert((rx.exec("ä") || [])[0] == "ä");
               }
             }
