@@ -682,7 +682,7 @@ jsx.regexp.RegExp = (function () {
         expression = expression.replace(
           /\[(([^\\\]]|\\.)*)\]|(\\(w))/gi,
           function (m, charClassContent, p2, wordCharacter, escapeLetter) {
-            var wordClass = "\\p{L}\\p{M}\\p{Pc}_";
+            var wordClass = "\\p{Word}";
             
             if (charClassContent)
             {
