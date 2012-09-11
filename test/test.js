@@ -341,7 +341,9 @@ jsx.test.runner = {
             + context + " thead th,"
             + context + " tbody th,"
             + context + " tbody td,"
-            + context + " tfoot td { padding: 0 0.5em; vertical-align: top; }"
+            + context + " tfoot td { padding: 0 0.5em;"
+                                 + " vertical-align: top;"
+                                 + " vertical-align: baseline; }"
           ));
         document.getElementsByTagName("head")[0].appendChild(style);
         
