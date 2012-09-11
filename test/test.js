@@ -507,8 +507,8 @@ jsx.test.runner = {
     this._appendEntry(num, file, feature, desc, result, msgType);
     this._printMsg("Test " + num
       + (file || feature ? ", " : "")
-      + (file ? file + ":" : "")
-      + feature
+      + file
+      + (feature ? ":" + feature : "")
       + (file || feature ? "," : "")
       + (desc ? ' "' + this._stripTags(desc) + '"' : "")
       + (file || feature ? "," : "")
@@ -540,6 +540,21 @@ jsx.test.runner = {
    *    </thead>
    *    <tbody>
    *      <tr>
+   *        <th><code>file</code></th>
+   *        <td><code>String</code></td>
+   *        <td>Name of the file that contains the code
+   *            to be tested. The default is the empty string.
+   *            <em>NOTE: This is a purely descriptive value.
+   *            No resources will be accessed based on this
+   *            value.</em></td>
+   *      </tr>
+   *      <tr>
+   *        <th><code>feature</code></th>
+   *        <td><code>String</code></td>
+   *        <td>Code describing the feature that is tested.
+   *          The default is the empty string.</td>
+   *      </tr>
+   *      <tr>
    *        <th><code>setUp</code></th>
    *        <td><code>Function</code></td>
    *        <td>Function that is called before each test case</td>
@@ -564,12 +579,19 @@ jsx.test.runner = {
    *                  <th><code>file</code></th>
    *                  <td><code>String</code></td>
    *                  <td>Name of the file that contains the code
-   *                      to be tested</td>
+   *                      to be tested.  The default is the
+   *                      value of the specification's
+   *                      <code>file</code> property.
+   *                      <em>NOTE: This is a purely descriptive value.
+   *                      No resources will be accessed based on this
+   *                      value.</em></td></td>
    *                </tr>
    *                <tr>
    *                  <th><code>feature</code></th>
    *                  <td><code>String</code></td>
-   *                  <td>Code describing the feature that is tested</td>
+   *                  <td>Code describing the feature that is tested.
+   *                    The default is the value of the specification's
+   *                    <code>feature</code> property.</td>
    *                </tr>
    *                <tr>
    *                  <th><code>description</code> | <code>desc</code> | <code>name</code></th>
@@ -610,6 +632,7 @@ jsx.test.runner = {
       if (spec)
       {
         this._file = jsx.object.getProperty(spec, 'file', "");
+        this._feature = jsx.object.getProperty(spec, 'feature', "");
 
         hasSetUp = isNativeMethod(spec, 'setUp');
         if (hasSetUp)
@@ -647,7 +670,7 @@ jsx.test.runner = {
         var test = this._tests[i];
         var number = i + 1;
         var file = this._file;
-        var feature = "";
+        var feature = this._feature;
         var description = "";
         
         if (test && typeof test != "function")
@@ -698,6 +721,11 @@ jsx.test.runner = {
   
   setFile: function (file) {
     this._file = file;
+    return this;
+  },
+  
+  setFeature: function (feature) {
+    this._feature = feature;
     return this;
   },
   
