@@ -181,6 +181,10 @@ jsx.string.parser.Lexer.extend(null, {
     
     return this;
   },
+  
+  _jsx_RegExp: jsx.object.getFeature(jsx, "regexp", "RegExp"),
+  
+  _RegExp: jsx.object.getFeature(jsx, "regexp", "RegExp") || RegExp,
     
   /**
    * Compiles <code>_expression</code> from token patterns
@@ -196,16 +200,11 @@ jsx.string.parser.Lexer.extend(null, {
         return e.pattern.source ? e.pattern.source : e.pattern;
       });
   
-      if (!_RegExp)
-      {
-        _jsx_RegExp = jsx.object.getFeature(jsx, "regexp", "RegExp");
-        _RegExp = _jsx_RegExp || RegExp;
-      }
-      
-      this._expression = new _RegExp(
+      this._expression = new this._RegExp(
         "(" + pattern.join(")|(") + ")",
         "g" + (this._ignoreCase ? 'i' : '')
-            + ((_RegExp == _jsx_RegExp && this._dotAll) ? 's' : ''));
+            + ((this._RegExp == this._jsx_RegExp && this._dotAll) ? 's' : ''));
+      
       this._compiled = true;
   
       return this._expression;
@@ -221,20 +220,25 @@ jsx.string.parser.Lexer.extend(null, {
   nextToken: function () {
     var tokens = this._tokens;
     var keepHistory = this.keepHistory;
+    var match;
 
     if (this._longestMatchWins)
     {
       var token_matches = [];
       var max_match_len = 0;
       var max_index = -1;
-      for (var index = 0, len = tokens.length; i < len; ++i)
+      for (var index = tokens.length; index--;)
       {
         var token = tokens[index];
-        var matches = token.exec(this._text.substring(0, this._offset));
         
-        if (matches)
+        /* match from where we left */
+        match = this._jsx_RegExp
+          ? this._jsx_RegExp.exec(token, this._text.substring(this._offset))
+          : token.exec(this._text.substring(this._offset));
+        
+        if (match)
         {
-          var token_match = token_matches[index] = matches[0];
+          var token_match = token_matches[index] = match[0];
           var token_match_len = token_match.length;
           if (token_match_len > max_match_len)
           {
@@ -252,6 +256,10 @@ jsx.string.parser.Lexer.extend(null, {
         {
           token = new token.constructor(token.pattern, token.type);
         }
+        
+        /* correct for offsetted search */
+        match.index += this._offset;
+        match.input = this._text;
         
         token.match = match;
       }
@@ -271,7 +279,10 @@ jsx.string.parser.Lexer.extend(null, {
         return null;
       }
       
-      var match = expression.exec(this.text);
+      match = this._jsx_RegExp
+        ? this._jsx_RegExp.exec(expression, this.text)
+        : expression.exec(this.text);
+        
       if (match)
       {
         for (var i = 1, len = match.length; i < len; ++i)
@@ -294,7 +305,8 @@ jsx.string.parser.Lexer.extend(null, {
     
     if (match)
     {
-      this._offset += match.length;
+      /* advance offset for next _longestMatchWins search */
+      this._offset += match[0].length;
     }
     
     return token;
@@ -350,14 +362,21 @@ jsx.string.parser.Lexer.extend(null, {
  * @property _lexer : Lexer
  *   The lexer used by this parser
  */
-jsx.string.parser.Parser = function (lexer) {
+jsx.string.parser.Parser = function Parser (lexer) {
+  if (!jsx.object.isInstanceOf(lexer, jsx.string.parser.Lexer))
+  {
+    jsx.warn("jsx.string.parser.Parser: saw " + lexer + ", expected jsx.string.parser.Lexer");
+  }
+  
   this._lexer = lexer;
 };
 
 jsx.string.parser.Parser.extend(null, {
   /**
-   * Parses an input string requesting the next token from a {@link #Lexer}.
+   * Request the next token from the {@link #Lexer}.
+   * 
    * @memberOf jsx.string.parser.Parser#prototype
+   * @return jsx.string.parser#Token
    */
   nextToken: function () {
     return this._lexer.nextToken();
