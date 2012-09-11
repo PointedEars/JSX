@@ -547,8 +547,7 @@ var synhl = (function () {
   var
     jsx_debug = jsx.debug,
     jsx_object = jsx.object,
-    isMethod = jsx_object.isMethod,
-    jsx_xpath = jsx.dom.xpath,
+    _isMethod = jsx_object.isMethod,
     reservedWords = [
       /* ES5 keywords */
       "break", "case", "catch", "continue", "debugger", "default", "delete",
@@ -712,13 +711,13 @@ var synhl = (function () {
   return function (context) {
     if (jsx_debug.enabled)
     {
-      if (isMethod("console", "profile"))
+      if (_isMethod("console", "profile"))
       {
         console.profile("synhl()");
       }
     }
     
-    if (jsx_object.isMethod(context, "valueOf")
+    if (_isMethod(context, "valueOf")
         && typeof context.valueOf() == "string")
     {
       var passedCode = context;
@@ -733,7 +732,8 @@ var synhl = (function () {
       context = document;
     }
     
-    if (jsx_object.isMethod(jsx_xpath, "evaluate"))
+    var jsx_xpath = _getFeature(jsx, "dom", "xpath");
+    if (jsx.object.isNativeMethod(jsx_xpath, "evaluate"))
     {
       var collCode = jsx_xpath.evaluate(
         '//code[not(contains(concat(" ", @class, " "), " donthl "))]',
@@ -742,7 +742,7 @@ var synhl = (function () {
     
     var useXPath = false;
     if ((collCode && (useXPath = true)
-          || (isMethod(context, "getElementsByTagName")
+          || (_isMethod(context, "getElementsByTagName")
                && (collCode = context.getElementsByTagName('code'))))
         && collCode.length)
     {
@@ -774,7 +774,7 @@ var synhl = (function () {
   
     if (jsx_debug.enabled)
     {
-      if (jsx_object.isMethod("console", "profileEnd"))
+      if (_isMethod("console", "profileEnd"))
       {
         console.profileEnd();
       }
@@ -2007,7 +2007,7 @@ function getObjInfo(sObject, aWhat, sStyle, sHeader, sFooter, sInspectorPath)
   }
 
   /* sort properties lexically */
-  if (isMethodType(typeof aProperties.sort))
+  if (typeof aProperties.sort == "function")
   {
     aProperties.sort();
   }
