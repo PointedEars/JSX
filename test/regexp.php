@@ -4,6 +4,14 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>regexp.js Test Case</title>
+    <style type="text/css">
+      <!--
+      [title] {
+        border-bottom: 1px dotted #666;
+        cursor: help;
+      }
+      -->
+    </style>
     <script type="text/javascript" src="object.js"></script>
     <script type="text/javascript" src="test.js"></script>
     <script type="text/javascript" src="http.js"></script>
@@ -22,7 +30,9 @@
           feature: "jsx.regexp.RegExp",
           tests: [
             {
-              name: "Use statically loaded UCD",
+              name: 'Use statically loaded'
+                  + ' <acronym title="Unicode Character Database"'
+                  + '>UCD<\/acronym>',
               code: function() {
                 assert(typeof RegExp2.propertyClasses != "undefined");
                 var rx = new RegExp2("\\p{Zp}");
@@ -34,7 +44,8 @@
               }
             },
             {
-              name: "Load UCD dynamically with XHR",
+              name: 'Load UCD dynamically with'
+                  + ' <acronym title="XMLHttpRequest">XHR<\/acronym>',
               code: function() {
                 delete RegExp2.propertyClasses;
                 var rx = new RegExp2("\\p{Zp}");
@@ -60,7 +71,7 @@
                   },
                   function (e) {
                     if (e.name == "jsx.regexp.UndefinedPropertyClassError")
-                    {                  
+                    {
                       thrown = true;
                       if (!jsx.info(e))
                       {
@@ -76,14 +87,16 @@
               }
             },
             {
-              name: "PCRE option flags: <code>x</code> (PCRE_EXTENDED)",
+              name: '<acronym title="Perl-Compatible Regular Expressions"'
+                  + '>PCRE<\/acronym> option flags:'
+                  + ' <code>x<\/code> (PCRE_EXTENDED)',
               code: function () {
                 var rx = new RegExp2(" x ", "x");
                 assert(rx.source === "x");
               }
             },
             {
-              name: "PCRE option flags: <code>s</code> (PCRE_DOTALL)",
+              name: "PCRE option flags: <code>s<\/code> (PCRE_DOTALL)",
               code: function () {
                 var rx = new RegExp2(".", "s");
                 assert(rx.source === "[\\S\\s]");
@@ -92,7 +105,8 @@
               }
             },
             {
-              name: "PCRE named subpatterns: <code>?&lt;name&gt;</code> (Perl style)",
+              name: "PCRE named subpatterns: <code>?&lt;name&gt;<\/code>"
+                  + "(Perl style)",
               code: function () {
                 var rx = new RegExp2("(?<foo>bar)");
                 assert(rx.groups[1] === "foo");
@@ -108,7 +122,8 @@
               }
             },
             {
-              name: "PCRE named subpatterns: <code>?'name'</code> (Perl style)",
+              name: "PCRE named subpatterns: <code>?'name'<\/code>"
+                  + "(Perl style)",
               code: function () {
                 var rx = new RegExp2("(?P'foo'bar)");
                 assert(rx.groups[1] === "foo");
@@ -124,7 +139,8 @@
               }
             },
             {
-              name: "PCRE named subpatterns: <code>?P&lt;name&gt;</code> (Python style)",
+              name: "PCRE named subpatterns: <code>?P&lt;name&gt;<\/code>"
+                   + " (Python style)",
               code: function () {
                 var rx = new RegExp2("(?P<foo>bar)");
                 assert(rx.groups[1] === "foo");
@@ -140,35 +156,39 @@
               }
             },
             {
-              name: "PCRE Unicode mode: <code>\\w</code> matches non-ASCII letter",
+              name: "Unicode mode: <code>\\w<\/code> matches non-ASCII letter",
               code: function () {
                 var rx = new RegExp2("\\w", "u");
                 assert(rx.exec("ä") != null);
               }
             },
             {
-              name: "PCRE Unicode mode: <code>[\\w]</code> matches non-ASCII letter",
+              name: "Unicode mode: <code>[\\w]<\/code> matches"
+                  + " non-ASCII letter",
               code: function () {
                 var rx = new RegExp2("[\\w]", "u");
                 assert((rx.exec("ä") || [])[0] == "ä");
               }
             },
             {
-              name: "PCRE Unicode mode: <code>\\W</code> does not match non-ASCII letter",
+              name: "Unicode mode: <code>\\W<\/code> does not match"
+                  + " non-ASCII letter",
               code: function () {
                 var rx = new RegExp2("\\W", "u");
                 assert(rx.exec("ä") === null);
               }
             },
             {
-              name: "PCRE Unicode mode: <code>[\\W]</code> does not match non-ASCII letter",
+              name: "Unicode mode: <code>[\\W]<\/code> does not match"
+                  + " non-ASCII letter",
               code: function () {
                 var rx = new RegExp2("[\\W]", "u");
                 assert(rx.exec("ä") === null);
               }
             },
             {
-              name: "PCRE Unicode mode: <code>[^\\W]</code> matches non-ASCII letter",
+              name: "Unicode mode: <code>[^\\W]<\/code> matches"
+                  + " non-ASCII letter",
               code: function () {
                 var rx = new RegExp2("[^\\W]", "u");
                 assert((rx.exec("ä") || [])[0] == "ä");
@@ -187,9 +207,9 @@
 
   <body onload="runTests()">
     <h1><tt>regexp.js</tt> Unit&nbsp;Test</h1>
-<!--     <div><a href="jsunit/testRunner?testPage=<?php -->
-<!--       echo urlencode(htmlentities($_SERVER['REQUEST_URI'])); ?>&amp;autoRun=true" -->
-<!--       >Run tests</a></div> -->
+    <div><a href="view-source:http://<?php
+      echo $_SERVER['HTTP_HOST'] . htmlspecialchars($_SERVER['REQUEST_URI']);
+      ?>">View source</a></div>
     <p>See error console for details.</p>
   </body>
 </html>
