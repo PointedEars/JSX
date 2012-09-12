@@ -1,3 +1,4 @@
+"use strict";
 /* vim:set fileencoding=utf-8 tabstop=2 shiftwidth=2 softtabstop=2 expandtab: */
 /**
  * <title>PointedEars' JSX: RegExp Library</title>
@@ -57,6 +58,11 @@ jsx.regexp = {
  */
 var regexp2str = jsx.regexp.toString2 = function (rx) {
   // return rx.toString().replace(/[^\/]*\/((\\\/|[^\/])+)\/[^\/]*/, "$1");
+  if (!rx)
+  {
+    rx = this;
+  }
+  
   return rx.source || rx.toString().replace(/[^\/]*\/(.+)\/[^\/]*/, "$1");
 };
 RegExp.prototype.toString2 = regexp2str;
@@ -91,27 +97,38 @@ var regexp_concat = jsx.regexp.concat = function () {
     aParts = [],
     c = this.constructor;
 
-  if (c && c == RegExp)
-  {
-    aParts.push(regexp2str(this));
-  }
-
   var oFlags = {
+    flags: {
+      g: "global",
+      i: "ignoreCase",
+      m: "multiline",
+      y: "sticky"
+    },
     g: false,
     i: false,
     m: false,
     y: false,
 
+    setFlags: function (template) {
+      var flags = this.flags;
+      for (var flag in flags)
+      {
+        if (!this[flag] && template[flags[flag]])
+        {
+          this[flag] = true;
+        }
+      }
+    },
+    
     joinSet:
       /**
        * @return string
        */
       function () {
         var
-          a = [],
-          oDummy = {g: 1, i: 1, m: 1, y: 1};
+          a = [];
 
-        for (var flag in oDummy)
+        for (var flag in this.flags)
         {
           if (this[flag] === true)
           {
@@ -122,6 +139,12 @@ var regexp_concat = jsx.regexp.concat = function () {
         return a.join("");
       }
   };
+  
+  if (c && c == RegExp)
+  {
+    aParts.push(regexp2str(this));
+    oFlags.setFlags(this);
+  }
 
   for (var i = 0, iArgnum = arguments.length; i < iArgnum; i++)
   {
@@ -130,25 +153,7 @@ var regexp_concat = jsx.regexp.concat = function () {
     if (c && c == RegExp)
     {
       aParts.push(regexp2str(a));
-      if (!oFlags.g && a.global)
-      {
-        oFlags.g = true;
-      }
-
-      if (!oFlags.i && a.ignoreCase)
-      {
-        oFlags.i = true;
-      }
-
-      if (!oFlags.m && a.multiline)
-      {
-        oFlags.m = true;
-      }
-
-      if (!oFlags.y && a.sticky)
-      {
-        oFlags.y = true;
-      }
+      oFlags.setFlags(a);
     }
     else
     {
@@ -161,15 +166,15 @@ var regexp_concat = jsx.regexp.concat = function () {
 RegExp.prototype.concat = regexp_concat;
 
 /**
- * Returns a {@link RegExp} that is an alternation of two
+ * Returns a {@link RegExp} that is an intersection of two
  * regular expressions.
  *
  * @param pattern2
  * @param pattern1
- * @return RegExp
- *   A regular expression which matches the strings that either
- *   <var>pattern1</var> (or this object) or <var>pattern2</var>
- *   would match
+ * @return {RegExp}
+ *   A regular expression which matches the strings that both
+ *   <var>pattern1</var> (or this object) and <var>pattern2</var>
+ *   would match.
  */
 var regexp_intersect = jsx.regexp.intersect = function (pattern2, pattern1) {
   if (!pattern1 || pattern1.constructor != RegExp)
@@ -191,7 +196,7 @@ var regexp_intersect = jsx.regexp.intersect = function (pattern2, pattern1) {
   }
 
   var
-    s = this.source.replace(/^\(?([^)]*)\)?$/, "$1"),
+    s = pattern1.source.replace(/^\(?([^)]*)\)?$/, "$1"),
     s2 = pattern2.source.replace(/^\(?([^)]*)\)?$/, "$1");
 
   /* Register all parts within alternation of this pattern */
@@ -686,12 +691,15 @@ jsx.regexp.RegExp = (function () {
         sFlags = sFlags.replace(/s/g, "");
       }
       
+      var unicodeMode = false;
       if (sFlags.indexOf("u") > -1)
       {
+        unicodeMode = true;
+        
+        var wordClass = "\\p{Word}";
         expression = expression.replace(
           /\[(([^\\\]]|\\.)*)\]|(\\(w))/gi,
           function (m, charClassContent, p2, wordCharacter, escapeLetter) {
-            var wordClass = "\\p{Word}";
             
             if (charClassContent)
             {
@@ -731,6 +739,24 @@ jsx.regexp.RegExp = (function () {
             return m;
           });
         
+        /* replace \b */
+        expression = expression.replace(
+          /\\\\|(\\b)/g,
+          function (m, wordBorder, index, all) {
+            if (wordBorder)
+            {
+              /* FIXME: Does not work for \b in parentheses */
+              if (index > 0)
+              {
+                return "(?!" + wordClass + ")";
+              }
+              
+              return "(?:^|[^" + wordClass + "])";
+            }
+            
+            return m;
+          });
+        
         sFlags = sFlags.replace(/u/g, "");
       }
     }
@@ -765,8 +791,15 @@ jsx.regexp.RegExp = (function () {
 
     var rx = new RegExp(expression, sFlags);
     rx.originalSource = originalSource;
+    rx.unicodeMode = unicodeMode;
     rx.groups = this.groups;
 
+    if (unicodeMode)
+    {
+      rx.oldExec = rx.exec;
+      rx.exec = jsx.regexp.RegExp.exec;
+    }
+    
     return rx;
   };
 })();
@@ -784,21 +817,45 @@ jsx.regexp.RegExp.isInstance = function (rx) {
   return !!rx.originalSource;
 };
 
-jsx.regexp.RegExp.exec = function (rx, s) {
-  var matches = rx.exec(s);
+jsx.regexp.RegExp.exec = (function () {
+  var _getDataObject = jsx.object.getDataObject;
+  var _RegExp = jsx.regexp.RegExp;
+  var rx2;
 
-  if (matches && !rx.global && this.isInstance(rx))
-  {
-    matches.groups = {};
-
-    for (var i = 1, len = matches.length; i < len; ++i)
+  return function (rx, s) {
+    if (this.constructor == RegExp)
     {
-      matches.groups[rx.groups[i]] = matches[i];
+      s = rx;
+      rx = this;
     }
-  }
-
-  return matches;
-};
+    
+    rx.realExec = (rx.oldExec || rx.exec);
+    
+    var matches = rx.realExec(s);
+  
+    if (matches && _RegExp.isInstance(rx))
+    {
+      matches.groups = _getDataObject();
+  
+      if (rx.unicodeMode && !rx2)
+      {
+        rx2 = new _RegExp("^\\W+", "u");
+      }
+      
+      for (var i = 0, len = matches.length; i < len; ++i)
+      {
+        if (rx.unicodeMode && rx.originalSource.substring(0, 2) == "\\b")
+        {
+          matches[i] = matches[i].replace(rx2, "");
+        }
+        
+        matches.groups[rx.groups[i] || i] = matches[i];
+      }
+    }
+  
+    return matches;
+  };
+}());
 
 jsx.regexp.RegExp.ucdScriptPath = "/scripts/UnicodeData.js";
 jsx.regexp.RegExp.ucdTextPath = "/scripts/UnicodeData.txt";
@@ -835,18 +892,38 @@ jsx.regexp.String.extend(String);
  *   The Array as if returned by String.prototype.match.call(this, rx)
  */
 jsx.regexp.String.prototype.match = (function () {
-  var isInstance = jsx.regexp.RegExp.isInstance;
+  var _getDataObject = jsx.object.getDataObject;
+  var _RegExp = jsx.regexp.RegExp;
+  var rx2;
 
   return function (rx) {
     var matches = this.value.match(rx);
 
-    if (matches && !rx.global && isInstance(rx))
+    if (matches && _RegExp.isInstance(rx))
     {
-      matches.groups = {};
-
-      for (var i = 1, len = matches.length; i < len; ++i)
+      if (rx.global)
       {
-        matches.groups[rx.groups[i]] = matches[i];
+        if (rx.unicodeMode && rx.originalSource.substring(0, 2) == "\\b")
+        {
+          if (!rx2)
+          {
+            rx2 = new _RegExp("^\\W+", "u");
+          }
+
+          for (var i = 0, len = matches.length; i < len; ++i)
+          {
+            matches[i] = matches[i].replace(rx2, "");
+          }
+        }
+      }
+      else
+      {
+        matches.groups = _getDataObject();
+  
+        for (var i = 0, len = matches.length; i < len; ++i)
+        {
+          matches.groups[rx.groups[i] || i] = matches[i];
+        }
       }
     }
 
@@ -857,25 +934,25 @@ jsx.regexp.String.prototype.match = (function () {
 /**
  * Returns this object's encapsulated string value
  */
-jsx.regexp.String.prototype.toString = jsx.regexp.String.prototype.valueOf =
-  function () {
+jsx.regexp.String.prototype.toString =
+  jsx.regexp.String.prototype.valueOf = function () {
     return this.value;
   };
 
-  /**
-   * Exception thrown if a character property class is referenced, but the
-   * Unicode Character Database (UCD) cannot be loaded
-   *
-   * @constructor
-   * @param sUCDScript : String
-   *   The script that contains the UCD in the specified form
-   * @param sHTTPScript : String
-   *   The script that contains the HTTP request type to load the UCD
-   *   dynamically
-   * @extends jsx#Error
-   */
-jsx.regexp.UCDLoadError = function UCDLoadError (sUCDScript, sHTTPScript) {
-  UCDLoadError._super.call(this,
+/**
+ * Exception thrown if a character property class is referenced, but the
+ * Unicode Character Database (UCD) cannot be loaded
+ *
+ * @constructor
+ * @param sUCDScript : String
+ *   The script that contains the UCD in the specified form
+ * @param sHTTPScript : String
+ *   The script that contains the HTTP request type to load the UCD
+ *   dynamically
+ * @extends jsx#Error
+ */
+jsx.regexp.UCDLoadError = function jsx_regexp_UCDLoadError (sUCDScript, sHTTPScript) {
+  jsx_regexp_UCDLoadError._super.call(this,
     "Unable to load the Unicode Character Database."
     + " Please include " + sUCDScript + " or " + sHTTPScript + ".");
 }.extend(jsx.Error, {name: "jsx.regexp.UCDLoadError"});
@@ -887,8 +964,8 @@ jsx.regexp.UCDLoadError = function UCDLoadError (sUCDScript, sHTTPScript) {
  * @param sMsg
  * @extends jsx.object#PropertyError
  */
-jsx.regexp.UndefinedPropertyClassError = function UndefinedPropertyClassError (sMsg) {
-  UndefinedPropertyClassError._super.call(this);
+jsx.regexp.UndefinedPropertyClassError = function jsx_regexp_UndefinedPropertyClassError (sMsg) {
+  jsx_regexp_UndefinedPropertyClassError._super.call(this);
   this.message = "Undefined property class" + (arguments.length > 0 ? (": " + sMsg) : "");
 }.extend(jsx.object.PropertyError, {name: "jsx.regexp.UndefinedPropertyClassError"});
 
@@ -899,7 +976,7 @@ jsx.regexp.UndefinedPropertyClassError = function UndefinedPropertyClassError (s
  * @param sMsg
  * @extends jsx.object#ObjectError
  */
-jsx.regexp.InvalidPropertyClassError = function InvalidPropertyClassError (sMsg) {
-  InvalidPropertyClassError._super.call(this);
+jsx.regexp.InvalidPropertyClassError = function jsx_regexp_InvalidPropertyClassError (sMsg) {
+  jsx_regexp_InvalidPropertyClassError._super.call(this);
   this.message = "Invalid property class value" + (arguments.length > 0 ? (": " + sMsg) : "");
 }.extend(jsx.object.ObjectError, {name: "jsx.regexp.InvalidPropertyClassError"});
