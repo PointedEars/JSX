@@ -19,13 +19,13 @@
     <script type="text/javascript" src="../regexp.js"></script>
     <script type="text/javascript" src="../UnicodeData.js"></script>
     <script type="text/javascript">
+      var RegExp2 = jsx.regexp.RegExp;
+      var String2 = jsx.regexp.String;
       function runTests ()
       {
         var assert = jsx.test.assert;
         var assertTrue = jsx.test.assertTrue;
         var assertFalse = jsx.test.assertFalse;
-        var RegExp2 = jsx.regexp.RegExp;
-        var String2 = jsx.regexp.String;
         var out = [];
   
         jsx.test.runner.run({
@@ -688,6 +688,13 @@
                 
                 var m = s.match(rx);
                 assert(m.groups.foo === "bar");
+              }
+            },
+            {
+              name: "Unicode mode: <code>unicodeMode<\/code> property",
+              code: function () {
+                assertFalse(new RegExp2("\\w", "").unicodeMode);
+                assertTrue(new RegExp2("\\w", "u").unicodeMode);
               }
             },
             {
