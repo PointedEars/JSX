@@ -62,7 +62,7 @@ var regexp2str = jsx.regexp.toString2 = function (rx) {
   {
     rx = this;
   }
-  
+
   return rx.source || rx.toString().replace(/[^\/]*\/(.+)\/[^\/]*/, "$1");
 };
 RegExp.prototype.toString2 = regexp2str;
@@ -119,7 +119,7 @@ var regexp_concat = jsx.regexp.concat = function () {
         }
       }
     },
-    
+
     joinSet:
       /**
        * @return string
@@ -139,7 +139,7 @@ var regexp_concat = jsx.regexp.concat = function () {
         return a.join("");
       }
   };
-  
+
   if (c && c == RegExp)
   {
     aParts.push(regexp2str(this));
@@ -387,20 +387,21 @@ jsx.regexp.RegExp = (function () {
       + "|" + sPropertyEscapes + "",
     rxEscapes = new RegExp(sEscapes, "gi"),
     jsx_object = jsx.object,
-    
+    _getDataObject = jsx_object.getDataObject,
+
     _normalizeCharClass = function (charClassContent, bUnicodeMode) {
       var negEscapes = [];
-      
+
       if (charClassContent == "")
       {
         return "[]";
       }
-      
+
       if (charClassContent == "^")
       {
         return "[^]";
       }
-      
+
       var reduced = charClassContent.replace(
         /\\((P)\{([^\}]+)\}|(W))/g,
         function (m, p1, cP, charProperty, cW) {
@@ -411,10 +412,10 @@ jsx.regexp.RegExp = (function () {
               + (charProperty ? "{" + charProperty + "}" : ""));
             return "";
           }
-          
+
           return m;
         });
-      
+
       if (negEscapes.length > 0)
       {
         /* Do not let negated empty class from reduction match everything */
@@ -422,23 +423,23 @@ jsx.regexp.RegExp = (function () {
         {
           reduced = "";
         }
-        
+
         if (reduced != "")
         {
           jsx.warn(
             "jsx.RegExp: Combined negative escapes in character classes"
               + " require support for non-capturing parentheses");
         }
-          
+
         return (reduced ? "(?:[" + reduced + "]|" : "")
           + "[" + (charClassContent.charAt(0) == "^" ? "" : "^")
           + negEscapes.join("") + "]"
           + (reduced ? ")" : "");
       }
-      
+
       return "[" + reduced + "]";
     },
-    
+
     fEscapeMapper = function (match, classRanges, p2, p3, p4, p5, p6, p7,
                                standalonePropSpec, standaloneClass) {
       var
@@ -623,7 +624,7 @@ jsx.regexp.RegExp = (function () {
       {
         /* … and class references in character classes */
         result = _normalizeCharClass(classRanges);
-        
+
         result = result.replace(
             rxPropertyEscapes,
             function (match, propertySpecifier, propertyClass) {
@@ -635,7 +636,7 @@ jsx.regexp.RegExp = (function () {
       return result;
     };
 
-  return function (expression, sFlags) {
+  return function jsx_regexp_RegExp (expression, sFlags) {
     if (expression && expression.constructor == RegExp)
     {
       expression = expression.source;
@@ -654,27 +655,70 @@ jsx.regexp.RegExp = (function () {
       }
     }
 
-    var originalSource = expression;
+    var pattern = expression;
+    var flags = sFlags || "";
+
+    /* PCRE_EXTENDED */
+    if (sFlags && sFlags.indexOf("x") > -1)
+    {
+      /* Remove comments */
+      expression = expression.replace(/#.*$/mg, "");
+
+      /* Remove unescaped whitespace */
+      expression = expression.replace(
+        /(\\(\s)|\[([^\\\]]|\\.)*\])|\s+/g,
+        function (m, p1, escapedWS) {
+          return escapedWS || p1 || "";
+        });
+
+      sFlags = sFlags.replace(/x/g, "");
+    }
+
+    /* Support for capturing groups */
+    var groupCount = 0;
+    var groups = _getDataObject();
+    var names = _getDataObject();
+    var patternGroups = [expression];
+
+    expression = expression.replace(
+      /(\\\()|(\((\?P?(<([^>]+)>|'([^']+)'))?)/g,
+      function (match, escapedLParen, group, namedGroup, bracketsOrQuotes,
+                 bracketedName, quotedName, index, all) {
+        if (group)
+        {
+          ++groupCount;
+
+          /* Support for named capturing groups (PCRE-compliant) */
+          var name = bracketedName || quotedName;
+          if (name)
+          {
+            if (names[name])
+            {
+              jsx.throwThis("SyntaxError", "Duplicate symbolic name");
+            }
+
+            groups[groupCount] = name;
+            names[name] = groupCount;
+          }
+
+          /*
+           * NOTE: Helps with determining in exec() and match()
+           * whether \b matched at beginning and \Ws need to be
+           * ltrimmed from match
+           */
+          patternGroups.push(all.substring(index));
+
+          return "(";
+        }
+
+        return escapedLParen;
+      });
+
+    groups.length = groupCount;
 
     if (sFlags)
     {
-      /* Support for the PCRE `x' option flag (PCRE_EXTENDED) */
-      if (sFlags.indexOf("x") > -1)
-      {
-        /* Remove comments */
-        expression = expression.replace(/#.*$/mg, "");
-        
-        /* Remove unescaped whitespace */
-        expression = expression.replace(
-          /(\\(\s)|\[([^\\\]]|\\.)*\])|\s+/g,
-          function (m, p1, escapedWS) {
-            return escapedWS || p1 || "";
-          });
-        
-        sFlags = sFlags.replace(/x/g, "");
-      }
-
-      /* Support for the PCRE 's' option flag (PCRE_DOTALL) */
+      /* PCRE_DOTALL */
       if (sFlags.indexOf("s") > -1)
       {
         expression = expression.replace(
@@ -690,21 +734,21 @@ jsx.regexp.RegExp = (function () {
 
         sFlags = sFlags.replace(/s/g, "");
       }
-      
+
+      /* Unicode mode */
       var unicodeMode = false;
       if (sFlags.indexOf("u") > -1)
       {
         unicodeMode = true;
-        
+
         var wordClass = "\\p{Word}";
         expression = expression.replace(
           /\[(([^\\\]]|\\.)*)\]|(\\(w))/gi,
           function (m, charClassContent, p2, wordCharacter, escapeLetter) {
-            
             if (charClassContent)
             {
               var normalized = _normalizeCharClass(charClassContent, true);
-              
+
               return normalized.replace(
                 /\\\\|(\\(w))/gi,
                 function (m, wordCharacter, escapeLetter) {
@@ -721,24 +765,24 @@ jsx.regexp.RegExp = (function () {
                         return wordCharacter;
                       }
                     }
-                    
+
                     return wordClass;
                   }
-                  
+
                   return m;
                 });
             }
-            
+
             if (wordCharacter)
             {
               return "["
                 + (escapeLetter === "W" ? "^" : "")
                 + wordClass + "]";
             }
-            
+
             return m;
           });
-        
+
         /* replace \b */
         expression = expression.replace(
           /\\\\|(\\b)/g,
@@ -750,56 +794,36 @@ jsx.regexp.RegExp = (function () {
               {
                 return "(?!" + wordClass + ")";
               }
-              
+
               return "(?:^|[^" + wordClass + "])";
             }
-            
+
             return m;
           });
-        
+
         sFlags = sFlags.replace(/u/g, "");
       }
     }
-
-    var groupCount = 0;
-    this.groups = {};
-    var me = this;
-
-    /* Support for named capturing groups (PCRE-compliant) */
-    expression = expression.replace(
-      /(\\\()|(\((\?P?(<([^>]+)>|'([^']+)'))?)/g,
-      function (match, escapedLParen, group, namedGroup, bracketsOrQuotes,
-                 bracketedName, quotedName) {
-        if (group)
-        {
-          ++groupCount;
-
-          var name = bracketedName || quotedName;
-          if (name)
-          {
-            me.groups[groupCount] = name;
-          }
-
-          return "(";
-        }
-
-        return escapedLParen;
-      });
 
     /* Support for Unicode character property classes (PCRE-compliant) */
     expression = expression.replace(rxEscapes, fEscapeMapper);
 
     var rx = new RegExp(expression, sFlags);
-    rx.originalSource = originalSource;
+
+    /* Augmented properties */
+    rx.pattern = pattern;
+    rx.patternGroups = patternGroups;
+    rx.groups = groups;
+    rx.names = names;
+    rx.flags = flags;
     rx.unicodeMode = unicodeMode;
-    rx.groups = this.groups;
 
     if (unicodeMode)
     {
       rx.oldExec = rx.exec;
-      rx.exec = jsx.regexp.RegExp.exec;
+      rx.exec = jsx_regexp_RegExp.exec;
     }
-    
+
     return rx;
   };
 })();
@@ -814,7 +838,7 @@ jsx.regexp.RegExp = (function () {
  *   using this constructpr, <code>false</code> otherwise.
  */
 jsx.regexp.RegExp.isInstance = function (rx) {
-  return !!rx.originalSource;
+  return !!rx.pattern;
 };
 
 jsx.regexp.RegExp.exec = (function () {
@@ -828,31 +852,36 @@ jsx.regexp.RegExp.exec = (function () {
       s = rx;
       rx = this;
     }
-    
+
     rx.realExec = (rx.oldExec || rx.exec);
-    
+
     var matches = rx.realExec(s);
-  
+
     if (matches && _RegExp.isInstance(rx))
     {
       matches.groups = _getDataObject();
-  
+
       if (rx.unicodeMode && !rx2)
       {
         rx2 = new _RegExp("^\\W+", "u");
       }
-      
+
       for (var i = 0, len = matches.length; i < len; ++i)
       {
-        if (rx.unicodeMode && rx.originalSource.substring(0, 2) == "\\b")
+        /* Trim leading \b matches */
+        var patternGroup = rx.patternGroups[i];
+        if (rx.unicodeMode
+            && patternGroup
+            && patternGroup.match(
+                 /^(\((\?P?(<([^>]+)>|'([^']+)'))?)*\\b/))
         {
           matches[i] = matches[i].replace(rx2, "");
         }
-        
+
         matches.groups[rx.groups[i] || i] = matches[i];
       }
     }
-  
+
     return matches;
   };
 }());
@@ -903,7 +932,8 @@ jsx.regexp.String.prototype.match = (function () {
     {
       if (rx.global)
       {
-        if (rx.unicodeMode && rx.originalSource.substring(0, 2) == "\\b")
+        /* Trim \b matches */
+        if (rx.unicodeMode)
         {
           if (!rx2)
           {
@@ -912,14 +942,19 @@ jsx.regexp.String.prototype.match = (function () {
 
           for (var i = 0, len = matches.length; i < len; ++i)
           {
-            matches[i] = matches[i].replace(rx2, "");
+            var patternGroup = rx.patternGroups[i];
+            if (patternGroup
+                && patternGroup.match(/^(\((\?P?(<([^>]+)>|'([^']+)'))?)*\\b/))
+            {
+              matches[i] = matches[i].replace(rx2, "");
+            }
           }
         }
       }
       else
       {
         matches.groups = _getDataObject();
-  
+
         for (var i = 0, len = matches.length; i < len; ++i)
         {
           matches.groups[rx.groups[i] || i] = matches[i];
@@ -940,8 +975,8 @@ jsx.regexp.String.prototype.toString =
   };
 
 /**
- * Exception thrown if a character property class is referenced, but the
- * Unicode Character Database (UCD) cannot be loaded
+ * Exception thrown if a character property class is referenced,
+ * but the Unicode Character Database (UCD) cannot be loaded
  *
  * @constructor
  * @param sUCDScript : String
@@ -951,23 +986,29 @@ jsx.regexp.String.prototype.toString =
  *   dynamically
  * @extends jsx#Error
  */
-jsx.regexp.UCDLoadError = function jsx_regexp_UCDLoadError (sUCDScript, sHTTPScript) {
-  jsx_regexp_UCDLoadError._super.call(this,
-    "Unable to load the Unicode Character Database."
-    + " Please include " + sUCDScript + " or " + sHTTPScript + ".");
-}.extend(jsx.Error, {name: "jsx.regexp.UCDLoadError"});
+jsx.regexp.UCDLoadError =
+  function jsx_regexp_UCDLoadError (sUCDScript, sHTTPScript) {
+    jsx_regexp_UCDLoadError._super.call(this,
+      "Unable to load the Unicode Character Database."
+      + " Please include " + sUCDScript + " or " + sHTTPScript + ".");
+  }.extend(jsx.Error, {name: "jsx.regexp.UCDLoadError"});
 
 /**
- * Exception thrown if a referred character property class cannot be resolved
+ * Exception thrown if a referred character property class
+ * cannot be resolved
  *
  * @constructor
  * @param sMsg
  * @extends jsx.object#PropertyError
  */
-jsx.regexp.UndefinedPropertyClassError = function jsx_regexp_UndefinedPropertyClassError (sMsg) {
-  jsx_regexp_UndefinedPropertyClassError._super.call(this);
-  this.message = "Undefined property class" + (arguments.length > 0 ? (": " + sMsg) : "");
-}.extend(jsx.object.PropertyError, {name: "jsx.regexp.UndefinedPropertyClassError"});
+jsx.regexp.UndefinedPropertyClassError =
+  function jsx_regexp_UndefinedPropertyClassError (sMsg) {
+    jsx_regexp_UndefinedPropertyClassError._super.call(this);
+    this.message = "Undefined property class"
+      + (arguments.length > 0 ? (": " + sMsg) : "");
+  }.extend(jsx.object.PropertyError, {
+    name: "jsx.regexp.UndefinedPropertyClassError"
+  });
 
 /**
  * Exception thrown if a property class value can not be expanded
@@ -976,7 +1017,11 @@ jsx.regexp.UndefinedPropertyClassError = function jsx_regexp_UndefinedPropertyCl
  * @param sMsg
  * @extends jsx.object#ObjectError
  */
-jsx.regexp.InvalidPropertyClassError = function jsx_regexp_InvalidPropertyClassError (sMsg) {
-  jsx_regexp_InvalidPropertyClassError._super.call(this);
-  this.message = "Invalid property class value" + (arguments.length > 0 ? (": " + sMsg) : "");
-}.extend(jsx.object.ObjectError, {name: "jsx.regexp.InvalidPropertyClassError"});
+jsx.regexp.InvalidPropertyClassError =
+  function jsx_regexp_InvalidPropertyClassError (sMsg) {
+    jsx_regexp_InvalidPropertyClassError._super.call(this);
+    this.message = "Invalid property class value"
+      + (arguments.length > 0 ? (": " + sMsg) : "");
+  }.extend(jsx.object.ObjectError, {
+    name: "jsx.regexp.InvalidPropertyClassError"
+  });
