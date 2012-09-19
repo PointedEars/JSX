@@ -281,12 +281,13 @@ String.prototype.regExpEscape = strRegExpEscape;
  * <ul>
  *   <li>Flags:
  *     <ul>
- *       <li><tt>s</tt> (PCRE_DOTALL)</tt> – the <tt>.</tt> metacharacter
+ *       <li><tt>s</tt> (PCRE_DOTALL) – the <tt>.</tt> metacharacter
  *         matches newline as well.</li>
- *       <li><tt>u</zz> (Unicode mode)</tt> – the meaning of
- *         character class escape sequences \b, \w, and \W is
- *         extended to include Unicode character properties.</li>
- *       <li><tt>x</zz> (PCRE_EXTENDED)</tt> – whitespace within
+ *       <li><tt>u</tt> (Unicode mode) – the meaning of
+ *         character class escape sequences <tt>\b</tt>, <tt>\w</tt>,
+ *         and <tt>\W</tt> is extended to include Unicode character
+ *         properties.</li>
+ *       <li><tt>x</tt> (PCRE_EXTENDED) – whitespace within
  *         the pattern is ignored, so that it is easier human-readable.</li>
  *     </ul><p>
  *     Flags except for Unicode mode can be set and unset for
@@ -305,22 +306,22 @@ String.prototype.regExpEscape = strRegExpEscape;
  *       of the pattern-match modifiers; the extended {@link RegExp}'s
  *       <code>extended</code>, <code>dotAll</code> and
  *       <code>unicodeMode</code> properties are set accordingly.
- *       These flags are removed from the <code>sFlags</code>
+ *       These flags are removed from the <var>sFlags</var>
  *       argument subsequently.</li>
  *   <li>The pattern is run through several passes, where in each
- *       it is scanned from left to right using another
+ *       one it is scanned from left to right using another
  *       {@link RegExp}:
  *       <ol>
  *         <li>Pattern-match modifiers are set and unset as they
  *             are scanned.  Key subpatterns are replaced in context.
  *           <ol>
- *             <li>With <tt>PCRE_EXTENDED</tt> set, single-line
+ *             <li>With PCRE_EXTENDED set, single-line
  *                 comments starting with <tt>#</tt> and unescaped
  *                 whitespace are removed from the pattern.  The backslash
  *                 is removed from the pattern when in front of
  *                 whitespace.</li>
- *             <li>With <code>PCRE_DOTALL</code> set, unescaped <tt>.</tt>
- *                 (period) characters are replaced by the character class
+ *             <li>With PCRE_DOTALL set, unescaped <tt>.</tt>
+ *                 (period) characters are replaced with the character class
  *                 <tt>[\S\s]</tt> which matches all Unicode characters.</li>
  *           </ol></li>
  *         <li>Capturing groups in the pattern are matched,
@@ -382,9 +383,9 @@ String.prototype.regExpEscape = strRegExpEscape;
  * <em>after</em> the file that declares the constructor (this
  * file) to use it.  If you do not include it, but use the
  * <code>\p{...}</code> notation, an attempt will be made to load
- * the file specified by the <code>ucdScriptPath</code> (default:
- * <code>"/scripts/UnicodeData.js"</code>) using synchronous XHR
- * (see below).
+ * the file specified by the <code>ucdScriptPath</code> property
+ * (default: <code>"/scripts/UnicodeData.js"</code>) using
+ * synchronous XHR (see below).
  * </p>
  * <p>
  * Variant #2 is going to support two different methods:
