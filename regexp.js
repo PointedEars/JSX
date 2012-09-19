@@ -949,13 +949,15 @@ jsx.regexp.RegExp = (function () {
         });
 
       /* replace \b */
+      var firstGroup = expression.match(/\((\?(P?(<([^>]+)>|'([^']+)')|[:!]))?/);
+      var afterFirstGroup = (firstGroup && (firstGroup.index + firstGroup[0].length) || 0);
       expression = expression.replace(
         /\\\\|(\\b)/g,
         function (m, wordBorder, index, all) {
           if (wordBorder)
           {
             /* FIXME: Does not work for \b in parentheses */
-            if (index > 0)
+            if (index > afterFirstGroup)
             {
               return "(?!" + wordClass + ")";
             }
@@ -1086,31 +1088,34 @@ jsx.regexp.String.extend(String);
  */
 jsx.regexp.String.prototype.match = (function () {
   var _getDataObject = jsx.object.getDataObject;
-  var _RegExp = jsx.regexp.RegExp;
-  var rx2;
+  var _RegExp2 = jsx.regexp.RegExp;
+  var rxLeadingGroups, rxNonWordChars;
 
   return function (rx) {
     var matches = this.value.match(rx);
 
-    if (matches && _RegExp.isInstance(rx))
+    if (matches && _RegExp2.isInstance(rx))
     {
+      if (rx.unicodeMode)
+      {
+        if (!rxNonWordChars)
+        {
+          rxLeadingGroups = /^(\((\?P?(<([^>]+)>|'([^']+)'))?)*\\b/;
+          rxNonWordChars = new _RegExp2("^\\W+", "u");
+        }
+      }
+      
       if (rx.global)
       {
         /* Trim \b matches */
         if (rx.unicodeMode)
         {
-          if (!rx2)
+          var patternGroup = rx.patternGroups[0];
+          if (patternGroup.match(rxLeadingGroups))
           {
-            rx2 = new _RegExp("^\\W+", "u");
-          }
-
-          for (var i = 0, len = matches.length; i < len; ++i)
-          {
-            var patternGroup = rx.patternGroups[i];
-            if (patternGroup
-                && patternGroup.match(/^(\((\?P?(<([^>]+)>|'([^']+)'))?)*\\b/))
+            for (var i = 0, len = matches.length; i < len; ++i)
             {
-              matches[i] = matches[i].replace(rx2, "");
+              matches[i] = matches[i].replace(rxNonWordChars, "");
             }
           }
         }
@@ -1121,6 +1126,15 @@ jsx.regexp.String.prototype.match = (function () {
 
         for (var i = 0, len = matches.length; i < len; ++i)
         {
+          if (rx.unicodeMode)
+          {
+            patternGroup = rx.patternGroups[i];
+            if (patternGroup.match(rxLeadingGroups))
+            {
+              matches[i] = matches[i].replace(rxNonWordChars, "");
+            }
+          }
+          
           matches.groups[rx.groups[i] || i] = matches[i];
         }
       }
