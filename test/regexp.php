@@ -630,6 +630,28 @@
               }
             },
             {
+              name: 'PCRE pattern-match modifiers <code>(?x)</code> and <code>(?-x)<\/code>',
+              code: function () {
+                var rx = new RegExp2("a b#foo\n(?-x)c d#bar\r\n(?x)d e#baz\r(?-x)f g", "x");
+                assert(rx.source == "abc d#bar\r\ndef g");
+              }
+            },
+            {
+              name: 'PCRE combined pattern-match modifier <code>(?x-x)<\/code>'
+                  + ' (no change)',
+              code: function () {
+                var rx = new RegExp2("(?x-x)a b#foo");
+                assert(rx.source == "a b#foo");
+              }
+            },
+            {
+              name: "PCRE option flags: <code>extended</code> property",
+              code: function () {
+                assertFalse(new RegExp2("\\w", "").extended);
+                assertTrue(new RegExp2("\\w", "x").extended);
+              }
+            },
+            {
               name: "PCRE option flags: <code>s<\/code> (PCRE_DOTALL)"
                   + " – <code>.</code> matches newline too",
               code: function () {
@@ -637,6 +659,23 @@
                 assert(rx.source == "[\\S\\s]");
                 
                 assert("\n".match(rx)[0] == "\n");
+              }
+            },
+            {
+              name: 'PCRE pattern-match modifier <code>(?s-s)<\/code>',
+              code: function () {
+                var rx = new RegExp2("a.b(?-s)c.d(?s)e.f", "s");
+                assert(rx.source == "a[\\S\\s]bc.de[\\S\\s]f");
+
+                assert(("a\nbc.de\nf".match(rx) || [])[0] === "a\nbc.de\nf");
+                assert("a\nbc\nde\nf".match(rx) === null);
+              }
+            },
+            {
+              name: "PCRE option flags: <code>dotAll</code> property",
+              code: function () {
+                assertFalse(new RegExp2("\\w", "").dotAll);
+                assertTrue(new RegExp2("\\w", "s").dotAll);
               }
             },
             {

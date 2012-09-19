@@ -109,7 +109,7 @@ var regexp_concat = jsx.regexp.concat = function () {
     m: false,
     y: false,
 
-    setFlags: function (template) {
+    setFromTemplate: function (template) {
       var flags = this.flags;
       for (var flag in flags)
       {
@@ -120,7 +120,7 @@ var regexp_concat = jsx.regexp.concat = function () {
       }
     },
 
-    joinSet:
+    toString:
       /**
        * @return string
        */
@@ -139,11 +139,13 @@ var regexp_concat = jsx.regexp.concat = function () {
         return a.join("");
       }
   };
+  
+  var regexp2str = jsx.regexp.toString2;
 
   if (c && c == RegExp)
   {
     aParts.push(regexp2str(this));
-    oFlags.setFlags(this);
+    oFlags.setFromTemplate(this);
   }
 
   for (var i = 0, iArgnum = arguments.length; i < iArgnum; i++)
@@ -153,7 +155,7 @@ var regexp_concat = jsx.regexp.concat = function () {
     if (c && c == RegExp)
     {
       aParts.push(regexp2str(a));
-      oFlags.setFlags(a);
+      oFlags.setFromTemplate(a);
     }
     else
     {
@@ -161,7 +163,7 @@ var regexp_concat = jsx.regexp.concat = function () {
     }
   }
 
-  return new RegExp(aParts.join(""), oFlags.joinSet());
+  return new RegExp(aParts.join(""), oFlags.toString());
 };
 RegExp.prototype.concat = regexp_concat;
 
@@ -267,43 +269,85 @@ var strRegExpEscape = jsx.regexp.escape = function (s) {
 String.prototype.regExpEscape = strRegExpEscape;
 
 /**
- * Creates an extended {@link RegExp} where you can use some
- * features of Perl-compatible regular expressions (PCRE).
+ * Creates and returns an extended {@link RegExp} object.
+ * 
+ * The returned {@link RegExp} is extended in two ways: Firstly,
+ * it accepts a pattern string where you can use some features
+ * of Perl and Perl-compatible regular expressions (PCRE).
+ * Secondly, it has additional properties to accomodate those
+ * extensions.
  *
- * The following PCRE features are currently supported:
+ * The following extra features are currently supported:
  * <ul>
  *   <li>Flags:
  *     <ul>
  *       <li><tt>s</tt> (PCRE_DOTALL)</tt> – the <tt>.</tt> metacharacter
  *         matches newline as well.</li>
+ *       <li><tt>u</zz> (Unicode mode)</tt> – the meaning of
+ *         character class escape sequences \b, \w, and \W is
+ *         extended to include Unicode character properties.</li>
  *       <li><tt>x</zz> (PCRE_EXTENDED)</tt> – whitespace within
  *         the pattern is ignored, so that it is easier human-readable.</li>
- *     </ul>
+ *     </ul><p>
+ *     Flags except for Unicode mode can be set and unset for
+ *     parts of the expression outside of character classes using
+ *     the <tt>(?…)</tt> and <tt>(?-…)</tt> notations.
  *   </li>
  *   <li>Unicode property classes using e.g. the \p{…} notation</li>
  *   <li>Named capturing groups by passing strings with the
  *       <tt>(?P&lt;name>…)</tt> or <tt>(?P'name'…)</tt> notation,
  *       where the <tt>P</tt> is optional, respectively.</li>
  * </ul><p>
- * This is facilitated with replacing certain substrings in the
- * passed pattern:
- * </p><ul>
- *   <li>Flags:
- *     <ul>
- *       <li>With <tt>s</tt> (<tt>PCRE_DOTALL</tt>), unescaped <tt>.</tt>
- *         characters are replaced by the character class <tt>[\S\s]</tt>.</li>
- *       <li>With <tt>x</tt> (<tt>PCRE_EXTENDED</tt>), whitespace is removed
- *         from the pattern.</li>
- *     </ul>
- *   </li>
- *   <li><tt>\p{…}</tt> and <tt>\P{…}</tt> escape sequences are
- *       replaced by the corresponding character classes</li>
- *   <li><tt>(?P&lt;name>…)</tt> and <tt>(?P'name'…)</tt> generate
- *       properties of a user-defined <tt>group</tt> property of the
- *       extended RegExp that are used when matching it against a
- *       <code>jsx.regexp.String</code> using its
- *       <tt>match(…)</tt> method.</li>
- * </ul><p>
+ * This is facilitated through the following steps:
+ * </p><ol>
+ *   <li>The flags <code>x</code>, <code>s</code> and <code>u</code>
+ *       in the <var>sFlags</var> argument set the initial state
+ *       of the pattern-match modifiers; the extended {@link RegExp}'s
+ *       <code>extended</code>, <code>dotAll</code> and
+ *       <code>unicodeMode</code> properties are set accordingly.
+ *       These flags are removed from the <code>sFlags</code>
+ *       argument subsequently.</li>
+ *   <li>The pattern is run through several passes, where in each
+ *       it is scanned from left to right using another
+ *       {@link RegExp}:
+ *       <ol>
+ *         <li>Pattern-match modifiers are set and unset as they
+ *             are scanned.  Key subpatterns are replaced in context.
+ *           <ol>
+ *             <li>With <tt>PCRE_EXTENDED</tt> set, single-line
+ *                 comments starting with <tt>#</tt> and unescaped
+ *                 whitespace are removed from the pattern.  The backslash
+ *                 is removed from the pattern when in front of
+ *                 whitespace.</li>
+ *             <li>With <code>PCRE_DOTALL</code> set, unescaped <tt>.</tt>
+ *                 (period) characters are replaced by the character class
+ *                 <tt>[\S\s]</tt> which matches all Unicode characters.</li>
+ *           </ol></li>
+ *         <li>Capturing groups in the pattern are matched,
+ *             and replaced with the opening parenthesis if they were assigned
+ *             a name.  The extended {@link RegExp}'s <code>groups</code>,
+ *             <code>names</code>, and <code>patternGroups</code>
+ *             properties are set accordingly.  They are used in an
+ *             overwritten <code>exec()</code> method and when matching
+ *             against a <code>jsx.regexp.String</code> using its
+ *             <tt>match(…)</tt> method.</li>
+ *         <li>When in Unicode mode,
+ *             <ol>
+ *               <li>in the third pass, character class escape sequences
+ *                   <tt>\w</tt> and <tt>\W</tt> are replaced with
+ *                   corresponding uses of <tt>\p{Word}</tt>.</li>
+ *               <li>in the fourth pass, <tt>\b</tt> is replaced with
+ *                   corresponding uses of character classes and negative
+ *                   lookahead.
+ *             </ol></li>
+ *         <li>The <tt>\p{…}</tt> and <tt>\P{…}</tt> escape sequences
+ *             are replaced by the corresponding character classes.</li>
+ *       </ol></li>
+ *   <li>The resulting expression and remaining flags are passed
+ *       to the {@link RegExp} constructor.</li>
+ *   <li>The created {@link RegExp} instance is augmented with
+ *       properties and returned.</li>
+ * </ol><p>
  * There are the following possibilities to make Unicode property
  * classes known to this constructor:
  * </p><ol>
@@ -367,14 +411,63 @@ String.prototype.regExpEscape = strRegExpEscape;
  * property classes.
  * </p>
  *
+ * The returned {@link RegExp} has additional properties to
+ * accomodate syntax extensions in the pattern string:
+ * 
+ * @property pattern : String
+ *   The original pattern string, including pattern-matching
+ *   modifiers.
+ * @property patternGroups : Array
+ *   The part of the pattern string from the opening parenthesis
+ *   of each pattern group to the end of the pattern, before
+ *   character class expansion, and without pattern-matching
+ *   modifiers.  The first item (index 0) holds the complete
+ *   pattern without modifiers.
+ *   <em>NOTE: For efficiency, the pattern groups are not isolated;
+ *   further parsing on your part may very well be necessary.</em>
+ * @property groups : Object
+ *   An Array-like object mapping group indexes to group names.
+ *   Its <code>length</code> property yields the number of grouped
+ *   subpatterns in the original pattern, including named groups.
+ * @property names : Object
+ *   An object mapping group names to group indexes.
+ * @property flags : String
+ *   The original flags string
+ * @property dotAll : boolean
+ *   Flag specifying whether the used expression was built from
+ *   a pattern where the dot matches newline as well (PCRE_DOTALL).
+ * @property extended : boolean
+ *   Flag specifying whether the used expression was built from
+ *   an extended pattern (PCRE_EXTENDED).
+ * @property unicodeMode : boolean
+ *   Flag specifying whether the used expression was built using
+ *   Unicode mode.
+ * @method exec
+ *   A variant of the RegExp.prototype.exec() method to support
+ *   named groups and Unicode mode transparently.
+ * @method _oldExec
+ *   The original inherited exec() method.  Used internally and
+ *   is only available in Unicode mode.
+ *
  * @function
  * @constructor
  * @param expression : String|RegExp
+ *   A regular expression pattern string that may use the features
+ *   described above.  If it is a {@link RegExp}, its
+ *   <code>source</code> property is used and combined with
+ *   <var>sFlags</var>.  That is, <code>jsx.regexp.RegExp(/foo/, "i")</code>
+ *   returns the same as <code>jsx.regexp.RegExp(/foo/i)</code>.
  * @param sFlags : String
+ *   Optional string containing none, one or more of the standard
+ *   {@link RegExp} modifiers and the flags described above.
+ *   Unsupported flags are ignored, but passed on to {@link RegExp}.
+ *   Note that modifiers in <var>expression</var> can temporarily
+ *   unset and set the "s" and "x" flags.  Following Perl, the "u"
+ *   flag (Unicode mode) can only be enabled, but not disabled.
  * @return RegExp
  *   A regular expression with the property class escape sequences
  *   expanded according to the specified data, with the specified
- *   flags set.
+ *   flags set if they are natively supported.
  */
 jsx.regexp.RegExp = (function () {
   var
@@ -657,23 +750,116 @@ jsx.regexp.RegExp = (function () {
 
     var pattern = expression;
     var flags = sFlags || "";
+    
+    var extended = false;
+    var dotAll = false;
+    var unicodeMode = false;
 
-    /* PCRE_EXTENDED */
-    if (sFlags && sFlags.indexOf("x") > -1)
+    if (sFlags)
     {
-      /* Remove comments */
-      expression = expression.replace(/#.*$/mg, "");
+      if (sFlags.indexOf("x") > -1)
+      {
+        var originalExtended = extended = true;
+      }
+      
+      if (sFlags.indexOf("s") > -1)
+      {
+        var originalDotAll = dotAll = true;
+      }
+      
+      if (sFlags.indexOf("u") > -1)
+      {
+        var originalUnicodeMode = unicodeMode = true;
+      }
 
-      /* Remove unescaped whitespace */
-      expression = expression.replace(
-        /(\\(\s)|\[([^\\\]]|\\.)*\])|\s+/g,
-        function (m, p1, escapedWS) {
-          return escapedWS || p1 || "";
-        });
-
-      sFlags = sFlags.replace(/x/g, "");
+      sFlags = sFlags.replace(/[xsu]/g, "");
     }
+    
+    expression = expression.replace(
+      /(\(\?)([adlupimsx]*)(-([imsx]+))?\)/.concat(
+        "|",
+        /(#.*(\r?\n|\r|$))|\\(\s)/,
+        "|",
+        /\[([^\\\]]|\\.)*\]|(\s+)|\\\.|(\.)/g),
+      function (match, modifierGroup, positiveModifiers, negativeModifiers_opt,
+                 negativeModifiers, comment, newline,
+                 escapedWS, charClassContent, whitespace,
+                 plainDot, index, all) {
+        /* Embedded pattern-match modifiers */
+        if (modifierGroup)
+        {
+          if (positiveModifiers)
+          {
+            var
+              rxPosModifiers = /[usx]/g,
+              m;
 
+            while ((m = rxPosModifiers.exec(positiveModifiers)))
+            {
+              switch (m[0])
+              {
+                case "s":
+                  dotAll = true;
+                  break;
+
+                case "x":
+                  extended = true;
+              }
+            }
+          }
+
+          if (negativeModifiers)
+          {
+            var rxNegModifiers = /[sx]/g;
+
+            while ((m = rxNegModifiers.exec(negativeModifiers)))
+            {
+              switch (m[0])
+              {
+                case "s":
+                  dotAll = false;
+                  break;
+
+                case "x":
+                  extended = false;
+              }
+            }
+          }
+
+          return "";
+        }
+
+        /* PCRE_EXTENDED */
+        if (extended)
+        {
+          /* Remove comments */
+          if (comment)
+          {
+            return "";
+          }
+    
+          /* Keep escaped whitespace, remove escape */
+          if (escapedWS)
+          {
+            return escapedWS;
+          }
+          
+          /* Remove unescaped whitespace */
+          if (whitespace)
+          {
+            return "";
+          }
+        }
+        
+        /* PCRE_DOTALL */
+        if (dotAll && plainDot)
+        {
+          return "[\\S\\s]";
+        }
+        
+        return match;
+      });
+    
     /* Support for capturing groups */
     var groupCount = 0;
     var groups = _getDataObject();
@@ -716,93 +902,68 @@ jsx.regexp.RegExp = (function () {
 
     groups.length = groupCount;
 
-    if (sFlags)
+    /* Unicode mode */
+    if (unicodeMode)
     {
-      /* PCRE_DOTALL */
-      if (sFlags.indexOf("s") > -1)
-      {
-        expression = expression.replace(
-          /\[([^\\\]]|\\.)*\]|\\\.|(\.)/g,
-          function (m, classDot, plainDot) {
-            if (plainDot)
-            {
-              return "[\\S\\s]";
-            }
+      var wordClass = "\\p{Word}";
+      expression = expression.replace(
+        /\[(([^\\\]]|\\.)*)\]|(\\(w))/gi,
+        function (m, charClassContent, p2, wordCharacter, escapeLetter) {
+          if (charClassContent)
+          {
+            var normalized = _normalizeCharClass(charClassContent, true);
 
-            return m;
-          });
-
-        sFlags = sFlags.replace(/s/g, "");
-      }
-
-      /* Unicode mode */
-      var unicodeMode = false;
-      if (sFlags.indexOf("u") > -1)
-      {
-        unicodeMode = true;
-
-        var wordClass = "\\p{Word}";
-        expression = expression.replace(
-          /\[(([^\\\]]|\\.)*)\]|(\\(w))/gi,
-          function (m, charClassContent, p2, wordCharacter, escapeLetter) {
-            if (charClassContent)
-            {
-              var normalized = _normalizeCharClass(charClassContent, true);
-
-              return normalized.replace(
-                /\\\\|(\\(w))/gi,
-                function (m, wordCharacter, escapeLetter) {
-                  if (wordCharacter)
+            return normalized.replace(
+              /\\\\|(\\(w))/gi,
+              function (m, wordCharacter, escapeLetter) {
+                if (wordCharacter)
+                {
+                  if (escapeLetter == "W")
                   {
-                    if (escapeLetter == "W")
+                    if (charClassContent.charAt(0) != "^")
                     {
-                      if (charClassContent.charAt(0) != "^")
-                      {
-                        jsx.warn("jsx.RegExp: [...\\W{...}...] in Unicode mode"
-                          + " not yet supported. Use [^...\\w...]"
-                          + " in the meantime.");
+                      jsx.warn("jsx.RegExp: [...\\W{...}...] in Unicode mode"
+                        + " not yet supported. Use [^...\\w...]"
+                        + " in the meantime.");
 
-                        return wordCharacter;
-                      }
+                      return wordCharacter;
                     }
-
-                    return wordClass;
                   }
 
-                  return m;
-                });
-            }
+                  return wordClass;
+                }
 
-            if (wordCharacter)
+                return m;
+              });
+          }
+
+          if (wordCharacter)
+          {
+            return "["
+              + (escapeLetter === "W" ? "^" : "")
+              + wordClass + "]";
+          }
+
+          return m;
+        });
+
+      /* replace \b */
+      expression = expression.replace(
+        /\\\\|(\\b)/g,
+        function (m, wordBorder, index, all) {
+          if (wordBorder)
+          {
+            /* FIXME: Does not work for \b in parentheses */
+            if (index > 0)
             {
-              return "["
-                + (escapeLetter === "W" ? "^" : "")
-                + wordClass + "]";
+              return "(?!" + wordClass + ")";
             }
 
-            return m;
-          });
+            return "(?:^|[^" + wordClass + "])";
+          }
 
-        /* replace \b */
-        expression = expression.replace(
-          /\\\\|(\\b)/g,
-          function (m, wordBorder, index, all) {
-            if (wordBorder)
-            {
-              /* FIXME: Does not work for \b in parentheses */
-              if (index > 0)
-              {
-                return "(?!" + wordClass + ")";
-              }
-
-              return "(?:^|[^" + wordClass + "])";
-            }
-
-            return m;
-          });
-
-        sFlags = sFlags.replace(/u/g, "");
-      }
+          return m;
+        });
     }
 
     /* Support for Unicode character property classes (PCRE-compliant) */
@@ -816,11 +977,13 @@ jsx.regexp.RegExp = (function () {
     rx.groups = groups;
     rx.names = names;
     rx.flags = flags;
+    rx.dotAll = !!originalDotAll;
+    rx.extended = !!originalExtended;
     rx.unicodeMode = unicodeMode;
 
     if (unicodeMode)
     {
-      rx.oldExec = rx.exec;
+      rx._oldExec = rx.exec;
       rx.exec = jsx_regexp_RegExp.exec;
     }
 
@@ -853,7 +1016,7 @@ jsx.regexp.RegExp.exec = (function () {
       rx = this;
     }
 
-    rx.realExec = (rx.oldExec || rx.exec);
+    rx.realExec = (rx._oldExec || rx.exec);
 
     var matches = rx.realExec(s);
 
