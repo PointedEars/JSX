@@ -1,0 +1,50 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+  "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>JSX API Documentation</title>
+    <style type="text/css">
+      <!--
+      ol {
+        list-style-type: decimal;
+      }
+      
+      ol ol {
+        list-style-type: lower-latin;
+      }
+      
+      ol ol ol {
+        list-style-type: lower-roman;
+      }
+
+      ol ol ol ol {
+        list-style-type: decimal;
+      }
+      -->
+    </style>
+    <script type="text/javascript" src="../builder.php?src=object,dom,http,JSdoc/jsdoc-simple&amp;verbose=1"></script>
+    <script type="text/javascript">
+      function getDoc ()
+      {
+        var xhr = new jsx.net.http.Request(
+          "../" + (String(window.location.search).match(/^\??(.*)/) || [, ""])[1] + ".js",
+          "GET",
+          true,
+          function (response) {
+            de.pointedears.jsdoc.generate(response.responseText);
+          },
+          function () {
+            var div = document.createElement("div");
+            div.appendChild(document.createTextNode("File " + xhr.uri + " could not be loaded."));
+            document.body.appendChild(div);
+          });
+        xhr.dontCache().send();
+      }
+    </script>
+  </head>
+
+  <body onload="getDoc()">
+    <h1 id="title">JSX API Documentation</h1>    
+  </body>
+</html>
