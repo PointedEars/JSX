@@ -104,7 +104,16 @@ class ResourceBuilder
    * @var boolean
    */
   protected $_verbose = false;
-    
+
+  /**
+   * If <code>true</code> or <code>false</code>, forces or forbids
+   * the use of gzip.  The default is <code>null</code> which
+   * gzips only if the client supports it.
+   *
+   * @var mixed
+   */
+  protected $_force_gzip = null;
+  
   /**
    * Number of comments processed so far
    * @var int
@@ -145,6 +154,11 @@ class ResourceBuilder
       if (isset($_GET['verbose']))
       {
         $this->verbose = $_GET['verbose'];
+      }
+      
+      if (isset($_GET['gzip']))
+      {
+        $this->force_gzip = $_GET['gzip'];
       }
       
       $this->commentCount = 0;
@@ -267,6 +281,19 @@ class ResourceBuilder
     if ($verbose != 0)
     {
       $this->_verbose = true;
+    }
+  }
+  
+  /**
+   * Sets the _force_gzip property
+   *
+   * @param mixed $gzip
+   */
+  protected function setForce_gzip($gzip)
+  {
+    if ($gzip !== null)
+    {
+      $this->_force_gzip = !!$gzip;
     }
   }
   
@@ -401,9 +428,13 @@ class ResourceBuilder
         && preg_match('/\b((?:x-)?gzip)\s*,?/', $_SERVER['HTTP_ACCEPT_ENCODING'], $matches)
         && function_exists('gzencode'))
     {
-      $use_gzip = true;
-      header("Content-Encoding: {$matches[1]}");
-      header('Vary: Accept-Encoding');
+      $force_gzip = $this->force_gzip;
+      $use_gzip = ($force_gzip !== null ? $force_gzip : true);
+      if ($use_gzip)
+      {
+        header("Content-Encoding: {$matches[1]}");
+        header('Vary: Accept-Encoding');
+      }
     }
     
     $prefix = $this->prefix;
