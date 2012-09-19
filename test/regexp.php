@@ -785,6 +785,17 @@
             },
             {
               name: "Unicode mode: <code>\\b<\/code> matches"
+                  + " after initial opening group parenthesis",
+              code: function () {
+                assert(((new RegExp2("(\\ba)", "u")).exec("a") || [])[0] === "a");
+                assert(((new RegExp2("(?:\\ba)", "u")).exec("a") || [])[0] === "a");
+                assert(((new RegExp2("(?<foo>\\ba)", "u")).exec("a") || [])[0] === "a");
+                assert(((new RegExp2("(?'foo'\\ba)", "u")).exec("a") || [])[0] === "a");
+                assert(((new RegExp2("(?P<foo>\\ba)", "u")).exec("a") || [])[0] === "a");
+              }
+            },
+            {
+              name: "Unicode mode: <code>\\b<\/code> matches"
                   + " at the end of input",
               code: function () {
                 var rx = new RegExp2("a\\b", "u");
@@ -834,12 +845,23 @@
               }
             },
             {
+              feature: 'jsx.regexp.String.prototype.match(new jsx.regexp.RegExp(…, "u"))',
+              desc: "Unicode mode: <code>\\b<\/code> match"
+                  + " before non-ASCII letter is trimmed (all captures)",
+              code: function () {
+                var rx = new RegExp2("(\\bä)", "u");
+                var m = (new String2(" ä")).match(rx);
+                assertTrue(m[0] === "ä" && m[1] === "ä");
+              }
+            },
+            {
               feature: 'jsx.regexp.String.prototype.match(new jsx.regexp.RegExp(…, "gu"))',
               desc: "Unicode mode: <code>\\b<\/code> match"
-                  + " before non-ASCII letter is trimmed",
+                  + " before non-ASCII letter is trimmed (all matches)",
               code: function () {
-                var rx = new RegExp2("\\bä", "gu");
-                assert((new String2(" ä").match(rx) || [])[0] === "ä");
+                var rx = new RegExp2("\\b\\w", "gu");
+                var m = new String2(" ä ö").match(rx);
+                assert(m[0] === "ä" && m[1] === "ö");
               }
             }
           ]
