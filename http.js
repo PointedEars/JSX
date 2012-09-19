@@ -268,6 +268,8 @@ jsx.net.http.Request.prototype = {
   
   requestHeaders: jsx.object.getDataObject(),
   
+  useCache: true,
+  
   /**
    * Method to be called onreadystatechange
    *
@@ -319,6 +321,9 @@ jsx.net.http.Request.prototype = {
       sURL = escURI(sURL);
     }
 
+    /**
+     * @type String
+     */
     this.URL = (sURL || document.URL);
   },
 
@@ -577,6 +582,11 @@ jsx.net.http.Request.prototype = {
       return this;
     };
   }()),
+  
+  dontCache: function () {
+    this.useCache = false;
+    return this;
+  },
 
   /**
    * Returns a reference to an XML HTTP Request object.  Reuses an existing
@@ -727,11 +737,15 @@ jsx.net.http.Request.prototype = {
     x.open(
       sMethod.toUpperCase(),
       sURL
-        + ((bGET && sData)
+        + ((bGET && (sData || !this.useCache))
             ? (!/[?&]$/.test(sURL)
                 ? (sURL.indexOf("?") < 0 ? "?" : "&")
                 : "")
               + sData
+              + (!this.useCache
+                ? (sData ? "&" : "")
+                  + "timestamp=" + (new Date()).getTime()
+                  : "")
             : ""),
       bAsync);
 
@@ -744,8 +758,12 @@ jsx.net.http.Request.prototype = {
         function () {
           x.setRequestHeader("Content-Type", me.requestType);
 
-          /* FIXME: Never fetch resource from HTTP/1.1 cache */
-          x.setRequestHeader("Cache-Control", "max-age=0");
+          if (!this.useCache)
+          {
+            this.setRequestHeaders({
+              "If-Modified-Since": (new Date(0)).toUTCString()
+            });
+          }
 
           var _hasOwnProperty = jsx.object._hasOwnProperty;
           var requestHeaders = me.requestHeaders;
