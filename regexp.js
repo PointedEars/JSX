@@ -271,13 +271,14 @@ String.prototype.regExpEscape = strRegExpEscape;
 /**
  * Creates and returns an extended {@link RegExp} object.
  * 
- * The returned {@link RegExp} is extended in two ways: Firstly,
- * it accepts a pattern string where you can use some features
- * of Perl and Perl-compatible regular expressions (PCRE).
- * Secondly, it has additional properties to accomodate those
- * extensions.
+ * This constructor accepts pattern and flags arguments where you
+ * can use some features of Perl and Perl-compatible regular
+ * expressions (PCRE); like {@link RegExp()}, it can also be called
+ * as a function to do the same.  The {@link RegExp} instance it
+ * returns is augmented with properties to support those features
+ * when matching it against a string.
  *
- * The following extra features are currently supported:
+ * The following additional features are currently supported:
  * <ul>
  *   <li>Flags:
  *     <ul>
@@ -288,7 +289,8 @@ String.prototype.regExpEscape = strRegExpEscape;
  *         and <tt>\W</tt> is extended to include Unicode character
  *         properties.</li>
  *       <li><tt>x</tt> (PCRE_EXTENDED) – whitespace within
- *         the pattern is ignored, so that it is easier human-readable.</li>
+ *         the pattern is ignored, so that it is easier
+ *         human-readable.</li>
  *     </ul><p>
  *     Flags except for Unicode mode can be set and unset for
  *     parts of the expression outside of character classes using
@@ -327,7 +329,7 @@ String.prototype.regExpEscape = strRegExpEscape;
  *         <li>Capturing groups in the pattern are matched,
  *             and replaced with the opening parenthesis if they were assigned
  *             a name.  The extended {@link RegExp}'s <code>groups</code>,
- *             <code>names</code>, and <code>patternGroups</code>
+ *             <code>names</code>, and <code>_patternGroups</code>
  *             properties are set accordingly.  They are used in an
  *             overwritten <code>exec()</code> method and when matching
  *             against a <code>jsx.regexp.String</code> using its
@@ -418,12 +420,12 @@ String.prototype.regExpEscape = strRegExpEscape;
  * @property pattern : String
  *   The original pattern string, including pattern-matching
  *   modifiers.
- * @property patternGroups : Array
+ * @property _patternGroups : Array
  *   The part of the pattern string from the opening parenthesis
  *   of each pattern group to the end of the pattern, before
  *   character class expansion, and without pattern-matching
  *   modifiers.  The first item (index 0) holds the complete
- *   pattern without modifiers.
+ *   pattern without modifiers.  Used internally; do not modify.
  *   <em>NOTE: For efficiency, the pattern groups are not isolated;
  *   further parsing on your part may very well be necessary.</em>
  * @property groups : Object
@@ -444,11 +446,16 @@ String.prototype.regExpEscape = strRegExpEscape;
  *   Flag specifying whether the used expression was built using
  *   Unicode mode.
  * @method exec
- *   A variant of the RegExp.prototype.exec() method to support
- *   named groups and Unicode mode transparently.
+ *   In Unicode mode, a variant of the built-in
+ *   {@link RegExp.prototype#exec()} to support named groups
+ *   and Unicode mode transparently.  Identical to
+ *   <code>RegExp.prototype.exec()</code> otherwise.
  * @method _oldExec
- *   The original inherited exec() method.  Used internally and
- *   is only available in Unicode mode.
+ *   The original inherited exec() method.  Used internally,
+ *   only available in Unicode mode.
+ * @method _realExec
+ *   The used exec() method.  Used internally, only available
+ *   in Unicode mode.
  *
  * @function
  * @constructor
@@ -948,7 +955,7 @@ jsx.regexp.RegExp = (function () {
           return m;
         });
 
-      /* replace \b */
+      /* Replace \b */
       var firstGroup = expression.match(/\((\?(P?(<([^>]+)>|'([^']+)')|[:!]))?/);
       var afterFirstGroup = (firstGroup && (firstGroup.index + firstGroup[0].length) || 0);
       expression = expression.replace(
@@ -956,7 +963,7 @@ jsx.regexp.RegExp = (function () {
         function (m, wordBorder, index, all) {
           if (wordBorder)
           {
-            /* FIXME: Does not work for \b in parentheses */
+            /* Handle \b in leading groups properly */
             if (index > afterFirstGroup)
             {
               return "(?!" + wordClass + ")";
@@ -976,7 +983,7 @@ jsx.regexp.RegExp = (function () {
 
     /* Augmented properties */
     rx.pattern = pattern;
-    rx.patternGroups = patternGroups;
+    rx._patternGroups = patternGroups;
     rx.groups = groups;
     rx.names = names;
     rx.flags = flags;
@@ -1019,9 +1026,9 @@ jsx.regexp.RegExp.exec = (function () {
       rx = this;
     }
 
-    rx.realExec = (rx._oldExec || rx.exec);
+    rx._realExec = (rx._oldExec || rx.exec);
 
-    var matches = rx.realExec(s);
+    var matches = rx._realExec(s);
 
     if (matches && _RegExp.isInstance(rx))
     {
@@ -1035,7 +1042,7 @@ jsx.regexp.RegExp.exec = (function () {
       for (var i = 0, len = matches.length; i < len; ++i)
       {
         /* Trim leading \b matches */
-        var patternGroup = rx.patternGroups[i];
+        var patternGroup = rx._patternGroups[i];
         if (rx.unicodeMode
             && patternGroup
             && patternGroup.match(
@@ -1110,7 +1117,7 @@ jsx.regexp.String.prototype.match = (function () {
         /* Trim \b matches */
         if (rx.unicodeMode)
         {
-          var patternGroup = rx.patternGroups[0];
+          var patternGroup = rx._patternGroups[0];
           if (patternGroup.match(rxLeadingGroups))
           {
             for (var i = 0, len = matches.length; i < len; ++i)
@@ -1128,7 +1135,7 @@ jsx.regexp.String.prototype.match = (function () {
         {
           if (rx.unicodeMode)
           {
-            patternGroup = rx.patternGroups[i];
+            patternGroup = rx._patternGroups[i];
             if (patternGroup.match(rxLeadingGroups))
             {
               matches[i] = matches[i].replace(rxNonWordChars, "");
