@@ -23,7 +23,7 @@
       }
       -->
     </style>
-    <script type="text/javascript" src="../builder.php?src=object,dom,http,JSdoc/jsdoc-simple&amp;verbose=1"></script>
+    <script type="text/javascript" src="../builder.php?gzip=0&amp;src=object,dom,http,JSdoc/jsdoc-simple"></script>
     <script type="text/javascript">
       function getDoc ()
       {
@@ -36,7 +36,7 @@
           },
           function () {
             var div = document.createElement("div");
-            div.appendChild(document.createTextNode("File " + xhr.uri + " could not be loaded."));
+            div.appendChild(document.createTextNode("File " + xhr.URL + " could not be loaded."));
             document.body.appendChild(div);
           });
         xhr.dontCache().send();
