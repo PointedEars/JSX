@@ -424,8 +424,6 @@ jsx.error = function (sMsg) {
   return jsx.dmsg(sMsg, jsx.MSG_ERROR);
 };
 
-
-
 /**
  * Creates a duplicate (clone) of an object
  *
