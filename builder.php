@@ -64,7 +64,7 @@ class ResourceBuilder
     * Class version
    * @var string
    */
-  protected $_version = '0.4.3';
+  protected $_version = '0.4.5';
 
   /**
    * Common path prefix for all resources
@@ -396,11 +396,21 @@ class ResourceBuilder
     /* Cached resource expires in HTTP/1.0 caches 24h after last retrieval */
     header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 86400) . ' GMT');
 
+    $use_gzip = false;
+    if (isset($_SERVER['HTTP_ACCEPT_ENCODING'])
+        && preg_match('/\b((?:x-)?gzip)\s*,?/', $_SERVER['HTTP_ACCEPT_ENCODING'], $matches)
+        && function_exists('gzencode'))
+    {
+      $use_gzip = true;
+      header("Content-Encoding: {$matches[1]}");
+      header('Vary: Accept-Encoding');
+    }
+    
     $prefix = $this->prefix;
     
 //     $this->resolveDeps();
     
-    echo "/*\n"
+    $out = "/*\n"
         . " * Compacted with PointedEars' ResourceBuilder {$this->version}\n"
         . ($this->verbose
             ?   " * Type:          {$this->contentType}\n"
@@ -410,6 +420,11 @@ class ResourceBuilder
         . " *\n"
         . " * Please see the original files for the complete source code.\n"
         . " */\n\n";
+    
+    if (!$use_gzip)
+    {
+      echo $out;
+    }
     
     $verbose = $this->verbose;
     
@@ -426,7 +441,14 @@ class ResourceBuilder
       
       if ($index > 0)
       {
-        echo "\n\n";
+        if ($use_gzip)
+        {
+          $out .= "\n\n";
+        }
+        else
+        {
+          echo "\n\n";
+        }
       }
       
       $file = $prefix . $source
@@ -470,29 +492,54 @@ class ResourceBuilder
         $ratioFormatted = sprintf('%.1f %%', $ratioPercentage);
       }
       
-      echo implode("\n", array(
-        '/*',
-        " * {$file}"
-          . ($verbose
-             ? ": {$originalSizeFormatted} bytes reduced to {$compactedSizeFormatted} bytes"
-               . " ({$ratioFormatted})"
-             : ""),
-        " */\n"
-      ));
+      $content =
+          implode("\n", array(
+            '/*',
+            " * {$file}"
+              . ($verbose
+                 ? ": {$originalSizeFormatted} bytes reduced to {$compactedSizeFormatted} bytes"
+                   . " ({$ratioFormatted})"
+                 : ""),
+            " */\n"
+          ))
+        . $content;
       
-      echo $content;
-      
-      if ($verbose)
+      if ($use_gzip)
       {
-        $totalSizeFormatted = number_format($totalSize, 0, '.', "'");
-        $totalCompactedSizeFormatted = number_format($totalCompactedSize, 0, '.', "'");
-        $ratioPercentage = $totalCompactedSize / $totalSize * 100;
-        $ratioFormatted = sprintf('%.1f %%', $ratioPercentage);
-                
-        echo "\n\n/*"
-          . " Total of {$totalSizeFormatted} bytes reduced to {$totalCompactedSizeFormatted} bytes"
-          . " ({$ratioFormatted}). */";
+        $out .= $content;
       }
+      else
+     {
+        echo $content;
+      }
+    }
+
+    if ($verbose)
+    {
+      $totalSizeFormatted = number_format($totalSize, 0, '.', "'");
+      $totalCompactedSizeFormatted = number_format($totalCompactedSize, 0, '.', "'");
+      $ratioPercentage = $totalCompactedSize / $totalSize * 100;
+      $ratioFormatted = sprintf('%.1f %%', $ratioPercentage);
+    
+      $summary = "\n\n/*"
+        . " Total of {$totalSizeFormatted} bytes reduced to {$totalCompactedSizeFormatted} bytes"
+        . " ({$ratioFormatted}). */";
+      
+      if ($use_gzip)
+      {
+        $out .= $summary;
+      }
+      else
+      {
+        echo $summary;
+      }
+    }
+    
+    if ($use_gzip)
+    {
+      $zipped = gzencode($out);
+      header('Content-Length: ' . strlen($zipped));
+      echo $zipped;
     }
   }
 }

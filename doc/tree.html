@@ -91,7 +91,7 @@
       }
       -->
     </style>
-    <script type="text/javascript" src="../builder.php?src=object,dom"></script>
+    <script type="text/javascript" src="../builder.php?src=object,regexp,dom"></script>
     <script type="text/javascript">
       var traverseHistory = []
     
@@ -132,10 +132,13 @@
             default:
               break;
           }
-          
+                    
           code.appendChild(document.createTextNode(propertyName));
           code.title = path + "." + propertyName;
-          li.appendChild(code);
+          var a = document.createElement("a");
+          a.href = "details.html?" + (code.title.match(/^jsx\.(.*)/) || [, ""])[1].replace(/\./g, "/");
+          a.appendChild(code);
+          li.appendChild(a);
           if (((typeof propertyValue == "object" && propertyValue)
               || (propertyName == "prototype"))
               && propertyValue != jsx.global
