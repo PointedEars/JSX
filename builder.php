@@ -325,7 +325,7 @@ class ResourceBuilder
    */
   protected function uncomment($s)
   {
-    return preg_replace('#^[\\t ]*//.*(?:\\r?\\n|\\n)*#m', '',
+    return preg_replace('#^[\\t ]*//.*(?:\\r?\\n|\\r)*#m', '',
       preg_replace('/^\\s+|\\s+$/', '',
 //         preg_replace(
 //            '#/[\\t ]*\\*.*?\\*/[\\t ]*(?:\\r?\\n|\\n)*#s', '',
@@ -345,13 +345,16 @@ class ResourceBuilder
   protected function stripJSdoc($s)
   {
     $s = preg_replace_callback(
-      '#/[\\t ]*\\*\\*.*?\\*/[\\t ]*(\\r?\\n|\\n)*#s',
+      '#[\\t ]*/\\*\\*(?:[^*]|\\*[^/])*\\*/(?:\\r?\\n|\\r)?#',
       array('self', 'commentReplacer'),
       $s);
     
     return $s;
   }
 
+  /**
+   * @todo
+   */
   protected function resolveDeps()
   {
     $deps = $this->jsxDeps;
