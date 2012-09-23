@@ -23,4 +23,7 @@
  * You should have received a copy of the GNU General Public License
  * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+var setStyleProperty = jsx.dom.setStyleProperty;
+var CSS = jsx.dom.css;
 jsx.dom.getElemByClassName = jsx.dom.css.getElemByClassName;
