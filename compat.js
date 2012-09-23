@@ -21,9 +21,3 @@ var isInstanceOf = jsx.object.isInstanceOf;
 var types = jsx.types;
 
 var Collection = jsx.Collection;
-
-var dhtml = jsx.dom;
-var getElem = jsx.dom.getElem;
-var setCont = jsx.dom.setCont;
-var setStyleProperty = jsx.dom.setStyleProperty;
-var CSS = jsx.dom.css;
