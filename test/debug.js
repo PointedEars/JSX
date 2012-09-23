@@ -548,6 +548,7 @@ var synhl = (function () {
     jsx_debug = jsx.debug,
     jsx_object = jsx.object,
     _isMethod = jsx_object.isMethod,
+    _getFeature = jsx_object.getFeature,
     reservedWords = [
       /* ES5 keywords */
       "break", "case", "catch", "continue", "debugger", "default", "delete",

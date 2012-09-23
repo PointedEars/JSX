@@ -195,7 +195,7 @@ class ResourceBuilder
       throw new $exceptionClass($message);
     }
 
-    echo "$exceptionClass: $message\n";
+    throw new Exception($message);
   }
 
   /**
@@ -229,7 +229,7 @@ class ResourceBuilder
         throw new $exceptionClass($message);
       }
 
-      echo "$exceptionClass: $message\n";
+      throw new Exception($message);
     }
   }
   
@@ -572,7 +572,7 @@ class ResourceBuilder
     if ($use_gzip)
     {
       $zipped = gzencode($out);
-      header('Content-Length: ' . strlen($zipped));
+      //header('Content-Length: ' . strlen($zipped));
       echo $zipped;
     }
   }
