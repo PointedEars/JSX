@@ -304,47 +304,65 @@ String.prototype.regExpEscape = strRegExpEscape;
  * This is facilitated through the following steps:
  * </p><ol>
  *   <li>The flags <code>x</code>, <code>s</code> and <code>u</code>
- *       in the <var>sFlags</var> argument set the initial state
- *       of the pattern-match modifiers; the extended {@link RegExp}'s
- *       <code>extended</code>, <code>dotAll</code> and
- *       <code>unicodeMode</code> properties are set accordingly.
+ *       in the optional <var>sFlags</var> argument set the initial
+ *       state of the pattern-match modifiers; the extended
+ *       {@link RegExp}'s <code>extended</code>, <code>dotAll</code>,
+ *       and <code>unicodeMode</code> properties are set accordingly.
  *       These flags are removed from the <var>sFlags</var>
- *       argument subsequently.</li>
+ *       argument subsequently, as it is reused to create the
+ *       {@link RegExp} instance.  [Conforming implementations of
+ *       ECMA-262-5.1 MUST throw a <code>SyntaxError</code>
+ *       exception on flags other than <code>g</code>, <code>i</code>,
+ *       and <code>m</code> (section 15.10.4.1); Mozilla JavaScript
+ *       may also support the <code>y</code> (sticky) flag,
+ *       but nothing else.]</li>
  *   <li>The pattern is run through several passes, where in each
  *       one it is scanned from left to right using another
  *       {@link RegExp}:
- *       <ol>
- *         <li>Pattern-match modifiers are set and unset as they
- *             are scanned.  Key subpatterns are replaced in context.
- *           <ol>
- *             <li>With PCRE_EXTENDED set, single-line
- *                 comments starting with <tt>#</tt> and unescaped
- *                 whitespace are removed from the pattern.  The backslash
- *                 is removed from the pattern when in front of
- *                 whitespace.</li>
- *             <li>With PCRE_DOTALL set, unescaped <tt>.</tt>
- *                 (period) characters are replaced with the character class
- *                 <tt>[\S\s]</tt> which matches all Unicode characters.</li>
- *           </ol></li>
- *         <li>Capturing groups in the pattern are matched,
- *             and replaced with the opening parenthesis if they were assigned
- *             a name.  The extended {@link RegExp}'s <code>groups</code>,
+ *       <ol style="margin-bottom: 1em; list-style-type: lower-roman">
+ *         <li><p>Capturing groups and pattern-match modifiers in the
+ *             pattern are matched and replaced.
+ *             <p>Capturing groups are replaced with the opening
+ *             parenthesis if they were assigned a name.  The
+ *             extended {@link RegExp}'s <code>groups</code>,
  *             <code>names</code>, and <code>_patternGroups</code>
  *             properties are set accordingly.  They are used in an
  *             overwritten <code>exec()</code> method and when matching
  *             against a <code>jsx.regexp.String</code> using its
- *             <tt>match(…)</tt> method.</li>
+ *             <tt>match(…)</tt> method.</p>
+ *             <p style="margin-bottom: 0">
+ *               Pattern-match modifiers are set and unset as they
+ *               are scanned.  The corresponding substrings are
+ *               removed from the pattern.  If the group is otherwise
+ *               empty, and therefore is not a group at all,
+ *               the entire pseudo-group is removed.</p>
+   *           <ol style="margin-top: 0; list-style-type: lower-latin">
+ *               <li>With PCRE_EXTENDED set, single-line
+ *                   comments starting with <tt>#</tt> and unescaped
+ *                   whitespace are removed from the pattern.  The backslash
+ *                   is removed from the pattern when in front of
+ *                   whitespace.</li>
+ *               <li>With PCRE_DOTALL set, unescaped <tt>.</tt>
+ *                   (period) characters are replaced with the character class
+ *                   <tt>[\S\s]</tt> which matches all Unicode characters.</li>
+ *             </ol>
+ *             <p><em>NOTE: Unlike in Perl and PCRE, a pattern-match
+ *                modifier affects all of the pattern that follows,
+ *                even outside the group in which the modifier was
+ *                set/unset.  This will be fixed in a later version.</em>
+ *             </p></li>
  *         <li>When in Unicode mode,
- *             <ol>
- *               <li>in the third pass, character class escape sequences
+ *             <ol style="list-style-type: lower-latin">
+ *               <li>in the second pass, character class escape sequences
  *                   <tt>\w</tt> and <tt>\W</tt> are replaced with
  *                   corresponding uses of <tt>\p{Word}</tt>.</li>
- *               <li>in the fourth pass, <tt>\b</tt> is replaced with
+ *               <li>in the third pass, <tt>\b</tt> is replaced with
  *                   corresponding uses of character classes and negative
  *                   lookahead.
  *             </ol></li>
- *         <li>The <tt>\p{…}</tt> and <tt>\P{…}</tt> escape sequences
- *             are replaced by the corresponding character classes.</li>
+ *         <li style="margin-top: 1em">The <tt>\p{…}</tt> and <tt>\P{…}</tt>
+ *           escape sequences are replaced with the corresponding
+ *           character classes.</li>
  *       </ol></li>
  *   <li>The resulting expression and remaining flags are passed
  *       to the {@link RegExp} constructor.</li>
@@ -418,12 +436,12 @@ String.prototype.regExpEscape = strRegExpEscape;
  * accomodate syntax extensions in the pattern string:
  * 
  * @property pattern : String
- *   The original pattern string, including pattern-matching
+ *   The original pattern string, including pattern-match
  *   modifiers.
  * @property _patternGroups : Array
  *   The part of the pattern string from the opening parenthesis
  *   of each pattern group to the end of the pattern, before
- *   character class expansion, and without pattern-matching
+ *   character class expansion, and without pattern-match
  *   modifiers.  The first item (index 0) holds the complete
  *   pattern without modifiers.  Used internally; do not modify.
  *   <em>NOTE: For efficiency, the pattern groups are not isolated;
@@ -782,20 +800,39 @@ jsx.regexp.RegExp = (function () {
 
       sFlags = sFlags.replace(/[xsu]/g, "");
     }
-    
+        
+    /* Support for capturing and special groups */
+    var groupCount = 0;
+    var groups = _getDataObject();
+    var names = _getDataObject();
+    var patternGroups = [expression];
+
     expression = expression.replace(
-      /(\(\?)([adlupimsx]*)(-([imsx]+))?\)/.concat(
+      /(\\\()/.concat(
+        "|",
+        /(\((\?P?(([adlupimsx]+)?(-([imsx]+))?)(<([^>]+)>|'([^']+)'|(:))?(\))?)?)/g,
         "|",
         /(#.*(\r?\n|\r|$))|\\(\s)/,
         "|",
-        /\[([^\\\]]|\\.)*\]|(\s+)|\\\.|(\.)/g),
-      function (match, modifierGroup, positiveModifiers, negativeModifiers_opt,
-                 negativeModifiers, comment, newline,
+        /\[([^\\\]]|\\.)*\]|(\s+)|\\\.|(\.)/g
+      ),
+      function (match, escapedLParen,
+                 group, specialGroup, modifierGroup,
+                 positiveModifiers, negativeModifiers_opt, negativeModifiers,
+                 namedGroup, bracketedName, quotedName,
+                 nonCapturingGroup, emptyGroup,
+                 comment, newline,
                  escapedWS, charClassContent, whitespace,
-                 plainDot, index, all) {
-        /* Embedded pattern-match modifiers */
-        if (modifierGroup)
+                 plainDot,
+                 index, all) {
+        if (group)
         {
+          var capturingGroup = (!nonCapturingGroup && !(modifierGroup && emptyGroup));
+          if (capturingGroup)
+          {
+            ++groupCount;
+          }
+
           if (positiveModifiers)
           {
             var
@@ -833,10 +870,35 @@ jsx.regexp.RegExp = (function () {
               }
             }
           }
+          
+          /* Support for named capturing groups (PCRE-compliant) */
+          var name = bracketedName || quotedName;
+          if (name)
+          {
+            if (names[name])
+            {
+              jsx.throwThis("SyntaxError", "Duplicate symbolic name");
+            }
 
-          return "";
+            groups[groupCount] = name;
+            names[name] = groupCount;
+          }
+
+          /*
+           * NOTE: Helps with determining in exec() and match()
+           * whether \b matched at beginning and \Ws need to be
+           * ltrimmed from match
+           */
+          if (capturingGroup)
+          {
+            patternGroups.push(all.substring(index));
+          }
+
+          return (!modifierGroup || !emptyGroup)
+            ? "(" + (nonCapturingGroup ? "?:" : "")
+            : "";
         }
-
+        
         /* PCRE_EXTENDED */
         if (extended)
         {
@@ -864,48 +926,8 @@ jsx.regexp.RegExp = (function () {
         {
           return "[\\S\\s]";
         }
-        
+
         return match;
-      });
-    
-    /* Support for capturing groups */
-    var groupCount = 0;
-    var groups = _getDataObject();
-    var names = _getDataObject();
-    var patternGroups = [expression];
-
-    expression = expression.replace(
-      /(\\\()|(\((\?P?(<([^>]+)>|'([^']+)'))?)/g,
-      function (match, escapedLParen, group, namedGroup, bracketsOrQuotes,
-                 bracketedName, quotedName, index, all) {
-        if (group)
-        {
-          ++groupCount;
-
-          /* Support for named capturing groups (PCRE-compliant) */
-          var name = bracketedName || quotedName;
-          if (name)
-          {
-            if (names[name])
-            {
-              jsx.throwThis("SyntaxError", "Duplicate symbolic name");
-            }
-
-            groups[groupCount] = name;
-            names[name] = groupCount;
-          }
-
-          /*
-           * NOTE: Helps with determining in exec() and match()
-           * whether \b matched at beginning and \Ws need to be
-           * ltrimmed from match
-           */
-          patternGroups.push(all.substring(index));
-
-          return "(";
-        }
-
-        return escapedLParen;
       });
 
     groups.length = groupCount;
@@ -915,7 +937,7 @@ jsx.regexp.RegExp = (function () {
     {
       var wordClass = "\\p{Word}";
       expression = expression.replace(
-        /\[(([^\\\]]|\\.)*)\]|(\\(w))/gi,
+        /\[(([^\\\]]|\\.)*)\]|(\\([w]))/gi,
         function (m, charClassContent, p2, wordCharacter, escapeLetter) {
           if (charClassContent)
           {
