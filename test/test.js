@@ -346,7 +346,7 @@ jsx.test.runner = {
                                  + " vertical-align: baseline; }"
           ));
         document.getElementsByTagName("head")[0].appendChild(style);
-        
+                
         var table = document.createElement("table");
         table.id = id;
         
@@ -493,6 +493,24 @@ jsx.test.runner = {
       .replace(/&lt;/, "<").replace(/&gt;/, ">").replace(/&amp;/, "&");
   },
   
+  _tryAsyncRun: (function () {
+    var jsx_dom_timeout = jsx.object.getFeature(jsx, "dom", "timeout");
+    
+    return function (method, args) {
+      var me = this;
+      if (jsx_dom_timeout)
+      {
+        jsx_dom_timeout.runAsync(function () {
+          method.apply(me, args);
+        });
+      }
+      else
+      {
+        method.apply(me, args);
+      }
+    };
+  }()),
+    
   /**
    * Prints the result to the error console, and, if supported,
    * to the document.
@@ -506,16 +524,18 @@ jsx.test.runner = {
    * @param msgType
    */
   _printResult: function (num, file, feature, desc, result, msgType) {
-    this._appendEntry(num, file, feature, desc, result, msgType);
-    this._printMsg("Test " + num
-      + (file || feature ? ", " : "")
-      + file
-      + (feature ? ":" + feature : "")
-      + (file || feature ? "," : "")
-      + (desc ? ' "' + this._stripTags(desc) + '"' : "")
-      + (file || feature ? "," : "")
-      + " " + result,
-      msgType);
+    this._tryAsyncRun(function () {
+      this._appendEntry(num, file, feature, desc, result, msgType);
+      this._printMsg("Test " + num
+        + (file || feature ? ", " : "")
+        + file
+        + (feature ? ":" + feature : "")
+        + (file || feature ? "," : "")
+        + (desc ? ' "' + this._stripTags(desc) + '"' : "")
+        + (file || feature ? "," : "")
+        + " " + result,
+        msgType);
+    });
   },
   
   _printSummary: function (result) {
@@ -695,20 +715,20 @@ jsx.test.runner = {
         {
           this._setUp(i, test);
         }
-        
+      
         try
         {
           test(i);
           ++result.passed;
           this._printResult(number, file, feature, description,
-            "passed", "info");
+              "passed", "info");
         }
         catch (e)
         {
           ++result.failed;
           this._printResult(number, file, feature, description,
-            "threw " + e + (e.stack ? "\n\n" + e.stack : ""),
-            "error");
+              "threw " + e + (e.stack ? "\n\n" + e.stack : ""),
+              "error");
         }
 
         if (hasTearDown)
@@ -720,6 +740,26 @@ jsx.test.runner = {
       this._printSummary(result);
     };
   }()),
+  
+  runAsync: function () {
+    var args = arguments;
+    var _run = this.run;
+    var jsx_dom_timeout = jsx.object.getFeature(jsx, "dom", "timeout");
+    if (jsx_dom_timeout)
+    {
+      var me = this;
+//      return jsx_dom_timeout.runAsync(
+//        function () {
+//          _run.apply(me, args);
+//        });
+      return jsx_dom_timeout.runAsync(
+        function () {
+          _run.apply(me, args);
+        });
+    }
+    
+    return _run.apply(this, args);
+  },
   
   setFile: function (file) {
     this._file = file;

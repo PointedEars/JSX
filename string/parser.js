@@ -134,8 +134,8 @@ jsx.string.parser.Lexer.extend(null, {
    *   If a <code>String</code>, passed for the the type name to {@link #Token Token()};<br>
    *   if a reference to a <code>Function</code>, the function is used as
    *   constructor to which <var>token</var> is passed.
-   * @return {Array}
-   *   The new list of alternative tokens
+   * @return {Lexer}
+   *   This object
    */
   addToken: function (token, tokenType) {
     if (!token)
@@ -169,8 +169,8 @@ jsx.string.parser.Lexer.extend(null, {
    * Appends one or more {@link #Token Tokens} to the list of tokens.
    * 
    * @params : [RegExp|String|Token, optional String|Function]
-   * @return Array
-   *   The new list of alternative tokens
+   * @return {Lexer}
+   *   This object
    */
   addTokens: function () {
     for (var i = 0, len = arguments.length; i < len; ++i)
