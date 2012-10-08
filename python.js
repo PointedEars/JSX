@@ -3,7 +3,7 @@
  * @file $Id$
  * @requires object.js
  * 
- * @author (C) 2011 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
+ * @author (C) 2011, 2012 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
  * 
  * @partof PointedEars' JavaScript Extensions (JSX)
  * 
@@ -37,7 +37,7 @@ jsx.python = {
    * @version
    */
   version:   "$Revision$ ($Date$)",
-  copyright: "Copyright \xA9 2011",
+  copyright: "Copyright \xA9 2011, 2012",
   author:    "Thomas Lahn",
   email:     "js@PointedEars.de",
   path:      "http://PointedEars.de/scripts/"
@@ -52,18 +52,18 @@ jsx.python = {
  * @param iterable : Object
  * @return {Array}
  */
-jsx.python.list = (function() {
+jsx.python.list = (function () {
   var jsx_object = jsx.object;
-  var getClass = jsx_object.getClass;
+  var _getClass = jsx_object.getClass;
   var _hasOwnProperty = jsx_object._hasOwnProperty;
 
   /**
    * @return {Array}
    */
-  return function(iterable) {
+  return function (iterable) {
     var result = [];
     
-    if (getClass(iterable) == "Array")
+    if (_getClass(iterable) == "Array")
     {
       return iterable;
     }
@@ -81,12 +81,64 @@ jsx.python.list = (function() {
 }());
 
 /**
+ * List comprehension.
+ * 
+ * Returns a reference to an <code>Array</code>
+ * instance containing the result of passing each item
+ * of <var>list</var> to <var>builder</var> (or the item
+ * if <var>builder</var> is a false-value) for which
+ * <var>condition</var> returns a true-value (or all items
+ * if <var>condition</var> is a false-value).
+ * 
+ * @param builder : Function
+ * @param iterable : Object
+ * @param condition : Function
+ * @return {Array}
+ */
+jsx.python.list.from = (function () {
+  var jsx_object = jsx.object;
+  var _getClass = jsx_object.getClass;
+  var _hasOwnProperty = jsx_object._hasOwnProperty;
+  
+  return function (builder, iterable, condition) {
+    var result = [];
+    
+    if (_getClass(iterable) == "Array")
+    {
+      result = iterable;
+    }
+    else
+    {
+      for (var property in iterable)
+      {
+        if (_hasOwnProperty(iterable, property))
+        {
+          result.push(property);
+        }
+      }
+    }
+  
+    if (condition)
+    {
+      result = result.filter(condition);
+    }
+  
+    if (builder)
+    {
+      result = result.map(builder);
+    }
+    
+    return result;
+  };
+}());
+
+/**
  * Returns a reference to an object
  * 
  * @param mapping
  * @return {Object}
  */
-jsx.python.dict = function(mapping, values) {
+jsx.python.dict = function (mapping, values) {
   var result = {};
   
   if (typeof mapping == "undefined")
@@ -125,15 +177,52 @@ jsx.python.dict = function(mapping, values) {
 };
 
 /**
+ * Returns a reference to an <code>Array</code> instance whose
+ * items are the numbers from <var>start</var> inclusive to
+ * <var>end</var> exclusive using step width <var>step</var>
+ * (may be negative).
+ *
+ * @param start : Number
+ * @param end : Number
+ * @param step : optional Number = 1
+ * @return {Array}
+ */
+jsx.python.range = function (start, end, step) {
+  var result = [];
+  
+  if (!step)
+  {
+    if (step === 0)
+    {
+      jsx.throwThis(
+        "jsx.InvalidArgumentError", "step argument must not be zero");
+    }
+    
+    step = 1;
+  }
+  
+  end = +end;
+  step = +step;
+  
+  for (var i = +start; (step > 0) ? (i < end) : (i > end); i += step)
+  {
+    result.push(i);
+  }
+  
+  return result;
+};
+
+/**
  * Build an unordered collection of unique elements.
  * 
  * @param iterable : Object
  * @return {Array}
  */
-jsx.python.set = (function() {
+jsx.python.set = (function () {
+  var jsx_object = jsx.object;
   var isMethod = jsx_object.isMethod;
 
-  return function(iterable) {
+  return function (iterable) {
     var result = [];
     
     if (isMethod(iterable, "slice"))
@@ -174,7 +263,7 @@ jsx.python.set = (function() {
  * @param arg1 : Array
  * @return {Array}
  */
-jsx.python.zip = function(arg1, arg2) {
+jsx.python.zip = function (arg1, arg2) {
   var result = [];
 
   for (var i = 0, len = arguments[0].length; i < len; ++i)
@@ -206,7 +295,7 @@ jsx.python.zip = function(arg1, arg2) {
  * @param list1 : Array which is to be extended
  * @param list2 : Array which elements should be appended to <var>list1</var>
  */
-jsx.python.extend = function(list1, list2) {
+jsx.python.extend = function (list1, list2) {
   for (var i = 0, len = list2.length; i < len; ++i)
   {
     Array.prototype.push.call(list1, list2[i]);
