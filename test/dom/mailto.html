@@ -17,8 +17,18 @@
         width: 100%;
       }
       
-      iframe {
+      iframe.hidden
+      {
         display: none;
+      }
+
+      section
+      {
+        display: block;
+      }
+      
+      li article {
+        display: inline;
       }
       -->
     </style>
@@ -34,10 +44,9 @@
         return r;
       }
     
-      function randomIntRange (leftBound, rightBound)
+      function randomIntInRange (leftBound, rightBound)
       {
-        leftBound = (+leftBound);
-        return leftBound + Math.floor(random() * (+rightBound - leftBound));
+        return (+leftBound) + Math.floor(random() * ((+rightBound) - leftBound));
       }
     
       function randomASCIIString (length)
@@ -49,7 +58,7 @@
         
         for (var i = 0, len = a.length; i < len; ++i)
         {
-          var rnd = randomIntRange(leftBound, rightBound);
+          var rnd = randomIntInRange(leftBound, rightBound);
           a[i] = String.fromCharCode(rnd);
         }
         
@@ -60,15 +69,35 @@
       {
         var el = form.elements;
         var subject = el["subject"].value;
-        var data = el["data"].value;
-        var uri = "mailto:" + el["recipient"].value + "?"
+        var uri = "mailto:" + el["to"].value + "?"
           + (subject ? "subject=" + encodeURIComponent(subject) + "&" : "")
           + "body="
-          + encodeURIComponent(data || randomASCIIString(447));
-         
-        var div = document.createElement("div");
-        div.appendChild(document.createTextNode(uri));
-        document.body.appendChild(div);
+          + encodeURIComponent(el["body"].value || randomASCIIString(447));
+                 
+        var item = document.createElement("li");
+        var article = document.createElement("article");
+        article.appendChild(document.createTextNode(uri));
+        item.appendChild(article);
+
+        var output = document.getElementById("output");
+
+        if (!output.firstChild)
+        {
+          var heading = document.createElement("h2");
+          heading.appendChild(document.createTextNode("Output"));
+          output.appendChild(heading);
+          
+          var list = document.createElement("ol");
+          list.id = "list";
+          output.appendChild(list);
+        }
+        else
+        {
+          list = document.getElementById("list");
+        }
+        
+        list.appendChild(item);
+        
         try
         {
           window.location = uri;
@@ -82,36 +111,63 @@
           form.action = uri;
         }
       }
+      
+      function store (form)
+      {
+        var el = form.elements;
+        window.localStorage.setItem('emailgen_to', el['to'].value);
+        window.localStorage.setItem('emailgen_subject', el['subject'].value);
+        window.localStorage.setItem('emailgen_body', el['body'].value);
+      }
+      
+      function restore (form)
+      {
+        var el = form.elements;
+        el['to'].value = window.localStorage.getItem('emailgen_to');
+        el['subject'].value = window.localStorage.getItem('emailgen_subject');
+        el['body'].value = window.localStorage.getItem('emailgen_body');
+      }
     </script>
   </head>
 
   <body>
     <h1>mailto: URI scheme triggered with client-side scripting</h1>
-    <form onsubmit="return generateMail(this)" target="iframe">
-      <table>
-        <tr>
-          <th><label for="recipient" title="Recipient">To:</label></th>
-          <td><input name="recipient" id="recipient" type="email"
-                     value="foo@bar" placeholder="recipient"></td>
-        </tr>
-        <tr>
-          <th><label for="subject">Subject:</label></th>
-          <td><input name="subject" id="subject" type="text"
-                     value="baz" placeholder="e-mail subject"></td>
-        </tr>
-        <tr>
-          <th style="vertical-align: top; vertical-align: baseline"
-              ><label for="data">Data:</label></th>
-          <td><textarea name="data" id="data" cols="30"
-                        placeholder="447 random characters if empty"
-                        ></textarea></td>
-        </tr>
-        <tr>
-          <td colspan="2" style="text-align: right"><input
-            type="submit" value="Generate E-mail"></td>
-        </tr>
-      </table>
-    </form>
-    <iframe name="iframe"></iframe>
+    <section>
+      <form target="iframe" onsubmit="return generateMail(this)">
+        <table>
+          <tr>
+            <th><label for="to"
+                       title="Semicolon-separated list of recipient(s)"
+                       >To:</label></th>
+            <td><input name="to" id="to" type="email"
+                       value="foo@bar"
+                       placeholder="semicolon-separated list of recipient(s)"
+                       ></td>
+          </tr>
+          <tr>
+            <th><label for="subject">Subject:</label></th>
+            <td><input name="subject" id="subject" type="text"
+                       value="baz" placeholder="e-mail subject"></td>
+          </tr>
+          <tr>
+            <th style="vertical-align: top; vertical-align: baseline"
+                ><label for="body">Body:</label></th>
+            <td><textarea name="body" id="body" cols="30"
+                          placeholder="447 random characters if empty"
+                          ></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2" style="text-align: right"><input
+              type="button" value="&#9851; Restore from Local Storage"
+              onclick="restore(this.form)"><input
+              type="button" value="&#9997; Save in Local Storage"
+              onclick="store(this.form)"><br><input
+              type="submit" value="&#9993; Generate E-mail"></td>
+          </tr>
+        </table>
+      </form>
+      <iframe name="iframe" class="hidden"></iframe>
+    </section>
+    <section id="output"></section>
   </body>
 </html>

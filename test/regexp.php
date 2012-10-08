@@ -14,17 +14,17 @@
       -->
     </style>
     <script type="text/javascript"
-            src="../builder?gzip=0&amp;src=test/object,test/test,test/http&amp;verbose=1"></script>
+            src="../builder?gzip=0&amp;src=object,dom,dom/timeout,test/test,http&amp;verbose=1"></script>
     <script type="text/javascript" src="../regexp.js"></script>
     <script type="text/javascript" src="../UnicodeData.js"></script>
     <script type="text/javascript" src="regexp-test.js"></script>
   </head>
 
-  <body onload="runTests()">
+  <body>
     <h1><tt>regexp.js</tt> Unit&nbsp;Test</h1>
     <div><a href="view-source:http://<?php
       echo $_SERVER['HTTP_HOST'] . htmlspecialchars($_SERVER['REQUEST_URI']);
       ?>">View source</a></div>
-    <p><strong>See error console for details.</strong></p>
+    <script type="text/javascript">runTests()</script>
   </body>
 </html>

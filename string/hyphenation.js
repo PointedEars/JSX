@@ -62,7 +62,7 @@ jsx.string.hyphenation = (function () {
     /**
      * Loads a dictionary.  The dictionary should contain at least
      * one {@link jsx.string.hyphenation#addRule} or
-     * {@link jsx.string.hypenation#addRules} call.
+     * {@link jsx.string.hyphenation#addRules} call.
      * 
      * @param dictionary : String
      *   URI of the dictionary
@@ -79,7 +79,7 @@ jsx.string.hyphenation = (function () {
     /**
      * Loads several dictionaries.  A dictionary should contain
      * at least one {@link jsx.string.hyphenation#addRule} or
-     * {@link jsx.string.hypenation#addRules} call.
+     * {@link jsx.string.hyphenation#addRules} call.
      * 
      * @param dictionaries : Array[String]
      *   URIs of the dictionaries
