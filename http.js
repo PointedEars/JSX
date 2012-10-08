@@ -5,7 +5,7 @@
  *   object.js for jsx.object#isMethod(),
  *   string.js for #esc(), #escURI()
  * 
- * @author (C) 2004-2011 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
+ * @author (C) 2004-2012 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
  * 
  * @partof PointedEars' JavaScript Extensions (JSX)
  * 
@@ -32,7 +32,7 @@ if (typeof jsx.net == "undefined")
 }
 
 /**
- * @idl
+ * @idl{WebIDL}
  * 
  * interface HTTPResponseListener : Function {
  *   boolean HTTPResponseListener(IXMLHttpRequest x);
@@ -76,51 +76,36 @@ if (typeof jsx.net == "undefined")
  *            attribute HTTPResponseListener   successListener
  *            attribute HTTPResponseListener   errorListener
  *
- *   HTTPRequest HTTPRequest();
- *     // URL=document.URL, method="GET", async=true, successListener=null,
- *     // errorListener=null
- *
- *   HTTPRequest HTTPRequest(string sURL);
- *     // URL=sURL||document.URL, method="GET", async=true,
- *     // successListener=null, errorListener=null
- * 
- *   HTTPRequest HTTPRequest(string sURL, string sMethod);
- *     // URL=sURL||document.URL, method=sMethod||"GET", async=true,
- *     // successListener=null, errorListener=null
- * 
- *   HTTPRequest HTTPRequest(string sURL, string sMethod, boolean bAsync);
- *     // URL=sURL||document.URL, method=sMethod||"GET", async=bAsync,
- *
- *   HTTPRequest HTTPRequest(string sURL, string sMethod, boolean bAsync,
- *                           HTTPResponseListener fSuccessListener);
- *     // URL=sURL||document.URL, method=sMethod||"GET", async=bAsync,
- *     // successListener=fSuccessListener, errorListener=null
- * 
- *   HTTPRequest HTTPRequest(string sURL, string sMethod, boolean bAsync,
- *                           HTTPResponseListener fSuccessListener,
- *                           HTTPResponseListener fErrorListener);
- *     // URL=sURL||document.URL, method=sMethod||"GET", async=bAsync,
+ *   HTTPRequest HTTPRequest(
+ *     optional string sURL = document.URL,
+ *     optional string sMethod = HTTPMethod.GET,
+ *     optional boolean bAsync = true,
+ *     optional HTTPResponseListener fSuccessListener = null,
+ *     optional HTTPResponseListener fErrorListener = null);
+ *     // URL=sURL, method=sMethod, async=bAsync,
  *     // successListener=fSuccessListener, errorListener=fErrorListener
  * 
- *   boolean setURL(string sURL default="");
+ *   boolean setURL(optional string sURL = "");
  *     // URL=sURL
  *
- *   boolean setMethod(string sMethod default="GET");
+ *   boolean setMethod(optional string sMethod = HTTPMethod.GET);
  *     // method=sMethod
  *
- *   boolean setAsync(boolean bAsync default=true);
+ *   boolean setAsync(optional boolean bAsync = true);
  *     // async=bAsync
  *
- *   boolean setData(string sData default="");
+ *   boolean setData(optional string sData = "");
  *     // data=sData
  *
- *   boolean setRequestType(string sRequestType
- *                          default="application/x-www-form-urlencoded");
+ *   boolean setRequestType(
+ *     optional string sRequestType = "application/x-www-form-urlencoded");
  *     // requestType=sRequestType
  *
- *   boolean send(string sData, string sURL, string sMethod, boolean bAsync);
- *     // sData=null, URL=sURL||document.URL, method=sMethod||"GET",
- *     // bAsync=true
+ *   boolean send(optional string sData = null,
+ *                optional string sURL = document.URL,
+ *                optional string sMethod = HTTPMethod.GET,
+ *                optional boolean bAsync = true);
+ *     // URL=sURL, method=sMethod
  * };
  * 
  * @end
@@ -128,7 +113,7 @@ if (typeof jsx.net == "undefined")
 jsx.net.http = {
   /** @version */
   version:   "0.1.$Revision$ ($Date$)",
-  copyright: "Copyright \xA9 2004-2011",
+  copyright: "Copyright \xA9 2004-2012",
   author:    "Thomas Lahn",
   email:     "js@PointedEars.de",
   path:      "http://PointedEars.de/scripts/",
@@ -353,7 +338,7 @@ jsx.net.http.Request.prototype = {
    *   If not provided or a true-value, the request will be asynchronous.
    */
   setAsync: function (bAsync) {
-    this.async = (typeof bAsync != "undefined" ? !!bAsync : true);
+    this.async = (typeof bAsync == "undefined" ? true : !!bAsync);
   },
 
   /**
@@ -381,17 +366,16 @@ jsx.net.http.Request.prototype = {
       this._responseListener = new jsx.net.http.ResponseListener();
       return true;
     }
-    else if (jsx.object.isMethod(fResponseListener))
+    
+    if (jsx.object.isMethod(fResponseListener))
     {
       this._responseListener = fResponseListener;
       return (this._responseListener == fResponseListener);
     }
-    else
-    {
-      jsx.throwThis("jsx.InvalidArgumentError",
-        "jsx:HTTPRequest::setResponseListener: Argument is not a method");
-      return false;
-    }
+
+    jsx.throwThis("jsx.InvalidArgumentError",
+      "jsx:HTTPRequest::setResponseListener: Argument is not a method");
+    return false;
   },
 
   /**
@@ -418,17 +402,16 @@ jsx.net.http.Request.prototype = {
       this.successListener = new jsx.net.http.ResponseListener();
       return true;
     }
-    else if (typeof fSuccessListener == "function")
+    
+    if (typeof fSuccessListener == "function")
     {
       this.successListener = fSuccessListener;
       return (this.successListener == fSuccessListener);
     }
-    else
-    {
-      jsx.throwThis("jsx.InvalidArgumentError",
-        "jsx:HTTPRequest::setResponseListener: Argument is not a method");
-      return false;
-    }
+
+    jsx.throwThis("jsx.InvalidArgumentError",
+      "jsx:HTTPRequest::setResponseListener: Argument is not a method");
+    return false;
   },
 
   /**
@@ -453,17 +436,16 @@ jsx.net.http.Request.prototype = {
       this.errorListener = new jsx.net.http.ResponseListener();
       return true;
     }
-    else if (jsx.object.isMethod(fErrorListener))
+    
+    if (jsx.object.isMethod(fErrorListener))
     {
       this.errorListener = fErrorListener;
       return (this.errorListener == this.errorListener);
     }
-    else
-    {
-      jsx.throwThis('jsx.InvalidArgumentError',
-        "jsx:HTTPRequest::setErrorListener: Argument is not a method");
-      return false;
-    }
+    
+    jsx.throwThis('jsx.InvalidArgumentError',
+      "jsx:HTTPRequest::setErrorListener: Argument is not a method");
+    return false;
   },
 
   /**
