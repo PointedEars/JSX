@@ -2028,6 +2028,63 @@ if (jsx.options.emulate)
             o = null;
           }
         },
+        
+        /**
+         * Returns a <code>Function</code> that has a defined
+         * <code>this</code> value and calls the calling
+         * <code>Function</code> with default parameters.
+         * 
+         * @param thisArg : Object
+         *   <code>this</code> value of the returned
+         *   <code>Function</code>
+         * @params Default parameters
+         * @return Function
+         * @see 15.3.4.5 Function.prototype.bind (thisArg [, arg1 [, arg2, ...]])
+         */
+        bind: (function () {
+          var _slice;
+          var _getClass = jsx.object.getClass;
+          
+          return function (thisArg) {
+            var target = this;
+            if (typeof target != "function")
+            {
+              jsx.throwThis("TypeError");
+            }
+            
+            if (!_slice)
+            {
+              _slice = Array.prototype.slice;
+            }
+            
+            var boundArgs = _slice.call(arguments, 1);
+            var f = function () {
+              return target.apply(thisArg, boundArgs.concat(_slice.call(arguments)));
+            };
+            
+            if (_getClass(target) == "Function")
+            {
+              f.length = target.length + boundArgs.length;
+            }
+            else
+            {
+              if (typeof Object.defineProperty == "function")
+              {
+                /*
+                 * [[Writable]]: false, [[Enumerable]]: false,
+                 * [[Configurable]]: false
+                 */
+                Object.defineProperty(f, "length");
+              }
+              else
+              {
+                f.length = 0;
+              }
+            }
+            
+            return f;
+          };
+        }()),
 
         /**
          * Constructs a new object using the calling object as constructor
@@ -2420,10 +2477,50 @@ if (jsx.options.emulate)
         }
 
         return res;
+      },
+      
+      slice: function (start, end) {
+        var a = [];
+        var len = this.length >>> 0;
+        var relativeStart = parseInt(start, 10);
+        var k = ((relativeStart < 0)
+              ? Math.max(len + relativeStart, 0)
+              : Math.min(relativeStart, len));
+        var relativeEnd = ((typeof end == "undefined")
+                        ? len
+                        : parseInt(end, 10));
+        var final = ((relativeEnd < 0)
+                   ? Math.max(len + relativeEnd, 0)
+                   : Math.min(relativeEnd, len));
+        var n = 0;
+        while (k < final)
+        {
+          if ((k in this))
+          {
+            a[n] = this[k];
+          }
+          
+          ++k;
+          ++n;
+        }
+        
+        return a;
       }
     },
     Array.prototype);
+  
+  if (typeof Array.from == "undefined")
+  {
+    Array.from = (function () {
+      var _map = Array.prototype.map;
+      
+      return function (builder, iterable, oThis) {
+        return _map.call(iterable, builder, oThis);
+      };
+    }());
+  }
 }
+
 
 /**
  * General exception

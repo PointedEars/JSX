@@ -546,7 +546,7 @@ jsx.regexp.RegExp = (function () {
         if (reduced != "")
         {
           jsx.warn(
-            "jsx.RegExp: Combined negative escapes in character classes"
+            "jsx.regexp.RegExp: Combined negative escapes in character classes"
               + " require support for non-capturing parentheses");
         }
 
@@ -810,7 +810,7 @@ jsx.regexp.RegExp = (function () {
     expression = expression.replace(
       /(\\\()/.concat(
         "|",
-        /(\((\?P?(([adlupimsx]+)?(-([imsx]+))?)(<([^>]+)>|'([^']+)'|(:))?(\))?)?)/g,
+        /(\((\?P?(([adlupimsx]+)?(-([imsx]+))?)(<([^>]+)>|'([^']+)'|([:!]))?(\))?)?)/g,
         "|",
         /(#.*(\r?\n|\r|$))|\\(\s)/,
         "|",
@@ -836,7 +836,7 @@ jsx.regexp.RegExp = (function () {
           if (positiveModifiers)
           {
             var
-              rxPosModifiers = /[usx]/g,
+              rxPosModifiers = /[sx]/g,
               m;
 
             while ((m = rxPosModifiers.exec(positiveModifiers)))
@@ -871,32 +871,32 @@ jsx.regexp.RegExp = (function () {
             }
           }
           
-          /* Support for named capturing groups (PCRE-compliant) */
-          var name = bracketedName || quotedName;
-          if (name)
-          {
-            if (names[name])
-            {
-              jsx.throwThis("SyntaxError", "Duplicate symbolic name");
-            }
-
-            groups[groupCount] = name;
-            names[name] = groupCount;
-          }
-
-          /*
-           * NOTE: Helps with determining in exec() and match()
-           * whether \b matched at beginning and \Ws need to be
-           * ltrimmed from match
-           */
           if (capturingGroup)
           {
+            /* Support for named capturing groups (PCRE-compliant) */
+            var name = bracketedName || quotedName;
+            if (name)
+            {
+              if (names[name])
+              {
+                jsx.throwThis("SyntaxError", "Duplicate symbolic name");
+              }
+  
+              groups[groupCount] = name;
+              names[name] = groupCount;
+            }
+  
+            /*
+             * NOTE: Helps with determining in exec() and match()
+             * whether \b matched at beginning and \Ws need to be
+             * ltrimmed from match
+             */
             patternGroups.push(all.substring(index));
+            
+            return "(";
           }
-
-          return (!modifierGroup || !emptyGroup)
-            ? "(" + (nonCapturingGroup ? "?:" : "")
-            : "";
+  
+          return emptyGroup ? "" : "(?" + nonCapturingGroup;
         }
         
         /* PCRE_EXTENDED */
@@ -935,66 +935,74 @@ jsx.regexp.RegExp = (function () {
     /* Unicode mode */
     if (unicodeMode)
     {
-      var wordClass = "\\p{Word}";
+      var characterEscapes = {
+        "d": "\\p{Digit}",
+        "s": "\\p{Space}",
+        "w": "\\p{Word}"
+      };
+      
       expression = expression.replace(
-        /\[(([^\\\]]|\\.)*)\]|(\\([w]))/gi,
-        function (m, charClassContent, p2, wordCharacter, escapeLetter) {
+        /\[(([^\\\]]|\\.)*)\]|(\\([dsw]))/gi,
+        function (match, charClassContent, p2, classCharacter, escapeLetter) {
           if (charClassContent)
           {
             var normalized = _normalizeCharClass(charClassContent, true);
 
             return normalized.replace(
-              /\\\\|(\\(w))/gi,
-              function (m, wordCharacter, escapeLetter) {
-                if (wordCharacter)
+              /\\\\|(\\([dsw]))/gi,
+              function (match, classCharacter, escapeLetter) {
+                if (classCharacter)
                 {
-                  if (escapeLetter == "W")
+                  if (escapeLetter >= "A" && escapeLetter <= "Z")
                   {
                     if (charClassContent.charAt(0) != "^")
                     {
-                      jsx.warn("jsx.RegExp: [...\\W{...}...] in Unicode mode"
-                        + " not yet supported. Use [^...\\w...]"
-                        + " in the meantime.");
+                      jsx.warn("jsx.regexp.RegExp: Negative character"
+                        + " class escape sequences in character"
+                        + " class not yet supported in Unicode mode."
+                        + " Use positive escape sequences in negated"
+                        + " character classes in the meantime.");
 
-                      return wordCharacter;
+                      return classCharacter;
                     }
                   }
 
-                  return wordClass;
+                  return characterEscapes[escapeLetter.toLowerCase()];
                 }
 
-                return m;
+                return match;
               });
           }
 
-          if (wordCharacter)
+          if (classCharacter)
           {
             return "["
-              + (escapeLetter === "W" ? "^" : "")
-              + wordClass + "]";
+              + (escapeLetter >= "A" && escapeLetter <= "Z" ? "^" : "")
+              + characterEscapes[escapeLetter.toLowerCase()] + "]";
           }
 
-          return m;
+          return match;
         });
 
       /* Replace \b */
       var firstGroup = expression.match(/\((\?(P?(<([^>]+)>|'([^']+)')|[:!]))?/);
       var afterFirstGroup = (firstGroup && (firstGroup.index + firstGroup[0].length) || 0);
+      var wordEscape = characterEscapes.w;
       expression = expression.replace(
         /\\\\|(\\b)/g,
-        function (m, wordBorder, index, all) {
+        function (match, wordBorder, index, all) {
           if (wordBorder)
           {
             /* Handle \b in leading groups properly */
             if (index > afterFirstGroup)
             {
-              return "(?!" + wordClass + ")";
+              return "(?!" + wordEscape + ")";
             }
 
-            return "(?:^|[^" + wordClass + "])";
+            return "(?:^|[^" + wordEscape + "])";
           }
 
-          return m;
+          return match;
         });
     }
 

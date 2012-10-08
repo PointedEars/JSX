@@ -6,7 +6,7 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2002-2011 Thomas Lahn <js@PointedEars.de>
+ *   (C) 2002-2012 Thomas Lahn <js@PointedEars.de>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  * 
@@ -79,6 +79,8 @@ jsx.dom.timeout.Timeout = function(f, delay) {
  *   This argument's value will modify that property if the type
  *   is correct.
  * @see #Timeout()
+ * @return jsx.dom.timeout.Timeout
+ *   This object
  */
 jsx.dom.timeout.Timeout.prototype.run = function(f, delay) {
   this.unset();
@@ -93,8 +95,7 @@ jsx.dom.timeout.Timeout.prototype.run = function(f, delay) {
     this.delay = parseInt(delay, 10);
   }
   
-  if (typeof window != "undefined"
-      && jsx.object.isMethod(window, "setTimeout"))
+  if (jsx.object.isMethod(jsx.global, "window", "setTimeout"))
   {
     this.running = true;
     var me = this;
@@ -103,6 +104,8 @@ jsx.dom.timeout.Timeout.prototype.run = function(f, delay) {
       me.unset();
     }, this.delay);
   }
+  
+  return this;
 };
 
 /**
@@ -111,8 +114,7 @@ jsx.dom.timeout.Timeout.prototype.run = function(f, delay) {
 jsx.dom.timeout.Timeout.prototype.unset = function() {
   if (this.running)
   {
-    if (typeof window != "undefined"
-        && jsx.object.isMethod(window, "clearTimeout"))
+    if (jsx.object.isMethod(jsx.global, window, "clearTimeout"))
     {
       window.clearTimeout(this.data);
     }
@@ -149,9 +151,11 @@ jsx.dom.timeout.TimeoutList.prototype.unsetAll = function() {
  *   Code to be executed or function to be called.
  * @param iTimeout : number
  *   Number of milliseconds after which <var>code</var> should be run.
+ *   The time of execution is implementation-dependent, but the timer
+ *   will usually not start before control has returned to the caller.
+ * @return jsx.dom.timeout.Timeout
+ *   The created <code>Timeout</code>
  */
 jsx.dom.timeout.runAsync = function (code, iTimeout) {
-  (new jsx.dom.timeout.Timeout(code, iTimeout)).run();
-  
-  return Number.NaN;
+  return (new jsx.dom.timeout.Timeout(code, iTimeout)).run();
 };
