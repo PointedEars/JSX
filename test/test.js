@@ -493,24 +493,6 @@ jsx.test.runner = {
       .replace(/&lt;/, "<").replace(/&gt;/, ">").replace(/&amp;/, "&");
   },
   
-  _tryAsyncRun: (function () {
-    var jsx_dom_timeout = jsx.object.getFeature(jsx, "dom", "timeout");
-    
-    return function (method, args) {
-      var me = this;
-      if (jsx_dom_timeout)
-      {
-        jsx_dom_timeout.runAsync(function () {
-          method.apply(me, args);
-        });
-      }
-      else
-      {
-        method.apply(me, args);
-      }
-    };
-  }()),
-    
   /**
    * Prints the result to the error console, and, if supported,
    * to the document.
@@ -524,18 +506,16 @@ jsx.test.runner = {
    * @param msgType
    */
   _printResult: function (num, file, feature, desc, result, msgType) {
-    this._tryAsyncRun(function () {
-      this._appendEntry(num, file, feature, desc, result, msgType);
-      this._printMsg("Test " + num
-        + (file || feature ? ", " : "")
-        + file
-        + (feature ? ":" + feature : "")
-        + (file || feature ? "," : "")
-        + (desc ? ' "' + this._stripTags(desc) + '"' : "")
-        + (file || feature ? "," : "")
-        + " " + result,
-        msgType);
-    });
+    this._appendEntry(num, file, feature, desc, result, msgType);
+    this._printMsg("Test " + num
+      + (file || feature ? ", " : "")
+      + file
+      + (feature ? ":" + feature : "")
+      + (file || feature ? "," : "")
+      + (desc ? ' "' + this._stripTags(desc) + '"' : "")
+      + (file || feature ? "," : "")
+      + " " + result,
+      msgType);
   },
   
   _printSummary: function (result) {
