@@ -50,7 +50,9 @@ jsx.test.AssertionError = function (s) {
   this.message = "Assertion failed: " + s;
 };
 
-jsx.test.AssertionError.extend((typeof Error != "undefined") ? Error : null);
+jsx.test.AssertionError.extend((typeof Error != "undefined") ? Error : null, {
+  name: "jsx.test.AssertionError"
+});
 
 /**
  * Asserts that a condition converts to true.  If it does not, it throws
@@ -82,8 +84,8 @@ jsx.test.assert = function (x) {
   {
     (
       function () {
-        eval('throw new jsx.test.AssertionError('
-             + '"assert(" + (typeof origX == "string" ? origX : "...") + ");");');
+        jsx.throwThis(jsx.test.AssertionError,
+          '"assert("' + (typeof origX == "string" ? origX : "...") + '");"');
       }
     )();
   }
@@ -728,10 +730,6 @@ jsx.test.runner = {
     if (jsx_dom_timeout)
     {
       var me = this;
-//      return jsx_dom_timeout.runAsync(
-//        function () {
-//          _run.apply(me, args);
-//        });
       return jsx_dom_timeout.runAsync(
         function () {
           _run.apply(me, args);
