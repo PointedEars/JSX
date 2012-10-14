@@ -58,7 +58,10 @@ if (typeof jsx.options == "undefined")
  * </p>
  * @type boolean
  */
-jsx.options.emulate = true;
+if (typeof jsx.options.emulate == "undefined")
+{
+  jsx.options.emulate = true;
+}
 
 /**
  * @namespace
@@ -1075,16 +1078,15 @@ jsx.object.inheritFrom = (function () {
   return function (obj) {
     if (typeof obj == "object" && obj == null)
     {
-      if (_isNativeMethod(_global.Object, "create"))
+      if (_isNativeMethod(_global.Object, "create")
+          && !Object.create._emulated)
       {
         return Object.create(null);
       }
-      else
-      {
-        var result = new Object();
-        result.__proto__ = null;
-        return result;
-      }
+      
+      var result = new Object();
+      result.__proto__ = null;
+      return result;
     }
     
     Dummy.prototype = (typeof obj == "undefined")
@@ -1249,7 +1251,7 @@ if (jsx.options.emulate && !jsx.object.isNativeMethod(jsx.tryThis("Object"), "cr
         var hasGetter = _hasOwnProperty(obj, "get");
         if (hasGetter)
         {
-          if (typeof desc.get != "function")
+          if (typeof obj.get != "function")
           {
             jsx.throwThis("TypeError", "Function expected for getter");
           }
@@ -1260,7 +1262,7 @@ if (jsx.options.emulate && !jsx.object.isNativeMethod(jsx.tryThis("Object"), "cr
         var hasSetter = _hasOwnProperty(obj, "set");
         if (hasSetter)
         {
-          if (typeof desc.set != "function")
+          if (typeof obj.set != "function")
           {
             jsx.throwThis("TypeError", "Function expected for setter");
           }
@@ -1313,10 +1315,16 @@ if (jsx.options.emulate && !jsx.object.isNativeMethod(jsx.tryThis("Object"), "cr
 
         if (_isGenericDescriptor(descriptor) || _isDataDescriptor(descriptor))
         {
-          obj[propertyName] = descriptor.value;
+          var value = descriptor.value;
+          obj[propertyName] = value;
 
           if (!descriptor.writable)
           {
+            /* NOTE: Need getter because __defineSetter__() undefines value */
+            obj.__defineGetter__(propertyName, function () {
+              return value;
+            });
+
             obj.__defineSetter__(propertyName, function () {});
           }
         }
@@ -1399,9 +1407,15 @@ if (jsx.options.emulate && !jsx.object.isNativeMethod(jsx.tryThis("Object"), "cr
    */
   Object.create = function (prototype, descriptor) {
     var o = jsx.object.inheritFrom(prototype);
-    Object.defineProperties(o, descriptor);
+
+    if (typeof descriptor != "undefined")
+    {
+      Object.defineProperties(o, descriptor);
+    }
+
     return o;
   };
+  Object.create._emulated = true;
 }
 
 /**
