@@ -683,6 +683,7 @@ jsx.object._hasOwnProperty = (function () {
  *   <code>false</code> otherwise.
  */
 jsx.object._propertyIsEnumerable = (function () {
+  var _isMethod = jsx.object.isMethod;
   var _hasOwnProperty = jsx.object._hasOwnProperty;
   
   return function (obj, sProperty) {
@@ -692,6 +693,11 @@ jsx.object._propertyIsEnumerable = (function () {
       obj = this;
     }
   
+    if (_isMethod(obj, "propertyIsEnumerable"))
+    {
+      return obj.propertyIsEnumerable(sProperty);
+    }
+    
     for (var propertyName in obj)
     {
       if (propertyName == name && _hasOwnProperty(obj, propertyName))
