@@ -639,6 +639,72 @@ jsx.object.defineProperties = function (oTarget, oProperties, sContext) {
 };
 
 /**
+ * Determines if an object has a (non-inherited) property
+ *
+ * @param obj : optional Object
+ *   Object which property should be checked for existence.
+ * @param sProperty : string
+ *   Name of the property to check.
+ * @return boolean
+ *   <code>true</code> if there is such a property;
+ *   <code>false</code> otherwise.
+ */
+jsx.object._hasOwnProperty = (function () {
+  var _isMethod = jsx.object.isMethod;
+  
+  return function (obj, sProperty) {
+    if (arguments.length < 2 && obj)
+    {
+      sProperty = obj;
+      obj = this;
+    }
+  
+    var proto;
+  
+    return (_isMethod(obj, "hasOwnProperty")
+      ? obj.hasOwnProperty(sProperty)
+      : (typeof obj[sProperty] != "undefined"
+          && ((typeof obj.constructor != "undefined"
+                && (proto = obj.constructor.prototype)
+                && typeof proto[sProperty] == "undefined")
+              || (typeof obj.constructor == "undefined"))));
+  };
+}());
+
+/**
+ * Determines if a (non-inherited) property of an object is enumerable
+ *
+ * @param obj : optional Object
+ *   Object which property should be checked for enumerability.
+ * @param sProperty : string
+ *   Name of the property to check.
+ * @return boolean
+ *   <code>true</code> if there is such a property;
+ *   <code>false</code> otherwise.
+ */
+jsx.object._propertyIsEnumerable = (function () {
+  var _hasOwnProperty = jsx.object._hasOwnProperty;
+  
+  return function (obj, sProperty) {
+    if (arguments.length < 2 && obj)
+    {
+      sProperty = obj;
+      obj = this;
+    }
+  
+    for (var propertyName in obj)
+    {
+      if (propertyName == name && _hasOwnProperty(obj, propertyName))
+      {
+        return true;
+      }
+    }
+    
+    return false;
+  };
+}());
+
+/**
  * Returns the name of an unused property for an object.
  *
  * @function
@@ -654,7 +720,7 @@ jsx.object.defineProperties = function (oTarget, oProperties, sContext) {
  *   if there is no such property.
  */
 jsx.object.findNewProperty = (function () {
-  var jsx_object = jsx.object;
+  var _hasOwnProperty = jsx.object._hasOwnProperty;
 
   return function (obj, iLength) {
     if (!obj)
@@ -678,7 +744,7 @@ jsx.object.findNewProperty = (function () {
       for (var i = "a".charCodeAt(0), max = "z".charCodeAt(0); i <= max; ++i)
       {
         var ch = String.fromCharCode(i);
-        if (!jsx_object._hasOwnProperty(obj, newName + ch + "_"))
+        if (!_hasOwnProperty(obj, newName + ch + "_"))
         {
           return newName + ch + "_";
         }
@@ -1115,64 +1181,6 @@ jsx.object.getDataObject = (function () {
     return _inheritFrom(null);
   };
 }());
-
-/**
- * Determines if an object has a (non-inherited) property
- *
- * @param obj : optional Object
- *   Object which property should be checked for existence.
- * @param sProperty : string
- *   Name of the property to check.
- * @return boolean
- *   <code>true</code> if there is such a property;
- *   <code>false</code> otherwise.
- */
-jsx.object._hasOwnProperty = function (obj, sProperty) {
-  if (arguments.length < 2 && obj)
-  {
-    sProperty = obj;
-    obj = this;
-  }
-
-  var proto;
-
-  return (jsx.object.isMethod(obj, "hasOwnProperty")
-    ? obj.hasOwnProperty(sProperty)
-    : (typeof obj[sProperty] != "undefined"
-        && ((typeof obj.constructor != "undefined"
-              && (proto = obj.constructor.prototype)
-              && typeof proto[sProperty] == "undefined")
-            || (typeof obj.constructor == "undefined"))));
-};
-
-/**
- * Determines if an object has a (non-inherited) property
- *
- * @param obj : optional Object
- *   Object which property should be checked for existence.
- * @param sProperty : string
- *   Name of the property to check.
- * @return boolean
- *   <code>true</code> if there is such a property;
- *   <code>false</code> otherwise.
- */
-jsx.object._hasOwnProperty = function (obj, sProperty) {
-  if (arguments.length < 2 && obj)
-  {
-    sProperty = obj;
-    obj = this;
-  }
-
-  var proto;
-
-  return (jsx.object.isMethod(obj, "hasOwnProperty")
-    ? obj.hasOwnProperty(sProperty)
-    : (typeof obj[sProperty] != "undefined"
-        && ((typeof obj.constructor != "undefined"
-              && (proto = obj.constructor.prototype)
-              && typeof proto[sProperty] == "undefined")
-            || (typeof obj.constructor == "undefined"))));
-};
 
 if (jsx.options.emulate && !jsx.object.isNativeMethod(jsx.tryThis("Object"), "create"))
 {
