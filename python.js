@@ -1,3 +1,4 @@
+"use strict";
 /**
  * @fileOverview <title>Pythonic functions for ECMAScript implementations</title>
  * @file $Id$
@@ -219,41 +220,106 @@ jsx.python.range = function (start, end, step) {
  * @return {Array}
  */
 jsx.python.set = (function () {
-  var jsx_object = jsx.object;
-  var isMethod = jsx_object.isMethod;
+  var _jsx = jsx;
+  var _jsx_object = _jsx.object;
+  var _Map;
+  var _getKeys = _jsx_object.getKeys;
+  var _isMethod = _jsx_object.isMethod;
 
-  return function (iterable) {
-    var result = [];
-    
-    if (isMethod(iterable, "slice"))
+  return function jsx_python_set (iterable) {
+    if (!(this instanceof jsx_python_set))
     {
-      result = iterable.slice();
+      return new jsx_python_set(iterable);
+    }
+
+    if (_isMethod(iterable, "slice"))
+    {
+      var result = iterable.slice();
     }
     else
     {
-      for (var prop in iterable)
+      result = [];
+      
+      for (var i = 0, keys = _getKeys(iterable), len = keys.length;
+           i < len;
+           ++i)
       {
-        result.push(iterable[prop]);
+        result.push(iterable[keys[i]]);
       }
     }
     
-    for (i = 0, len = result.length; i < len; ++i)
+    /* Prefer more efficient (best case: O(1)) Map approach if possible */
+    if (_Map || typeof _jsx.map != "undefined")
     {
-      for (var j = i + 1, max = Math.floor(Math.sqrt(len)); j < max; ++j)
+      if (!_Map)
       {
-        if (result[i] === result[j])
+        _Map = _jsx.map.Map;
+      }
+      
+      var map = new _Map();
+      for (i = 0, len = result.length; i < len; ++i)
+      {
+        map.put(result[i], true);
+      }
+      
+      result = map.keys();
+    }
+    else
+    {
+      /* comparisons(n) = (n^2 - n)/2 ~ O(n^2) */
+      for (var i = 0, len = result.length; i < len; ++i)
+      {
+        for (var j = i + 1; j < len; ++j)
         {
-          delete result[j];
-          --j;
-          --max;
-          --len;
+          if (result[i] === result[j])
+          {
+            result.splice(j, 1);
+            --j;
+            --len;
+          }
         }
       }
     }
     
-    return result;
+    this._elements = result;
+    this.length = this._elements.length;
   };
 }());
+
+jsx.python.set.extend(null, {
+  intersection: function (other) {
+    if (!(other instanceof jsx.python.set))
+    {
+      other = new jsx.python.set(other);
+    }
+    
+    var elements = this._elements;
+    elements.sort();
+    other.sort();
+    
+    var intersection = [];
+    
+    /* FIXME: Identical elements need not sort to the same position */
+    for (var i = 0, len = elements.length; i < len; ++i)
+    {
+      var element = elements[i];
+      if (element === other[i])
+      {
+        intersection.push(element);
+      }
+    }
+    
+    return new jsx.python.set(intersection);
+  },
+  
+  isdisjoint: function (other) {
+    return (this.intersection(other).length === 0);
+  },
+  
+  toArray: function () {
+    return this._elements;
+  }
+});
 
 /**
  * Return an Array of Arrays, where each inner Array contains the i-th
