@@ -43,7 +43,13 @@ if (typeof jsx.string == "undefined")
   
 jsx.string.hyphenation = (function () {
   "use strict";
-  var _dictionary = Object.create(null);
+  var
+    _jsx = jsx,
+    _jsx_object = _jsx.object,
+    _getDataObject = _jsx_object.getDataObject,
+    _getKeys = _jsx_object.getKeys;
+  
+  var _dictionary = _getDataObject();
   var _hyphenateAll = false;
   var _rxWord = /(^|\s)(\S+)([\s,;:.?!\)\]]|$)/g;
   var _rxWords;
@@ -53,7 +59,7 @@ jsx.string.hyphenation = (function () {
   var _compiled = false;
   var _compile = function () {
     _rxWords = new RegExp("(^|\\s)("
-      + Object.keys(_dictionary).join("|")
+      + _getKeys(_dictionary).join("|")
       + ")([\\s,;:.?!\\)\\]]|$)", "g");
     _compiled = true;
   };
@@ -134,7 +140,7 @@ jsx.string.hyphenation = (function () {
     },
     
     reset: function () {
-      _dictionary = Object.create(null);
+      _dictionary = _getDataObject();
       _compiled = false;
     },
 
