@@ -1188,198 +1188,257 @@ jsx.object.getDataObject = (function () {
   };
 }());
 
-if (jsx.options.emulate && !jsx.object.isNativeMethod(jsx.tryThis("Object"), "create"))
-{
-  if (!jsx.object.isNativeMethod(jsx.tryThis("Object"), "defineProperties"))
-  {
-    if (!jsx.object.isNativeMethod(jsx.tryThis("Object"), "getOwnPropertyNames"))
+jsx.object.getKeys = (function() {
+  var
+    _jsx = jsx,
+    _global = _jsx.global,
+    _isNativeMethod = _jsx.object.isNativeMethod,
+    _hasOwnProperty = jsx.object._hasOwnProperty;
+
+  return function (obj) {
+    if (_isNativeMethod(_global.Object, "keys")
+        && !Object.keys._emulated)
     {
-      Object.getOwnPropertyNames = (function () {
-        var _hasOwnProperty = jsx.object._hasOwnProperty;
-
-        return function (o) {
-          var names = [];
-
-          for (var p in o)
-          {
-            if (_hasOwnProperty(o, p))
-            {
-              names.push(p);
-            }
-          }
-
-          return names;
-        };
-      }());
+      return Object.keys(obj);
     }
 
-    /**
-     * Defines a property of an object.
-     *
-     * Emulation of the Object.defineProperty() method from ES 5.1,
-     * section 15.2.3.6.
-     *
-     * @param o : Object
-     * @param descriptor : optional Object
-     *   Property descriptor, a reference to an object that defines
-     *   the attributes of the property.  Supported properties of
-     *   that defining object include <code>value</code> only
-     *   at this time.
-     * @return Reference to the object
-     * @type Object
-     */
-    Object.defineProperty = (function () {
-      var _hasOwnProperty = jsx.object._hasOwnProperty;
+    var a = new Array();
 
-      function _toPropertyDescriptor(obj)
+    for (var p in obj)
+    {
+      if (_hasOwnProperty(obj, p))
       {
-        if (!/^(object|function)$/i.test(typeof obj) || !obj)
-        {
-          jsx.throwThis("TypeError", "Object expected");
-        }
-
-        var desc = new Object();
-
-        if (_hasOwnProperty(obj, "enumerable"))
-        {
-          desc.enumerable = !!obj.enumerable;
-        }
-
-        if (_hasOwnProperty(obj, "configurable"))
-        {
-          desc.configurable = !!obj.configurable;
-        }
-
-        var hasValue = obj.hasOwnProperty("value");
-        if (hasValue)
-        {
-          desc.value = obj.value;
-        }
-
-        var hasWritable = _hasOwnProperty(obj, "writable");
-        if (hasWritable)
-        {
-          desc.writable = !!obj.writable;
-        }
-
-        var hasGetter = _hasOwnProperty(obj, "get");
-        if (hasGetter)
-        {
-          if (typeof obj.get != "function")
-          {
-            jsx.throwThis("TypeError", "Function expected for getter");
-          }
-
-          desc.get = obj.get;
-        }
-
-        var hasSetter = _hasOwnProperty(obj, "set");
-        if (hasSetter)
-        {
-          if (typeof obj.set != "function")
-          {
-            jsx.throwThis("TypeError", "Function expected for setter");
-          }
-
-          desc.set = obj.set;
-        }
-
-        if ((hasGetter || hasSetter) && (hasValue || hasWritable))
-        {
-          jsx.throwThis("TypeError", "Cannot define getter/setter and value/writable");
-        }
-
-        return desc;
+        a[a.length] = p;
       }
+    }
 
-      function _defineOwnProperty (obj, propertyName, descriptor, _throw)
+    return a;
+  };
+}());
+
+if (jsx.options.emulate)
+{
+  if (!jsx.object.isNativeMethod(jsx.tryThis("Object"), "create"))
+  {
+    if (!jsx.object.isNativeMethod(jsx.tryThis("Object"), "defineProperties"))
+    {
+      if (!jsx.object.isNativeMethod(jsx.tryThis("Object"), "getOwnPropertyNames"))
       {
-        function _isAccessorDescriptor (desc)
-        {
-          if (typeof desc == "undefined")
-          {
-            return false;
-          }
-
-          return _hasOwnProperty(desc, "get") || _hasOwnProperty(desc, "set");
-        }
-
-        function _isDataDescriptor (desc)
-        {
-          if (typeof desc == "undefined")
-          {
-            return false;
-          }
-
-          return desc.hasOwnProperty("value") || _hasOwnProperty(desc, "writable");
-        }
-
-        function _isGenericDescriptor (desc)
-        {
-          if (typeof desc == "undefined")
-          {
-            return false;
-          }
-
-          return !_isAccessorDescriptor(desc) && !_isDataDescriptor(desc);
-        }
-
-//        var current = obj.hasOwnProperty(propertyName);
-//        var extensible = obj[propertyName].[[Extensible]]
-
-        if (_isGenericDescriptor(descriptor) || _isDataDescriptor(descriptor))
-        {
-          var value = descriptor.value;
-          obj[propertyName] = value;
-
-          if (!descriptor.writable)
-          {
-            /* NOTE: Need getter because __defineSetter__() undefines value */
-            obj.__defineGetter__(propertyName, function () {
-              return value;
-            });
-
-            obj.__defineSetter__(propertyName, function () {});
-          }
-        }
-        else
-        {
-          /* accessor property descriptor */
-          if (descriptor.get)
-          {
-            obj.__defineGetter__(propertyName, descriptor.get);
-          }
-
-          if (descriptor.set)
-          {
-            obj.__defineSetter__(propertyName, descriptor.set);
-          }
-        }
-
-        return false;
+        Object.getOwnPropertyNames = (function () {
+          var _hasOwnProperty = jsx.object._hasOwnProperty;
+  
+          return function (o) {
+            var names = [];
+  
+            for (var p in o)
+            {
+              if (_hasOwnProperty(o, p))
+              {
+                names.push(p);
+              }
+            }
+  
+            return names;
+          };
+        }());
       }
-
-      return function (o, propertyName, descriptor) {
-        if (!/^(object|function)$/.test(typeof o) || !o)
+  
+      /**
+       * Defines a property of an object.
+       *
+       * Emulation of the Object.defineProperty() method from ES 5.1,
+       * section 15.2.3.6.
+       *
+       * @param o : Object
+       * @param descriptor : optional Object
+       *   Property descriptor, a reference to an object that defines
+       *   the attributes of the property.  Supported properties of
+       *   that defining object include <code>value</code> only
+       *   at this time.
+       * @return Reference to the object
+       * @type Object
+       */
+      Object.defineProperty = (function () {
+        var _hasOwnProperty = jsx.object._hasOwnProperty;
+  
+        function _toPropertyDescriptor(obj)
         {
-          jsx.throwThis("TypeError", "Object expected");
+          if (!/^(object|function)$/i.test(typeof obj) || !obj)
+          {
+            jsx.throwThis("TypeError", "Object expected");
+          }
+  
+          var desc = new Object();
+  
+          if (_hasOwnProperty(obj, "enumerable"))
+          {
+            desc.enumerable = !!obj.enumerable;
+          }
+  
+          if (_hasOwnProperty(obj, "configurable"))
+          {
+            desc.configurable = !!obj.configurable;
+          }
+  
+          var hasValue = obj.hasOwnProperty("value");
+          if (hasValue)
+          {
+            desc.value = obj.value;
+          }
+  
+          var hasWritable = _hasOwnProperty(obj, "writable");
+          if (hasWritable)
+          {
+            desc.writable = !!obj.writable;
+          }
+  
+          var hasGetter = _hasOwnProperty(obj, "get");
+          if (hasGetter)
+          {
+            if (typeof obj.get != "function")
+            {
+              jsx.throwThis("TypeError", "Function expected for getter");
+            }
+  
+            desc.get = obj.get;
+          }
+  
+          var hasSetter = _hasOwnProperty(obj, "set");
+          if (hasSetter)
+          {
+            if (typeof obj.set != "function")
+            {
+              jsx.throwThis("TypeError", "Function expected for setter");
+            }
+  
+            desc.set = obj.set;
+          }
+  
+          if ((hasGetter || hasSetter) && (hasValue || hasWritable))
+          {
+            jsx.throwThis("TypeError", "Cannot define getter/setter and value/writable");
+          }
+  
+          return desc;
         }
-
-        var name = String(propertyName);
-        var desc = _toPropertyDescriptor(descriptor);
-        _defineOwnProperty(o, name, desc, true);
-
+  
+        function _defineOwnProperty (obj, propertyName, descriptor, _throw)
+        {
+          function _isAccessorDescriptor (desc)
+          {
+            if (typeof desc == "undefined")
+            {
+              return false;
+            }
+  
+            return _hasOwnProperty(desc, "get") || _hasOwnProperty(desc, "set");
+          }
+  
+          function _isDataDescriptor (desc)
+          {
+            if (typeof desc == "undefined")
+            {
+              return false;
+            }
+  
+            return desc.hasOwnProperty("value") || _hasOwnProperty(desc, "writable");
+          }
+  
+          function _isGenericDescriptor (desc)
+          {
+            if (typeof desc == "undefined")
+            {
+              return false;
+            }
+  
+            return !_isAccessorDescriptor(desc) && !_isDataDescriptor(desc);
+          }
+  
+  //        var current = obj.hasOwnProperty(propertyName);
+  //        var extensible = obj[propertyName].[[Extensible]]
+  
+          if (_isGenericDescriptor(descriptor) || _isDataDescriptor(descriptor))
+          {
+            var value = descriptor.value;
+            obj[propertyName] = value;
+  
+            if (!descriptor.writable)
+            {
+              /* NOTE: Need getter because __defineSetter__() undefines value */
+              obj.__defineGetter__(propertyName, function () {
+                return value;
+              });
+  
+              obj.__defineSetter__(propertyName, function () {});
+            }
+          }
+          else
+          {
+            /* accessor property descriptor */
+            if (descriptor.get)
+            {
+              obj.__defineGetter__(propertyName, descriptor.get);
+            }
+  
+            if (descriptor.set)
+            {
+              obj.__defineSetter__(propertyName, descriptor.set);
+            }
+          }
+  
+          return false;
+        }
+  
+        return function (o, propertyName, descriptor) {
+          if (!/^(object|function)$/.test(typeof o) || !o)
+          {
+            jsx.throwThis("TypeError", "Object expected");
+          }
+  
+          var name = String(propertyName);
+          var desc = _toPropertyDescriptor(descriptor);
+          _defineOwnProperty(o, name, desc, true);
+  
+          return o;
+        };
+      }());
+  
+      /**
+       * Defines the properties of an object.
+       *
+       * Emulation of the Object.defineProperties() method from ES 5.1,
+       * section 15.2.3.7.
+       *
+       * @param o : Object
+       * @param descriptor : optional Object
+       *   Properties descriptor, where each own property name
+       *   is a property name of the new object, and each corresponding
+       *   property value is a reference to an object that defines the
+       *   attributes of that property.  Supported properties of
+       *   that defining object include <code>value</code> only
+       *   at this time.
+       * @return Reference to the object
+       * @type Object
+       */
+      Object.defineProperties = function (o, descriptor) {
+        var properties = Object.getOwnPropertyNames(descriptor);
+        for (var i = 0, len = properties.length; i < len; ++i)
+        {
+          var propertyName = properties[i];
+          Object.defineProperty(o, propertyName, descriptor[propertyName]);
+        }
+  
         return o;
       };
-    }());
-
+    }
+  
     /**
-     * Defines the properties of an object.
+     * Creates a new object and initializes its properties.
      *
-     * Emulation of the Object.defineProperties() method from ES 5.1,
-     * section 15.2.3.7.
+     * Emulation of the Object.create() method from ES 5.1,
+     * section 15.2.3.5.
      *
-     * @param o : Object
+     * @param prototype : Object|Null
      * @param descriptor : optional Object
      *   Properties descriptor, where each own property name
      *   is a property name of the new object, and each corresponding
@@ -1387,50 +1446,31 @@ if (jsx.options.emulate && !jsx.object.isNativeMethod(jsx.tryThis("Object"), "cr
      *   attributes of that property.  Supported properties of
      *   that defining object include <code>value</code> only
      *   at this time.
-     * @return Reference to the object
+     * @return Reference to the new object
      * @type Object
      */
-    Object.defineProperties = function (o, descriptor) {
-      var properties = Object.getOwnPropertyNames(descriptor);
-      for (var i = 0, len = properties.length; i < len; ++i)
+    Object.create = function (prototype, descriptor) {
+      var o = jsx.object.inheritFrom(prototype);
+  
+      if (typeof descriptor != "undefined")
       {
-        var propertyName = properties[i];
-        Object.defineProperty(o, propertyName, descriptor[propertyName]);
+        Object.defineProperties(o, descriptor);
       }
-
+  
       return o;
     };
+    Object.create._emulated = true;
   }
-
-  /**
-   * Creates a new object and initializes its properties.
-   *
-   * Emulation of the Object.create() method from ES 5.1,
-   * section 15.2.3.5.
-   *
-   * @param prototype : Object|Null
-   * @param descriptor : optional Object
-   *   Properties descriptor, where each own property name
-   *   is a property name of the new object, and each corresponding
-   *   property value is a reference to an object that defines the
-   *   attributes of that property.  Supported properties of
-   *   that defining object include <code>value</code> only
-   *   at this time.
-   * @return Reference to the new object
-   * @type Object
-   */
-  Object.create = function (prototype, descriptor) {
-    var o = jsx.object.inheritFrom(prototype);
-
-    if (typeof descriptor != "undefined")
-    {
-      Object.defineProperties(o, descriptor);
-    }
-
-    return o;
-  };
-  Object.create._emulated = true;
+  
+  if (!jsx.object.isNativeMethod(jsx.tryThis("Object"), "keys"))
+  {
+    Object.keys = function (obj) {
+      return jsx.object.getKeys(obj);
+    };
+    Object.keys._emulated = true;
+  }
 }
+
 
 /**
  * Returns a feature of an object
@@ -1882,16 +1922,19 @@ jsx.importOnce = (function () {
 
 /**
  * Determines if a value refers to an object.
- * <p>
- * Returns <code>true</code> if the value is a reference to an object;
- * <code>false</code> otherwise.
- * </p>
+ * 
+ * <p>Returns <code>true</code> if the value is a reference
+ * to an object; <code>false</code> otherwise.</p>
+ * 
+ * <p>An value "is an object" if it is a function or
+ * <code>typeof "object"</code> but not <code>null</code>.
  *
  * @function
  * @return boolean
  */
 jsx.object.isObject = function (a) {
-  return typeof a == "object" && a !== null;
+  var t = typeof a;
+  return t == "function" || t == "object" && a !== null;
 };
 
 /**
