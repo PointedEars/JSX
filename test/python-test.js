@@ -76,7 +76,16 @@ function runTests ()
         desc: '<code>set(["a", "b", "a", "b"])<\/code> returns'
           + ' <code>new set(["a", "b"])<\/code> or <code>new set(["b", "a"])<\/code>',
           code: function() {
+            var _map = jsx.map;
+            
+            delete jsx.map;
             var a = set(["a", "b", "a", "b"]).toArray();
+            assert(a.length === 2
+                    && ((a[0] === "a" && a[1] === "b")
+                        || (a[0] === "b" && a[1] === "a")));
+            
+            jsx.map = _map;
+            a = set(["a", "b", "a", "b"]).toArray();
             assert(a.length === 2
                     && ((a[0] === "a" && a[1] === "b")
                         || (a[0] === "b" && a[1] === "a")));
