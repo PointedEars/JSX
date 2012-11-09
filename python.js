@@ -3,11 +3,11 @@
  * @fileOverview <title>Pythonic functions for ECMAScript implementations</title>
  * @file $Id$
  * @requires object.js
- * 
+ *
  * @author (C) 2011, 2012 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
- * 
+ *
  * @partof PointedEars' JavaScript Extensions (JSX)
- * 
+ *
  * JSX is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -45,30 +45,66 @@ jsx.python = {
 };
 
 /**
+ * Returns a reference to an <code>Array</code> instance whose
+ * items are the numbers from <var>start</var> inclusive to
+ * <var>end</var> exclusive using step width <var>step</var>
+ * (may be negative).
+ *
+ * @param start : Number
+ * @param end : Number
+ * @param step : optional Number = 1
+ * @return {Array}
+ */
+jsx.python.range = function (start, end, step) {
+  var result = [];
+
+  if (!step)
+  {
+    if (step === 0)
+    {
+      jsx.throwThis(
+        "jsx.InvalidArgumentError", "step argument must not be zero");
+    }
+
+    step = 1;
+  }
+
+  end = +end;
+  step = +step;
+
+  for (var i = +start; (step > 0) ? (i < end) : (i > end); i += step)
+  {
+    result.push(i);
+  }
+
+  return result;
+};
+
+/**
  * Returns a reference to an Array instance containing
  * the names of the enumerable properties of another object;
  * returns a reference to a passed Array.
- * 
+ *
  * @function
  * @param iterable : Object
  * @return {Array}
  */
 jsx.python.list = (function () {
-  var jsx_object = jsx.object;
-  var _getClass = jsx_object.getClass;
-  var _hasOwnProperty = jsx_object._hasOwnProperty;
+  var _jsx_object = jsx.object;
+  var _isArray = _jsx_object.isArray;
+  var _hasOwnProperty = _jsx_object._hasOwnProperty;
 
   /**
    * @return {Array}
    */
   return function (iterable) {
     var result = [];
-    
-    if (_getClass(iterable) == "Array")
+
+    if (_isArray(iterable))
     {
       return iterable;
     }
-    
+
     for (var property in iterable)
     {
       if (_hasOwnProperty(iterable, property))
@@ -76,77 +112,103 @@ jsx.python.list = (function () {
         result.push(property);
       }
     }
-    
+
     return result;
   };
 }());
 
 /**
  * List comprehension.
- * 
+ *
  * Returns a reference to an <code>Array</code>
  * instance containing the result of passing each item
- * of <var>list</var> to <var>builder</var> (or the item
- * if <var>builder</var> is a false-value) for which
+ * of <var>list</var> to <var>mapper</var> (or <var>mapper</var>
+ * itself if <var>mapper</var> is not a function) for which
  * <var>condition</var> returns a true-value (or all items
- * if <var>condition</var> is a false-value).
- * 
- * @param builder : Function
+ * if <var>condition</var> is a <code>true-value</code> or
+ * <code>undefined</code>, and no items if it is another
+ * false-value).
+ *
+ * @param mapper : Function|any
  * @param iterable : Object
- * @param condition : Function
+ * @param condition : Function|Boolean
  * @return {Array}
  */
 jsx.python.list.from = (function () {
-  var jsx_object = jsx.object;
-  var _getClass = jsx_object.getClass;
-  var _hasOwnProperty = jsx_object._hasOwnProperty;
-  
-  return function (builder, iterable, condition) {
+  var _jsx_object = jsx.object;
+  var _getKeys = _jsx_object.getKeys;
+  var _isArray = _jsx_object.isArray;
+  var _isObject = _jsx_object.isObject;
+  var _range = jsx.python.range;
+
+  return function (mapper, iterable, condition) {
     var result = [];
-    
-    if (_getClass(iterable) == "Array")
+
+    var iterableIsArray = _isArray(iterable);
+    if (iterableIsArray)
     {
-      result = iterable;
+      var len = iterable.length;
+      var keys = _range(0, len);
     }
     else
     {
-      for (var property in iterable)
+      keys = _isObject(iterable) && _getKeys(iterable);
+      len = keys.length;
+    }
+
+    var hasCondition = (typeof condition == "function");
+    for (var i = 0; i < len; ++i)
+    {
+      if (iterableIsArray && !(i in iterable))
       {
-        if (_hasOwnProperty(iterable, property))
+        continue;
+      }
+
+      var key = keys[i];
+      var item = iterable[key];
+
+      if (hasCondition)
+      {
+        var conditionMet = condition(item, key, iterable);
+      }
+      else
+      {
+        conditionMet = condition;
+      }
+
+      if (!hasCondition || conditionMet)
+      {
+        if (typeof mapper == "function")
         {
-          result.push(property);
+          var value = mapper(item, key, iterable);
         }
+        else
+        {
+          value = mapper;
+        }
+
+        result.push(value);
       }
     }
-  
-    if (condition)
-    {
-      result = result.filter(condition);
-    }
-  
-    if (builder)
-    {
-      result = result.map(builder);
-    }
-    
+
     return result;
   };
 }());
 
 /**
  * Returns a reference to an object
- * 
+ *
  * @param mapping
  * @return {Object}
  */
 jsx.python.dict = function (mapping, values) {
   var result = {};
-  
+
   if (typeof mapping == "undefined")
   {
     return result;
   }
-  
+
   if (mapping.length)
   {
     if (arguments.length > 1)
@@ -155,10 +217,10 @@ jsx.python.dict = function (mapping, values) {
       {
         result[mapping[index]] = values[index];
       }
-        
+
       return result;
     }
-    
+
     var props = mapping[0];
     var vals = mapping[1];
     for (var index2 in props)
@@ -173,49 +235,13 @@ jsx.python.dict = function (mapping, values) {
       result[name] = mapping[name];
     }
   }
-  
-  return result;
-};
 
-/**
- * Returns a reference to an <code>Array</code> instance whose
- * items are the numbers from <var>start</var> inclusive to
- * <var>end</var> exclusive using step width <var>step</var>
- * (may be negative).
- *
- * @param start : Number
- * @param end : Number
- * @param step : optional Number = 1
- * @return {Array}
- */
-jsx.python.range = function (start, end, step) {
-  var result = [];
-  
-  if (!step)
-  {
-    if (step === 0)
-    {
-      jsx.throwThis(
-        "jsx.InvalidArgumentError", "step argument must not be zero");
-    }
-    
-    step = 1;
-  }
-  
-  end = +end;
-  step = +step;
-  
-  for (var i = +start; (step > 0) ? (i < end) : (i > end); i += step)
-  {
-    result.push(i);
-  }
-  
   return result;
 };
 
 /**
  * Build an unordered collection of unique elements.
- * 
+ *
  * @param iterable : Object
  * @return {Array}
  */
@@ -239,7 +265,7 @@ jsx.python.set = (function () {
     else
     {
       result = [];
-      
+
       for (var i = 0, keys = _getKeys(iterable), len = keys.length;
            i < len;
            ++i)
@@ -247,21 +273,21 @@ jsx.python.set = (function () {
         result.push(iterable[keys[i]]);
       }
     }
-    
-    /* Prefer more efficient (best case: O(1)) Map approach if possible */
+
+    /* Prefer more efficient (best case: O(n)) Map approach if possible */
     if (_Map || typeof _jsx.map != "undefined")
     {
       if (!_Map)
       {
         _Map = _jsx.map.Map;
       }
-      
+
       var map = new _Map();
       for (i = 0, len = result.length; i < len; ++i)
       {
         map.put(result[i], true);
       }
-      
+
       result = map.keys();
     }
     else
@@ -280,7 +306,7 @@ jsx.python.set = (function () {
         }
       }
     }
-    
+
     this._elements = result;
     this.length = this._elements.length;
   };
@@ -292,13 +318,13 @@ jsx.python.set.extend(null, {
     {
       other = new jsx.python.set(other);
     }
-    
+
     var elements = this._elements;
     elements.sort();
     other.sort();
-    
+
     var intersection = [];
-    
+
     /* FIXME: Identical elements need not sort to the same position */
     for (var i = 0, len = elements.length; i < len; ++i)
     {
@@ -308,14 +334,14 @@ jsx.python.set.extend(null, {
         intersection.push(element);
       }
     }
-    
+
     return new jsx.python.set(intersection);
   },
-  
+
   isdisjoint: function (other) {
     return (this.intersection(other).length === 0);
   },
-  
+
   toArray: function () {
     return this._elements;
   }
@@ -335,7 +361,7 @@ jsx.python.zip = function (arg1, arg2) {
   for (var i = 0, len = arguments[0].length; i < len; ++i)
   {
     result[i] = [];
-    
+
     for (var j = 0, len2 = arguments.length; j < len2; ++j)
     {
       if (arguments[j].length - 1 < i)
@@ -343,7 +369,7 @@ jsx.python.zip = function (arg1, arg2) {
         delete result[i];
         break;
       }
-      
+
       result[i][j] = arguments[j][i];
     }
   }
@@ -353,11 +379,11 @@ jsx.python.zip = function (arg1, arg2) {
 
 /**
  * Extends an Array with elements from another Array.
- * 
+ *
  * Different from Array.prototype.concat() in that the first Array is modified.
  * To emphasize this, there is no explicit return value (i.e. returns
  * <code>undefined</code>).
- * 
+ *
  * @param list1 : Array which is to be extended
  * @param list2 : Array which elements should be appended to <var>list1</var>
  */
