@@ -2465,14 +2465,14 @@ jsx.array = {
       }
   
       var
-        len = this.length >>> 0,
+        len = array.length >>> 0,
         res = [];
   
       for (var i = 0; i < len; ++i)
       {
-        if (i in this)
+        if (i in array)
         {
-          res[i] = callback.call(oThis, this[i], i, this);
+          res[i] = callback.call(oThis, array[i], i, array);
         }
       }
   
