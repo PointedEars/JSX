@@ -2440,6 +2440,47 @@ Function.prototype.extend = (function () {
   };
 }());
 
+jsx.array = {
+  /**
+   * Maps one array to another
+   *
+   * @param array : Array
+   *   Array to be mapped
+   * @param callback : Callable
+   * @param oThis : optional Object
+   * @return {Array}
+   *   <var>array</var> with <var>callback</var> applied to each element.
+   * @see ECMAScript Language Specification, Edition 5.1, section 15.4.4.19
+   */
+  map: (function () {
+    var _isMethod = jsx.object.isMethod;
+    
+    return function (array, callback, oThis) {
+      if (!_isMethod(callback))
+      {
+        jsx.throwThis("TypeError",
+          (_isMethod(callback, "toSource") ? callback.toSource() : callback)
+            + " is not callable",
+          this + ".map");
+      }
+  
+      var
+        len = this.length >>> 0,
+        res = [];
+  
+      for (var i = 0; i < len; ++i)
+      {
+        if (i in this)
+        {
+          res[i] = callback.call(oThis, this[i], i, this);
+        }
+      }
+  
+      return res;
+    };
+  }())
+};
+
 if (jsx.options.emulate)
 {
   /* Defines Array.isArray() if not already defined */
@@ -2525,29 +2566,7 @@ if (jsx.options.emulate)
        * @see ECMAScript Language Specification, Edition 5.1, section 15.4.4.19
        */
       map: function (callback, oThis) {
-        var jsx_object = jsx.object;
-
-        if (!jsx_object.isMethod(callback))
-        {
-          jsx.throwThis("TypeError",
-            (jsx_object.isMethod(callback, "toSource") ? callback.toSource() : callback)
-              + " is not callable",
-            this + ".map");
-        }
-
-        var
-          len = this.length >>> 0,
-          res = [];
-
-        for (var i = 0; i < len; ++i)
-        {
-          if (i in this)
-          {
-            res[i] = callback.call(oThis, this[i], i, this);
-          }
-        }
-
-        return res;
+        return jsx.array.map(this, callback, oThis);
       },
       
       slice: function (start, end) {
