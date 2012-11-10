@@ -870,19 +870,21 @@ jsx.clearErrorHandler = function() {
  * and {@link types.js}; optimizations in code reuse moved it here.
  *
  * @function
- * @param fHandler : Callable
- * @return boolean
- *   <code>true</code> if the error handler could be assigned to
- *   successfully, <code>false</code> otherwise.  Note that one reason
- *   for failure can be that an event handler is no longer supported
- *   by the UA's DOM due to efforts towards adherence to Web standards.
  */
 jsx.setErrorHandler = (function() {
   var
     jsx_object = jsx.object,
     jsx_clearErrorHandler = jsx.clearErrorHandler;
 
-  return function(fHandler) {
+  /**
+   * @param fHandler : Callable
+   * @return boolean
+   *   <code>true</code> if the error handler could be assigned to
+   *   successfully, <code>false</code> otherwise.  Note that one reason
+   *   for failure can be that an event handler is no longer supported
+   *   by the UA's DOM due to efforts towards adherence to Web standards.
+   */
+  return function (fHandler) {
     /*
      * NOTE: There is no deadlock here because even if `fHandler' is a string,
      * `isMethod(fHandler)' will call `setErrorHandler()' without arguments;
@@ -1038,17 +1040,6 @@ jsx.tryThis =
  * optimizations in code reuse moved it here.
  *
  * @function
- * @param errorType : string|Function|Error
- *   Expression for the constructor of the error type, or a reference
- *   to an object inheriting from <code>Error.prototype</code>.
- *   Use a false-value (e.g., <code>""</code> or  <code>null</code>)
- *   to throw an unqualified exception.
- * @param sMessage : string|Array
- *   Error message to be displayed.  If an <code>Array</code>,
- *   it is passed as argument list to the constructor for the error type
- * @param context : Callable|string
- *   Optional callable object to specify the context
- *   where the exception occurred.
  * @author
  *   Copyright (c) 2008 Thomas 'PointedEars' Lahn <cljs@PointedEars.de>.
  *   Distributed under the GNU GPL v3 and later.
@@ -1064,6 +1055,19 @@ jsx.throwThis = (function() {
         : e;
     };
 
+  /**
+   * @param errorType : string|Function|Error
+   *   Expression for the constructor of the error type, or a reference
+   *   to an object inheriting from <code>Error.prototype</code>.
+   *   Use a false-value (e.g., <code>""</code> or  <code>null</code>)
+   *   to throw an unqualified exception.
+   * @param message : string|Array
+   *   Error message to be displayed.  If an <code>Array</code>,
+   *   it is passed as argument list to the constructor for the error type
+   * @param context : Callable|string
+   *   Optional callable object to specify the context
+   *   where the exception occurred.
+   */
   return function(errorType, message, context) {
     var sErrorType = errorType;
     var isError = false;
@@ -1135,10 +1139,6 @@ jsx.rethrowThis = function (exception) {
  * Lets one object inherit from another
  *
  * @function
- * @param obj : optional Object
- *   Object from which to inherit.  The default is <code>Object.prototype</code>.
- * @return Object
- *   Inheriting (child) object
  */
 jsx.object.inheritFrom = (function() {
   var
@@ -1147,6 +1147,12 @@ jsx.object.inheritFrom = (function() {
     _isNativeMethod = _jsx.object.isNativeMethod,
     Dummy = function () {};
 
+  /**
+   * @param obj : optional Object
+   *   Object from which to inherit.  The default is <code>Object.prototype</code>.
+   * @return Object
+   *   Inheriting (child) object
+   */
   return function(obj) {
     if (typeof obj == "object" && obj == null)
     {
@@ -1249,14 +1255,7 @@ if (jsx.options.emulate)
        * Emulation of the Object.defineProperty() method from ES 5.1,
        * section 15.2.3.6.
        *
-       * @param o : Object
-       * @param descriptor : optional Object
-       *   Property descriptor, a reference to an object that defines
-       *   the attributes of the property.  Supported properties of
-       *   that defining object include <code>value</code> only
-       *   at this time.
-       * @return Reference to the object
-       * @type Object
+       * @function
        */
       Object.defineProperty = (function () {
         var _hasOwnProperty = jsx.object._hasOwnProperty;
@@ -1389,6 +1388,16 @@ if (jsx.options.emulate)
           return false;
         }
 
+        /**
+         * @param o : Object
+         * @param descriptor : optional Object
+         *   Property descriptor, a reference to an object that defines
+         *   the attributes of the property.  Supported properties of
+         *   that defining object include <code>value</code> only
+         *   at this time.
+         * @return Reference to the object
+         * @type Object
+         */
         return function (o, propertyName, descriptor) {
           if (!/^(object|function)$/.test(typeof o) || !o)
           {
@@ -1718,18 +1727,20 @@ jsx.object.isMethodType = function(s) {
  * jsx.importFrom() for that and include jsx.net.http.
  *
  * @function
- * @param obj : Object
- * @param properties : Array
- *   List of properties to import.  If not provided, all enumerable
- *   properties of <var>obj</var> are imported.
- * @throws TypeError, if <var>obj</var> is not an iterable object
- * @return boolean
- *   <code>false</code> if <var>properties</var> is provided and not
- *   all properties could be imported; <code>true</code> otherwise.
  */
 jsx._import = (function() {
   var _hasOwnProperty = jsx.object._hasOwnProperty;
 
+  /**
+   * @param obj : Object
+   * @param properties : Array
+   *   List of properties to import.  If not provided, all enumerable
+   *   properties of <var>obj</var> are imported.
+   * @throws TypeError, if <var>obj</var> is not an iterable object
+   * @return boolean
+   *   <code>false</code> if <var>properties</var> is provided and not
+   *   all properties could be imported; <code>true</code> otherwise.
+   */
   return function(obj, properties) {
     if (!obj)
     {
@@ -1809,15 +1820,6 @@ jsx.absPath = function (relativePath, basePath) {
  * Can therefore not be used to import jsx.net.http.
  *
  * @function
- * @param uri : string
- *   URI of the script to be imported
- * @param obj : Object
- *   Object from the script to be imported (optional)
- * @param properties : Array
- *   Properties of the object from the script to be imported (optional)
- * @return boolean
- *   <code>true</code> if the script could be successfully <em>loaded</em>
- *   (not: included), <code>false</code> otherwise.
  * @requires jsx.net.http#Request
  */
 jsx.importFrom = (function() {
@@ -1825,7 +1827,18 @@ jsx.importFrom = (function() {
   var _import = jsx._import;
   var Request;
 
-  return function(uri, obj, properties) {
+  /**
+   * @param uri : string
+   *   URI of the script to be imported
+   * @param obj : Object
+   *   Object from the script to be imported (optional)
+   * @param properties : Array
+   *   Properties of the object from the script to be imported (optional)
+   * @return boolean
+   *   <code>true</code> if the script could be successfully <em>loaded</em>
+   *   (not: included), <code>false</code> otherwise.
+   */
+  return function (uri, obj, properties) {
     /* One-time import */
     if (!Request)
     {
@@ -1894,13 +1907,26 @@ jsx.object.getProperty = function(obj, sProperty, aDefault) {
 };
 
 /**
- * @return
+ * Imports once an object or some of its properties
+ * from a script resource into the global namespace.
+ * 
+ * @function
  */
 jsx.importOnce = (function () {
   var _getProperty = jsx.object.getProperty;
   var _importFrom = jsx.importFrom;
 
-  var importOnce = function (uri, obj, properties) {
+  /**
+   * @param uri : String
+   *   URI of the resource to be imported
+   * @param obj : Object
+   *   Object to import
+   * @param properties : Array
+   *   Properties to import
+   * @see jsx#importFrom
+   */
+  function importOnce (uri, obj, properties)
+  {
     var result = false;
 
     if (uri && !_getProperty(importOnce.imports, uri, null))
@@ -1929,7 +1955,6 @@ jsx.importOnce = (function () {
  * <p>An value "is an object" if it is a function or
  * <code>typeof "object"</code> but not <code>null</code>.
  *
- * @function
  * @return boolean
  */
 jsx.object.isObject = function (a) {
@@ -1946,33 +1971,48 @@ jsx.object.isObject = function (a) {
  * </p>
  *
  * @function
- * @return boolean
  * @see ECMAScript Language Specification, Edition 5.1, section 15.4.3.2
  */
 jsx.object.isArray = (function () {
-  var _getClass = jsx.object.getClass;
+  var _jsx = jsx;
+  var _global = _jsx.global;
+  var _jsx_object = jsx.object;
+  var _getClass = _jsx_object.getClass;
+  var _isNativeMethod = _jsx_object.isNativeMethod;
 
+  /**
+   * @param a
+   *   Potential <code>Array</code>
+   * @return boolean
+   */
   return function (a) {
+    if (_isNativeMethod(_global.Array, "isArray")
+        && !Array.isArray._emulated)
+    {
+      return Array.isArray(a);
+    }
+    
     return (_getClass(a) === "Array");
   };
 }());
 
 /**
  * Executes a function if and once its requirements are fulfilled.
- *
- * @param uri : String|Array
- *   URI-reference or <code>Array</code> of URI-references
- *   specifying the requirement(s)
- * @param callback : Function
- *   Function to be executed
- * @return mixed
- *   The return value of <var>callback</var>,
- *   <code>false</code> otherwise.
  */
 jsx.require = (function () {
   var _importOnce = jsx.importOnce;
   var _isArray = jsx.object.isArray;
 
+  /**
+   * @param uri : String|Array
+   *   URI-reference or <code>Array</code> of URI-references
+   *   specifying the requirement(s)
+   * @param callback : Function
+   *   Function to be executed
+   * @return mixed
+   *   The return value of <var>callback</var>,
+   *   <code>false</code> otherwise.
+   */
   return function (uri, callback) {
     if (!_isArray(uri))
     {
@@ -2075,7 +2115,7 @@ if (jsx.options.emulate)
          * @arguments _ _
          *   Arguments for the object.
          */
-        call: function(thisArg) {
+        call: function (thisArg) {
           var a = new Array();
 
           for (var i = 1, len = arguments.length; i < len; i++)
@@ -2113,11 +2153,10 @@ if (jsx.options.emulate)
          * arguments per the array's elements.
          * </p>
          * @memberOf Function#prototype
-         * @function
          * @param argArray : Array
          * @return {Object} the newly constructed object
          */
-        construct: function(argArray) {
+        construct: function (argArray) {
           var a = new Array();
           for (var i = 0, len = argArray.length; i < len; ++i)
           {
@@ -2131,14 +2170,16 @@ if (jsx.options.emulate)
          * @author Courtesy of Asen Bozhilov, slightly adapted
          * @function
          * @memberOf Function#prototype
-         * @param argArray : Array
-         * @return {Object} the newly constructed object
          */
         construct2: (function() {
           function Dummy(constructor, argArray) {
             constructor.apply(this, argArray);
           }
 
+          /**
+           * @param argArray : Array
+           * @return {Object} the newly constructed object
+           */
           return function(argArray) {
             Dummy.prototype = this.prototype;
             return new Dummy(this, argArray);
@@ -2173,17 +2214,6 @@ if (jsx.options.emulate)
  * </p>
  *
  * @function
- * @param fConstructor : Function
- *   Constructor from which prototype object should be
- *   inherited.
- * @param oProtoProps : Object
- *   Object from which to shallow-copy properties as prototype
- *   properties.  Of those, the <code>_super</code>,
- *   <code>constructor</code>, and <code>_userDefined</code>
- *   properties are ignored as they are used internally.
- * @return {Function}
- *   A reference to the constructor of the extended prototype object
- *   if successful; <code>null</code> otherwise.
  */
 Function.prototype.extend = (function() {
   var jsx_object = jsx.object;
@@ -2251,6 +2281,19 @@ Function.prototype.extend = (function() {
     }
   }
 
+  /**
+   * @param fConstructor : Function
+   *   Constructor from which prototype object should be
+   *   inherited.
+   * @param oProtoProps : Object
+   *   Object from which to shallow-copy properties as prototype
+   *   properties.  Of those, the <code>_super</code>,
+   *   <code>constructor</code>, and <code>_userDefined</code>
+   *   properties are ignored as they are used internally.
+   * @return {Function}
+   *   A reference to the constructor of the extended prototype object
+   *   if successful; <code>null</code> otherwise.
+   */
   return function(fConstructor, oProtoProps) {
     var me = this;
 
