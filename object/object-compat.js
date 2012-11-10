@@ -634,7 +634,7 @@ function jsx_object_defineProperties (oTarget, oProperties, sContext)
   {
     Object.defineProperties(oTarget, oProperties);
   }
-  
+
   function Object_defineProperties_emulation_try ()
   {
     for (var propertyName in oProperties)
@@ -658,14 +658,14 @@ function jsx_object_defineProperties (oTarget, oProperties, sContext)
       }
     }
   }
-  
+
   function Object_defineProperties_emulation_failed ()
   {
     jsx.info((sContext ? sContext + ": " : "")
       + "Could not define special properties."
       + " Please use explicit getters and setters instead.");
   }
-  
+
   function Object_defineProperties_emulation ()
   {
     jsx.tryThis(
@@ -673,7 +673,7 @@ function jsx_object_defineProperties (oTarget, oProperties, sContext)
       Object_defineProperties_emulation_failed
     );
   }
-  
+
   jsx.tryThis(
     Object_defineProperties,
     Object_defineProperties_emulation
@@ -728,7 +728,7 @@ jsx.object._hasOwnProperty = function (obj, sProperty) {
 function jsx_object_findNewProperty (obj, iLength)
 {
   var _hasOwnProperty = jsx.object._hasOwnProperty;
-  
+
   if (!obj)
   {
     obj = this;
@@ -2384,46 +2384,45 @@ Function.prototype.extend = (function() {
   };
 }());
 
-jsx.array = {
-  /**
-   * Maps one array to another
-   *
-   * @param array : Array
-   *   Array to be mapped
-   * @param callback : Callable
-   * @param oThis : optional Object
-   * @return {Array}
-   *   <var>array</var> with <var>callback</var> applied to each element.
-   * @see ECMAScript Language Specification, Edition 5.1, section 15.4.4.19
-   */
-  map: (function () {
-    var _isMethod = jsx.object.isMethod;
-    
-    return function (array, callback, oThis) {
-      if (!_isMethod(callback))
-      {
-        jsx.throwThis("TypeError",
-          (_isMethod(callback, "toSource") ? callback.toSource() : callback)
-            + " is not callable",
-          this + ".map");
-      }
+jsx.array = new Object();
+/**
+ * Maps one array to another
+ *
+ * @param array : Array
+ *   Array to be mapped
+ * @param callback : Callable
+ * @param oThis : optional Object
+ * @return {Array}
+ *   <var>array</var> with <var>callback</var> applied to each element.
+ * @see ECMAScript Language Specification, Edition 5.1, section 15.4.4.19
+ */
+function jsx_array_map (array, callback, oThis)
+{
+  var _isMethod = jsx.object.isMethod;
   
-      var
-        len = this.length >>> 0,
-        res = [];
-  
-      for (var i = 0; i < len; ++i)
-      {
-        if (i in this)
-        {
-          res[i] = callback.call(oThis, this[i], i, this);
-        }
-      }
-  
-      return res;
-    };
-  }())
-};
+  if (!_isMethod(callback))
+  {
+    jsx.throwThis("TypeError",
+      (_isMethod(callback, "toSource") ? callback.toSource() : callback)
+      + " is not callable",
+      this + ".map");
+  }
+
+  var
+    len = array.length >>> 0,
+    res = [];
+
+  for (var i = 0; i < len; ++i)
+  {
+    if (i in array)
+    {
+      res[i] = callback.call(oThis, array[i], i, array);
+    }
+  }
+
+  return res;
+}
+jsx.array.map = jsx_array_map;
 
 if (jsx.options.emulate)
 {
@@ -2542,12 +2541,12 @@ if (jsx.options.emulate)
       }
     },
     Array.prototype);
-  
+
   if (typeof Array.from == "undefined")
   {
     Array.from = (function () {
       var _map = Array.prototype.map;
-      
+
       return function (builder, iterable, oThis) {
         return _map.call(iterable, builder, oThis);
       };
