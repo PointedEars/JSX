@@ -72,7 +72,6 @@ jsx.object = new Object();
  * @version
  */
 jsx.object.version = "0.2.$Revision: 252 $ ($Date: 2012-06-09 21:17:33 +0200 (Sa, 09 Jun 2012) $)";
-
 jsx.object.copyright = "Copyright \xA9 2004-2012";
 jsx.object.author = "Thomas Lahn";
 jsx.object.email = "js@PointedEars.de";
@@ -273,6 +272,30 @@ jsx.object.isMethod = jsx_object_isMethod;
 
 jsx.object.areMethods =
   jsx.object.isHostMethod = jsx.object.areHostMethods = jsx.object.isMethod;
+
+// jsx.object.docURL = jsx.object.path + "object.htm";
+
+/* allows for de.pointedears.jsx.object */
+if (typeof de == "undefined")
+{
+  /**
+   * @namespace
+   */
+  var de = {};
+}
+
+if (typeof de.pointedears == "undefined")
+{
+  /**
+   * @namespace
+   */
+  de.pointedears = {};
+}
+
+/**
+ * @namespace
+ */
+de.pointedears.jsx = jsx;
 
 /**
  * Determines whether an object is, or several objects are,
@@ -605,43 +628,86 @@ jsx.object.addProperties = jsx_object_addProperties;
  * @todo Depending on ES Matrix results, replace with user-defined
  *   Object.defineProperties() if the implementation does not provide it.
  */
-jsx.object.defineProperties = function(oTarget, oProperties, sContext) {
-  jsx.tryThis(
-    function() {
-      Object.defineProperties(oTarget, oProperties);
-    },
-    function() {
-      jsx.tryThis(
-        function() {
-          for (var propertyName in oProperties)
-          {
-            var propertyDescriptor = oProperties[propertyName];
+function jsx_object_defineProperties (oTarget, oProperties, sContext)
+{
+  function Object_defineProperties ()
+  {
+    Object.defineProperties(oTarget, oProperties);
+  }
+  
+  function Object_defineProperties_emulation_try ()
+  {
+    for (var propertyName in oProperties)
+    {
+      var propertyDescriptor = oProperties[propertyName];
 
-            if (typeof propertyDescriptor.value != "undefined")
-            {
-              oTarget[propertyName] = propertyDescriptor.value;
-            }
+      if (typeof propertyDescriptor.value != "undefined")
+      {
+        oTarget[propertyName] = propertyDescriptor.value;
+      }
 
-            /* NOTE: Allow specified values to fail */
-            if (typeof propertyDescriptor.get != "undefined")
-            {
-              oTarget.__defineGetter__(propertyName, propertyDescriptor.get);
-            }
+      /* NOTE: Allow specified values to fail */
+      if (typeof propertyDescriptor.get != "undefined")
+      {
+        oTarget.__defineGetter__(propertyName, propertyDescriptor.get);
+      }
 
-            if (typeof propertyDescriptor.set != "undefined")
-            {
-              oTarget.__defineSetter__(propertyName, propertyDescriptor.set);
-            }
-          }
-        },
-        function() {
-          jsx.info((sContext ? sContext + ": " : "")
-            + "Could not define special properties."
-            + " Please use explicit getters and setters instead.");
-        }
-      );
+      if (typeof propertyDescriptor.set != "undefined")
+      {
+        oTarget.__defineSetter__(propertyName, propertyDescriptor.set);
+      }
     }
+  }
+  
+  function Object_defineProperties_emulation_failed ()
+  {
+    jsx.info((sContext ? sContext + ": " : "")
+      + "Could not define special properties."
+      + " Please use explicit getters and setters instead.");
+  }
+  
+  function Object_defineProperties_emulation ()
+  {
+    jsx.tryThis(
+      Object_defineProperties_emulation_try,
+      Object_defineProperties_emulation_failed
+    );
+  }
+  
+  jsx.tryThis(
+    Object_defineProperties,
+    Object_defineProperties_emulation
   );
+};
+jsx.object.defineProperties = jsx_object_defineProperties;
+
+/**
+ * Determines if an object has a (non-inherited) property
+ *
+ * @param obj : optional Object
+ *   Object which property should be checked for existence.
+ * @param sProperty : string
+ *   Name of the property to check.
+ * @return boolean
+ *   <code>true</code> if there is such a property;
+ *   <code>false</code> otherwise.
+ */
+jsx.object._hasOwnProperty = function (obj, sProperty) {
+  if (arguments.length < 2 && obj)
+  {
+    sProperty = obj;
+    obj = this;
+  }
+
+  var proto;
+
+  return (jsx.object.isMethod(obj, "hasOwnProperty")
+    ? obj.hasOwnProperty(sProperty)
+    : (typeof obj[sProperty] != "undefined"
+        && ((typeof obj.constructor != "undefined"
+              && (proto = obj.constructor.prototype)
+              && typeof proto[sProperty] == "undefined")
+            || (typeof obj.constructor == "undefined"))));
 };
 
 /**
@@ -659,43 +725,43 @@ jsx.object.defineProperties = function(oTarget, oProperties, sContext) {
  *   if it is not supported; the empty string
  *   if there is no such property.
  */
-jsx.object.findNewProperty = (function() {
-  var jsx_object = jsx.object;
+function jsx_object_findNewProperty (obj, iLength)
+{
+  var _hasOwnProperty = jsx.object._hasOwnProperty;
+  
+  if (!obj)
+  {
+    obj = this;
+  }
 
-  return function(obj, iLength) {
-    if (!obj)
-    {
-      obj = this;
-    }
+  if (arguments.length < 2)
+  {
+    iLength = 256;
+  }
+  else
+  {
+    iLength = parseInt(iLength, 10);
+  }
 
-    if (arguments.length < 2)
-    {
-      iLength = 256;
-    }
-    else
-    {
-      iLength = parseInt(iLength, 10);
-    }
+  var newName = "";
 
-    var newName = "";
-
-    while (newName.length < iLength)
+  while (newName.length < iLength)
+  {
+    for (var i = "a".charCodeAt(0), max = "z".charCodeAt(0); i <= max; ++i)
     {
-      for (var i = "a".charCodeAt(0), max = "z".charCodeAt(0); i <= max; ++i)
+      var ch = String.fromCharCode(i);
+      if (!_hasOwnProperty(obj, newName + ch + "_"))
       {
-        var ch = String.fromCharCode(i);
-        if (!jsx_object._hasOwnProperty(obj, newName + ch + "_"))
-        {
-          return newName + ch + "_";
-        }
+        return newName + ch + "_";
       }
-
-      newName += "a";
     }
 
-    return "";
-  };
-}());
+    newName += "a";
+  }
+
+  return "";
+};
+jsx.object.findNewProperty = jsx_object_findNewProperty;
 
 /**
  * Determines if an object, or the objects it refers to,
@@ -1121,35 +1187,6 @@ jsx.object.getDataObject = (function () {
     return _inheritFrom(null);
   };
 }());
-
-/**
- * Determines if an object has a (non-inherited) property
- *
- * @param obj : optional Object
- *   Object which property should be checked for existence.
- * @param sProperty : string
- *   Name of the property to check.
- * @return boolean
- *   <code>true</code> if there is such a property;
- *   <code>false</code> otherwise.
- */
-jsx.object._hasOwnProperty = function (obj, sProperty) {
-  if (arguments.length < 2 && obj)
-  {
-    sProperty = obj;
-    obj = this;
-  }
-
-  var proto;
-
-  return (jsx.object.isMethod(obj, "hasOwnProperty")
-    ? obj.hasOwnProperty(sProperty)
-    : (typeof obj[sProperty] != "undefined"
-        && ((typeof obj.constructor != "undefined"
-              && (proto = obj.constructor.prototype)
-              && typeof proto[sProperty] == "undefined")
-            || (typeof obj.constructor == "undefined"))));
-};
 
 jsx.object.getKeys = (function() {
   var
@@ -2347,6 +2384,47 @@ Function.prototype.extend = (function() {
   };
 }());
 
+jsx.array = {
+  /**
+   * Maps one array to another
+   *
+   * @param array : Array
+   *   Array to be mapped
+   * @param callback : Callable
+   * @param oThis : optional Object
+   * @return {Array}
+   *   <var>array</var> with <var>callback</var> applied to each element.
+   * @see ECMAScript Language Specification, Edition 5.1, section 15.4.4.19
+   */
+  map: (function () {
+    var _isMethod = jsx.object.isMethod;
+    
+    return function (array, callback, oThis) {
+      if (!_isMethod(callback))
+      {
+        jsx.throwThis("TypeError",
+          (_isMethod(callback, "toSource") ? callback.toSource() : callback)
+            + " is not callable",
+          this + ".map");
+      }
+  
+      var
+        len = this.length >>> 0,
+        res = [];
+  
+      for (var i = 0; i < len; ++i)
+      {
+        if (i in this)
+        {
+          res[i] = callback.call(oThis, this[i], i, this);
+        }
+      }
+  
+      return res;
+    };
+  }())
+};
+
 if (jsx.options.emulate)
 {
   /* Defines Array.isArray() if not already defined */
@@ -2432,30 +2510,51 @@ if (jsx.options.emulate)
        * @see ECMAScript Language Specification, Edition 5.1, section 15.4.4.19
        */
       map: function(callback, oThis) {
-        var jsx_object = jsx.object;
+        return jsx.array.map(this, callback, oThis);
+      },
 
-        if (!jsx_object.isMethod(callback))
+      slice: function (start, end) {
+        var a = [];
+        var len = this.length >>> 0;
+        var relativeStart = parseInt(start, 10);
+        var k = ((relativeStart < 0)
+              ? Math.max(len + relativeStart, 0)
+              : Math.min(relativeStart, len));
+        var relativeEnd = ((typeof end == "undefined")
+                        ? len
+                        : parseInt(end, 10));
+        var final = ((relativeEnd < 0)
+                   ? Math.max(len + relativeEnd, 0)
+                   : Math.min(relativeEnd, len));
+        var n = 0;
+        while (k < final)
         {
-          jsx.throwThis("TypeError",
-            (jsx_object.isMethod(callback, "toSource") ? callback.toSource() : callback)
-              + " is not callable",
-            this + ".map");
+          if ((k in this))
+        {
+            a[n] = this[k];
         }
 
-        var
-          len = this.length >>> 0,
-          res = [];
-
-        for (var i = 0; i < len; ++i)
-        {
-          res[i] = callback.call(oThis, this[i], i, this);
+          ++k;
+          ++n;
         }
 
-        return res;
+        return a;
       }
     },
     Array.prototype);
+  
+  if (typeof Array.from == "undefined")
+  {
+    Array.from = (function () {
+      var _map = Array.prototype.map;
+      
+      return function (builder, iterable, oThis) {
+        return _map.call(iterable, builder, oThis);
+      };
+    }());
+  }
 }
+
 
 /**
  * General exception
