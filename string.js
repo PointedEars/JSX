@@ -1484,20 +1484,23 @@ function serialize(o, options)
       });
     }
     
-    a.push(indent + options.sIndent + p
+    a.push(
+        indent
+      + options.sIndent
+      + p
       + (options.showConstructor
-         ? ("["
+         ? "["
             + (origV && typeof origV.constructor != "undefined"
                ? (String(origV.constructor).match(/function\s*([^\s\(\{]+)/)
-                  || {"1": "unknown"})[1]
+                  || [, "unknown"])[1]
                : "unknown")
-            + "]")
+            + "]"
          : "")
       + (options.showType ? ": " + t : "")
       + (options.showType ? " = " : ": ")
-      + !(options.depth && (!isString || isNaN(p)))
-          ? (s + v.replace(/"/g, "\\$&") + s)
-          : v
+      + (!(options.depth && (!isString || isNaN(p)))
+          ? s + String(v).replace(/"/g, "\\$&") + s
+          : v)
     );
   }
   
