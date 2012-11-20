@@ -37,17 +37,25 @@ if (typeof jsx == "undefined")
   var jsx = {};
 }
 
-/**
- * @namespace
- */
-jsx.array = {
-   version: "0.1.2008062516",
-   copyright: "Copyright \xA9 2004-2008",
-   author: "Thomas Lahn",
-   email: "array.js@PointedEars.de",
-   path: "http://pointedears.de/scripts/"
-};
+if (typeof jsx.array == "undefined")
+{
+  /**
+   * @namespace
+   */
+  jsx.array = {};
+}
+
+jsx.array.version = "0.1.2008062516";
+jsx.array.copyright = "Copyright \xA9 2004-2008";
+jsx.array.author = "Thomas Lahn";
+jsx.array.email = "array.js@PointedEars.de";
+jsx.array.path = "http://pointedears.de/scripts/";
 // jsx.array.docURL = jsx.array.path + "array.htm";
+
+if (typeof jsx.array.emulate == "undefined")
+{
+  jsx.array.emulate = false;
+}
 
 /**
  * @param sMsg
@@ -77,7 +85,7 @@ jsx.array.ArrayError = function(/** @argument optional string */ sMsg) {
  * @partof
  *   http://pointedears.de/scripts/array.js
  * @requires
- *   types#isArray()
+ *   jsx.object#isArray()
  * @param a : optional Array
  *   Array which should be split.  Is used instead of the
  *   <code>Array</code> object the function is applied to.
@@ -85,38 +93,42 @@ jsx.array.ArrayError = function(/** @argument optional string */ sMsg) {
  *   Maximum size of the resulting arrays.
  *   An array of arrays indexed with numbers starting from zero.
  */
-jsx.array.chunk = function (a, iSize) {
-  if (!isArray(a) && isArray(this))
-  {
-    iSize = a;
-    a = this;
-  }
+jsx.array.chunk = (function () {
+  var _isArray = jsx.object.isArray;
 
-  var arrays = new Array(new Array());
-
-  var i = 0;
-  if (jsx.object.isMethod(a, "slice"))
-  {
-    while (i < a.length)
+  return function (a, iSize) {
+    if (!_isArray(a) && _isArray(this))
     {
-      arrays[arrays.length] = a.slice(i, i + iSize);
-      i += iSize;
+      iSize = a;
+      a = this;
     }
-  }
-  else
-  {
-    var index;
-    for (i = 0, index = 0; i < a.length; i++)
+
+    var arrays = new Array(new Array());
+
+    var i = 0;
+    if (_jsx_object.isMethod(a, "slice"))
     {
-      if (arrays[index].length == iSize)
+      while (i < a.length)
       {
-        arrays[++index] = new Array();
+        arrays[arrays.length] = a.slice(i, i + iSize);
+        i += iSize;
       }
-
-      jsx.array.push(arrays[index], a[i]);
     }
-  }
-};
+    else
+    {
+      var index;
+      for (i = 0, index = 0; i < a.length; i++)
+      {
+        if (arrays[index].length == iSize)
+        {
+          arrays[++index] = new Array();
+        }
+
+        jsx.array.push(arrays[index], a[i]);
+      }
+    }
+  };
+}());
 
 /**
  * Returns an object using the values of the array <code>a</code>
@@ -127,27 +139,31 @@ jsx.array.chunk = function (a, iSize) {
  * @partof
  *   http://pointedears.de/scripts/array.js
  * @requires
- *   types#isArray()
+ *   jsx.object#isArray()
  * @param a : optional Array
  *   Array which values should be counted.  Is used instead of
  *   the <code>Array</code> object the function is applied to.
  * @return Object
  */
-jsx.array.countValues = function (a) {
-  if (!isArray(a) && isArray(this))
-  {
-    a = this;
-  }
+jsx.array.countValues = (function () {
+  var _isArray = jsx.object.isArray;
 
-  var o = new Object();
+  return function (a) {
+    if (!_isArray(a) && _isArray(this))
+    {
+      a = this;
+    }
 
-  for (var i = 0; i < a.length; i++)
-  {
-    if (typeof o[a[i]] != "undefined"){o[a[i]]++;} else {o[a[i]] = 1;}
-  }
+    var o = new Object();
 
-  return o;
-};
+    for (var i = 0; i < a.length; i++)
+    {
+      if (typeof o[a[i]] != "undefined"){o[a[i]]++;} else {o[a[i]] = 1;}
+    }
+
+    return o;
+  };
+}());
 
 /**
  * Fills an array with <code>iNumber</code> entries of the value
@@ -159,7 +175,7 @@ jsx.array.countValues = function (a) {
  * @partof
  *   http://pointedears.de/scripts/array.js
  * @requires
- *   types#isArray()
+ *   jsx.object#isArray()
  * @param a : optional Array
  *   Array which should be filled.  Is used instead of the
  *   {@link Array} object the function is applied to.
@@ -171,24 +187,28 @@ jsx.array.countValues = function (a) {
  * @type Array
  * @return The filled array.
  */
-jsx.array.fill = function (a, iStart, iNumber, value) {
-  if (!isArray(a) && isArray(this))
-  {
-    a = this;
-  }
+jsx.array.fill = (function () {
+  var _isArray = jsx.object.isArray;
 
-  if (!isArray(a))
-  {
-    a = new Array();
-  }
+  return function (a, iStart, iNumber, value) {
+    if (!_isArray(a) && _isArray(this))
+    {
+      a = this;
+    }
 
-  for (var i = iStart; i < iStart + iNumber; i++)
-  {
-    a[i] = value;
-  }
+    if (!jsx.object.isArray(a))
+    {
+      a = new Array();
+    }
 
-  return a;
-};
+    for (var i = iStart; i < iStart + iNumber; i++)
+    {
+      a[i] = value;
+    }
+
+    return a;
+  };
+}());
 
 /**
  * Returns an array containing all the elements of <code>a</code>
@@ -199,7 +219,7 @@ jsx.array.fill = function (a, iStart, iNumber, value) {
  * @partof
  *   http://pointedears.de/scripts/array.js
  * @requires
- *   types#isArray()
+ *   jsx.object#isArray()
  * @param fCallback : Function
  *   A function accepting a single argument that returns
  *   a value to be interpreted either as <code>true</code>
@@ -211,55 +231,59 @@ jsx.array.fill = function (a, iStart, iNumber, value) {
  *   <code>Array</code> object the function is applied to.
  * @return Array
  */
-jsx.array.filter = function (fCallback, a) {
-  if (a)
-  {
-    // support for old-style calls
-    if (typeof a == "function")
+jsx.array.filter = (function () {
+  var _isArray = jsx.object.isArray;
+
+  return function (fCallback, a) {
+    if (a)
     {
-      if (isArray(fCallback))
+      /* support for old-style calls */
+      if (typeof a == "function")
       {
-        var tmp = a;
-        fCallback = a;
-        a = tmp;
+        if (_isArray(fCallback))
+        {
+          var tmp = a;
+          fCallback = a;
+          a = tmp;
+        }
+        else
+        {
+          jsx.throwThis('TypeError');
+        }
       }
       else
       {
-        eval('throw new TypeError();');
+        /* intentionally generic */
+        a = this;
       }
     }
-    else
+
+    var len = this.length;
+
+    if (typeof fCallback != "function")
     {
-      // intentionally generic
-      a = this;
+      jsx.throwThis('TypeError');
     }
-  }
 
-  var len = this.length;
+    var res = new Array();
 
-  if (typeof fCallback != "function")
-  {
-    eval('throw new TypeError();');
-  }
-
-  var res = new Array();
-
-  for (var i = 0; i < len; i++)
-  {
-    if (i in this)
+    for (var i = 0; i < len; i++)
     {
-      // mozilla.org: in case fCallback mutates `this'(?)
-      var val = this[i];
-
-      if (fCallback.call(a, val, i, this))
+      if (i in this)
       {
-        res.push(val);
+        /* mozilla.org: in case fCallback mutates `this'(?) */
+        var val = this[i];
+
+        if (fCallback.call(a, val, i, this))
+        {
+          res.push(val);
+        }
       }
     }
-  }
 
-  return res;
-};
+    return res;
+  };
+}());
 
 /**
  * Removes the last element from an array and returns that
@@ -271,7 +295,7 @@ jsx.array.filter = function (fCallback, a) {
  * @partof
  *   http://pointedears.de/scripts/array.js
  * @requires
- *   types#isArray()
+ *   jsx.object#isArray()
  * @param a : optional Array
  *   Array from which the last element should be removed.  Is used
  *   instead of the {@link Array} object the function is
@@ -279,25 +303,29 @@ jsx.array.filter = function (fCallback, a) {
  * @return
  *   The element removed from the array changed array.
  */
-jsx.array.pop = function (a) {
-  if (!isArray(a) && isArray(this))
-  {
-    a = this;
-  }
+jsx.array.pop = (function () {
+  var _isArray = jsx.object.isArray;
 
-  var result = null;
-
-  if (a.length > 0)
-  {
-    result = a[a.length - 1];
-    if (isArray(this))
+  return function (a) {
+    if (!_isArray(a) && _isArray(this))
     {
-      this.length = this.length - 1;
+      a = this;
     }
-  }
 
-  return result;
-};
+    var result = null;
+
+    if (a.length > 0)
+    {
+      result = a[a.length - 1];
+      if (jsx.object.isArray(this))
+      {
+        this.length = this.length - 1;
+      }
+    }
+
+    return result;
+  };
+}());
 
 /**
  * @author
@@ -305,7 +333,7 @@ jsx.array.pop = function (a) {
  * @partof
  *   http://pointedears.de/scripts/array.js
  * @requires
- *   types#isArray()
+ *   jsx.object#isArray()
  * @param a : optional Array
  *   Array which should be added an element.  Is used instead
  *   of the <code>Array</code> object the function is applied to.
@@ -313,20 +341,24 @@ jsx.array.pop = function (a) {
  * @return type Array
  *   The changed array.
  */
-jsx.array.push = function (a, value) {
-  if (!isArray(a) && isArray(this))
-  {
-    value = a;
-    a = this;
-  }
+jsx.array.push = (function () {
+  var _isArray = jsx.object.isArray;
 
-  for (var i = 0, len = arguments.length; i < len; i++)
-  {
-    a[a.length] = arguments[i];
-  }
+  return function (a, value) {
+    if (!_isArray(a) && _isArray(this))
+    {
+      value = a;
+      a = this;
+    }
 
-  return a;
-};
+    for (var i = 0, len = arguments.length; i < len; i++)
+    {
+      a[a.length] = arguments[i];
+    }
+
+    return a;
+  };
+}());
 
 /**
  * Takes input array <code>a</code> or the calling <code>Array</code>
@@ -338,7 +370,7 @@ jsx.array.push = function (a, value) {
  * @partof
  *   http://pointedears.de/scripts/array.js
  * @requires
- *   types#isArray()
+ *   jsx.object#isArray()
  * @param a : optional Array
  *   <code>Array</code> object which order of elements should be
  *   reversed.  Is used instead of the calling <code>Array</code>
@@ -348,21 +380,25 @@ jsx.array.push = function (a, value) {
  *   object with its elements in reverse order.  If <code>a</code>
  *   has no elements, an empty array is returned.
  */
-jsx.array.reverse = function (a) {
-  if (!isArray(a) && isArray(this))
-  {
-    a = this;
-  }
+jsx.array.reverse = (function () {
+  var _isArray = jsx.object.isArray;
 
-  var result = new Array();
+  return function (a) {
+    if (!_isArray(a) && _isArray(this))
+    {
+      a = this;
+    }
 
-  if (isArray(a))
-  {
-    for (var i = a.length - 1; i > -1; i--) {result[result.length] = a[i];}
-  }
+    var result = new Array();
 
-  return result;
-};
+    if (jsx.object.isArray(a))
+    {
+      for (var i = a.length - 1; i > -1; i--) {result[result.length] = a[i];}
+    }
+
+    return result;
+  };
+}());
 
 /**
  * Searches an array for a given value and returns
@@ -373,7 +409,7 @@ jsx.array.reverse = function (a) {
  * @partof
  *   http://pointedears.de/scripts/array.js
  * @requires
- *   types#isArray()
+ *   jsx.object#isArray()
  * @param needle
  *   Value to be searched for.
  * @param aHaystack : Array
@@ -440,127 +476,133 @@ jsx.array.reverse = function (a) {
  *    -1
  *       otherwise.
  */
-jsx.array.search = function(needle, aHaystack, bStrict, bDeepSearch,
+jsx.array.search = (function () {
+  var _isArray = jsx.object.isArray;
+
+  return function array_search (needle, aHaystack, bStrict, bDeepSearch,
     aAncestors, aResultVector, iLevel, index) {
-  var result = -1;
+    var result = -1;
 
-  if (typeof index == "undefined" || index < 0)
-  {
-    index = 0;
-  }
-
-/*
- array_search(4, [[1, 2, 3], [4, 5, 6], [7, 8, 9]], true, true);
-
- {0: {0: 1,
-      1: 2,
-      2: 3},
-  1: {0: 4,
-      1: 5,
-      2: 6},
-  2: {0: 7,
-      1: 8,
-      2: 9}}
-
- array_search(4, [[1, 2, 3], [4, 5, 6], [7, 8, 9]], true, true) == [1, 0]
- array_search(4, [1, 2, 3], true, true) == null
- array_search(4, [4, 5, 6], true, true) == 0
- array_search(4, [7, 8, 9], true, true) == null
-*/
-
-  if (isArray(aHaystack))
-  {
-    for (var i = 0; i < aHaystack.length; i++)
+    if (typeof index == "undefined" || index < 0)
     {
-      if (bDeepSearch)
+      index = 0;
+    }
+
+  /*
+   array_search(4, [[1, 2, 3], [4, 5, 6], [7, 8, 9]], true, true);
+
+   {0: {0: 1,
+        1: 2,
+        2: 3},
+    1: {0: 4,
+        1: 5,
+        2: 6},
+    2: {0: 7,
+        1: 8,
+        2: 9}}
+
+   array_search(4, [[1, 2, 3], [4, 5, 6], [7, 8, 9]], true, true) == [1, 0]
+   array_search(4, [1, 2, 3], true, true) == null
+   array_search(4, [4, 5, 6], true, true) == 0
+   array_search(4, [7, 8, 9], true, true) == null
+  */
+
+    if (_isArray(aHaystack))
+    {
+      for (var i = 0; i < aHaystack.length; i++)
       {
-        result = null;
-
-        if (!aAncestors)
+        if (bDeepSearch)
         {
-          aAncestors = new Array();
-        }
+          result = null;
 
-        if (aAncestors.length == 0
-            || aAncestors[aAncestors.length - 1] != aHaystack) // avoid dupes
-        {
-          array_push(aAncestors, aHaystack);
-        }
-
-        if (!aResultVector)
-        {
-          aResultVector = new Array();
-        }
-
-        if (typeof iLevel == "undefined")
-        {
-          iLevel = 0;
-        }
-
-        if (!inArray(aHaystack[i], aAncestors, false)) // avoid inf. recursion
-        {
-          var res =
-            array_search(
-              needle,
-              aHaystack[i],
-              bStrict,
-              bDeepSearch,
-              aAncestors,
-              aResultVector,
-              iLevel + 1,
-              i);
-
-          if (res != null && res > -1)
+          if (!aAncestors)
           {
-            result = aResultVector;
+            aAncestors = new Array();
+          }
+
+          /* avoid dupes */
+          if (aAncestors.length == 0
+              || aAncestors[aAncestors.length - 1] != aHaystack)
+          {
+            array_push(aAncestors, aHaystack);
+          }
+
+          if (!aResultVector)
+          {
+            aResultVector = new Array();
+          }
+
+          if (typeof iLevel == "undefined")
+          {
+            iLevel = 0;
+          }
+
+          /* avoid inf. recursion */
+          if (!inArray(aHaystack[i], aAncestors, false))
+          {
+            var res =
+              array_search(
+                needle,
+                aHaystack[i],
+                bStrict,
+                bDeepSearch,
+                aAncestors,
+                aResultVector,
+                iLevel + 1,
+                i);
+
+            if (res != null && res > -1)
+            {
+              result = aResultVector;
+              break;
+            }
+          }
+        }
+        else
+        {
+          if (bStrict)
+          {
+            eval(
+                'if (aHaystack[i] === needle) {'
+              + '  result = i;'
+              + '  break;'
+              + '}');
+          }
+
+          if (aHaystack[i] == needle)
+          {
+            result = i;
             break;
           }
         }
       }
-      else
+    }
+    else
+    {
+      if (bStrict)
       {
-        if (bStrict)
-        {
-          eval(
-              'if (aHaystack[i] === needle) {'
-            + '  result = i;'
-            + '  break;'
-            + '}');
-        }
+        eval(
+            'if (aHaystack === needle) {'
+          + '  if (bDeepSearch) {'
+          + '    aResultVector[iLevel - 1] = index;'
+          + '  }'
+          + '  result = index;'
+          + '}');
+      }
 
-        if (aHaystack[i] == needle)
+      if (aHaystack == needle)
+      {
+        if (bDeepSearch)
         {
-          result = i;
-          break;
+          aResultVector[iLevel - 1] = index;
         }
+        result = index;
       }
     }
-  }
-  else
-  {
-    if (bStrict)
-    {
-      eval(
-          'if (aHaystack === needle) {'
-        + '  if (bDeepSearch) {'
-        + '    aResultVector[iLevel - 1] = index;'
-        + '  }'
-        + '  result = index;'
-        + '}');
-    }
 
-    if (aHaystack == needle)
-    {
-      if (bDeepSearch)
-      {
-        aResultVector[iLevel - 1] = index;
-      }
-      result = index;
-    }
-  }
-
-  return result;
-};
+    return result;
+  };
+}());
 
 /**
  * @author
@@ -568,7 +610,7 @@ jsx.array.search = function(needle, aHaystack, bStrict, bDeepSearch,
  * @partof
  *   http://pointedears.de/scripts/array.js
  * @requires
- *   types#isArray()
+ *   jsx.object#isArray()
  * @param value : *
  * @param a : Array
  *   Array which should be searched.  Is used instead of the
@@ -609,7 +651,7 @@ jsx.array.contains = function (value, a, bExactMatch, bDeepSearch) {
  * @partof
  *   http://pointedears.de/scripts/array.js
  * @requires
- *   types#isArray()
+ *   jsx.object#isArray()
  * @param a : optional Array
  *   Array which elements should be changed.  Is used instead
  *   of the Array object the function is applied to.
@@ -626,36 +668,40 @@ jsx.array.contains = function (value, a, bExactMatch, bDeepSearch) {
  *   elements' value uppercased or lowercased.  If <code>a</code>
  *   has no elements, an empty array is returned.
  */
-jsx.array.changeCase = function (a, bUppercase, bConvertNonStrings) {
-  if (!isArray(a) && isArray(this))
-  {
-    bConvertNonStrings = bUppercase;
-    bUpperCase = a;
-    a = this;
-  }
+jsx.array.changeCase = (function () {
+  var _isArray = jsx.object.isArray;
 
-  if (isArray(a))
-  {
-    for (var i = 0; i < a.length; i++)
+  return function (a, bUppercase, bConvertNonStrings) {
+    if (!_isArray(a) && _isArray(this))
     {
-      if (bConvertNonStrings || typeof a[i] == "string")
-      {
-        if (bUppercase)
-        {
-          a[i] = String(a[i]).toUpperCase();
-        }
-        else
-        {
-          a[i] = String(a[i]).toLowerCase();
-        }
-      }
+      bConvertNonStrings = bUppercase;
+      bUpperCase = a;
+      a = this;
     }
 
-    return a;
-  }
+    if (_isArray(a))
+    {
+      for (var i = 0; i < a.length; i++)
+      {
+        if (bConvertNonStrings || typeof a[i] == "string")
+        {
+          if (bUppercase)
+          {
+            a[i] = String(a[i]).toUpperCase();
+          }
+          else
+          {
+            a[i] = String(a[i]).toLowerCase();
+          }
+        }
+      }
 
-  return new Array();
-};
+      return a;
+    }
+
+    return new Array();
+  };
+}());
 
 /**
  * Takes input array <code>a</code> or the Array object it is
@@ -681,15 +727,19 @@ jsx.array.changeCase = function (a, bUppercase, bConvertNonStrings) {
  *   elements' value lowercased.  If <code>a</code> has no
  *   elements, an empty array is returned.
  */
-jsx.array.toLowerCase = function (a, bConvertNonStrings) {
-  if (!isArray(a) && isArray(this))
-  {
-    bConvertNonStrings = a;
-    a = this;
-  }
+jsx.array.toLowerCase = (function () {
+  var _isArray = jsx.object.isArray;
 
-  return jsx.array.changeCase.call(a, a, false, bConvertNonStrings);
-};
+  return function (a, bConvertNonStrings) {
+    if (!_isArray(a) && _isArray(this))
+    {
+      bConvertNonStrings = a;
+      a = this;
+    }
+
+    return jsx.array.changeCase.call(a, a, false, bConvertNonStrings);
+  };
+}());
 
 /**
  * Takes input array <code>a</code> or the Array object it is
@@ -715,61 +765,19 @@ jsx.array.toLowerCase = function (a, bConvertNonStrings) {
  *   elements' value uppercased.  If <code>a</code> has no
  *   elements, an empty array is returned.
  */
-jsx.array.toUpperCase = function (a, bConvertNonStrings) {
-  if (!isArray(a) && isArray(this))
-  {
-    bConvertNonStrings = a;
-    a = this;
-  }
+jsx.array.toUpperCase = (function () {
+  var _isArray = jsx.object.isArray;
 
-  return jsx.array.changeCase.call(a, a, true, bConvertNonStrings);
-};
-
-addProperties(
-  {
-    contains:    jsx.array.contains,
-    chunk:       jsx.array.chunk,
-    changeCase:  jsx.array.changeCase,
-    countValues: jsx.array.countValues,
-    fill:        jsx.array.fill,
-    pop:         jsx.array.pop,
-    push:        jsx.array.push,
-    reverse:     jsx.array.reverse,
-    search:      jsx.array.search,
-    toUpperCase: jsx.array.toUpperCase,
-
-    // JavaScript 1.6 (1.5 in Gecko 1.8b2 and later) emulation
-    every: function(callback, thisObject) {
-      if (arguments.length < 2)
-      {
-        thisObject = this;
-      }
-
-      for (var i = 0, len = thisObject.length; i < len; i++)
-      {
-        if (!thisObject.callback())
-        {
-          return false;
-        }
-      }
-
-      return true;
-    },
-
-    filter: array_filter,
-
-    iterate: function() {
-      var a = new Array();
-
-      for (var i = 0, len = this.length; i < len; i++)
-      {
-        a.push(this[i]);
-      }
-
-      return a;
+  return function (a, bConvertNonStrings) {
+    if (!_isArray(a) && _isArray(this))
+    {
+      bConvertNonStrings = a;
+      a = this;
     }
-  },
-  Array.prototype);
+
+    return jsx.array.changeCase.call(a, a, true, bConvertNonStrings);
+  };
+}());
 
 jsx.array.splice = (function() {
   var jsx_object = jsx.object;
@@ -809,3 +817,104 @@ jsx.array.splice = (function() {
     };
   }
 }());
+
+jsx.array.every = (function () {
+  var _isNativeMethod = jsx.object.isNativeMethod;
+  var _isArray = jsx.object.isArray;
+
+  return function (callback, thisObject) {
+    /* NOTE: null or undefined */
+    if (thisObject == null && _isArray(this))
+    {
+      thisObject = this;
+    }
+    
+    if (_isNativeMethod(thisObject, "every"))
+    {
+      return thisObject.every(callback);
+    }
+
+    for (var i = 0, len = thisObject.length; i < len; i++)
+    {
+      if (!callback(thisObject[i]))
+      {
+        return false;
+      }
+    }
+
+    return true;
+  };
+}());
+
+jsx.array.equals = (function () {
+  var _isArray = jsx.object.isArray;
+
+  return function (otherObject, thisObject, strict) {
+    /* NOTE: null or undefined */
+    if (thisObject == null && _isArray(this))
+    {
+      thisObject = this;
+    }
+    
+    if (thisObject.length != otherObject.length)
+    {
+      return false;
+    }
+    
+    for (var i = 0, len = thisObject.length; i < len; ++i)
+    {
+      if (strict)
+      {
+        if (thisObject[i] !== otherObject[i])
+        {
+          return false;
+        }
+      }
+      else
+      {
+        if (thisObject[i] != otherObject[i])
+        {
+          return false;
+        }
+      }
+    }
+    
+    return true;
+  };
+}());
+
+if (jsx.array.emulate)
+{
+  jsx.object.addProperties(
+    {
+      contains:    jsx.array.contains,
+      chunk:       jsx.array.chunk,
+      changeCase:  jsx.array.changeCase,
+      countValues: jsx.array.countValues,
+      equals:      jsx.array.equals,
+      fill:        jsx.array.fill,
+      pop:         jsx.array.pop,
+      push:        jsx.array.push,
+      reverse:     jsx.array.reverse,
+      search:      jsx.array.search,
+      splice:      jsx.array.splice,
+      toUpperCase: jsx.array.toUpperCase,
+
+      /* JavaScript 1.6 (1.5 in Gecko 1.8b2 and later) emulation */
+      every:       jsx.array.every,
+
+      filter:      jsx.array.filter,
+
+      iterate: function() {
+        var a = new Array();
+
+        for (var i = 0, len = this.length; i < len; i++)
+        {
+          a.push(this[i]);
+        }
+
+        return a;
+      }
+    },
+    Array.prototype);
+}
