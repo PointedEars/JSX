@@ -13,7 +13,7 @@
  * @param index : Number
  * @return any
  */
-Array.get = function(a, index) {
+Array.get = function (a, index) {
   if (isNaN(index))
   {
     jsx.throwThis("jsx.InvalidArgumentError", ["",
@@ -87,7 +87,7 @@ jsx.animation.Animation = function (oParams) {
 /**
  * @constructor
  */
-jsx.animation.NoTimelineError = function() {
+jsx.animation.NoTimelineError = function () {
   arguments.callee._super.call(this, "Need at least one Timeline for an Animation");
 }.extend(jsx.Error, {name: "jsx.animation.NoTimelineError"});
 
@@ -107,7 +107,7 @@ jsx.animation.Animation.prototype = {
    * @throws jsx.animation#NoTimelineError
    *   if no <code>Timelines</code> have been defined
    */
-  play: function() {
+  play: function () {
     var timelines = this.timelines;
     if (!timelines || timelines.length < 1)
     {
@@ -127,7 +127,7 @@ jsx.animation.Animation.prototype = {
    * @throws Animation.NoTimelineError
    *   if no <code>Timelines</code> have been defined
    */
-  stop: function() {
+  stop: function () {
     var timelines = this.timelines;
     if (!timelines || timelines.length < 1)
     {
@@ -144,7 +144,7 @@ jsx.animation.Animation.prototype = {
 /**
  * @constructor
  */
-jsx.animation.NoKeyFramesError = function() {
+jsx.animation.NoKeyFramesError = function () {
   arguments.callee._super.call(this, "Need at least two KeyFrames in a Timeline");
 }.extend(jsx.Error, {name: "jsx.animation.NoKeyFramesError"});
 
@@ -194,16 +194,18 @@ jsx.animation.NoKeyFramesError = function() {
  * </p>
  * @function
  * @constructor
- * @param oParams : Object
  * @throws jsx.InvalidArgumentError if no parameters were specified
  */
-jsx.animation.Timeline = (function() {
+jsx.animation.Timeline = (function () {
   var
     jsx_object = jsx.object,
-    keyFrameComparator = function(a, b) {
+    keyFrameComparator = function (a, b) {
       return a.compareTo(b);
     };
   
+  /**
+   * @param oParams : Object
+   */
   return function (oParams) {
     if (!oParams)
     {
@@ -212,17 +214,17 @@ jsx.animation.Timeline = (function() {
 
     jsx_object.defineProperties(this, {
       currentRate: {
-        get: function() {
+        get: function () {
           return this.getCurrentRate();
         }
       },
       
       frameRate: {
-        get: function() {
+        get: function () {
           return this.getFrameRate();
         },
     
-        set: function(frameRate) {
+        set: function (frameRate) {
           return this.setFrameRate(frameRate);
         }
       }
@@ -246,6 +248,24 @@ jsx.animation.Timeline = (function() {
     
     /* Sort keyFrames by time */
     var keyFrames = this.keyFrames;
+    var duration = keyFrames[keyFrames.length - 1].time;
+    
+    /* Compute keyframe times that are percentages of the duration */
+    var rxTimePercentage = /^\s*\+?(\d+|\d*\.\d+)\s*%\s*$/;
+    for (var i = 0, len = keyFrames.length - 1; i < len; ++i)
+    {
+      var keyFrame = keyFrames[i];
+      var time = keyFrame.time;
+      if (typeof time == "string")
+      {
+        var match = time.match(rxTimePercentage);
+        if (match)
+        {
+          keyFrame.time = Math.floor(duration * (match[1] / 100));
+        }
+      }
+    }
+    
     keyFrames.sort(keyFrameComparator);
         
 //    if (this.autoReverse)
@@ -399,7 +419,7 @@ jsx.animation.Timeline.prototype = {
    * 
    * @return Number
    */
-  getCurrentRate: function() {
+  getCurrentRate: function () {
     return (this._playing) ? this.getFrameRate() : 0.0;
   },
 
@@ -411,7 +431,7 @@ jsx.animation.Timeline.prototype = {
    * 
    * @return {Number}
    */
-  getTotalDuration: function() {
+  getTotalDuration: function () {
     return Array.get(this.keyFrames, -1).time * (this.autoReverse ? 2 : 1)
       * this.repeatCount;
   },
@@ -422,7 +442,7 @@ jsx.animation.Timeline.prototype = {
    * 
    * @return {Number}
    */
-  getFrameRate: function() {
+  getFrameRate: function () {
     return 1000 / this.frameLength;
   },
 
@@ -435,17 +455,19 @@ jsx.animation.Timeline.prototype = {
    * frame rate for the underlying platform.
    * 
    * @function
-   * @param frameRate : Number
-   *   The maximum frame rate at which this <code>Timeline</code> will play,
-   *   in frames per second.  Frame rates above 90 fps that result in
-   *   a frame length shorter than 11 ms are normalized.
-   * @return Number
-   *   The effective maximum frame rate, in frames per second
    */
-  setFrameRate: (function() {
+  setFrameRate: (function () {
     var jsx_animation_Timeline = jsx.animation;
-    
-    return function(frameRate) {
+ 
+    /**
+     * @param frameRate : Number
+     *   The maximum frame rate at which this <code>Timeline</code> will play,
+     *   in frames per second.  Frame rates above 90 fps that result in
+     *   a frame length shorter than 11 ms are normalized.
+     * @return Number
+     *   The effective maximum frame rate, in frames per second
+     */
+    return function (frameRate) {
       if (this._playing)
       {
         jsx.info("Cannot change frame rate while playing");
@@ -479,14 +501,14 @@ jsx.animation.Timeline.prototype = {
    * 
    * @function
    */
-  evaluateKeyValues: (function() {
+  evaluateKeyValues: (function () {
     var
-      jsx_dom = jsx.dom,
-      jsx_object = jsx.object,
-      jsx_animation_Timeline = jsx.animation.Timeline,
-      Color = jsx.dom.css.Color;
+      _jsx_dom = jsx.dom,
+      _jsx_object = jsx.object,
+      _jsx_animation_Timeline = jsx.animation.Timeline,
+      _Color = jsx.dom.css.Color;
 
-    return function() {
+    return function () {
       for (var i = 1, len = this.keyFrames.length; i < len; ++i)
       {
         var nextKeyFrame = this.keyFrames[i];
@@ -506,15 +528,15 @@ jsx.animation.Timeline.prototype = {
               var oldStylePropertyValue = oldPropertyValue[stylePropertyName];
               if (typeof oldStylePropertyValue == "undefined")
               {
-                oldStylePropertyValue = jsx_dom.getComputedStyle(
+                oldStylePropertyValue = _jsx_dom.getComputedStyle(
                   this.target, null, stylePropertyName);
               }
               
-              var propertyType = jsx_object.getProperty(
-                jsx_animation_Timeline.propertyInfo, stylePropertyName, {type: null}).type;
+              var propertyType = _jsx_object.getProperty(
+                _jsx_animation_Timeline.propertyInfo, stylePropertyName, {type: null}).type;
               switch (propertyType)
               {
-                case jsx_animation_Timeline.types.LENGTH:
+                case _jsx_animation_Timeline.types.LENGTH:
                   if (isNaN(oldStylePropertyValue))
                   {
                     oldStylePropertyValue = parseFloat(oldStylePropertyValue);
@@ -535,10 +557,10 @@ jsx.animation.Timeline.prototype = {
                   }
                   break;
               
-                case jsx_animation_Timeline.types.COLOR:
-                  if (!jsx_object.isInstanceOf(oldStylePropertyValue, Color))
+                case _jsx_animation_Timeline.types.COLOR:
+                  if (!_jsx_object.isInstanceOf(oldStylePropertyValue, _Color))
                   {
-                    oldStylePropertyValue = new Color(oldStylePropertyValue);
+                    oldStylePropertyValue = new _Color(oldStylePropertyValue);
                   }
                   break;
               }
@@ -574,9 +596,9 @@ jsx.animation.Timeline.prototype = {
         /* Set old value if the new one was not given */
         for (var propertyName in previousValues)
         {
-          if (typeof newPropertyValue[propertyName] == "undefined")
+          if (typeof nextValues[propertyName] == "undefined")
           {
-            newPropertyValue[propertyName] = oldPropertyValue[propertyName];
+            nextValues[propertyName] = oldPropertyValue[propertyName];
           }
         }
       }
@@ -588,13 +610,13 @@ jsx.animation.Timeline.prototype = {
    * 
    * @function
    */
-  play: (function() {
+  play: (function () {
     var
       jsx_object = jsx.object,
       jsx_dom = jsx.dom,
       jsx_animation_Timeline = jsx.animation.Timeline,
-      getPropertySetter = function(target, values, bDontPlay, oTimeline) {
-        return function() {
+      getPropertySetter = function (target, values, bDontPlay, oTimeline) {
+        return function () {
           var setToRelative = false;
           
           for (var property in values)
@@ -636,7 +658,7 @@ jsx.animation.Timeline.prototype = {
         };
       };
     
-    return function() {
+    return function () {
       /* First clear all remaining timeouts */
       this.stop();
             
@@ -742,7 +764,7 @@ jsx.animation.Timeline.prototype = {
   /**
    * Prevents the <code>Timeline</code> from continuing to play.
    */
-  stop: function() {
+  stop: function () {
     var timeouts = this._timeouts;
     for (var i = 0, len = timeouts && timeouts.length; i < len; ++i)
     {
@@ -778,7 +800,7 @@ jsx.animation.Timeline.prototype = {
  * @param oParams
  * @throws jsx.InvalidArgumentError if no parameters were specified
  */
-jsx.animation.Frame = function(oParams) {
+jsx.animation.Frame = function (oParams) {
   if (!oParams)
   {
     jsx.throwThis("jsx.InvalidArgumentError", ["Not enough arguments", typeof oParams, "Object"]);
@@ -795,10 +817,14 @@ jsx.animation.Frame = function(oParams) {
          * Convert duration to milliseconds
          * NOTE: Explicitly convert to number in case someone gets pythonic
          */
-        var rxTime = /^\s*\+?(\d+|\d*\.\d+)\s*(ms|s|m(in)?|h)\s*$/;
+        var rxTime = /^\s*\+?(\d+|\d*\.\d+)\s*(ms|s|m(in)?|h|%)\s*$/;
         var match = param.match(rxTime);
         if (match)
         {
+          /*
+           * NOTE: Percentages are supported but can only be resolved later
+           *       in jsx.animation.Timeline().
+           */
           switch (match[2])
           {
             case "ms":
@@ -852,18 +878,20 @@ jsx.animation.Interpolator = {
    * Built-in interpolator that provides linear time interpolation.
    * 
    * @function
-   * @param startValue : any
-   * @param endValue : any
-   * @param fraction : Number
-   * @returns {any}
-   *   <var>startValue</var> + (<var>endValue</var> − <var>startValue</var>) × <var>fraction</var>
    */
-  LINEAR: (function() {
+  LINEAR: (function () {
     var
       _isInstanceOf = jsx.object.isInstanceOf,
       _Color = jsx.dom.css.Color;
 
-    return function(startValue, endValue, fraction) {
+    /**
+     * @param startValue : any
+     * @param endValue : any
+     * @param fraction : Number
+     * @returns {any}
+     *   <var>startValue</var> + (<var>endValue</var> − <var>startValue</var>) × <var>fraction</var>
+     */
+    return function (startValue, endValue, fraction) {
       if (_isInstanceOf(startValue, _Color)
           && _isInstanceOf(endValue, _Color))
       {
@@ -897,7 +925,7 @@ jsx.animation.Interpolator = {
  * @param oParams
  * @throws jsx.InvalidArgumentError if no parameters were specified
  */
-jsx.animation.KeyFrame = function(oParams) {
+jsx.animation.KeyFrame = function (oParams) {
   arguments.callee._super.call(this, oParams);
 };
 
@@ -914,7 +942,7 @@ jsx.animation.KeyFrame.extend(jsx.animation.Frame, {
    *     = 0 if they have the same timing<br>
    *     &lt; 0 if specified <code>KeyFrame</code> timing is behind this
    */
-  compareTo: function(o) {
+  compareTo: function (o) {
     return this.time - o.time;
   },
   
@@ -925,7 +953,7 @@ jsx.animation.KeyFrame.extend(jsx.animation.Frame, {
   interpolate: jsx.animation.Interpolator.LINEAR
 });
 
-jsx.animation.KeyValue = function(oParams) {
+jsx.animation.KeyValue = function (oParams) {
   if (!oParams)
   {
     jsx.throwThis("jsx.InvalidArgumentError", ["Not enough arguments", typeof oParams, "Object"]);
