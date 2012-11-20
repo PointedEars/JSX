@@ -67,33 +67,45 @@ jsx.dom.widgets = {
  *   attach it.
  * @param oProperties : Object
  */
-jsx.dom.widgets.Widget = function (oTarget, oParent, oProperties) {
-  this._target = oTarget || document.createElement(this.elementType);
-  this._parent = oParent || null;
-
-  for (var propertyName in oProperties)
-  {
-    /* Do not overwrite methods */
-    if (typeof this[propertyName] != "function")
+jsx.dom.widgets.Widget =
+  function jsx_dom_widgets_Widget (oTarget, oParent, oProperties) {
+    this._target = oTarget || document.createElement(this.elementType);
+    
+    if (oParent && !(oParent instanceof jsx_dom_widgets_Widget))
     {
-      var setter = this._getSetterFor(propertyName);
-      if (setter)
+      return jsx.throwThis(jsx.InvalidArgumentError, [null, "Widget", oParent]);
+    }
+    
+    this._parent = oParent || null;
+
+    /**
+     * @type Array[Widget]
+     */
+    this.children = [];
+    
+    for (var propertyName in oProperties)
+    {
+      /* Do not overwrite methods */
+      if (typeof this[propertyName] != "function")
       {
-        setter.call(this, oProperties[propertyName]);
-      }
-      else
-      {
-        this[propertyName] = oProperties[propertyName];
+        var setter = this._getSetterFor(propertyName);
+        if (setter)
+        {
+          setter.call(this, oProperties[propertyName]);
+        }
+        else
+        {
+          this[propertyName] = oProperties[propertyName];
+        }
       }
     }
-  }
-
-  if (this._target)
-  {
-    this.init();
-    this.update();
-  }
-};
+  
+    if (this._target)
+    {
+      this.init();
+      this.update();
+    }
+  };
 
 jsx.dom.widgets.Widget.extend(null, {
   /**
@@ -129,6 +141,11 @@ jsx.dom.widgets.Widget.extend(null, {
       for (var styleProperty in style)
       {
         _setStyleProperty(this._target, styleProperty, style[styleProperty]);
+      }
+      
+      for (var i = 0, len = this.children.length; i < len; ++i)
+      {
+        this.children[i].update();
       }
       
       return this;
@@ -183,27 +200,26 @@ jsx.dom.widgets.Widget.extend(null, {
    * @returns
    */
   appendTo: function (parent) {
-    var result = null;
-
     if (typeof parent == "undefined")
     {
       parent = this._parent;
     }
 
-    var target = this._target;
-    if (!target.parentNode || (parent != target.parentNode))
-    {
-      result = parent.appendChild(target);
-    }
-
-    return result;
+    return parent.appendChild(this);
   },
 
   /**
    * Removes the widget from the document
    */
   remove: function () {
-    return this._target.parentNode.removeChild(this._target);
+    for (var i = 0, len = this.children.length; i < len; ++i)
+    {
+      this.children[i].remove();
+    }
+    
+    /* TODO: Clean-up event listener */
+    
+    return this._parent.removeChild(this);
   },
 
   /**
@@ -221,13 +237,14 @@ jsx.dom.widgets.Widget.extend(null, {
  * <code>Container</code>s are widgets that may have content, such
  * as other widgets and text.
  */
-jsx.dom.widgets.Container = function (oTarget, oParent, oProperties) {
-  jsx.dom.widgets.Container._super.apply(this, arguments);
-};
+jsx.dom.widgets.Container =
+  function jsx_dom_widgets_Container (oTarget, oParent, oProperties) {
+    jsx_dom_widgets_Container._super.apply(this, arguments);
+  };
 
 jsx.dom.widgets.Container.extend(jsx.dom.widgets.Widget, {
-  text: "",
   innerHTML: null,
+  text: null,
     
   /*
    * (non JSdoc)
@@ -262,13 +279,20 @@ jsx.dom.widgets.Container.extend(jsx.dom.widgets.Widget, {
           {
             html = _createNodesFromObj(html);
           }
-          
-          jsx.dom.appendChildren(target, html);
+
+          if (_isArray(html))
+          {
+            jsx.dom.appendChildren(target, html);
+          }
+          else
+          {
+            target.appendChild(html);
+          }
         }
       }
-      else
+      else if (this.text != null)
       {
-        _setTextContent(target, this.text || "");
+        _setTextContent(target, this.text);
       }
       
       target.onclick = this.onclick || null;
@@ -289,9 +313,218 @@ jsx.dom.widgets.Container.extend(jsx.dom.widgets.Widget, {
     this.text = "";
     this.innerHTML = html;
     return this;
-  }
+  },
+
+  appendChild: function (child) {
+    var result = null;
+    var childTarget = child._target;
+    var target = this._target;
+    var success = true;
+    
+    if (!target.parentNode || (target != childTarget.parentNode))
+    {
+      target.appendChild(child._target);
+      success = (target.lastChild == childTarget);
+    }
+    
+    if (success)
+    {
+      var childIndex = this.children.indexOf(child);
+      if (childIndex >= 0)
+      {
+        this.children.splice(childIndex, 1);
+      }
+
+      this.children.push(child);
+      
+      result = child;
+    }
+    
+    return result;
+  },
+  
+  removeChild: function (child) {
+    var childIndex = this.children.indexOf(child);
+    if (childIndex >= 0)
+    {
+      this._target.removeChild(child._target);
+      this.children.splice(childIndex, 1);
+    }
+  },
 });
 
+jsx.dom.widgets.Section =
+  function jsx_dom_widgets_Section (oTarget, oParent, oProperties) {
+    jsx_dom_widgets_Section._super.apply(this, arguments);
+  };
+
+jsx.dom.widgets.Section.extend(jsx.dom.widgets.Container, {
+  /**
+   * @memberOf jsx.dom.widgets.Section#prototype
+   */
+  elementType: "section"
+});
+
+jsx.dom.widgets.Label =
+  function jsx_dom_widgets_Label (oTarget, oParent, oProperties) {
+    jsx_dom_widgets_Label._super.apply(this, arguments);
+  };
+
+jsx.dom.widgets.Label.extend(jsx.dom.widgets.Container, {
+  /**
+   * @memberOf jsx.dom.widgets.Label#prototype
+   */
+  elementType: "label"
+});
+
+jsx.dom.widgets.TextArea =
+  function jsx_dom_widgets_TextArea (oTarget, oParent, oProperties) {
+    jsx_dom_widgets_TextArea._super.apply(this, arguments);
+  };
+
+jsx.dom.widgets.TextArea.extend(jsx.dom.widgets.Container, {
+  /**
+   * @memberOf jsx.dom.widgets.TextArea#prototype
+   */
+  elementType: "textarea"
+});
+
+jsx.dom.widgets.CheckBox =
+  function jsx_dom_widgets_CheckBox (oTarget, oParent, oProperties) {
+    jsx_dom_widgets_CheckBox._super.apply(this, arguments);
+  };
+
+jsx.dom.widgets.position = {
+  BEFORE: -1,
+  AFTER: 1
+};
+
+jsx.dom.widgets.CheckBox.extend(jsx.dom.widgets.Widget, {
+  /**
+   * @memberOf jsx.dom.widgets.CheckBox#prototype
+   */
+  elementType: "input",
+  
+  labelPosition: jsx.dom.widgets.position.AFTER,
+  
+  /**
+   * Unique ID of this control
+   */
+  _uid: -1,
+  
+  init: function () {
+    this._target.type = "checkbox";
+    this._target.id = "checkbox" + (++this._uid);
+    
+    var label = this.label;
+    if (label)
+    {
+      if (typeof label.valueOf() == "string")
+      {
+        this.label = new jsx.dom.widgets.Label(null, this._parent, {
+          innerHTML: [label]
+        });
+      }
+    }
+  },
+  
+  /**
+   * @override
+   */
+  render: function () {
+    jsx.dom.widgets.CheckBox._super.prototype.render.call(this);
+    
+    var label = this.label;
+    if (label)
+    {
+      label._target.htmlFor = this._target.id;
+      label.render();
+    }
+  },
+  
+  /**
+   * @override
+   */
+  unrender: function () {
+    jsx.dom.widgets.CheckBox._super.prototype.unrender.call(this);
+    
+    if (this.label)
+    {
+      this.label.unrender();
+    }
+  },
+  
+  /**
+   * @override
+   */
+  show: function () {
+    jsx.dom.widgets.CheckBox._super.protoype.show.call(this);
+    
+    if (this.label)
+    {
+      this.label.show();
+    }
+  },
+  
+  /**
+   * @override
+   */
+  hide: function () {
+    jsx.dom.widgets.CheckBox._super.prototype.hide.call(this);
+    
+    if (this.label)
+    {
+      this.label.hide();
+    }
+  },
+  
+  /**
+   * Appends the widget as a child element
+   *
+   * @override
+   * @param parent
+   * @return Array
+   */
+  appendTo: function (parent) {
+    if (typeof parent == "undefined")
+    {
+      parent = this._parent;
+    }
+    
+    var checkboxTarget = jsx.dom.widgets.CheckBox._super.prototype.appendTo.call(this, parent);
+    
+    var label = this.label;
+    if (label)
+    {
+      if (this.labelPosition === jsx.dom.widgets.position.BEFORE)
+      {
+        var labelTarget = parent._target.insertBefore(label._target, this._target);
+      }
+      else
+      {
+        if (this.labelPosition === jsx.dom.widgets.position.AFTER)
+        {
+          labelTarget = parent._target.insertBefore(label._target, this._target.nextSibling);
+        }
+      }
+      
+      label.appendTo(parent);
+    }
+
+    return [checkboxTarget, labelTarget];
+  },
+
+  /**
+   * Removes the widget from the document
+   * 
+   * @override
+   */
+  remove: function () {
+    var checkboxTarget = jsx.dom.widgets.CheckBox._super.prototype.remove.call(this);
+    var labelTarget = this.label.remove();
+    return [checkboxTarget, labelTarget];
+  }
+});
 
 /**
  * An <code>Input</code> widget enhances the default
@@ -312,26 +545,27 @@ jsx.dom.widgets.Container.extend(jsx.dom.widgets.Widget, {
  *        Object
  * @see Widget
  */
-jsx.dom.widgets.Input = function (oTarget, oParent, oProperties) {
-  jsx.dom.widgets.Input._super.apply(this, arguments);
+jsx.dom.widgets.Input =
+  function jsx_dom_widgets_Input (oTarget, oParent, oProperties) {
+    jsx_dom_widgets_Input._super.apply(this, arguments);
 
-  var me = this;
-  jsx.dom.addEventListener(this._target, 'keypress', jsx.dom.createEventListener(
-    function (e) {
-      var charCode =
-        (typeof e.charCode != "undefined")
-          ? e.charCode
-          : (typeof e.keyCode != "undefined" ? e.keyCode : charCode);
-
-      if (! (charCode < 32
-             || me.allowedChars.test(String.fromCharCode(charCode))
-          && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey))
-      {
-        return e.preventDefault();
+    var me = this;
+    jsx.dom.addEventListener(this._target, 'keypress', jsx.dom.createEventListener(
+      function (e) {
+        var charCode =
+          (typeof e.charCode != "undefined")
+            ? e.charCode
+            : (typeof e.keyCode != "undefined" ? e.keyCode : charCode);
+  
+        if (! (charCode < 32
+               || me.allowedChars.test(String.fromCharCode(charCode))
+            && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey))
+        {
+          return e.preventDefault();
+        }
       }
-    }
-  ));
-};
+    ));
+  };
 
 jsx.dom.widgets.Input.extend(jsx.dom.widgets.Widget, {
   /**
@@ -362,9 +596,10 @@ jsx.dom.widgets.Input.extend(jsx.dom.widgets.Widget, {
   }())
 });
 
-jsx.dom.widgets.Button = function (oTarget, oParent, oProperties) {
-  jsx.dom.widgets.Button._super.apply(this, arguments);
-};
+jsx.dom.widgets.Button =
+  function jsx_dom_widgets_Button (oTarget, oParent, oProperties) {
+    jsx_dom_widgets_Button._super.apply(this, arguments);
+  };
 
 jsx.dom.widgets.Button.extend(jsx.dom.widgets.Container, {
   /**
@@ -405,28 +640,29 @@ jsx.dom.widgets.Button.extend(jsx.dom.widgets.Container, {
  * @param oProperties : Object
  * @see jsx.dom.widgets#Input
  */
-jsx.dom.widgets.NumberInput = function (oTarget, oParent, oProperties) {
-  jsx.dom.widgets.NumberInput._super.apply(this, arguments);
-
-  var me = this;
-
-  var target = this._target;
-  jsx.dom.addEventListener(target, 'blur', function () {
-    me.update();
-  });
-
-  jsx.dom.addEventListener(target, 'focus', function () {
-    if (me.leadingZero)
+jsx.dom.widgets.NumberInput =
+  function jsx_dom_widgets_NumberInput (oTarget, oParent, oProperties) {
+    jsx_dom_widgets_NumberInput._super.apply(this, arguments);
+  
+    var me = this;
+  
+    var target = this._target;
+    jsx.dom.addEventListener(target, 'blur', function () {
+      me.update();
+    });
+  
+    jsx.dom.addEventListener(target, 'focus', function () {
+      if (me.leadingZero)
+      {
+        this.value = parseInt(this.value, 10);
+      }
+    });
+  
+    if (typeof this.oninput == "function")
     {
-      this.value = parseInt(this.value, 10);
+      jsx.dom.addEventListener(target, 'input', this.oninput);
     }
-  });
-
-  if (typeof this.oninput == "function")
-  {
-    jsx.dom.addEventListener(target, 'input', this.oninput);
-  }
-};
+  };
 
 jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
   /**
@@ -579,142 +815,143 @@ jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
  * @param oProperties : Object
  * @see jsx.dom.widgets#NumberInput
  */
-jsx.dom.widgets.SpinnerInput = function (oTarget, oParent, oProperties) {
-  var me = this;
-
-  jsx.dom.widgets.SpinnerInput._super.apply(this, arguments);
-
-  var target = this._target;
-  if (target.type != "number")
-  {
-    /* If no HTML5 support, try adding arrow controls */
-    jsx.tryThis(
-      function () {
-        me.buttonUp = new jsx.dom.widgets.Button(null, null, {
-          text: "\u25B4",
-          tabIndex: target.tabIndex,
-          style: {
-            display: "block",
-            margin: "0",
-            width: "1em",
-            minWidth: "0",
-            padding: "0",
-            lineHeight: "1em"
-          },
-          onclick: function () {
-            me.inc();
-
-            if (typeof me._target.onchange == "function")
+jsx.dom.widgets.SpinnerInput =
+  function jsx_dom_widgets_SpinnerInput (oTarget, oParent, oProperties) {
+    var me = this;
+  
+    jsx_dom_widgets_SpinnerInput._super.apply(this, arguments);
+  
+    var target = this._target;
+    if (target.type != "number")
+    {
+      /* If no HTML5 support, try adding arrow controls */
+      jsx.tryThis(
+        function () {
+          me.buttonUp = new jsx.dom.widgets.Button(null, null, {
+            text: "\u25B4",
+            tabIndex: target.tabIndex,
+            style: {
+              display: "block",
+              margin: "0",
+              width: "1em",
+              minWidth: "0",
+              padding: "0",
+              lineHeight: "1em"
+            },
+            onclick: function () {
+              me.inc();
+  
+              if (typeof me._target.onchange == "function")
+              {
+                me._target.onchange();
+              }
+            }
+          });
+  
+          me.buttonDown = new jsx.dom.widgets.Button(null, null, {
+            text: "\u25BE",
+            tabIndex: target.tabIndex,
+            style: {
+              display: "block",
+              margin: "0",
+              width: "1em",
+              minWidth: "0",
+              padding: "0",
+              lineHeight: "1em"
+            },
+            onclick: function () {
+              me.dec();
+  
+              if (typeof me._target.onchange == "function")
+              {
+                me._target.onchange();
+              }
+            }
+          });
+  
+          var buttonContainer = document.createElement("div");
+          buttonContainer.style.display = "inline-block";
+          buttonContainer.style.lineHeight = "1em";
+          buttonContainer.style.verticalAlign = "middle";
+  
+          buttonContainer.appendChild(me.buttonUp._target);
+          buttonContainer.appendChild(me.buttonDown._target);
+          target.parentNode.insertBefore(buttonContainer, target.nextSibling);
+        },
+  
+        function (e) {
+          if (!e || e.name !== "jsx.dom.widgets.InitError")
+          {
+            /* Rethrow unhandled exception */
+            jsx.rethrowThis(e);
+          }
+        }
+      );
+  
+      /* Add event listeners */
+      jsx.dom.addEventListener(target, 'keydown', jsx.dom.createEventListener(
+        function (e) {
+          /**
+           * Increases the value of the <code>value</code> property.
+           */
+          // function inc()
+          // {
+          // var v;
+          // if ((me.maxValue == Infinity || this.value < me.maxValue)
+          // && !isNaN(v = parseInt(this.value, 10) + 1)
+          // && (this.maxLength < 1 || v.toString().length <=
+          // this.maxLength))
+          // {
+          // this.value = v;
+          // }
+          // }
+          //
+          // function dec()
+          // {
+          // var v;
+          // if ((me.minValue == -Infinity || this.value > me.minValue)
+          // && !isNaN(v = parseInt(this.value, 10) - 1)
+          // && (this.maxLength < 1 || v.toString().length <=
+          // this.maxLength))
+          // {
+          // this.value = v;
+          // }
+          // } if (me.minValue != -Infinity || me.maxValue != Infinity)
+  
+          if (typeof e.keyIdentifier != "undefined")
+          {
+            /* DOM Level 3 Events draft */
+            switch (e.keyIdentifier)
             {
-              me._target.onchange();
+              case "Up":
+                me.inc();
+                break;
+  
+              case "Down":
+                me.dec();
             }
           }
-        });
-
-        me.buttonDown = new jsx.dom.widgets.Button(null, null, {
-          text: "\u25BE",
-          tabIndex: target.tabIndex,
-          style: {
-            display: "block",
-            margin: "0",
-            width: "1em",
-            minWidth: "0",
-            padding: "0",
-            lineHeight: "1em"
-          },
-          onclick: function () {
-            me.dec();
-
-            if (typeof me._target.onchange == "function")
+          else
+          {
+            /* currently proprietary */
+            switch (e.keyCode)
             {
-              me._target.onchange();
+              case 38:
+                me.inc();
+                break;
+  
+              case 40:
+                me.dec();
             }
           }
-        });
-
-        var buttonContainer = document.createElement("div");
-        buttonContainer.style.display = "inline-block";
-        buttonContainer.style.lineHeight = "1em";
-        buttonContainer.style.verticalAlign = "middle";
-
-        buttonContainer.appendChild(me.buttonUp._target);
-        buttonContainer.appendChild(me.buttonDown._target);
-        target.parentNode.insertBefore(buttonContainer, target.nextSibling);
-      },
-
-      function (e) {
-        if (!e || e.name !== "jsx.dom.widgets.InitError")
-        {
-          /* Rethrow unhandled exception */
-          jsx.rethrowThis(e);
+  
+          me.update();
         }
-      }
-    );
-
-    /* Add event listeners */
-    jsx.dom.addEventListener(target, 'keydown', jsx.dom.createEventListener(
-      function (e) {
-        /**
-         * Increases the value of the <code>value</code> property.
-         */
-        // function inc()
-        // {
-        // var v;
-        // if ((me.maxValue == Infinity || this.value < me.maxValue)
-        // && !isNaN(v = parseInt(this.value, 10) + 1)
-        // && (this.maxLength < 1 || v.toString().length <=
-        // this.maxLength))
-        // {
-        // this.value = v;
-        // }
-        // }
-        //
-        // function dec()
-        // {
-        // var v;
-        // if ((me.minValue == -Infinity || this.value > me.minValue)
-        // && !isNaN(v = parseInt(this.value, 10) - 1)
-        // && (this.maxLength < 1 || v.toString().length <=
-        // this.maxLength))
-        // {
-        // this.value = v;
-        // }
-        // } if (me.minValue != -Infinity || me.maxValue != Infinity)
-
-        if (typeof e.keyIdentifier != "undefined")
-        {
-          /* DOM Level 3 Events draft */
-          switch (e.keyIdentifier)
-          {
-            case "Up":
-              me.inc();
-              break;
-
-            case "Down":
-              me.dec();
-          }
-        }
-        else
-        {
-          /* currently proprietary */
-          switch (e.keyCode)
-          {
-            case 38:
-              me.inc();
-              break;
-
-            case 40:
-              me.dec();
-          }
-        }
-
-        me.update();
-      }
-    ));
-
-    jsx.dom.addEventListener(target, 'keyup', function () { me.update(); });
-  }
-};
+      ));
+  
+      jsx.dom.addEventListener(target, 'keyup', function () { me.update(); });
+    }
+  };
 
 jsx.dom.widgets.SpinnerInput.extend(jsx.dom.widgets.NumberInput, {
   /**
@@ -769,17 +1006,19 @@ jsx.dom.widgets.SpinnerInput.extend(jsx.dom.widgets.NumberInput, {
   }())
 });
 
-jsx.dom.widgets.ListItem = function () {
-  jsx.dom.widgets.ListItem._super.apply(this, arguments);
-};
+jsx.dom.widgets.ListItem =
+  function jsx_dom_widgets_ListItem () {
+    jsx_dom_widgets_ListItem._super.apply(this, arguments);
+  };
 
 jsx.dom.widgets.ListItem.extend(jsx.dom.widgets.Container, {
   elementType: "li"
 });
 
-jsx.dom.widgets.List = function () {
-  jsx.dom.widgets.List._super.apply(this, arguments);
-};
+jsx.dom.widgets.List =
+  function jsx_dom_widgets_List () {
+    jsx_dom_widgets_List._super.apply(this, arguments);
+  };
 
 jsx.dom.widgets.List.extend(jsx.dom.widgets.Widget, {
   /**
@@ -868,9 +1107,10 @@ jsx.dom.widgets.List.extend(jsx.dom.widgets.Widget, {
   }())
 });
 
-jsx.dom.widgets.OrderedList = function () {
-  jsx.dom.widgets.OrderedList._super.apply(this, arguments);
-};
+jsx.dom.widgets.OrderedList =
+  function jsx_dom_widgets_OrderedList () {
+    jsx_dom_widgets_OrderedList._super.apply(this, arguments);
+  };
 
 jsx.dom.widgets.OrderedList.extend(jsx.dom.widgets.List, {
   /**
@@ -879,9 +1119,10 @@ jsx.dom.widgets.OrderedList.extend(jsx.dom.widgets.List, {
   elementType: "ol",
 });
 
-jsx.dom.widgets.UnorderedList = function () {
-  jsx.dom.widgets.UnorderedList._super.apply(this, arguments);
-};
+jsx.dom.widgets.UnorderedList =
+  function jsx_dom_widgets_UnorderedList () {
+    jsx_dom_widgets_UnorderedList._super.apply(this, arguments);
+  };
 
 jsx.dom.widgets.UnorderedList.extend(jsx.dom.widgets.List, {
   /**
@@ -890,9 +1131,10 @@ jsx.dom.widgets.UnorderedList.extend(jsx.dom.widgets.List, {
   elementType: "ul",
 });
 
-jsx.dom.widgets.Tree = function (oTarget, oParent, oProperties) {
-  jsx.dom.widgets.Tree._super.apply(this, arguments);
-};
+jsx.dom.widgets.Tree =
+  function jsx_dom_widgets_Tree (oTarget, oParent, oProperties) {
+    jsx_dom_widgets_Tree._super.apply(this, arguments);
+  };
 
 jsx.dom.widgets.Tree.extend(jsx.dom.widgets.Widget, {
   /**
@@ -924,9 +1166,10 @@ jsx.dom.widgets.Tree.extend(jsx.dom.widgets.Widget, {
  * element object with additional features, such as filtering rows.
  *
  */
-jsx.dom.widgets.Table = function (oTarget, oParent, oProperties) {
-  jsx.dom.widgets.Table._super.apply(this, arguments);
-};
+jsx.dom.widgets.Table =
+  function jsx_dom_widgets_Table (oTarget, oParent, oProperties) {
+    jsx_dom_widgets_Table._super.apply(this, arguments);
+  };
 
 jsx.dom.widgets.Table.extend(jsx.dom.widgets.Widget, {
   filterColumns: [],
@@ -937,16 +1180,18 @@ jsx.dom.widgets.Table.extend(jsx.dom.widgets.Widget, {
    *
    * @function
    * @memberOf jsx.dom.widgets.Table#prototype
-   * @param filterString : String
-   *   The string by which rows should be filtered
-   * @return boolean
-   *   <code>true</code> if the filter could be applied,
-   *   <code>false</code> otherwise.  Note that <code>true</code> means only
-   *   that the filter could be applied, not that any rows are filtered out.
    */
   applyFilter: (function () {
     var _getContent = jsx.dom.getContent;
 
+    /**
+     * @param filterString : String
+     *   The string by which rows should be filtered
+     * @return boolean
+     *   <code>true</code> if the filter could be applied,
+     *   <code>false</code> otherwise.  Note that <code>true</code> means only
+     *   that the filter could be applied, not that any rows are filtered out.
+     */
     return function (filterString) {
       /* Imports */
       var _escape = jsx.regexp.escape;
@@ -1021,15 +1266,17 @@ jsx.dom.widgets.Table.extend(jsx.dom.widgets.Widget, {
  * @base jsx.dom.Widget
  * @see NumberWidget
  */
-jsx.dom.widgets.Timer = function (oTarget, oParent, oProperties) {
-  jsx.dom.widgets.Timer._super.apply(this, arguments);
-};
+jsx.dom.widgets.Timer =
+  function jsx_dom_widgets_Timer (oTarget, oParent, oProperties) {
+    jsx_dom_widgets_Timer._super.apply(this, arguments);
+  };
 
 jsx.dom.widgets.Timer.extend(jsx.dom.widgets.Widget);
 
-jsx.dom.widgets.InitError = function (widgetType) {
-  jsx.dom.widgets.InitError._super.call(this, widgetType);
-};
+jsx.dom.widgets.InitError =
+  function jsx_dom_widgets_InitError (widgetType) {
+    jsx_dom_widgets_InitError._super.call(this, widgetType);
+  };
 
 jsx.dom.widgets.InitError.extend(jsx.Error, {
   name: "jsx.dom.widgets.InitError"
