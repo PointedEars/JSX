@@ -321,11 +321,41 @@ jsx.object.isNativeMethod = jsx.object.areNativeMethods = (function () {
    *   <code>false</code> otherwise.
    * @see jsx.object#isMethodType()
    */
-  return function (obj, prop) {
+  return function jsx_object_areNativeMethods (obj, prop) {
     /* NOTE: Thread-safe, argument-safe code reuse -- `this' is our ID */
-    return areMethods.apply(arguments.callee, arguments);
+    return areMethods.apply(jsx_object_areNativeMethods, arguments);
   };
 }());
+
+/**
+ * Determines if the passed value could be the result of
+ * <code>typeof <var>callable</var></code>.
+ * <p>
+ * NOTE: This method has previously been provided by {@link types.js};
+ * optimizations in code reuse moved it here.
+ * </p>
+ * @param s : optional string
+ *   String to be determined a method type, i.e. "object" or "unknown" in
+ *   MSHTML, "function" otherwise.  The type must have been retrieved with
+ *   the `typeof' operator.  Note that this method may also return
+ *   <code>true</code> if the value of the <code>typeof</code> operand is
+ *   <code>null</code>; to be sure that the operand is a method reference,
+ *   you have to && (AND)-combine the <code>isMethodType(...)</code>
+ *   expression with the method reference identifier unless `typeof' yielded
+ *   `unknown' for <var>s</var>.
+ * @return boolean
+ *   <code>true</code> if <var>s</var> is a method type,
+ *   <code>false</code> otherwise.
+ * @author
+ *   (C) 2003-2008  Thomas Lahn &lt;types.js@PointedEars.de&gt;
+ *   Distributed under the GNU GPL v3 and later.
+ * @partof http://pointedears.de/scripts/types.js
+ * @deprecated since version 0.1.5a.2009070204
+ *   in favor of {@link jsx.object#isMethod(Object)}
+ */
+jsx.object.isMethodType = function (s) {
+  return /^\s*(function|object|unknown)\s*$/i.test(s);
+};
 
 /**
  * Prints debug messages to the script console.
@@ -462,7 +492,7 @@ jsx.object.clone = (function () {
    * @return Object
    *   A reference to the clone.
    */
-  return function (iLevel, oSource) {
+  return function jsx_object_clone (iLevel, oSource) {
     if (typeof iLevel == "object")
     {
       oSource = iLevel;
@@ -474,7 +504,7 @@ jsx.object.clone = (function () {
       oSource = this;
     }
 
-    var me = arguments.callee;
+    var me = jsx_object_clone;
 
     if (!iLevel || (iLevel & COPY_ENUM_DEEP))
     {
@@ -669,9 +699,9 @@ jsx.object._hasOwnProperty = (function () {
       sProperty = obj;
       obj = this;
     }
-  
+
     var proto;
-  
+
     return (_isMethod(obj, "hasOwnProperty")
       ? obj.hasOwnProperty(sProperty)
       : (typeof obj[sProperty] != "undefined"
@@ -704,12 +734,12 @@ jsx.object._propertyIsEnumerable = (function () {
       sProperty = obj;
       obj = this;
     }
-  
+
     if (_isMethod(obj, "propertyIsEnumerable"))
     {
       return obj.propertyIsEnumerable(sProperty);
     }
-    
+
     for (var propertyName in obj)
     {
       if (propertyName == name && _hasOwnProperty(obj, propertyName))
@@ -717,7 +747,7 @@ jsx.object._propertyIsEnumerable = (function () {
         return true;
       }
     }
-    
+
     return false;
   };
 }());
@@ -811,45 +841,46 @@ jsx.object.findNewProperty = (function () {
  *     </tbody>
  *   </table>
  */
-jsx.object.hasPropertyValue = function (obj, needle, params) {
-  for (var property in obj)
-  {
-    if (params && params.exclude && params.exclude.indexOf(property) > -1)
+jsx.object.hasPropertyValue =
+  function jsx_object_hasPropertyValue (obj, needle, params) {
+    for (var property in obj)
     {
-      continue;
-    }
-
-    var propertyValue = obj[property];
-    if (params && params.recursive)
-    {
-      if (typeof propertyValue == "object" && propertyValue !== null)
+      if (params && params.exclude && params.exclude.indexOf(property) > -1)
       {
-        if (arguments.callee(propertyValue, needle, params))
+        continue;
+      }
+  
+      var propertyValue = obj[property];
+      if (params && params.recursive)
+      {
+        if (typeof propertyValue == "object" && propertyValue !== null)
+        {
+          if (jsx_object_hasPropertyValue(propertyValue, needle, params))
+          {
+            return true;
+          }
+        }
+      }
+  
+      if (params && params.strict)
+      {
+        if (propertyValue === needle)
+        {
+          return true;
+        }
+      }
+      else
+      {
+        /* Switch operands because of JScript quirk */
+        if (needle == propertyValue)
         {
           return true;
         }
       }
     }
-
-    if (params && params.strict)
-    {
-      if (propertyValue === needle)
-      {
-        return true;
-      }
-    }
-    else
-    {
-      /* Switch operands because of JScript quirk */
-      if (needle == propertyValue)
-      {
-        return true;
-      }
-    }
-  }
-
-  return false;
-};
+  
+    return false;
+  };
 
 /**
  * Clears the handler for the proprietary <code>error</code> event.
@@ -1175,12 +1206,12 @@ jsx.object.inheritFrom = (function () {
       {
         return Object.create(null);
       }
-      
+
       var result = new Object();
       result.__proto__ = null;
       return result;
     }
-    
+
     Dummy.prototype = (typeof obj == "undefined")
                     ? Object.prototype
                     : (obj || null);
@@ -1190,25 +1221,25 @@ jsx.object.inheritFrom = (function () {
 
 /**
  * Returns a new object that can serve as data container.
- * 
+ *
  * Returns a new object that, if supported, does not inherit or
  * have any properties.  This is accomplished by either cutting
  * off its existing prototype chain or not creating one for it
  * in the first place.
- * 
+ *
  * @function
  * @return Object
  * @see Object.create
  */
 jsx.object.getDataObject = (function () {
   var _inheritFrom = jsx.object.inheritFrom;
-  
+
   return function () {
     return _inheritFrom(null);
   };
 }());
 
-jsx.object.getKeys = (function() {
+jsx.object.getKeys = (function () {
   var
     _jsx = jsx,
     _global = _jsx.global,
@@ -1246,10 +1277,10 @@ if (jsx.options.emulate)
       {
         Object.getOwnPropertyNames = (function () {
           var _hasOwnProperty = jsx.object._hasOwnProperty;
-  
+
           return function (o) {
             var names = [];
-  
+
             for (var p in o)
             {
               if (_hasOwnProperty(o, p))
@@ -1257,12 +1288,12 @@ if (jsx.options.emulate)
                 names.push(p);
               }
             }
-  
+
             return names;
           };
         }());
       }
-  
+
       /**
        * Defines a property of an object.
        *
@@ -1273,38 +1304,38 @@ if (jsx.options.emulate)
        */
       Object.defineProperty = (function () {
         var _hasOwnProperty = jsx.object._hasOwnProperty;
-  
+
         function _toPropertyDescriptor(obj)
         {
           if (!/^(object|function)$/i.test(typeof obj) || !obj)
           {
             jsx.throwThis("TypeError", "Object expected");
           }
-  
+
           var desc = new Object();
-  
+
           if (_hasOwnProperty(obj, "enumerable"))
           {
             desc.enumerable = !!obj.enumerable;
           }
-  
+
           if (_hasOwnProperty(obj, "configurable"))
           {
             desc.configurable = !!obj.configurable;
           }
-  
+
           var hasValue = obj.hasOwnProperty("value");
           if (hasValue)
           {
             desc.value = obj.value;
           }
-  
+
           var hasWritable = _hasOwnProperty(obj, "writable");
           if (hasWritable)
           {
             desc.writable = !!obj.writable;
           }
-  
+
           var hasGetter = _hasOwnProperty(obj, "get");
           if (hasGetter)
           {
@@ -1312,10 +1343,10 @@ if (jsx.options.emulate)
             {
               jsx.throwThis("TypeError", "Function expected for getter");
             }
-  
+
             desc.get = obj.get;
           }
-  
+
           var hasSetter = _hasOwnProperty(obj, "set");
           if (hasSetter)
           {
@@ -1323,18 +1354,18 @@ if (jsx.options.emulate)
             {
               jsx.throwThis("TypeError", "Function expected for setter");
             }
-  
+
             desc.set = obj.set;
           }
-  
+
           if ((hasGetter || hasSetter) && (hasValue || hasWritable))
           {
             jsx.throwThis("TypeError", "Cannot define getter/setter and value/writable");
           }
-  
+
           return desc;
         }
-  
+
         function _defineOwnProperty (obj, propertyName, descriptor, _throw)
         {
           function _isAccessorDescriptor (desc)
@@ -1343,45 +1374,45 @@ if (jsx.options.emulate)
             {
               return false;
             }
-  
+
             return _hasOwnProperty(desc, "get") || _hasOwnProperty(desc, "set");
           }
-  
+
           function _isDataDescriptor (desc)
           {
             if (typeof desc == "undefined")
             {
               return false;
             }
-  
+
             return desc.hasOwnProperty("value") || _hasOwnProperty(desc, "writable");
           }
-  
+
           function _isGenericDescriptor (desc)
           {
             if (typeof desc == "undefined")
             {
               return false;
             }
-  
+
             return !_isAccessorDescriptor(desc) && !_isDataDescriptor(desc);
           }
-  
+
   //        var current = obj.hasOwnProperty(propertyName);
   //        var extensible = obj[propertyName].[[Extensible]]
-  
+
           if (_isGenericDescriptor(descriptor) || _isDataDescriptor(descriptor))
           {
             var value = descriptor.value;
             obj[propertyName] = value;
-  
+
             if (!descriptor.writable)
             {
               /* NOTE: Need getter because __defineSetter__() undefines value */
               obj.__defineGetter__(propertyName, function () {
                 return value;
               });
-  
+
               obj.__defineSetter__(propertyName, function () {});
             }
           }
@@ -1392,16 +1423,16 @@ if (jsx.options.emulate)
             {
               obj.__defineGetter__(propertyName, descriptor.get);
             }
-  
+
             if (descriptor.set)
             {
               obj.__defineSetter__(propertyName, descriptor.set);
             }
           }
-  
+
           return false;
         }
-  
+
         /**
          * @param o : Object
          * @param descriptor : optional Object
@@ -1417,15 +1448,15 @@ if (jsx.options.emulate)
           {
             jsx.throwThis("TypeError", "Object expected");
           }
-  
+
           var name = String(propertyName);
           var desc = _toPropertyDescriptor(descriptor);
           _defineOwnProperty(o, name, desc, true);
-  
+
           return o;
         };
       }());
-  
+
       /**
        * Defines the properties of an object.
        *
@@ -1450,11 +1481,11 @@ if (jsx.options.emulate)
           var propertyName = properties[i];
           Object.defineProperty(o, propertyName, descriptor[propertyName]);
         }
-  
+
         return o;
       };
     }
-  
+
     /**
      * Creates a new object and initializes its properties.
      *
@@ -1474,17 +1505,17 @@ if (jsx.options.emulate)
      */
     Object.create = function (prototype, descriptor) {
       var o = jsx.object.inheritFrom(prototype);
-  
+
       if (typeof descriptor != "undefined")
       {
         Object.defineProperties(o, descriptor);
       }
-  
+
       return o;
     };
     Object.create._emulated = true;
   }
-  
+
   if (!jsx.object.isNativeMethod(jsx.tryThis("Object"), "keys"))
   {
     Object.keys = function (obj) {
@@ -1493,7 +1524,6 @@ if (jsx.options.emulate)
     Object.keys._emulated = true;
   }
 }
-
 
 /**
  * Returns a feature of an object
@@ -1586,7 +1616,7 @@ jsx.object.getFunctionName = function (aFunction) {
 
 /**
  * Returns minimum documentation for a function
- * 
+ *
  * @param aFunction : Function|String
  * @return string
  */
@@ -1704,94 +1734,31 @@ jsx.object.getClass = (function () {
 }());
 
 /**
- * Determines if the passed value could be the result of
- * <code>typeof <var>callable</var></code>.
- * <p>
- * NOTE: This method has previously been provided by {@link types.js};
- * optimizations in code reuse moved it here.
- * </p>
- * @param s : optional string
- *   String to be determined a method type, i.e. "object" or "unknown" in
- *   MSHTML, "function" otherwise.  The type must have been retrieved with
- *   the `typeof' operator.  Note that this method may also return
- *   <code>true</code> if the value of the <code>typeof</code> operand is
- *   <code>null</code>; to be sure that the operand is a method reference,
- *   you have to && (AND)-combine the <code>isMethodType(...)</code>
- *   expression with the method reference identifier unless `typeof' yielded
- *   `unknown' for <var>s</var>.
- * @return boolean
- *   <code>true</code> if <var>s</var> is a method type,
- *   <code>false</code> otherwise.
- * @author
- *   (C) 2003-2008  Thomas Lahn &lt;types.js@PointedEars.de&gt;
- *   Distributed under the GNU GPL v3 and later.
- * @partof http://pointedears.de/scripts/types.js
- * @deprecated since version 0.1.5a.2009070204
- *   in favor of {@link jsx.object#isMethod(Object)}
+ * Retrieves the value of a property of an object
+ *
+ * @param obj : Object
+ * @param sProperty : string
+ * @param aDefault : mixed
+ * @return mixed
+ * @throw
+ *   {@link jsx.object#PropertyError} if the property
+ *   does not exist or has the <code>undefined</code> value, and
+ *   <var>aDefault</var> was not provided
  */
-jsx.object.isMethodType = function (s) {
-  return /^\s*(function|object|unknown)\s*$/i.test(s);
+jsx.object.getProperty = function (obj, sProperty, aDefault) {
+  if (typeof obj[sProperty] != "undefined")
+  {
+    return obj[sProperty];
+  }
+
+  /* default value not passed */
+  if (arguments.length < 3)
+  {
+    jsx.throwThis("jsx.object.PropertyError", sProperty);
+  }
+
+  return aDefault;
 };
-
-/**
- * Imports object properties into the global namespace.
- *
- * Convenience method, also for backwards compatibility to versions before
- * strict namespacing.  Does not load script files dynamically; use
- * jsx.importFrom() for that and include jsx.net.http.
- *
- * @function
- */
-jsx._import = (function () {
-  var _hasOwnProperty = jsx.object._hasOwnProperty;
-
-  /**
-   * @param obj : Object
-   * @param properties : Array
-   *   List of properties to import.  If not provided, all enumerable
-   *   properties of <var>obj</var> are imported.
-   * @throws TypeError, if <var>obj</var> is not an iterable object
-   * @return boolean
-   *   <code>false</code> if <var>properties</var> is provided and not
-   *   all properties could be imported; <code>true</code> otherwise.
-   */
-  return function (obj, properties) {
-    if (!obj)
-    {
-      jsx.throwThis("TypeError",
-        "expected iterable object, saw " + obj + " : " + (obj === null ? "Null" : typeof obj),
-        "jsx._import");
-    }
-
-    var result = true;
-
-    if (arguments.length < 2)
-    {
-      for (var property in obj)
-      {
-        if (_hasOwnProperty(obj, property))
-        {
-          jsx.global[property] = obj[property];
-        }
-        else
-        {
-          result = false;
-        }
-      }
-    }
-    else
-    {
-      for (var i = 0, len = properties.length; i < len; ++i)
-      {
-        var property = properties[i];
-        if (_hasOwnProperty(obj, property))
-        {
-          jsx.global[property] = obj[property];
-        }
-      }
-    }
-  };
-}());
 
 /**
  * Returns the absolute path for a URI-reference
@@ -1826,6 +1793,85 @@ jsx.absPath = function (relativePath, basePath) {
 };
 
 /**
+ * Imports object properties into the global namespace.
+ *
+ * Convenience method, also for backwards compatibility to versions before
+ * strict namespacing.  Does not load script files dynamically; use
+ * jsx.importFrom() for that and include jsx.net.http.
+ *
+ * @function
+ */
+jsx._import = (function () {
+  var _jsx_object = jsx.object;
+  var _getKeys = _jsx_object.getKeys;
+  var _hasOwnProperty = _jsx_object._hasOwnProperty;
+
+  /**
+   * @param obj : Object
+   * @param properties : optional Array[String]
+   *   List of properties to import.  If not provided or
+   *   <code>null</code>, all enumerable own properties of
+   *   <var>obj</var> are imported.
+   * @param objAlias : optional String
+   *   The alias property on the Global object that should be used
+   *   instead of the Global Object.  Helps to avoid spoiling
+   *   the global namespace.
+   * @param propertyAliases : optional Array[String]
+   *   The aliases that should be used for each property, in order,
+   *   that is specified in <var>properties</var>.  Helps to avoid
+   *   overwriting property values.
+   * @throws TypeError, if <var>obj</var> is not an iterable object
+   * @return boolean
+   *   <code>false</code> if <var>properties</var> is provided and not
+   *   all properties could be imported; <code>true</code> otherwise.
+   */
+  return function (obj, properties, objAlias, propertyAliases) {
+    if (!obj)
+    {
+      jsx.throwThis("TypeError",
+        "expected iterable object, saw " + obj + " : " + (obj === null ? "Null" : typeof obj),
+        "jsx._import");
+    }
+
+    var result = true;
+
+    var root = jsx.global;
+    if (objAlias != null)
+    {
+      root[objAlias] = {};
+      root = root[objAlias];
+    }
+
+    var propertiesArg = properties;
+    if (properties == null)
+    {
+      properties = _getKeys(obj);
+    }
+
+    for (var i = 0, len = properties.length; i < len; ++i)
+    {
+      var sourceProperty = properties[i];
+      if (propertiesArg == null || _hasOwnProperty(obj, sourceProperty))
+      {
+        var targetProperty = sourceProperty;
+        if (propertiesArg != null && propertyAliases != null)
+        {
+          targetProperty = propertyAliases[i];
+        }
+
+        root[targetProperty] = obj[sourceProperty];
+      }
+      else
+      {
+        result = false;
+      }
+    }
+
+    return result;
+  };
+}());
+
+/**
  * Imports a script, and optionally the object it defines, or some of their
  * properties, into the global namespace.
  *
@@ -1846,20 +1892,25 @@ jsx.importFrom = (function () {
    *   URI of the script to be imported
    * @param obj : Object
    *   Object from the script to be imported (optional)
-   * @param properties : Array
-   *   Properties of the object from the script to be imported (optional)
+   * @param properties : optional Array
+   *   Properties of the object from the script to be imported (optional).
+   *   See {@link jsx#_import}.
+   * @param objAlias : optional String
+   *   See {@link jsx#_import}.
+   * @param propertyAliases : optional Array[String]
+   *   See {@link jsx#_import}.
    * @return boolean
    *   <code>true</code> if the script could be successfully <em>loaded</em>
    *   (not: included), <code>false</code> otherwise.
    */
-  return function (uri, obj, properties) {
+  return function jsx_importFrom (uri, obj, properties, objAlias, propertyAliases) {
     /* One-time import */
     if (!Request)
     {
       Request = jsx.net.http.Request;
     }
 
-    arguments.callee.lastImport = uri;
+    jsx_importFrom.lastImport = uri;
     var req = new Request(uri, "GET", false, function (response) {
       /*
        * NOTE: Passing response.responseText to eval() is not ES5-compatible;
@@ -1883,7 +1934,7 @@ jsx.importFrom = (function () {
 
       if (arguments.length > 1)
       {
-        return _import(obj, properties);
+        return _import(obj, properties, objAlias, propertyAliases);
       }
 
       return true;
@@ -1894,36 +1945,9 @@ jsx.importFrom = (function () {
 }());
 
 /**
- * Retrieves the value of a property of an object
- *
- * @param obj : Object
- * @param sProperty : string
- * @param aDefault : mixed
- * @return mixed
- * @throw
- *   {@link jsx.object#PropertyError} if the property
- *   does not exist or has the <code>undefined</code> value, and
- *   <var>aDefault</var> was not provided
- */
-jsx.object.getProperty = function (obj, sProperty, aDefault) {
-  if (typeof obj[sProperty] != "undefined")
-  {
-    return obj[sProperty];
-  }
-
-  /* default value not passed */
-  if (arguments.length < 3)
-  {
-    jsx.throwThis("jsx.object.PropertyError", sProperty);
-  }
-
-  return aDefault;
-};
-
-/**
  * Imports once an object or some of its properties
  * from a script resource into the global namespace.
- * 
+ *
  * @function
  */
 jsx.importOnce = (function () {
@@ -1935,37 +1959,42 @@ jsx.importOnce = (function () {
    *   URI of the resource to be imported
    * @param obj : Object
    *   Object to import
-   * @param properties : Array
-   *   Properties to import
+   * @param properties : optional Array
+   *   Properties of the object from the script to be imported (optional).
+   *   See {@link jsx#_import}.
+   * @param objAlias : optional String
+   *   See {@link jsx#_import}.
+   * @param propertyAliases : optional Array[String]
+   *   See {@link jsx#_import}.
    * @see jsx#importFrom
    */
-  function importOnce (uri, obj, properties)
+  function importOnce (uri, obj, properties, objAlias, propertyAliases)
   {
     var result = false;
 
     if (uri && !_getProperty(importOnce.imports, uri, null))
     {
-      result = _importFrom(uri, obj, properties);
+      result = _importFrom(uri, obj, properties, objAlias, propertyAliases);
       if (result)
       {
-        arguments.callee.imports[uri] = true;
+        importOnce.imports[uri] = true;
       }
     }
 
     return result;
   };
-  
+
   importOnce.imports = {};
-  
+
   return importOnce;
 }());
 
 /**
  * Determines if a value refers to an object.
- * 
+ *
  * <p>Returns <code>true</code> if the value is a reference
  * to an object; <code>false</code> otherwise.</p>
- * 
+ *
  * <p>An value "is an object" if it is a function or
  * <code>typeof "object"</code> but not <code>null</code>.
  *
@@ -2005,7 +2034,7 @@ jsx.object.isArray = (function () {
     {
       return Array.isArray(a);
     }
-    
+
     return (_getClass(a) === "Array");
   };
 }());
@@ -2016,7 +2045,7 @@ jsx.object.isArray = (function () {
 jsx.require = (function () {
   var _importOnce = jsx.importOnce;
   var _isArray = jsx.object.isArray;
-  
+
   /**
    * @param uri : String|Array
    *   URI-reference or <code>Array</code> of URI-references
@@ -2032,7 +2061,7 @@ jsx.require = (function () {
     {
       uri = [uri];
     }
-    
+
     var success = true;
     for (var i = 0, len = uri.length; i < len; ++i)
     {
@@ -2042,12 +2071,12 @@ jsx.require = (function () {
         break;
       }
     }
-    
+
     if (success)
     {
       return callback();
     }
-    
+
     return false;
   };
 }());
@@ -2155,12 +2184,12 @@ if (jsx.options.emulate)
             o = null;
           }
         },
-        
+
         /**
          * Returns a <code>Function</code> that has a defined
          * <code>this</code> value and calls the calling
          * <code>Function</code> with default parameters.
-         * 
+         *
          * @function
          */
         bind: (function () {
@@ -2181,17 +2210,17 @@ if (jsx.options.emulate)
             {
               jsx.throwThis("TypeError");
             }
-            
+
             if (!_slice)
             {
               _slice = Array.prototype.slice;
             }
-            
+
             var boundArgs = _slice.call(arguments, 1);
             var f = function () {
               return target.apply(thisArg, boundArgs.concat(_slice.call(arguments)));
             };
-            
+
             if (_getClass(target) == "Function")
             {
               f.length = target.length + boundArgs.length;
@@ -2211,7 +2240,7 @@ if (jsx.options.emulate)
                 f.length = 0;
               }
             }
-            
+
             return f;
           };
         }()),
@@ -2280,22 +2309,23 @@ if (jsx.options.emulate)
  * <code>_super</code> property if you want to refer to the parent's
  * constructor in the instance's constructor; using the instance's
  * <code>_super</code> property would result in infinite recursion,
- * and ultimately a stack overflow.  You may call the parent's constructor
- * explicitly within the constructor of the child, using the
- * <code>arguments.callee._super.call()</code> method (or calling it
- * explicitly as a method of the inheriting prototype); in prototype
- * methods, use <code><var>Constructor</var>._super.prototype.method.call()</code>
+ * and ultimately a stack overflow.  You may call the parent's
+ * constructor explicitly within the constructor of the child, using
+ * the (equivalent of the) <code>arguments.callee._super.call()</code>
+ * method (or calling it explicitly as a method of the inheriting
+ * prototype); in prototype methods, use
+ * <code><var>Constructor</var>._super.prototype.method.call()</code>
  * or refer to the parent constructor directly.
  * </p>
  *
  * @function
  */
 Function.prototype.extend = (function () {
-  var jsx_object = jsx.object;
+  var _jsx_object = jsx.object;
 
   var _iterator = (function () {
     /* Optimize if ECMAScript 5 features were available */
-    if (jsx_object.isMethod(jsx.tryThis("Object"), "defineProperties"))
+    if (_jsx_object.isMethod(jsx.tryThis("Object"), "defineProperties"))
     {
       return function () {
         return this;
@@ -2381,7 +2411,7 @@ Function.prototype.extend = (function () {
       if (typeof fConstructor == "undefined")
       {
         /* Passing undefined is probably unintentional, so warn about it */
-        jsx.warn((jsx_object.getFunctionName(me) || "[anonymous Function]")
+        jsx.warn((_jsx_object.getFunctionName(me) || "[anonymous Function]")
           + ".extend(" + "undefined, " + oProtoProps + "):"
           + " Parent constructor is undefined, using Object");
       }
@@ -2411,7 +2441,7 @@ Function.prototype.extend = (function () {
       return null;
     }
 
-    this.prototype = jsx_object.inheritFrom(fConstructor.prototype);
+    this.prototype = _jsx_object.inheritFrom(fConstructor.prototype);
 
     if (oProtoProps)
     {
@@ -2437,7 +2467,7 @@ Function.prototype.extend = (function () {
     }
 
     /* Optimize iteration if ECMAScript 5 features are available */
-    if (jsx_object.isMethod(jsx.global.Object, "defineProperties"))
+    if (_jsx_object.isMethod(jsx.global.Object, "defineProperties"))
     {
       var
         userDefProtoProps = ["_super", "constructor", "iterator"],
@@ -2458,8 +2488,8 @@ Function.prototype.extend = (function () {
           Object.defineProperties(proto, oDescriptors);
         },
         function (e) {
-          jsx.warn(jsx_object.getFunctionName(me) + ".extend("
-            + jsx_object.getFunctionName(fConstructor) + ", "
+          jsx.warn(_jsx_object.getFunctionName(me) + ".extend("
+            + _jsx_object.getFunctionName(fConstructor) + ", "
             + oProtoProps + "): " + e.name + ': ' + e.message);
         });
     }
@@ -2478,7 +2508,7 @@ Function.prototype.extend = (function () {
       this.prototype.forEach = _forEach;
 
       /* Optimize iteration if ECMAScript 5 features are available */
-      if (jsx_object.isMethod(jsx.global.Object, "defineProperty"))
+      if (_jsx_object.isMethod(jsx.global.Object, "defineProperty"))
       {
         jsx.tryThis(
           function () {
@@ -2527,11 +2557,11 @@ jsx.array = {
             + " is not callable",
           this + ".map");
       }
-  
+
       var
         len = array.length >>> 0,
         res = [];
-  
+
       for (var i = 0; i < len; ++i)
       {
         if (i in array)
@@ -2539,7 +2569,7 @@ jsx.array = {
           res[i] = callback.call(oThis, array[i], i, array);
         }
       }
-  
+
       return res;
     };
   }())
@@ -2632,7 +2662,7 @@ if (jsx.options.emulate)
       map: function (callback, oThis) {
         return jsx.array.map(this, callback, oThis);
       },
-      
+
       slice: function (start, end) {
         var a = [];
         var len = this.length >>> 0;
@@ -2653,28 +2683,27 @@ if (jsx.options.emulate)
           {
             a[n] = this[k];
           }
-          
+
           ++k;
           ++n;
         }
-        
+
         return a;
       }
     },
     Array.prototype);
-  
+
   if (typeof Array.from == "undefined")
   {
     Array.from = (function () {
       var _map = Array.prototype.map;
-      
+
       return function (builder, iterable, oThis) {
         return _map.call(iterable, builder, oThis);
       };
     }());
   }
 }
-
 
 /**
  * General exception
@@ -2683,9 +2712,9 @@ if (jsx.options.emulate)
  * @extends Error
  * @param sMsg : string
  */
-jsx.Error = function (sMsg) {
+jsx.Error = function jsx_Error (sMsg) {
   var msg = (sMsg || "Unspecified error");
-  var _super = arguments.callee._super;
+  var _super = jsx_Error._super;
   var e = null;
 
   if (typeof _super == "function")
@@ -2733,12 +2762,13 @@ jsx.Error.extend(
  * @constructor
  * @extends jsx#Error
  */
-jsx.InvalidArgumentError = function (sReason, sGot, sExpected) {
-  arguments.callee._super.call(this,
-    (sReason || "Invalid argument(s)")
-      + (sGot ? ": " + sGot : "")
-      + (sExpected ? "; expected " + sExpected : ""));
-};
+jsx.InvalidArgumentError =
+  function jsx_InvalidArgumentError (sReason, sGot, sExpected) {
+    jsx_InvalidArgumentError._super.call(this,
+      (sReason || "Invalid argument(s)")
+        + (sGot ? ": " + sGot : "")
+        + (sExpected ? "; expected " + sExpected : ""));
+  };
 
 jsx.InvalidArgumentError.extend(jsx.Error, {
   /**
@@ -2754,8 +2784,8 @@ jsx.InvalidArgumentError.extend(jsx.Error, {
  * @param sMsg
  * @extends jsx#Error
  */
-jsx.object.ObjectError = function (sMsg) {
-  arguments.callee._super.call(this, sMsg);
+jsx.object.ObjectError = function jsx_object_ObjectError (sMsg) {
+  jsx_object_ObjectError._super.call(this, sMsg);
 };
 
 jsx.object.ObjectError.extend(jsx.Error, {
@@ -2772,8 +2802,8 @@ jsx.object.ObjectError.extend(jsx.Error, {
  * @param sMsg
  * @extends jsx.object#ObjectError
  */
-jsx.object.PropertyError = function (sMsg) {
-  arguments.callee._super.call(
+jsx.object.PropertyError = function jsx_object_PropertyError (sMsg) {
+  jsx_object_PropertyError._super.call(
     this, "No such property" + (arguments.length > 0 ? (": " + sMsg) : ""));
 };
 
@@ -2781,5 +2811,5 @@ jsx.object.PropertyError.extend(jsx.object.ObjectError, {
   /**
    * @memberOf jsx.object.PropertyError#prototype
    */
-  name: "jsx.object.PropertyError"
+  //name: "jsx.object.PropertyError"
 });
