@@ -85,7 +85,7 @@ if (typeof jsx.dom.css == "undefined")
  *   Opacity value
  * @return jsx.dom.css.Color
  */
-jsx.dom.css.Color = function(iRed, iGreen, iBlue, fOpacity) {
+jsx.dom.css.Color = function (iRed, iGreen, iBlue, fOpacity) {
   return this.set(iRed, iGreen, iBlue, fOpacity);
 };
 
@@ -119,7 +119,7 @@ jsx.dom.css.Color.diff = function (color1, color2) {
  *   Brightness value, from 0.0 to 1.0 (0 to 100%).
  * @return jsx.dom.css.Color
  */
-jsx.dom.css.Color.hsv2rgb = function(iHue, fSaturation, fValue) {
+jsx.dom.css.Color.hsv2rgb = function (iHue, fSaturation, fValue) {
   return (new jsx.dom.css.HSVColor(iHue, fSaturation, fValue)).toRGB();
 };
 
@@ -140,7 +140,7 @@ jsx.dom.css.Color.extend(null, {
    *   Opacity value (optional)
    * @return jsx.dom.css#Color
    */
-  set: function(iRed, iGreen, iBlue, fOpacity) {
+  set: function (iRed, iGreen, iBlue, fOpacity) {
     if (typeof iRed != "undefined")
     {
       /* rgb(...) or /#xxx(xxx)?/ */
@@ -194,7 +194,7 @@ jsx.dom.css.Color.extend(null, {
    * @param {String} sComponent
    * @param {Number} value
    */
-  _setComponent: function(sComponent, value) {
+  _setComponent: function (sComponent, value) {
     if (String(value).indexOf("%") > -1)
     {
       value = this.constructor.MAX_VALUE * (parseFloat(value, 10) / 100);
@@ -209,19 +209,19 @@ jsx.dom.css.Color.extend(null, {
     this[sComponent] = parseFloat(value, 10);
   },
     
-  setRed: function(value) {
+  setRed: function (value) {
     this._setComponent("red", value);
   },
     
-  setGreen: function(value) {
+  setGreen: function (value) {
     this._setComponent("green", value);
   },
     
-  setBlue: function(value) {
+  setBlue: function (value) {
     this._setComponent("blue", value);
   },
   
-  setOpacity: function(value) {
+  setOpacity: function (value) {
     if (isNaN(value))
     {
       return jsx.throwThis("jsx.InvalidArgumentError",
@@ -267,17 +267,19 @@ jsx.dom.css.Color.extend(null, {
   /**
    * Fixes RGB values, i.e. brings them into range
    * if they are out of range, and returns the new value.
-   * Note: Brightness/contrast are disregarded.
+   * NOTE: Disregards brightness and contrast.
    * 
    * @return jsx.dom.css#Color
    */
-  fix: function() {
+  fix: function () {
     var rgbMin = this.constructor.MIN_VALUE;
     var rgbMax = this.constructor.MAX_VALUE;
     
     for (var component in {red: 1, green: 1, blue: 1})
     {
-      if (typeof this[component] == "undefined" || this[component] < rgbMin)
+      this[component] = Math.round(this[component]);
+
+      if (isNaN(this[component]) || this[component] < rgbMin)
       {
         this[component] = rgbMin;
       }
@@ -310,7 +312,7 @@ jsx.dom.css.Color.extend(null, {
    * @param iBlue
    * @return jsx.dom.css#Color
    */
-  inc: function(iRed, iGreen, iBlue) {
+  inc: function (iRed, iGreen, iBlue) {
     switch (iRed.constructor)
     {
       case String:
@@ -361,7 +363,7 @@ jsx.dom.css.Color.extend(null, {
    *   RGB(A) value as supported by @{#Color()}.
    * @return jsx.dom.css#Color
    */
-  setRGB: function(v) {
+  setRGB: function (v) {
     /*
      * <http://www.w3.org/TR/css3-values/#percentages>:
      * "A percentage value is denoted by <percentage>, consists of
@@ -442,7 +444,7 @@ jsx.dom.css.Color.extend(null, {
    * 
    * @return jsx.dom.css#Color
    */
-  getMono: function() {
+  getMono: function () {
     var v = this.toHSV().getValue();
     return new this.constructor(v, v, v);
   },
@@ -461,7 +463,7 @@ jsx.dom.css.Color.extend(null, {
    *   Blue value.
    * @return jsx.dom.css#Color
    */
-  setMono: function(iRed, iGreen, iBlue) {
+  setMono: function (iRed, iGreen, iBlue) {
     this.set(iRed, iGreen, iBlue);
     
     var c = this.getMono();
@@ -480,7 +482,7 @@ jsx.dom.css.Color.extend(null, {
    * 
    * @return jsx.dom.css#Color
    */
-  getWebSafe: function() {
+  getWebSafe: function () {
     function getNearestSafeValue (value)
     {
       if (value >= 0xFF)
@@ -524,7 +526,7 @@ jsx.dom.css.Color.extend(null, {
       getNearestSafeValue(this.blue));
   },
     
-  setWebSafe: function(iRed, iGreen, iBlue) {
+  setWebSafe: function (iRed, iGreen, iBlue) {
     this.set(iRed, iGreen, iBlue);
     
     var c = this.getWebSafe();
@@ -659,7 +661,7 @@ jsx.dom.css.Color.extend(null, {
    * @requires jsx.string.leadingZero() from string.js
    * @returns {String}
    */
-  toHex: function() {
+  toHex: function () {
     var _leadingZero = jsx.string.leadingZero;
     var
       red = _leadingZero(this.red.toString(16), 2),
@@ -686,7 +688,7 @@ jsx.dom.css.Color.extend(null, {
    * @function
    * @return string
    */
-  toRGBString: function() {
+  toRGBString: function () {
     return 'rgb(' + this.red + ',' + this.green + ',' + this.blue + ')';
   },
 
@@ -700,7 +702,7 @@ jsx.dom.css.Color.extend(null, {
    * 
    * @return string
    */
-  toJSON: function() {
+  toJSON: function () {
     return '{'
       + '"red": ' + this.red
       + ', "green": ' + this.green
@@ -765,7 +767,7 @@ jsx.dom.css.Color.fromJSON = function (sJSON) {
  * @return string
  */
 jsx.dom.css.Color.prototype.toString =
-jsx.dom.css.Color.prototype.toRGBAString = function() {
+jsx.dom.css.Color.prototype.toRGBAString = function () {
   return ('rgba(' + this.red + ',' + this.green + ',' + this.blue
     + ',' + this.opacity + ')');
 };
@@ -843,7 +845,7 @@ jsx.dom.css.HSVColor.extend(null, {
   toRGB: (function () {
     var _Color = jsx.dom.css.Color;
     
-    return function() {
+    return function () {
       /* Cf. http://en.wikipedia.org/wiki/HSV_color_space#Transformation_between_HSV_and_RGB */
       var
         v = this.value,
@@ -1001,12 +1003,12 @@ jsx.dom.css.HSLColor.extend(null, {
     this.lightness = value || 0;
   },
   
-  /**
-   * @param value : float
-   */
   setOpacity: (function () {
     var _setOpacity = jsx.dom.css.Color.prototype.setOpacity;
       
+    /**
+     * @param value : float
+     */
     return function (value) {
       return _setOpacity.call(this, value);
     };
@@ -1105,7 +1107,7 @@ jsx.dom.css.HSLColor.extend(null, {
    * 
    * @return string
    */
-  toJSON: function() {
+  toJSON: function () {
     return '{'
       + '"hue": ' + this.hue
       + ', "saturation": ' + this.saturation
