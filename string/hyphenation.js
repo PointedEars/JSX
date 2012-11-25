@@ -47,7 +47,8 @@ jsx.string.hyphenation = (function () {
     _jsx = jsx,
     _jsx_object = _jsx.object,
     _getDataObject = _jsx_object.getDataObject,
-    _getKeys = _jsx_object.getKeys;
+    _getKeys = _jsx_object.getKeys,
+    _map = _jsx.array.map;
   
   var _dictionary = _getDataObject();
   var _hyphenateAll = false;
@@ -55,6 +56,7 @@ jsx.string.hyphenation = (function () {
   var _rxWords;
   var _rxHyphen = /[-·]/g;
   var _chShy = "\u00ad";
+  var _rxShy = new RegExp(_chShy, "g");
   
   var _compiled = false;
   var _compile = function () {
@@ -64,7 +66,7 @@ jsx.string.hyphenation = (function () {
     _compiled = true;
   };
     
-  return {
+  var hyphenation = {
     /**
      * Loads a dictionary.  The dictionary should contain at least
      * one {@link jsx.string.hyphenation#addRule} or
@@ -134,6 +136,14 @@ jsx.string.hyphenation = (function () {
       }
     },
     
+    getRules: function () {
+      return _map(
+        _getKeys(_dictionary),
+        function (key) {
+          return _dictionary[key].replace(_rxShy, "-");
+        });
+    },
+    
     removeRule: function (rule) {
       delete _dictionary[rule];
      _compiled = false;
@@ -169,4 +179,14 @@ jsx.string.hyphenation = (function () {
         });
     }
   };
+  
+  _jsx_object.defineProperties(hyphenation, {
+    rules: {
+      "get": function () {
+        return this.getRules();
+      }
+    }
+  });
+  
+  return hyphenation;
 }());
