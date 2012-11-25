@@ -264,7 +264,7 @@ var strRegExpEscape = jsx.regexp.escape = function (s) {
     s = this;
   }
 
-  return s.replace(/[\]\\^$*+?.(){}[]/g, "\\$&");
+  return s.replace(/[\]\\^$*+?.(){}|[]/g, "\\$&");
 };
 String.prototype.regExpEscape = strRegExpEscape;
 
