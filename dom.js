@@ -112,10 +112,10 @@ if (typeof document != "undefined")
   jsx.dom.hasDocumentAll = false;
 
   jsx.dom.getElementById = jsx.dom.getElemById = jsx.dom.getEBI = jsx.dom.gEBI = (
-    function() {
+    function () {
       if (typeof document == "undefined")
       {
-        return function() {
+        return function () {
           return null;
         };
       }
@@ -133,20 +133,20 @@ if (typeof document != "undefined")
          *   The return value varies among DOM implementations
          *   if there is more than one matching element (invalid markup).
          */
-        return function(sId) {
+        return function (sId) {
           /* wrapper method required to avoid "invalid op. on prototype" exception */
           return document.getElementById(sId);
         };
       }
       else if ((jsx.dom.hasDocumentAll = jsx_object.isMethod(document, "all")))
       {
-        return function(sId) {
+        return function (sId) {
           return document.all(sId);
         };
       }
       else
       {
-        return function(sId) {
+        return function (sId) {
           return document[sId];
         };
       }
@@ -155,7 +155,7 @@ if (typeof document != "undefined")
 
   jsx.dom.hasDocumentLayers = false;
 
-  jsx.dom.getElemByName = jsx.dom.gEBN = (function() {
+  jsx.dom.getElemByName = jsx.dom.gEBN = (function () {
     function dummy()
     {
       return null;
@@ -174,7 +174,7 @@ if (typeof document != "undefined")
        * @param index : optional Number
        * @return Element|Layer|null|undefined
        */
-      return function(sName, index) {
+      return function (sName, index) {
         var result = document.getElementsByName(sName);
         if (result && !isNaN(index) && index > -1)
         {
@@ -186,7 +186,7 @@ if (typeof document != "undefined")
     else if (jsx.dom.hasDocumentAll)
     {
       /* IE4 DOM */
-      return function(sName, index) {
+      return function (sName, index) {
         var result = document.all(sName);
         if (result && !isNaN(index) && index > -1)
         {
@@ -198,7 +198,7 @@ if (typeof document != "undefined")
     else if ((jsx.dom.hasDocumentLayers = (typeof document.layers == "object")))
     {
       /* NN4 DOM */
-      return function(sName, index) {
+      return function (sName, index) {
         var result = document.layers[sName];
         if (result && !isNaN(index) && index > -1)
         {
@@ -213,7 +213,7 @@ if (typeof document != "undefined")
 
   jsx.dom.hasGetElementsByTagName = false;
 
-  jsx.dom.getElemByTagName = jsx.dom.gEBTN = (function() {
+  jsx.dom.getElemByTagName = jsx.dom.gEBTN = (function () {
     var jsx_object = jsx.object;
 
     if (jsx_object.isMethod(jsx, "xpath", "evaluate"))
@@ -228,7 +228,7 @@ if (typeof document != "undefined")
        *   matching elements, or one reference to such an object if
        *   <var>index</var> was provided.
        */
-      return function(sTagName, index, oContextNode) {
+      return function (sTagName, index, oContextNode) {
         if (!sTagName)
         {
           sTagName = '*';
@@ -270,7 +270,7 @@ if (typeof document != "undefined")
        *   <var>index</var> was provided; <code>null</code> if there
        *   is no matching element.
        */
-      return function(sTagName, index, oContextNode) {
+      return function (sTagName, index, oContextNode) {
         if (!sTagName)
         {
           sTagName = '*';
@@ -314,7 +314,7 @@ if (typeof document != "undefined")
        *   <var>index</var> was provided; <code>null</code>
        *   if there is no matching element.
        */
-      return function(sTagName, index, oContextNode) {
+      return function (sTagName, index, oContextNode) {
         if (arguments.length > 2 && typeof index != "number")
         {
           var tmp = oContextNode;
@@ -343,13 +343,13 @@ if (typeof document != "undefined")
     }
     else
     {
-      return function() {
+      return function () {
         return null;
       };
     }
   }());
 
-  jsx.dom.getElemByIndex = jsx.dom.gEBIdx = (function() {
+  jsx.dom.getElemByIndex = jsx.dom.gEBIdx = (function () {
     function dummy()
     {
       return null;
@@ -366,7 +366,7 @@ if (typeof document != "undefined")
        * @param index : Number
        * @return Element|null|undefined
        */
-      return function(index) {
+      return function (index) {
         return (result = document.getElementsByTagName('*')[index]);
       };
     }
@@ -376,7 +376,7 @@ if (typeof document != "undefined")
        * @param index : Number
        * @return Element|null|undefined
        */
-      return function(index) {
+      return function (index) {
         return document.all(index);
       };
     }
@@ -386,7 +386,7 @@ if (typeof document != "undefined")
        * @param index : Number
        * @return Layer|null|undefined
        */
-      return function(index) {
+      return function (index) {
         return document.layers[index];
       };
     }
@@ -449,7 +449,7 @@ if (typeof de.pointedears.jsx == "undefined")
  * @return boolean
  *   Always <code>false</code>
  */
-jsx.dom.DHTMLException = function(sMessage) {
+jsx.dom.DHTMLException = function (sMessage) {
   /* Prevent exceptions from "bubbling" on (keyboard) event */
   if (!jsx.dom.allowExceptionMsg)
   {
@@ -484,14 +484,14 @@ jsx.dom.DHTMLException = function(sMessage) {
 
 jsx.dom.write = function (s) {
   var result = jsx.tryThis(
-    function() {
+    function () {
       document.write(s);
 
       return true;
     },
-    function() {
+    function () {
       return jsx.tryThis(
-        function() {
+        function () {
           var result2 = false;
           var ns = document.documentElement.getAttribute("xmlns");
           var scripts;
@@ -547,7 +547,7 @@ jsx.dom.write = function (s) {
  *   specified criteria; <code>null</code> if no matching object
  *   exists.
  */
-jsx.dom.getElem = function(sType, sValue, index) {
+jsx.dom.getElem = function (sType, sValue, index) {
   /**
    * Calls DHTMLException() for an invalid type.
    */
@@ -619,7 +619,7 @@ jsx.dom.getElem = function(sType, sValue, index) {
  *  no such element object exists or if the DOM does not provide
  *  retrieval of the element's content.
  */
-jsx.dom.getCont = function(oElement, bHTML) {
+jsx.dom.getCont = function (oElement, bHTML) {
   var sResult = "";
 
   if (oElement)
@@ -670,7 +670,7 @@ jsx.dom.getCont = function(oElement, bHTML) {
  *   <code>true</code> if successful, <code>false</code>
  *   otherwise.
  */
-jsx.dom.setCont = function(oElement, sNodeValue) {
+jsx.dom.setCont = function (oElement, sNodeValue) {
   if (oElement)
   {
     /* DOM Level 2 Core */
@@ -725,7 +725,7 @@ jsx.dom.setCont = function(oElement, sNodeValue) {
  *   The text content of @{(oNode)}.
  * @todo Duplicate of getCont(..., false)?
  */
-jsx.dom.getContent = function(oNode, bGetHTML) {
+jsx.dom.getContent = function (oNode, bGetHTML) {
   var text = "";
 
   if (oNode)
@@ -777,7 +777,7 @@ jsx.dom.getContent = function(oNode, bGetHTML) {
  * @return boolean
  *   <code>true</code> if successful, <code<false</code> otherwise.
  */
-jsx.dom.setTextContent = function(oNode, sContent) {
+jsx.dom.setTextContent = function (oNode, sContent) {
   var result = false;
 
   if (oNode)
@@ -830,7 +830,7 @@ jsx.dom.setTextContent = function(oNode, sContent) {
  *   a null-string if no matching object exists or if the DOM
  *   does not provide retrieval of the attribute's values.
  */
-jsx.dom.getAttr = function(oElement, sAttrName) {
+jsx.dom.getAttr = function (oElement, sAttrName) {
   var result = "";
 
   if (oElement)
@@ -851,17 +851,17 @@ jsx.dom.getAttr = function(oElement, sAttrName) {
 /**
  * @function
  */
-jsx.dom.camelize = (function() {
+jsx.dom.camelize = (function () {
   var jsx_object = jsx.object;
 
-  if ("x".replace(/x/, function() { return "u"; }) != "u")
+  if ("x".replace(/x/, function () { return "u"; }) != "u")
   {
     /*
      * Fix String.prototype.replace(..., Function) for Safari <= 2.0.2;
      * thanks to kangax <kangax@gmail.com>
      */
     var origReplace = String.prototype.replace;
-    String.prototype.replace = function(searchValue, replaceValue) {
+    String.prototype.replace = function (searchValue, replaceValue) {
       if (jsx_object.isMethod(replaceValue))
       {
         if (searchValue.constructor == RegExp)
@@ -902,11 +902,11 @@ jsx.dom.camelize = (function() {
     var prefix = " ", suffix = "";
 
     cache = {};
-    cache.get = function(s) {
+    cache.get = function (s) {
       return jsx_object.getProperty(this, prefix + s + suffix, false);
     };
 
-    cache.put = function(s, v) {
+    cache.put = function (s, v) {
       this[prefix + s + suffix] = v;
     };
   }
@@ -922,7 +922,7 @@ jsx.dom.camelize = (function() {
    *   <var>sProperty</var> with all hyphen-minuses followed by a
    *   Latin-1 letter replaced by the letter's uppercase counterpart
    */
-  return function(sProperty) {
+  return function (sProperty) {
     var p;
     if ((p = cache.get(sProperty, false)))
     {
@@ -1000,7 +1000,7 @@ jsx.dom.attrMap = {
  *   a null-string if no matching object exists or if the DOM
  *   does not provide retrieval of the attribute's values.
  */
-jsx.dom.setAttr = function(o, sAttrName, attrValue) {
+jsx.dom.setAttr = function (o, sAttrName, attrValue) {
   var result = "";
 
   if (o && sAttrName)
@@ -1024,7 +1024,7 @@ jsx.dom.setAttr = function(o, sAttrName, attrValue) {
          * @return string|number
          *   The converted value
          */
-        function(s) {
+        function (s) {
           s = s.replace(/^["']|["']$/g, "");
           return isNaN(s) ? s : +s;
         };
@@ -1067,28 +1067,31 @@ jsx.dom.setAttr = function(o, sAttrName, attrValue) {
  * it is tried to use the start tag as is instead of passing
  * only the element type, and adding properties later.
  *
+ * @function
  * @author
  *   &copy; 2004, 2006, 2010  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @param sTag : string
- *   Start tag or element type of the element to be created.
- *   Passing a start tag even works if the UA is not MSIE,
- *   as attributes and values given are parsed from left to
- *   right into the corresponding element object properties.
- * @return object
- *   A reference to a new <code>Element</code> object with the
- *   <code>nodeName</code> property set to <code>sTagName</code>,
- *   and the <code>localName</code>, <code>prefix</code>,
- *   and <code>namespaceURI</code> properties set to
- *   <code>null</code>.
  * @see <a href="dom2-core#ID-2141741547">DOM Level 2 Core: Document::createElement()</a>
  * @see <a href="msdn#workshop/author/dhtml/reference/methods/createelement.asp">MSDN Library: createElement()</a>
  */
 jsx.dom.createElement = (function () {
   var _setAttr = jsx.dom.setAttr;
 
-  return function(sTag) {
+  /**
+   * @param sTag : string
+   *   Start tag or element type of the element to be created.
+   *   Passing a start tag even works if the UA is not MSIE,
+   *   as attributes and values given are parsed from left to
+   *   right into the corresponding element object properties.
+   * @return object
+   *   A reference to a new <code>Element</code> object with the
+   *   <code>nodeName</code> property set to <code>sTagName</code>,
+   *   and the <code>localName</code>, <code>prefix</code>,
+   *   and <code>namespaceURI</code> properties set to
+   *   <code>null</code>.
+   */
+  return function (sTag) {
     var o = null;
 
     if (sTag
@@ -1124,13 +1127,16 @@ jsx.dom.createElement = (function () {
 }());
 
 /**
- * @param data : Array|Object
- * @return TextNode|Array[Node]|Element
+ * @function
  */
 jsx.dom.createElementFromObj = jsx.dom.createNodeFromObj =
 jsx.dom.createNodesFromObj = (function () {
   var _isArray = jsx.object.isArray;
 
+  /**
+   * @param data : Array|Object
+   * @return TextNode|Array[Node]|Element
+   */
   return function (data) {
     if (typeof data.valueOf() == "string")
     {
@@ -1257,7 +1263,7 @@ jsx.dom.removeChildren = function (parentNode, childNodes) {
   return false;
 };
 
-jsx.dom.html2nodes = function(sHTML) {
+jsx.dom.html2nodes = function (sHTML) {
   var m,
     rx = /(<([^\s>]+)(\s+[^>]*)?>)|([^<]+)/g,
     node = document.createElement("html");
@@ -1287,11 +1293,11 @@ jsx.dom.html2nodes = function(sHTML) {
 };
 
 jsx.dom.HTMLSerializer = (
-  function() {
+  function () {
 
   }
 ).extend("Object", {
-  serializeToString: (function() {
+  serializeToString: (function () {
     var elemInfo = {
       'a': {
         attribs: ["name", "href", "hreflang", "type", "rel", "rev", "charset",
@@ -1342,7 +1348,7 @@ jsx.dom.HTMLSerializer = (
       }
     };
 
-    return function(oNode, bIncludeProprietary) {
+    return function (oNode, bIncludeProprietary) {
       var me = arguments.callee;
 
       if (oNode.tagName)
@@ -1384,7 +1390,7 @@ jsx.dom.HTMLSerializer = (
  * @param oNode : Node
  * @returns {Node} The first child node of another node.
  */
-jsx.dom.getFirstChild = function(oNode) {
+jsx.dom.getFirstChild = function (oNode) {
   var result = null;
 
   if (oNode)
@@ -1408,7 +1414,7 @@ jsx.dom.getFirstChild = function(oNode) {
  * @param oNode : Node
  * @returns {Node} The parent node of <var>oNode</var>
  */
-jsx.dom.getParent = function(oNode) {
+jsx.dom.getParent = function (oNode) {
   var result = null;
 
   if (oNode)
@@ -1464,7 +1470,7 @@ jsx.dom.getParent = function(oNode) {
  *    <code>false</code> if the script could not be loaded,
  *    <code>true</code> otherwise.
  */
-jsx.dom.loadScript = function(sURI, sType, sLanguage, bReload) {
+jsx.dom.loadScript = function (sURI, sType, sLanguage, bReload) {
   var
     me = arguments.callee,
     jsx_object = jsx.object,
@@ -1571,7 +1577,7 @@ jsx.dom.loadScript = function(sURI, sType, sLanguage, bReload) {
  *   participate in the tabbing order (so they can be enabled
  *   later without this method to be re-called.)
  */
-jsx.dom.getElementsByTabIndex = function(o) {
+jsx.dom.getElementsByTabIndex = function (o) {
   var aIndexedElements = new Array();
   var aUnindexedElements = new Array();
 
@@ -1632,7 +1638,7 @@ if (typeof jsx.types != "undefined"
   HTMLElement.prototype.getElementsByTabIndex = jsx.dom.getElementsByTabIndex;
 }
 
-jsx.dom.isDescendantOfOrSelf = function(node, ancestor) {
+jsx.dom.isDescendantOfOrSelf = function (node, ancestor) {
   if (arguments.length < 2)
   {
     jsx.throwThis(null, "No ancestor provided");
@@ -1657,18 +1663,21 @@ jsx.dom.isDescendantOfOrSelf = function(node, ancestor) {
  * in text nodes as specified by the {@link jsx.string#hyphenation}
  * dictionary.
  *
- * @param contextNode : Node
- *   Hyphenation is applied to this node and its descendant.
- *   text nodes.  The default is the document node referred
- *   by the <code>document</code> property of the next
- *   fitting object in the scope chain (usually the Global
- *   Object).
+ * @function
  * @requires jsx.string.hyphenation#hyphenate()
  */
 jsx.dom.hyphenate = (function () {
   var _isArray = jsx.object.isArray;
   var _hyphenation, _hyphenate, _me;
 
+  /**
+   * @param contextNodes : Array[Node]
+   *   Hyphenation is applied to these nodes and their descendant
+   *   text nodes.  The default is the document node referred
+   *   by the <code>document</code> property of the next
+   *   fitting object in the scope chain (usually the Global
+   *   Object).
+   */
   return function (contextNodes, hyphenateAll) {
     /* imports */
     if (!_hyphenate)
