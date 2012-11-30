@@ -35,7 +35,96 @@ Array.get = function (a, index) {
  * @namespace
  */
 jsx.animation = {
-  version: "0.1.2.2011020523"
+  version: "0.1.2.2011020523",
+
+  /**
+   * Supported CSS data types.  Properties include:
+   *        <dl>
+   *          <dt><code>NUMBER</code></dt>
+   *            <dd></dd>
+   *
+   *          <dt><code>LENGTH</code></dt>
+   *            <dd></dd>
+   *
+   *          <dt><code>PERCENTAGE</code></dt>
+   *            <dd></dd>
+   *
+   *          <dt><code>URI</code></dt>
+   *            <dd>Uniform Resource Identifier or URI-reference (see RFC 3986),
+   *                enclosed in <code>url(…)</code></dd>
+   *
+   *          <dt><code>COUNTER</code></dt>
+   *            <dd>CSS counter</dd>
+   *
+   *          <dt><code>COLOR</code></dt>
+   *            <dd>Color in RGB(A) or HSV format</dd>
+   *
+   *          <dt><code>STRING</code></dt>
+   *            <dd>Unicode string</dd>
+   *        </dl>
+   *
+   * @namespace
+   */
+  types: {
+    /**
+     * Numeric scalar value
+     */
+    NUMBER:     0,
+    
+    /**
+     * Length given relative in <code>em</code> (width of the
+     * M&nbsp;square) or <code>ex</code> (height of the x square),
+     * or absolute in <code>in</code> (inches), <code>cm</code>
+     * (centimeters), <code>mm</code> (millimeters), <code>pt</code>
+     * (points), <code>pc</code> (picas), or <code>px</code>
+     * (pixels).
+     */
+    LENGTH:     1,
+    
+    /**
+     * Length given in percentage of the parent
+     */
+    PERCENTAGE: 2,
+    
+    /**
+     * Uniform Resource Identifier or URI-reference (see RFC 3986),
+     * enclosed in <code>url(…)</code>.
+     */
+    URI:        3,
+    
+    /**
+     * CSS counter
+     */
+    COUNTER:    4,
+    
+    /**
+     * Color given in RGB(A) or HSV format
+     */
+    COLOR:      5,
+    
+    /**
+     * String of Unicode characters
+     */
+    STRING:     6
+  }
+};
+
+/**
+ * Provides information about the type of a CSS property and its relation
+ * to other CSS properties
+ * 
+ * @namespace
+ */
+jsx.animation.propertyInfo = {
+  left:   {type: jsx.animation.types.LENGTH, correspondsTo: "top"},
+  top:    {type: jsx.animation.types.LENGTH, correspondsTo: "left"},
+  right:  {type: jsx.animation.types.LENGTH, correspondsTo: "bottom"},
+  bottom: {type: jsx.animation.types.LENGTH, correspondsTo: "right"},
+  width:  {type: jsx.animation.types.LENGTH, correspondsTo: "height"},
+  height: {type: jsx.animation.types.LENGTH, correspondsTo: "width"},
+  color:  {type: jsx.animation.types.COLOR},
+  backgroundColor:    {type: jsx.animation.types.COLOR},
+  "background-color": {type: jsx.animation.types.COLOR}
 };
 
 /**
@@ -211,6 +300,9 @@ jsx.animation.Timeline = (function () {
     {
       jsx.throwThis("jsx.InvalidArgumentError", ["Not enough arguments", typeof oParams, "Object"]);
     }
+    
+    var uid = (new Date()).getTime();
+    this.id = uid;
 
     jsx_object.defineProperties(this, {
       currentRate: {
@@ -227,6 +319,10 @@ jsx.animation.Timeline = (function () {
         set: function (frameRate) {
           return this.setFrameRate(frameRate);
         }
+      },
+      
+      id: {
+        value: uid
       }
     }, "jsx.animation.Timelime");
     
@@ -248,22 +344,28 @@ jsx.animation.Timeline = (function () {
     
     /* Sort keyFrames by time */
     var keyFrames = this.keyFrames;
-    var duration = keyFrames[keyFrames.length - 1].time;
+    var duration = Array.get(keyFrames, -1).time;
     
     /* Compute keyframe times that are percentages of the duration */
     var rxTimePercentage = /^\s*\+?(\d+|\d*\.\d+)\s*%\s*$/;
-    for (var i = 0, len = keyFrames.length - 1; i < len; ++i)
+    for (var i = 0, len = keyFrames.length; i < len; ++i)
     {
       var keyFrame = keyFrames[i];
-      var time = keyFrame.time;
-      if (typeof time == "string")
-      {
-        var match = time.match(rxTimePercentage);
-        if (match)
+       
+      keyFrame._timeline = this;
+      
+//      if (len < keyFrames.length - 1)
+//      {
+        var time = keyFrame.time;
+        if (typeof time == "string")
         {
-          keyFrame.time = Math.floor(duration * (match[1] / 100));
+          var match = time.match(rxTimePercentage);
+          if (match)
+          {
+            keyFrame.time = Math.floor(duration * (match[1] / 100));
+          }
         }
-      }
+//      }
     }
     
     keyFrames.sort(keyFrameComparator);
@@ -289,93 +391,6 @@ jsx.animation.Timeline = (function () {
 jsx.animation.Timeline.INDEFINITE = Number.POSITIVE_INFINITY;
 jsx.animation.Timeline.MIN_TIMEOUT = 10;
 jsx.animation.Timeline.MIN_FRAME_LENGTH = jsx.animation.Timeline.MIN_TIMEOUT + 1;
-
-/**
- * Supported CSS data types.  Properties include:
- *        <dl>
- *          <dt><code>NUMBER</code></dt>
- *            <dd></dd>
- *
- *          <dt><code>LENGTH</code></dt>
- *            <dd></dd>
- *
- *          <dt><code>PERCENTAGE</code></dt>
- *            <dd></dd>
- *
- *          <dt><code>URI</code></dt>
- *            <dd>Uniform Resource Identifier or URI-reference (see RFC 3986),
- *                enclosed in <code>url(…)</code></dd>
- *
- *          <dt><code>COUNTER</code></dt>
- *            <dd>CSS counter</dd>
- *
- *          <dt><code>COLOR</code></dt>
- *            <dd>Color in RGB(A) or HSV format</dd>
- *
- *          <dt><code>STRING</code></dt>
- *            <dd>Unicode string</dd>
- *        </dl>
- *
- * @namespace
- */
-jsx.animation.Timeline.types = {
-  /**
-   * Numeric scalar value
-   */
-  NUMBER:     0,
-  
-  /**
-   * Length given relative in <code>em</code> (width of the
-   * M&nbsp;square) or <code>ex</code> (height of the x square),
-   * or absolute in <code>in</code> (inches), <code>cm</code>
-   * (centimeters), <code>mm</code> (millimeters), <code>pt</code>
-   * (points), <code>pc</code> (picas), or <code>px</code>
-   * (pixels).
-   */
-  LENGTH:     1,
-  
-  /**
-   * Length given in percentage of the parent
-   */
-  PERCENTAGE: 2,
-  
-  /**
-   * Uniform Resource Identifier or URI-reference (see RFC 3986),
-   * enclosed in <code>url(…)</code>.
-   */
-  URI:        3,
-  
-  /**
-   * CSS counter
-   */
-  COUNTER:    4,
-  
-  /**
-   * Color given in RGB(A) or HSV format
-   */
-  COLOR:      5,
-  
-  /**
-   * String of Unicode characters
-   */
-  STRING:     6
-};
-
-/**
- * Provides information about the type of a CSS property and its relation
- * to other CSS properties
- */
-jsx.animation.Timeline.propertyInfo = {
-  left:   {type: jsx.animation.Timeline.types.LENGTH, correspondsTo: "top"},
-  top:    {type: jsx.animation.Timeline.types.LENGTH, correspondsTo: "left"},
-  right:  {type: jsx.animation.Timeline.types.LENGTH, correspondsTo: "bottom"},
-  bottom: {type: jsx.animation.Timeline.types.LENGTH, correspondsTo: "right"},
-  width:  {type: jsx.animation.Timeline.types.LENGTH, correspondsTo: "height"},
-  height: {type: jsx.animation.Timeline.types.LENGTH, correspondsTo: "width"},
-  color:  {type: jsx.animation.Timeline.types.COLOR},
-  backgroundColor:    {type: jsx.animation.Timeline.types.COLOR},
-  "background-color": {type: jsx.animation.Timeline.types.COLOR}
-};
 
 jsx.animation.Timeline.prototype = {
   constructor: jsx.animation.Timeline,
@@ -505,7 +520,7 @@ jsx.animation.Timeline.prototype = {
     var
       _jsx_dom = jsx.dom,
       _jsx_object = jsx.object,
-      _jsx_animation_Timeline = jsx.animation.Timeline,
+      _jsx_animation = jsx.animation,
       _Color = jsx.dom.css.Color;
 
     return function () {
@@ -533,10 +548,10 @@ jsx.animation.Timeline.prototype = {
               }
               
               var propertyType = _jsx_object.getProperty(
-                _jsx_animation_Timeline.propertyInfo, stylePropertyName, {type: null}).type;
+                _jsx_animation.propertyInfo, stylePropertyName, {type: null}).type;
               switch (propertyType)
               {
-                case _jsx_animation_Timeline.types.LENGTH:
+                case _jsx_animation.types.LENGTH:
                   if (isNaN(oldStylePropertyValue))
                   {
                     oldStylePropertyValue = parseFloat(oldStylePropertyValue);
@@ -557,7 +572,7 @@ jsx.animation.Timeline.prototype = {
                   }
                   break;
               
-                case _jsx_animation_Timeline.types.COLOR:
+                case _jsx_animation.types.COLOR:
                   if (!_jsx_object.isInstanceOf(oldStylePropertyValue, _Color))
                   {
                     oldStylePropertyValue = new _Color(oldStylePropertyValue);
@@ -606,15 +621,130 @@ jsx.animation.Timeline.prototype = {
   }()),
 
   /**
+   * Returns the name of the CSS property for native animation.
+   * 
+   * @function
+   * @returns {String}
+   *   Returns the first CSS property available for native
+   *   animation, preferring the unprefixed name, or
+   *   the empty string if no such property is available.
+   */
+  _getNativeProperty: (function () {
+    var _camelize = jsx.dom.camelize;
+
+    return function () {
+      var result = "";
+      var cssPropertyNames = [
+        "animation-name", "-moz-animation-name", "-webkit-animation-name"
+      ];
+      var style = this.target.style;
+      
+      for (var i = 0, len = cssPropertyNames.length; i < len; ++i)
+      {
+        var cssPropertyName = cssPropertyNames[i];
+        var propertyName = _camelize(cssPropertyName);
+        if (typeof style[propertyName] != "undefined")
+        {
+          return cssPropertyName;
+        }
+      }
+    
+      return result;
+    };
+  }()),
+  
+  /**
+   * Sets the <code>position</code> property of the target
+   * so that it can be animated.
+   * 
+   * Sets the <code>position</code> property of the target
+   * to <code>relative</code> if it has been declated to be
+   * <code>static</code> or not declared at all.
+   * 
+   * @function
+   */
+  _setPosition: (function () {
+    var _getComputedStyle = jsx.dom.getComputedStyle;
+    
+    /**
+     * @param target : Element
+     */
+    return function (target) {
+      if (_getComputedStyle(target, null, "position") == "static")
+      {
+        target.style.position = "relative";
+      }
+    };
+  }()),
+  
+  /**
+   * Defines a native animation
+   * 
+   * @param animationPropertyName : String
+   *   Name of the animation property, with optional
+   *   vendor-specific prefix.
+   * @returns {Boolean}
+   *   <code>true</code> if the definition is successful,
+   *   <code>false</code> otherwise.
+   */
+  _playNative: function (animationNameProperty) {
+    var target = this.target;
+    var timelineId = this.id;
+    if (typeof target.id == "undefined")
+    {
+      target.id = "timeline-" + timelineId + "-target";
+    }
+
+    var targetId = target.id;
+    
+    this._setPosition(target);
+    
+    /* FIXME: Reset _here_ has no effect */
+    var styleId = "jsx-style-" + timelineId;
+    var style = document.getElementById(styleId);
+    if (style)
+    {
+      style.parentNode.removeChild(style);
+    }
+    
+    style = document.createElement("style");
+    style.type = "text/css";
+    style.id = styleId;
+    var prefix = (animationNameProperty.match(/^-[^-]+/) || [""])[0];
+    if (prefix)
+    {
+      prefix += "-";
+    }
+    
+    style.appendChild(document.createTextNode([
+      "@" + prefix + "keyframes jsx-timeline-" + timelineId + " {",
+      this.keyFrames.join("\n"),
+      "}",
+      "#" + targetId + " {",
+      "  " + animationNameProperty + ": jsx-timeline-" + timelineId + ";",
+      "  " + prefix + "animation-duration: "
+           + Array.get(this.keyFrames, -1).time + "ms;",
+      "  " + prefix + "animation-fill-mode: forwards;",
+      "  " + prefix + "animation-timing-function: linear;",
+      "}"
+    ].join("\n")));
+    
+    var head = document.head || document.getElementsByTagName("head")[0];
+    head.appendChild(style);
+    
+    return true;
+  },
+
+  /**
    * Plays this <code>Timeline</code>
    * 
    * @function
    */
   play: (function () {
     var
-      jsx_object = jsx.object,
-      jsx_dom = jsx.dom,
-      jsx_animation_Timeline = jsx.animation.Timeline,
+      _jsx_object = jsx.object,
+      _jsx_dom = jsx.dom,
+      _jsx_animation = jsx.animation,
       getPropertySetter = function (target, values, bDontPlay, oTimeline) {
         return function () {
           var setToRelative = false;
@@ -626,18 +756,16 @@ jsx.animation.Timeline.prototype = {
               var style = values.style;
               for (var styleProperty in style)
               {
-                var thisPropertyInfo = jsx_animation_Timeline.propertyInfo[styleProperty];
-                if (thisPropertyInfo && thisPropertyInfo.type == jsx_animation_Timeline.types.LENGTH)
+                var thisPropertyInfo = _jsx_animation.propertyInfo[styleProperty];
+                if (thisPropertyInfo && thisPropertyInfo.type == _jsx_animation.types.LENGTH)
                 {
-                  if (!setToRelative
-                      && typeof style.position == "undefined"
-                      && jsx_dom.getComputedStyle(target, null, "position") == "static")
+                  if (!setToRelative && typeof style.position == "undefined")
                   {
-                    target.style.position = "relative";
+                    oTimeline._setPosition(target);
                     setToRelative = true;
                   }
                   
-                  jsx_dom.setStyleProperty(target, styleProperty, style[styleProperty] + "px");
+                  _jsx_dom.setStyleProperty(target, styleProperty, style[styleProperty] + "px");
                 }
                 else
                 {
@@ -662,6 +790,12 @@ jsx.animation.Timeline.prototype = {
       /* First clear all remaining timeouts */
       this.stop();
             
+      var nativeProperty = this._getNativeProperty();
+      if (nativeProperty)
+      {
+        return this._playNative(nativeProperty);
+      }
+      
       if (!this._keyValuesEvaluated)
       {
         this.evaluateKeyValues();
@@ -690,7 +824,7 @@ jsx.animation.Timeline.prototype = {
          */
         var numFrames = Math.floor((nextKeyFrame.time - previousKeyFrame.time) / dt);
         
-        var frameValues = jsx_object.clone(jsx_object.COPY_ENUM_DEEP, previousValues);
+        var frameValues = _jsx_object.clone(_jsx_object.COPY_ENUM_DEEP, previousValues);
         var t = previousKeyFrame.time;
         
         var lastFrameIndex = numFrames - 1;
@@ -711,7 +845,7 @@ jsx.animation.Timeline.prototype = {
               {
                 interpolate = nextKeyFrame.interpolate;
                 var nextStyleValue = nextStyle[styleProperty];
-                if (jsx_object.isInstanceOf(nextStyleValue, jsx.animation.KeyValue))
+                if (_jsx_object.isInstanceOf(nextStyleValue, jsx.animation.KeyValue))
                 {
                   nextStyleValue = nextStyleValue.value;
                   interpolate = nextStyleValue.interpolate;
@@ -727,7 +861,7 @@ jsx.animation.Timeline.prototype = {
             {
               var nextValue = nextValues[property];
               
-              if (jsx_object.isInstanceOf(nextValue, jsx.animation.KeyValue))
+              if (_jsx_object.isInstanceOf(nextValue, jsx.animation.KeyValue))
               {
                 nextValue = nextValue.value;
                 interpolate = nextValue.interpolate;
@@ -743,7 +877,7 @@ jsx.animation.Timeline.prototype = {
           this._timeouts.push(
             window.setTimeout(
               getPropertySetter(this.target,
-                jsx_object.clone(jsx_object.COPY_ENUM_DEEP, frameValues)),
+                _jsx_object.clone(_jsx_object.COPY_ENUM_DEEP, frameValues)),
                 t));
     
           t += dt;
@@ -796,72 +930,84 @@ jsx.animation.Timeline.prototype = {
  * or if you want to use a set of <code>Frame</code>s or <code>Frame</code>-
  * compatible objects that are the result of computation by another framework.
  * </p>
+ * @function
  * @constructor
- * @param oParams
  * @throws jsx.InvalidArgumentError if no parameters were specified
  */
-jsx.animation.Frame = function (oParams) {
-  if (!oParams)
-  {
-    jsx.throwThis("jsx.InvalidArgumentError", ["Not enough arguments", typeof oParams, "Object"]);
-  }
+jsx.animation.Frame = (function () {
+   var _getKeys = jsx.object.getKeys;
   
-  for (var paramName in this)
-  {
-    var param = oParams[paramName];
-    if (typeof param != "undefined")
+  /**
+   * @param oParams
+   */
+  return function (oParams) {
+    if (!oParams)
     {
-      if (paramName == "time" && typeof param != "number")
+      jsx.throwThis("jsx.InvalidArgumentError", ["Not enough arguments", typeof oParams, "Object"]);
+    }
+    
+    var keys = _getKeys(oParams);
+    for (var i = 0, len = keys.length; i < len; ++i)
+    {
+      var paramName = keys[i];
+      var param = oParams[paramName];
+      
+      if (typeof param != "undefined")
       {
-        /*
-         * Convert duration to milliseconds
-         * NOTE: Explicitly convert to number in case someone gets pythonic
-         */
-        var rxTime = /^\s*\+?(\d+|\d*\.\d+)\s*(ms|s|m(in)?|h|%)\s*$/;
-        var match = param.match(rxTime);
-        if (match)
+        if (paramName == "time" && typeof param != "number")
         {
           /*
-           * NOTE: Percentages are supported but can only be resolved later
-           *       in jsx.animation.Timeline().
+           * Convert duration to milliseconds
+           * NOTE: Explicitly convert to number in case someone gets pythonic
            */
-          switch (match[2])
+          var rxTime = /^\s*\+?(\d+|\d*\.\d+)\s*(ms|s|m(in)?|h|%)\s*$/;
+          var match = param.match(rxTime);
+          if (match)
           {
-            case "ms":
-              param = +match[1];
-              break;
+            /*
+             * NOTE: Percentages are supported but can only be resolved later
+             *       in jsx.animation.Timeline().
+             */
+            switch (match[2])
+            {
+              case "ms":
+                param = +match[1];
+                break;
+                
+              case "s":
+                param = +match[1] * 1000;
+                break;
               
-            case "s":
-              param = +match[1] * 1000;
-              break;
-            
-            case "m":
-            case "min":
-              param = +match[1] * 60000;
-              break;
-              
-            case "h":
-              param = +match[1] * 3600000;
-              break;
+              case "m":
+              case "min":
+                param = +match[1] * 60000;
+                break;
+                
+              case "h":
+                param = +match[1] * 3600000;
+                break;
+            }
+          }
+          else
+          {
+            return jsx.throwThis("jsx.InvalidArgumentError",
+              ["Invalid time", "'" + param + "'", "one matching " + rxTime.source]);
           }
         }
-        else
-        {
-          return jsx.throwThis("jsx.InvalidArgumentError",
-            ["Invalid time", "'" + param + "'", "one matching " + rxTime.source]);
-        }
+        
+        this[paramName] = param;
       }
-      
-      this[paramName] = param;
     }
-  }
-};
+  };
+}());
 
-jsx.animation.Frame.prototype = {
-  constructor: jsx.animation.Frame,
+jsx.animation.Frame.extend(null, {
+  /**
+   * @memberOf jsx.animation.Frame#prototype
+   */
   time: 0,
-  values: {}
-};
+  values: {},
+});
 
 /**
  * Namespace for a set of functions that take a <var>startValue</var> and
@@ -925,8 +1071,8 @@ jsx.animation.Interpolator = {
  * @param oParams
  * @throws jsx.InvalidArgumentError if no parameters were specified
  */
-jsx.animation.KeyFrame = function (oParams) {
-  arguments.callee._super.call(this, oParams);
+jsx.animation.KeyFrame = function jsx_animation_KeyFrame (oParams) {
+  jsx_animation_KeyFrame._super.call(this, oParams);
 };
 
 jsx.animation.KeyFrame.extend(jsx.animation.Frame, {
@@ -950,7 +1096,50 @@ jsx.animation.KeyFrame.extend(jsx.animation.Frame, {
    * @memberOf jsx.animation.KeyFrame#prototype
    * @function
    */
-  interpolate: jsx.animation.Interpolator.LINEAR
+  interpolate: jsx.animation.Interpolator.LINEAR,
+  
+  toString: (function () {
+    var _jsx_object = jsx.object;
+    var _getKeys = _jsx_object.getKeys;
+    var _getProperty = _jsx_object.getProperty;
+    var _jsx_animation = jsx.animation;
+    
+    return function () {
+      var style = this.values.style;
+      var keys = _getKeys(style);
+      var aValues = [];
+      for (var i = 0, len = keys.length; i < len; ++i)
+      {
+        var stylePropertyName = keys[i];
+        var propertyValue = style[stylePropertyName];
+        
+        var propertyType = _getProperty(
+          _jsx_animation.propertyInfo, stylePropertyName, {type: null}).type;
+        switch (propertyType)
+        {
+          case _jsx_animation.types.LENGTH:
+            propertyValue += "px";
+            break;
+        }
+
+        var cssPropertyName = stylePropertyName.replace(/[A-Z]/g, function (m) {
+          return "-" + m.toLowerCase();
+        });
+        
+        aValues.push("    " + cssPropertyName + ": " + propertyValue + ";");
+      }
+      
+      var time = this.time + "ms";
+      if (this._timeline)
+      {
+        time = (this.time / Array.get(this._timeline.keyFrames, -1).time * 100) + "%";
+      }
+      
+      return "  " + time + " {\n"
+        + aValues.join("\n")
+        + "\n  }";
+    };
+  }())
 });
 
 jsx.animation.KeyValue = function (oParams) {
