@@ -1952,6 +1952,7 @@ jsx.importFrom = (function () {
  */
 jsx.importOnce = (function () {
   var _getProperty = jsx.object.getProperty;
+  var _absPath = jsx.absPath;
   var _importFrom = jsx.importFrom;
 
   /**
@@ -1970,9 +1971,36 @@ jsx.importOnce = (function () {
    */
   function importOnce (uri, obj, properties, objAlias, propertyAliases)
   {
+    /**
+     * @param uri : String
+     * @returns {Boolean}
+     *   <code>true</code> if the script specified by <var>uri</var>
+     *   has already been included; <code>false</code> otherwise.
+     */
+    function scriptIncluded (uri)
+    {
+      var scripts = document.getElementByTagName("script");
+      if (scripts)
+      {
+        var uriAbsPath = _absPath(uri);
+        for (var i = 0, len = scripts.length; i < len; ++i)
+        {
+          var script = scripts[i];
+          if (_absPath(script.src) == uriAbsPath)
+          {
+            return true;
+          }
+        }
+      }
+      
+      return false;
+    }
+    
     var result = false;
 
-    if (uri && !_getProperty(importOnce.imports, uri, null))
+    if (uri
+        && !scriptIncluded(uri)
+        && !_getProperty(importOnce.imports, uri, null))
     {
       result = _importFrom(uri, obj, properties, objAlias, propertyAliases);
       if (result)
