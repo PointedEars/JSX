@@ -23,7 +23,7 @@
     <script src="../types.js" type="text/javascript"></script>
     <script src="../string.js" type="text/javascript"></script>
     <!-- <script src="../ani.bak.js" type="text/javascript"></script> -->
-    <script src="../ani.js" type="text/javascript"></script>
+    <script src="../dom/ani.js" type="text/javascript"></script>
     <!-- <script src="firebug/firebug.js" type="text/javascript"></script>  -->
     <script type="text/javascript">
     /*
@@ -86,9 +86,9 @@
       function body_load()
       {
         var target = document.getElementById("test-object");
-        var Animation = jsx.animation.Animation;
-        var Timeline = jsx.animation.Timeline;
-        var KeyFrame = jsx.animation.KeyFrame;
+        var Animation = jsx.dom.animation.Animation;
+        var Timeline = jsx.dom.animation.Timeline;
+        var KeyFrame = jsx.dom.animation.KeyFrame;
         var Color = jsx.dom.css.Color;
         anim = new Animation({
           target: target,
