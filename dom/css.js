@@ -6,7 +6,7 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2005-2011 Thomas Lahn <js@PointedEars.de>
+ *   (C) 2005-2012 Thomas Lahn <js@PointedEars.de>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -59,16 +59,6 @@ jsx.dom.css = {
  * computed value of an <code>Element</code>'s style property.
  *
  * @function
- * @param o : Element
- *   Element for which the computed style should be retrieved.
- * @param sPseudoEl : string
- *   The name of the pseudo-element, such as ":first-child".
- *   Use <code>null</code> (default) for the element itself.
- * @param sProperty : string
- *   The property name in CSS or script syntax (names are mapped
- *   automatically according to the feature used).  If not passed
- *   or empty, the entire computed style is returned.
- * @return CSSStyleDeclaration | currentStyle | string
  */
 jsx.dom.getComputedStyle = (function () {
   var
@@ -79,7 +69,19 @@ jsx.dom.getComputedStyle = (function () {
     jsx_object = jsx.object,
     jsx_dom = jsx.dom;
 
-  return function(oElement, sPseudoEl, sProperty) {
+  /**
+   * @param oElement : Element
+   *   Element for which the computed style should be retrieved.
+   * @param sPseudoEl : string
+   *   The name of the pseudo-element, such as ":first-child".
+   *   Use <code>null</code> (default) for the element itself.
+   * @param sProperty : string
+   *   The property name in CSS or script syntax (names are mapped
+   *   automatically according to the feature used).  If not passed
+   *   or empty, the entire computed style is returned.
+   * @return CSSStyleDeclaration | currentStyle | string
+   */
+  return function (oElement, sPseudoEl, sProperty) {
     if (hasGCS || typeof oElement.currentStyle != "undefined")
     {
       var compStyle = (hasGCS
@@ -102,71 +104,178 @@ jsx.dom.getComputedStyle = (function () {
 }());
 
 /**
+ * @function
+ */
+jsx.dom.css.camelize = (function () {
+  var _jsx_object = jsx.object;
+
+  if (typeof Map == "function")
+  {
+    var cache = new Map();
+  }
+  else
+  {
+    var prefix = " ", suffix = "";
+
+    cache = _jsx_object.getDataObject();
+    cache.get = function (s) {
+      return _jsx_object.getProperty(this, prefix + s + suffix, false);
+    };
+
+    cache.put = function (s, v) {
+      this[prefix + s + suffix] = v;
+    };
+  }
+
+  function f (match, p1)
+  {
+    return p1.toUpperCase();
+  }
+
+  var rxHyphenated = /-([a-z])/gi;
+
+  /**
+   * @param sProperty : String
+   * @return string
+   *   <var>sProperty</var> with all hyphen-minuses followed by an
+   *   ASCII letter replaced by the letter's uppercase counterpart
+   */
+  return function (sProperty) {
+    var p;
+    if ((p = cache.get(sProperty, false)))
+    {
+      return p;
+    }
+
+    var s2 = sProperty.replace(rxHyphenated, f);
+    cache.put(sProperty, s2);
+    return s2;
+  };
+})();
+
+/**
+ * @function
+ */
+jsx.dom.css.uncamelize = (function () {
+  var _jsx_object = jsx.object;
+  
+  if (typeof Map == "function")
+  {
+    var cache = new Map();
+  }
+  else
+  {
+    var prefix = " ", suffix = "";
+    
+    cache = _jsx_object.getDataObject();
+    cache.get = function (s) {
+      return _jsx_object.getProperty(this, prefix + s + suffix, false);
+    };
+    
+    cache.put = function (s, v) {
+      this[prefix + s + suffix] = v;
+    };
+  }
+  
+  function f (match)
+  {
+    return "-" + match.toLowerCase();
+  }
+  
+  var rxUppercase = /[A-Z]/g;
+  
+  /**
+   * @param sProperty : String
+   * @return string
+   *   <var>sProperty</var> with all capital ASCII letters replaced
+   *   by the letter's lowercase counterpart, and preceded by a
+   *   hyphen-minus.
+   */
+  return function (sProperty) {
+    var p;
+    if ((p = cache.get(sProperty, false)))
+    {
+      return p;
+    }
+    
+    var s2 = sProperty.replace(rxUppercase, f);
+    cache.put(sProperty, s2);
+    return s2;
+  };
+})();
+
+/**
  * Retrieves the value of a style property of an HTMLElement object.
  *
  * @author
  *   (C) 2005  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @param oElement : HTMLElement
- *   Reference to the element object which style is to be modified.
- * @param sPropertyName : String
- *   Name of the style property of which the value should be retrieved.
- *   If "display", and there is no
- *   <code>style[<var>sPropertyName</var>]</code> property,
- *   "visibility" is used instead (fallback for the NN4 DOM).
- * @return string|null
- *   <code>null</code> if no matching object exists or if the
- *   DOM does not provide for retrieval of the property value.
  */
-jsx.dom.getStyleProperty = function(oElement, sPropertyName) {
-  if (oElement)
-  {
-    sPropertyName = jsx.dom.camelize(sPropertyName);
-
-    if (typeof oElement.style != "undefined")
+jsx.dom.getStyleProperty = (function () {
+  var _camelize = jsx.dom.css.camelize;
+  
+  /**
+   * @param oElement : HTMLElement
+   *   Reference to the element object which style is to be modified.
+   * @param sPropertyName : String
+   *   Name of the style property of which the value should be retrieved.
+   *   If "display", and there is no
+   *   <code>style[<var>sPropertyName</var>]</code> property,
+   *   "visibility" is used instead (fallback for the NN4 DOM).
+   * @return string|null
+   *   <code>null</code> if no matching object exists or if the
+   *   DOM does not provide for retrieval of the property value.
+   */
+  return function (oElement, sPropertyName) {
+    if (oElement)
     {
-      /* handle the `float' property */
-      var tested = false;
-
-      if (sPropertyName == "float")
+      sPropertyName = _camelize(sPropertyName);
+  
+      if (typeof oElement.style != "undefined")
       {
-        /* W3C DOM Level 2 CSS */
-        if (typeof oElement.style.cssFloat != "undefined")
+        /* handle the `float' property */
+        var tested = false;
+  
+        if (sPropertyName == "float")
         {
-          sPropertyName = "cssFloat";
-          tested = true;
+          /* W3C DOM Level 2 CSS */
+          if (typeof oElement.style.cssFloat != "undefined")
+          {
+            sPropertyName = "cssFloat";
+            tested = true;
+          }
+  
+          /* MSHTML DOM */
+          else if (typeof oElement.style.styleFloat != "undefined")
+          {
+            sPropertyName = "styleFloat";
+            tested = true;
+          }
         }
-
-        /* MSHTML DOM */
-        else if (typeof oElement.style.styleFloat != "undefined")
+  
+        if (tested || typeof oElement.style[sPropertyName] != "undefined")
         {
-          sPropertyName = "styleFloat";
-          tested = true;
+          return oElement.style[sPropertyName];
         }
       }
-
-      if (tested || typeof oElement.style[sPropertyName] != "undefined")
+      else
       {
-        return oElement.style[sPropertyName];
+        if (sPropertyName == "display")
+        {
+          sPropertyName = "visibility";
+        }
+  
+        if (typeof oElement[sPropertyName] != "undefined")
+        {
+          return oElement[sPropertyName];
+        }
       }
     }
-    else
-    {
-      if (sPropertyName == "display")
-      {
-        sPropertyName = "visibility";
-      }
-
-      if (typeof oElement[sPropertyName] != "undefined")
-      {
-        return oElement[sPropertyName];
-      }
-    }
-  }
-
-  return null;
-};
+  
+    return null;
+  };
+}());
 
 /**
  * Determines whether an HTMLElement object has a style property or not.
@@ -187,94 +296,101 @@ jsx.dom.getStyleProperty = function(oElement, sPropertyName) {
  *   DOM does not provide for retrieval of the property value;
  *   <code>true</code> otherwise.
  */
-jsx.dom.hasStyleProperty = function(oElement, sPropertyName) {
+jsx.dom.hasStyleProperty = function (oElement, sPropertyName) {
   return (jsx.dom.getStyleProperty(oElement, sPropertyName) != null);
 };
 
 /**
  * Sets the value of a style property of an HTMLElement object.
  *
+ * @function
  * @author
  *   (C) 2003-2008  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @param oElement : HTMLElement
- *   Reference to the element object which style is to be modified.
- * @param sPropertyName : string
- *   Name of the style property of which the value should be set.
- *   If "display" and there is no <code>style[<var>sPropertyName</var>]</code>
- *   property and <code>altValue</code> was provided, "visibility" is used
- *   instead (fallback for the NN4 DOM).
- * @param propValue
- *   Value of the style property to be set.
- * @param altValue : optional _
- *   Alternative value to be set if the the style property is a property of
- *   the object itself instead of its `style' property.  Fallback for the
- *   NN4 DOM.
- * @return boolean
- *   <code>false</code> if no such object exists, the
- *   DOM does not provide for setting the property value,
- *   or if the assignment failed (invalid value).
- *   CAVEAT: Some property values are normalized by the API when read;
- *   test before using the return value as a discriminator.
  */
-jsx.dom.setStyleProperty = function(oElement, sPropertyName, propValue, altValue) {
-  if (oElement)
-  {
-    sPropertyName = jsx.dom.camelize(sPropertyName);
-
-    if (typeof oElement.style != "undefined")
+jsx.dom.setStyleProperty = (function () {
+  var _camelize = jsx.dom.css.camelize;
+  
+  /**
+   * @param oElement : HTMLElement
+   *   Reference to the element object which style is to be modified.
+   * @param sPropertyName : string
+   *   Name of the style property of which the value should be set.
+   *   If "display" and there is no <code>style[<var>sPropertyName</var>]</code>
+   *   property and <code>altValue</code> was provided, "visibility" is used
+   *   instead (fallback for the NN4 DOM).
+   * @param propValue
+   *   Value of the style property to be set.
+   * @param altValue : optional _
+   *   Alternative value to be set if the the style property is a property of
+   *   the object itself instead of its `style' property.  Fallback for the
+   *   NN4 DOM.
+   * @return boolean
+   *   <code>false</code> if no such object exists, the
+   *   DOM does not provide for setting the property value,
+   *   or if the assignment failed (invalid value).
+   *   CAVEAT: Some property values are normalized by the API when read;
+   *   test before using the return value as a discriminator.
+   */
+  return function (oElement, sPropertyName, propValue, altValue) {
+    if (oElement)
     {
-      /* handle the `float' property */
-      var isStyleFloat = false;
-
-      if (sPropertyName == "float")
+      sPropertyName = _camelize(sPropertyName);
+  
+      if (typeof oElement.style != "undefined")
       {
-        /* W3C DOM Level 2 CSS */
-        if (typeof oElement.style.cssFloat != "undefined")
+        /* handle the `float' property */
+        var isStyleFloat = false;
+  
+        if (sPropertyName == "float")
         {
-          sPropertyName = "cssFloat";
-          isStyleFloat = true;
+          /* W3C DOM Level 2 CSS */
+          if (typeof oElement.style.cssFloat != "undefined")
+          {
+            sPropertyName = "cssFloat";
+            isStyleFloat = true;
+          }
+  
+          /* MSHTML DOM */
+          else if (typeof oElement.style.styleFloat != "undefined")
+          {
+            sPropertyName = "styleFloat";
+            isStyleFloat = true;
+          }
         }
-
-        /* MSHTML DOM */
-        else if (typeof oElement.style.styleFloat != "undefined")
+  
+        if (isStyleFloat || typeof oElement.style[sPropertyName] != "undefined")
         {
-          sPropertyName = "styleFloat";
-          isStyleFloat = true;
+          /*
+           * NOTE: Shortcut evaluation changed behavior;
+           * result of assignment is *right-hand side* operand
+           */
+          oElement.style[sPropertyName] = propValue;
+          return (String(oElement.style[sPropertyName]).toLowerCase()
+                  == String(propValue).toLowerCase());
         }
       }
-
-      if (isStyleFloat || typeof oElement.style[sPropertyName] != "undefined")
+      else
       {
-        /*
-         * NOTE: Shortcut evaluation changed behavior;
-         * result of assignment is *right-hand side* operand
-         */
-        oElement.style[sPropertyName] = propValue;
-        return (String(oElement.style[sPropertyName]).toLowerCase()
-                == String(propValue).toLowerCase());
+        if (sPropertyName == "display" && altValue)
+        {
+          sPropertyName = "visibility";
+        }
+  
+        if (typeof oElement[sPropertyName] != "undefined")
+        {
+          var newValue = (altValue || propValue);
+          oElement[sPropertyName] = newValue;
+          return (String(oElement[sPropertyName]).toLowerCase()
+            == String(newValue).toLowerCase());
+        }
       }
     }
-    else
-    {
-      if (sPropertyName == "display" && altValue)
-      {
-        sPropertyName = "visibility";
-      }
-
-      if (typeof oElement[sPropertyName] != "undefined")
-      {
-        var newValue = (altValue || propValue);
-        oElement[sPropertyName] = newValue;
-        return (String(oElement[sPropertyName]).toLowerCase()
-          == String(newValue).toLowerCase());
-      }
-    }
-  }
-
-  return false;
-};
+  
+    return false;
+  };
+}());
 
 /**
  * Retrieves the rendering state or (dis)allows rendering of a DOM object.
@@ -299,7 +415,7 @@ jsx.dom.setStyleProperty = function(oElement, sPropertyName, propValue, altValue
  *   <code>false</code> otherwise.
  * @see #visible
  */
-jsx.dom.display = function(oElement, bShow) {
+jsx.dom.display = function (oElement, bShow) {
   var result;
 
   if (oElement)
@@ -341,7 +457,7 @@ jsx.dom.display = function(oElement, bShow) {
  *   <code>false</code> otherwise.
  * @see #display
  */
-jsx.dom.visibility = jsx.dom.visible = function(oElement, bVisible) {
+jsx.dom.visibility = jsx.dom.visible = function (oElement, bVisible) {
   var result;
 
   if (oElement)
@@ -369,7 +485,7 @@ jsx.dom.visibility = jsx.dom.visible = function(oElement, bVisible) {
  *   The return value of {@link #setStyleProperty} for setting the
  *   borderColor of the image
  */
-jsx.dom.hoverImg = function(imgID, state) {
+jsx.dom.hoverImg = function (imgID, state) {
   var img = null;
 
   if (document.images)
@@ -384,10 +500,10 @@ jsx.dom.hoverImg = function(imgID, state) {
 jsx.dom.hoverImg.clMouseout = "#000";
 jsx.dom.hoverImg.clMouseover = "#fff";
 
-jsx.dom.getAbsPos = function(oNode) {
+jsx.dom.getAbsPos = function (oNode) {
   var result = {};
   result.x = result.y = 0;
-  result.toString = function() {
+  result.toString = function () {
     return "{x: " + this.x + ", y: " + this.y + "}";
   };
 
@@ -470,7 +586,7 @@ jsx.dom.css.selectors = {
  *   <code>document</code> object reference.
  * @return jsx.dom.css.RuleList
  */
-jsx.dom.css.RuleList = function(oDocument) {
+jsx.dom.css.RuleList = function (oDocument) {
   arguments.callee._super.call(this);
   this.document = oDocument || document;
   this.get();
@@ -492,7 +608,7 @@ jsx.dom.css.RuleList.extend(jsx.Collection, {
    *   <code>document</code> object reference.
    * @return boolean
    */
-  get: function(oDocument) {
+  get: function (oDocument) {
     if (oDocument)
     {
       this.document = oDocument;
@@ -579,13 +695,6 @@ jsx.dom.css.findRules = (function () {
 /**
  * Calculate the specificity of a CSS3 selector
  *
- * @param selector : String
- * @return Number
- *   The specificity of <var>selector</var> where the value modulo 100
- *   is the number of ID selectors, the value modulo 10 is the number of
- *   class selectors, attributes selectors, and pseudo-classes, and the
- *   value modulo 1 is the number of element names and pseudo-elements
- *   in the selector.
  * @see http://www.w3.org/TR/css3-selectors/#specificity
  */
 jsx.dom.css.getSpecificity = (function () {
@@ -597,6 +706,15 @@ jsx.dom.css.getSpecificity = (function () {
   var rxElem = new RegExp(
     selectors.ELEMENT + "|" + selectors.PSEUDOELEMENT, "g");
 
+  /**
+   * @param selector : String
+   * @return Number
+   *   The specificity of <var>selector</var> where the value modulo 100
+   *   is the number of ID selectors, the value modulo 10 is the number of
+   *   class selectors, attributes selectors, and pseudo-classes, and the
+   *   value modulo 1 is the number of element names and pseudo-elements
+   *   in the selector.
+   */
   return function (selector) {
     selector = String(selector || "");
     var idNum = (selector.match(rxID) || []).length;
@@ -609,19 +727,20 @@ jsx.dom.css.getSpecificity = (function () {
 
 /**
  * Retrieves all elements matching all specified CSS class names
- *
- * @param sClassNames : Array|String
- * @param oContextNode : optional Element
- * @return Array
- *   An <code>Array</code> of references to objects representing
- *   matching elements
  */
-jsx.dom.css.getElemByClassName = jsx.dom.css.gEBCN = (function() {
+jsx.dom.css.getElemByClassName = jsx.dom.css.gEBCN = (function () {
   var _hasOwnProperty = jsx.object._hasOwnProperty;
   var _getElemByTagName = jsx.dom.getElemByTagName;
   var sWhiteSpace = "[ \\t\\f\\u200B\\r\\n]+";
   var rxWhiteSpace = new RegExp(sWhiteSpace);
 
+  /**
+   * @param sClassNames : Array|String
+   * @param contextNode : optional Element
+   * @return Array
+   *   An <code>Array</code> of references to objects representing
+   *   matching elements
+   */
   return function (sClassNames, contextNode) {
     var
       result = [],
@@ -686,7 +805,7 @@ jsx.dom.css.getElemByClassName = jsx.dom.css.gEBCN = (function() {
   };
 }());
 
-jsx.dom.css.showByClassName = (function() {
+jsx.dom.css.showByClassName = (function () {
   var _getEBCN = jsx.dom.css.getElemByClassName;
 
   /**
@@ -701,7 +820,7 @@ jsx.dom.css.showByClassName = (function() {
    * @return {boolean}
    *   <code>true</code> if successful, <code>false</code> otherwise.
    */
-  return function(sClassName, bShow) {
+  return function (sClassName, bShow) {
     var newDisplay = bShow ? "" : "none";
     var ruleList, selector;
     if (typeof jsx.dom.css != "undefined"
@@ -732,31 +851,32 @@ jsx.dom.css.showByClassName = (function() {
 /**
  * Returns the computed style of an element or
  * the computed value of a style property of an element.
- *
- * @param obj : Element
- * @param cssProperty : string
- * @return CSSStyleDeclaration|string
- *   The return value depends on both the passed arguments
- *   and the capabilities of the user agent:
- *
- *   If the UA supports either ViewCSS::getComputedStyle()
- *   from W3C DOM Level 2 CSS or MSHTML's currentStyle
- *   property, then
- *     a) if <var>cssProperty</var> was passed, the value of the
- *        CSS property with name <var>cssProperty</vr> is returned;
- *        it is a string if the property is supported;
- *     b) if <var>cssProperty</var> was not passed, the corresponding
- *        style object is returned
- *
- *   If the UA supports neither of the above, `undefined' is
- *   returned.
- * @type string|CSSStyleDeclaration|currentStyle
  */
-jsx.dom.css.getComputedStyle = (function() {
+jsx.dom.css.getComputedStyle = (function () {
   var _isMethod = jsx.object.isMethod,
   _defaultView;
 
-  return function(obj, cssProperty) {
+  /**
+   * @param obj : Element
+   * @param cssProperty : string
+   * @return CSSStyleDeclaration|string
+   *   The return value depends on both the passed arguments
+   *   and the capabilities of the user agent:
+   *
+   *   If the UA supports either ViewCSS::getComputedStyle()
+   *   from W3C DOM Level 2 CSS or MSHTML's currentStyle
+   *   property, then
+   *     a) if <var>cssProperty</var> was passed, the value of the
+   *        CSS property with name <var>cssProperty</vr> is returned;
+   *        it is a string if the property is supported;
+   *     b) if <var>cssProperty</var> was not passed, the corresponding
+   *        style object is returned
+   *
+   *   If the UA supports neither of the above, `undefined' is
+   *   returned.
+   * @type string|CSSStyleDeclaration|currentStyle
+   */
+  return function (obj, cssProperty) {
     var computedStyle;
 
     if (_isMethod(document, "defaultView", "getComputedStyle")
@@ -787,14 +907,15 @@ jsx.dom.css.getComputedStyle = (function() {
 
 /**
  * Makes all non-default stylesheet declarations for an element inline
- *
- * @param obj : Element
  */
 jsx.dom.css.makeInline = (function () {
   var defaultValues = {
     "background-image": "none"
   };
 
+  /**
+   * @param obj : Element
+   */
   return function (obj) {
     var computedStyle = jsx.dom.css.getComputedStyle(obj);
     if (!computedStyle)
@@ -815,10 +936,10 @@ jsx.dom.css.makeInline = (function () {
   };
 }());
 
-jsx.dom.css.isHidden = (function() {
+jsx.dom.css.isHidden = (function () {
   var _getComputedStyle = jsx.dom.css.getComputedStyle;
 
-  return function(o) {
+  return function (o) {
     while (o)
     {
       if (typeof o.style == "undefined"
@@ -836,7 +957,7 @@ jsx.dom.css.isHidden = (function() {
   };
 }());
 
-jsx.dom.css.focusElement = function(s) {
+jsx.dom.css.focusElement = function (s) {
   var o = document.getElementById(s);
   if (o && jsx.object.isMethod(o, "focus") && !jsx.dom.css.isHidden(o))
   {
@@ -865,8 +986,7 @@ jsx.dom.css.removeClassName = function (o, sClassName) {
   }
 };
 
-
-jsx.dom.css.addClassName = (function() {
+jsx.dom.css.addClassName = (function () {
   var removeClassName = jsx.dom.css.removeClassName;
 
   /**
@@ -885,7 +1005,7 @@ jsx.dom.css.addClassName = (function() {
    *   <code>true</code> if the class name could be added successfully or
    *   was already there, <code>false</code> otherwise.
    */
-  return function(o, sClassName, bRemove) {
+  return function (o, sClassName, bRemove) {
     var rx = new RegExp("(^\\s*|\\s+)" + sClassName + "(\\s*$|\\s)");
 
     if (bRemove)
