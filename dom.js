@@ -14,7 +14,7 @@
  *
  * @author
  *   (C) 2001      SELFHTML e.V. <stefan.muenz@selfhtml.org> et al.,
- *       2002-2010 Thomas Lahn <js@PointedEars.de>,
+ *       2002-2012 Thomas Lahn <js@PointedEars.de>,
  *       2004      Ulrich Kritzner <droeppez@web.de> (loadScript),
  *       2005      MozillaZine Knowledge Base contributors (DOM XPath):
  *                 Eric H. Jung <grimholtz@yahoo.com> et al.
@@ -848,93 +848,6 @@ jsx.dom.getAttr = function (oElement, sAttrName) {
   return result;
 };
 
-/**
- * @function
- */
-jsx.dom.camelize = (function () {
-  var jsx_object = jsx.object;
-
-  if ("x".replace(/x/, function () { return "u"; }) != "u")
-  {
-    /*
-     * Fix String.prototype.replace(..., Function) for Safari <= 2.0.2;
-     * thanks to kangax <kangax@gmail.com>
-     */
-    var origReplace = String.prototype.replace;
-    String.prototype.replace = function (searchValue, replaceValue) {
-      if (jsx_object.isMethod(replaceValue))
-      {
-        if (searchValue.constructor == RegExp)
-        {
-          var
-            result = this,
-            m,
-            i = searchValue.global ? -1 : 1;
-
-          while (i-- && (m = searchValue.exec(result)))
-          {
-            result = result.replace(m[0],
-              String(replaceValue.apply(null, m.concat(m.index, this))));
-          }
-
-          return result;
-        }
-
-        i = this.indexOf(searchValue);
-        if (i > -1)
-        {
-          return replaceValue(String(searchValue), i, this);
-        }
-
-        return this;
-      }
-
-      return origReplace.apply(this, arguments);
-    };
-  }
-
-  if (typeof Map == "function")
-  {
-    var cache = new Map();
-  }
-  else
-  {
-    var prefix = " ", suffix = "";
-
-    cache = {};
-    cache.get = function (s) {
-      return jsx_object.getProperty(this, prefix + s + suffix, false);
-    };
-
-    cache.put = function (s, v) {
-      this[prefix + s + suffix] = v;
-    };
-  }
-
-  function f(match, p1)
-  {
-    return p1.toUpperCase();
-  }
-
-  /**
-   * @param sProperty : String
-   * @return string
-   *   <var>sProperty</var> with all hyphen-minuses followed by a
-   *   Latin-1 letter replaced by the letter's uppercase counterpart
-   */
-  return function (sProperty) {
-    var p;
-    if ((p = cache.get(sProperty, false)))
-    {
-      return p;
-    }
-
-    var s2 = sProperty.replace(/-([a-z])/gi, f);
-    cache.put(sProperty, s2);
-    return s2;
-  };
-})();
-
 jsx.dom.attrMap = {
   alink: "aLink",
   accesskey: "accessKey",
@@ -1013,21 +926,18 @@ jsx.dom.setAttr = function (o, sAttrName, attrValue) {
       sAttrName = attrMap[sAttrName];
     }
 
-    var
-      hyphenatedToCamelCase = jsx.dom.camelize,
-
-      strToValue =
-        /**
-         * Converts a string, if possible, to a number
-         *
-         * @param s
-         * @return string|number
-         *   The converted value
-         */
-        function (s) {
-          s = s.replace(/^["']|["']$/g, "");
-          return isNaN(s) ? s : +s;
-        };
+    var strToValue =
+      /**
+       * Converts a string, if possible, to a number
+       *
+       * @param s : String
+       * @return string|number
+       *   The converted value
+       */
+      function (s) {
+        s = s.replace(/^["']|["']$/g, "");
+        return isNaN(s) ? s : +s;
+      };
 
     if (typeof attrValue != "undefined")
     {
@@ -1035,11 +945,11 @@ jsx.dom.setAttr = function (o, sAttrName, attrValue) {
       if (sAttrName == "style" && typeof attrValue == "string")
       {
         var styleProps = attrValue.split(/\s*;\s*/);
-        for (var j = 0, len = styleProps.length; j < len; j++)
+        for (var i = 0, len = styleProps.length; i < len; i++)
         {
           var
-            stylePair = styleProps[j].split(/\s*:\s*/),
-            stylePropName = hyphenatedToCamelCase(stylePair[0].toLowerCase());
+            stylePair = styleProps[i].split(/\s*:\s*/),
+            stylePropName = stylePair[0].toLowerCase();
 
           jsx.dom.setStyleProperty(o, stylePropName,
             strToValue(stylePair[1]));
