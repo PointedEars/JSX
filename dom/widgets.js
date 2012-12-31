@@ -550,7 +550,7 @@ jsx.dom.widgets.Input =
     jsx_dom_widgets_Input._super.apply(this, arguments);
 
     var me = this;
-    jsx.dom.addEventListener(this._target, 'keypress', jsx.dom.createEventListener(
+    jsx.dom.addEventListener(this._target, "keypress", jsx.dom.createEventListener(
       function (e) {
         var charCode =
           (typeof e.charCode != "undefined")
@@ -586,6 +586,11 @@ jsx.dom.widgets.Input.extend(jsx.dom.widgets.Widget, {
     return function () {
       update.call(this);
 
+      if (typeof this.value != "undefined")
+      {
+        this._target.value = this.value;
+      }
+      
       if (typeof this.tabIndex != "undefined")
       {
         this._target.tabIndex = this.tabIndex;
@@ -647,11 +652,11 @@ jsx.dom.widgets.NumberInput =
     var me = this;
   
     var target = this._target;
-    jsx.dom.addEventListener(target, 'blur', function () {
+    jsx.dom.addEventListener(target, "blur", function () {
       me.update();
     });
   
-    jsx.dom.addEventListener(target, 'focus', function () {
+    jsx.dom.addEventListener(target, "focus", function () {
       if (me.leadingZero)
       {
         this.value = parseInt(this.value, 10);
@@ -660,7 +665,7 @@ jsx.dom.widgets.NumberInput =
   
     if (typeof this.oninput == "function")
     {
-      jsx.dom.addEventListener(target, 'input', this.oninput);
+      jsx.dom.addEventListener(target, "input", this.oninput);
     }
   };
 
@@ -889,7 +894,7 @@ jsx.dom.widgets.SpinnerInput =
       );
   
       /* Add event listeners */
-      jsx.dom.addEventListener(target, 'keydown', jsx.dom.createEventListener(
+      jsx.dom.addEventListener(target, "keydown", jsx.dom.createEventListener(
         function (e) {
           /**
            * Increases the value of the <code>value</code> property.
@@ -949,7 +954,7 @@ jsx.dom.widgets.SpinnerInput =
         }
       ));
   
-      jsx.dom.addEventListener(target, 'keyup', function () { me.update(); });
+      jsx.dom.addEventListener(target, "keyup", function () { me.update(); });
     }
   };
 
