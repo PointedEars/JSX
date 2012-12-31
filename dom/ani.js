@@ -187,9 +187,17 @@ jsx.dom.animation.Animation = function (oParams) {
   }
   
   var timelines = this.timelines;
+  var _Timeline = jsx.dom.animation.Timeline;
   for (var i = timelines.length; i--;)
   {
     var timeline = timelines[i];
+    
+    if (timeline.constructor != _Timeline)
+    {
+      timeline = new _Timeline(timeline);
+      timelines[i] = timeline;
+    }
+    
     if (!timeline.target)
     {
       timeline.target = this.target;
@@ -364,10 +372,18 @@ jsx.dom.animation.Timeline = (function () {
     
     /* Compute keyframe times that are percentages of the duration */
     var rxTimePercentage = /^\s*\+?(\d+|\d*\.\d+)\s*%\s*$/;
+    var _Frame = jsx.dom.animation.Frame;
+    var _KeyFrame = jsx.dom.animation.KeyFrame;
     for (var i = 0, len = keyFrames.length; i < len; ++i)
     {
       var keyFrame = keyFrames[i];
        
+      if (!(keyFrame instanceof _Frame))
+      {
+        keyFrame = new _KeyFrame(keyFrame);
+        keyFrames[i] = keyFrame;
+      }
+      
       keyFrame._timeline = this;
       
 //      if (len < keyFrames.length - 1)
@@ -645,7 +661,7 @@ jsx.dom.animation.Timeline.extend(null, {
    *   the empty string if no such property is available.
    */
   _getNativeProperty: (function () {
-    var _camelize = jsx.dom.camelize;
+    var _camelize = jsx.dom.css.camelize;
 
     return function () {
       var result = "";
