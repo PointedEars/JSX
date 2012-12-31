@@ -55,55 +55,6 @@ jsx.dom.css = {
 };
 
 /**
- * Returns the computed style of an {@link Element} or the
- * computed value of an <code>Element</code>'s style property.
- *
- * @function
- */
-jsx.dom.getComputedStyle = (function () {
-  var
-    hasGCS = jsx.object.isMethod(document, "defaultView", "getComputedStyle"),
-    propertyMap = {
-      "float": hasGCS ? "cssFloat" : "styleFloat"
-    },
-    jsx_object = jsx.object,
-    jsx_dom = jsx.dom;
-
-  /**
-   * @param oElement : Element
-   *   Element for which the computed style should be retrieved.
-   * @param sPseudoEl : string
-   *   The name of the pseudo-element, such as ":first-child".
-   *   Use <code>null</code> (default) for the element itself.
-   * @param sProperty : string
-   *   The property name in CSS or script syntax (names are mapped
-   *   automatically according to the feature used).  If not passed
-   *   or empty, the entire computed style is returned.
-   * @return CSSStyleDeclaration | currentStyle | string
-   */
-  return function (oElement, sPseudoEl, sProperty) {
-    if (hasGCS || typeof oElement.currentStyle != "undefined")
-    {
-      var compStyle = (hasGCS
-        ? document.defaultView.getComputedStyle(oElement, sPseudoEl || null)
-        : oElement.currentStyle);
-
-      return (sProperty
-        ? compStyle[
-            jsx_dom.camelize(
-              jsx_object.getProperty(propertyMap, sProperty, sProperty))
-          ]
-        : compStyle);
-    }
-
-    var emptyResult = {};
-    emptyResult[sProperty] = "";
-
-    return (sProperty ? emptyResult : null);
-  };
-}());
-
-/**
  * @function
  */
 jsx.dom.css.camelize = (function () {
@@ -203,6 +154,56 @@ jsx.dom.css.uncamelize = (function () {
     return s2;
   };
 })();
+
+/**
+ * Returns the computed style of an {@link Element} or the
+ * computed value of an <code>Element</code>'s style property.
+ *
+ * @function
+ */
+jsx.dom.getComputedStyle = (function () {
+  var _camelize = jsx.dom.css.camelize;
+  var _getProperty = jsx.object.getProperty;
+  
+  var
+    hasGCS = jsx.object.isMethod(document, "defaultView", "getComputedStyle"),
+    propertyMap = {
+      "float": hasGCS ? "cssFloat" : "styleFloat"
+    };
+
+  /**
+   * @param oElement : Element
+   *   Element for which the computed style should be retrieved.
+   * @param sPseudoEl : string
+   *   The name of the pseudo-element, such as ":first-child".
+   *   Use <code>null</code> (default) for the element itself.
+   * @param sProperty : string
+   *   The property name in CSS or script syntax (names are mapped
+   *   automatically according to the feature used).  If not passed
+   *   or empty, the entire computed style is returned.
+   * @return CSSStyleDeclaration | currentStyle | string
+   */
+  return function (oElement, sPseudoEl, sProperty) {
+    if (hasGCS || typeof oElement.currentStyle != "undefined")
+    {
+      var compStyle = (hasGCS
+        ? document.defaultView.getComputedStyle(oElement, sPseudoEl || null)
+        : oElement.currentStyle);
+
+      return (sProperty
+        ? compStyle[
+            _camelize(
+              _getProperty(propertyMap, sProperty, sProperty))
+          ]
+        : compStyle);
+    }
+
+    var emptyResult = {};
+    emptyResult[sProperty] = "";
+
+    return (sProperty ? emptyResult : null);
+  };
+}());
 
 /**
  * Retrieves the value of a style property of an HTMLElement object.
