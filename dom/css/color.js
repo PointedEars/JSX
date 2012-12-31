@@ -43,18 +43,10 @@ if (typeof jsx.dom == "undefined")
 
 if (typeof jsx.dom.css == "undefined")
 {
-  if (typeof jsx.importFrom == "function")
-  {
-    jsx.importFrom(jsx.absPath("../css.js"));
-  }
-  
-  if (typeof jsx.dom.css == "undefined")
-  {
-    /**
-     * @namespace
-     */
-    jsx.dom.css = {};
-  }
+  /**
+   * @namespace
+   */
+  jsx.dom.css = {};
 }
 
 /**
