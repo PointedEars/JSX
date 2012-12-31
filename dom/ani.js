@@ -1037,7 +1037,7 @@ jsx.dom.animation.Frame.extend(null, {
    * @memberOf jsx.dom.animation.Frame#prototype
    */
   time: 0,
-  values: {},
+  values: {}
 });
 
 /**
