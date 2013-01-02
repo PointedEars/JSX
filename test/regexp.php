@@ -14,7 +14,7 @@
       -->
     </style>
     <script type="text/javascript"
-            src="../builder?gzip=0&amp;src=object,dom,dom/timeout,test/test,http&amp;verbose=1"></script>
+            src="../builder?src=object,dom,dom/timeout,test/test,http&amp;verbose=1"></script>
     <script type="text/javascript" src="../regexp.js"></script>
     <script type="text/javascript" src="../UnicodeData.js"></script>
     <script type="text/javascript" src="regexp-test.js"></script>
