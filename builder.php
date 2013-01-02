@@ -107,12 +107,12 @@ class ResourceBuilder
 
   /**
    * If <code>true</code> or <code>false</code>, forces or forbids
-   * the use of gzip.  The default is <code>null</code> which
-   * gzips only if the client supports it.
+   * the use of gzip.  The default is <code>false</code> which
+   * gzips only if gzip=1 is specified and the client supports it.
    *
-   * @var mixed
+   * @var boolean
    */
-  protected $_force_gzip = null;
+  protected $_force_gzip = false;
   
   /**
    * Number of comments processed so far
@@ -291,10 +291,7 @@ class ResourceBuilder
    */
   protected function setForce_gzip($gzip)
   {
-    if ($gzip !== null)
-    {
-      $this->_force_gzip = !!$gzip;
-    }
+    $this->_force_gzip = ($gzip !== null) ? !!$gzip : $gzip;
   }
   
   /**
@@ -432,7 +429,7 @@ class ResourceBuilder
         && function_exists('gzencode'))
     {
       $force_gzip = $this->force_gzip;
-      $use_gzip = ($force_gzip !== null ? $force_gzip : true);
+      $use_gzip = ($force_gzip !== false);
       if ($use_gzip)
       {
         header("Content-Encoding: {$matches[1]}");
