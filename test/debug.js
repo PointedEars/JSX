@@ -801,7 +801,7 @@ var synhl = (function () {
  * @see jsx.object#isMethod()
  */
 var unsynhl = (function () {
-  var _isMethod = jsx_object.isMethod;
+  var _isMethod = jsx.object.isMethod;
 
   var synhlClasses = jsx.array.map(
     jsx.debug.synhlMatches, function (e) { return e[1]; });
