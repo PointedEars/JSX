@@ -611,7 +611,7 @@ jsx.dom.widgets.Button.extend(jsx.dom.widgets.Container, {
    */
   elementType: "button",
 
-  init: function () {
+  init: function jsx_dom_widgets_Button_prototype_init () {
     var me = this;
 
     jsx.tryThis(
@@ -622,7 +622,7 @@ jsx.dom.widgets.Button.extend(jsx.dom.widgets.Container, {
       function () {
         /* IE 7 and other borken UAs that don't support inline-block properly */
         jsx.throwThis("jsx.dom.widgets.InitError", "jsx.dom.widgets.Button",
-          jsx.dom.widgets.Button.prototype.init);
+          jsx_dom_widgets_Button_prototype_init);
       }
     );
   },
