@@ -43,18 +43,20 @@ if (typeof jsx.string == "undefined")
   
 jsx.string.hyphenation = (function () {
   "use strict";
-  var
-    _jsx = jsx,
-    _jsx_object = _jsx.object,
-    _getDataObject = _jsx_object.getDataObject,
-    _getKeys = _jsx_object.getKeys,
-    _map = _jsx.array.map;
+  var _jsx = jsx;
+  var _jsx_object = _jsx.object;
+  var _getDataObject = _jsx_object.getDataObject;
+  var _getKeys = _jsx_object.getKeys;
+  var _map = _jsx.array.map;
   
   var _dictionary = _getDataObject();
   var _hyphenateAll = false;
   var _rxWord = /(^|\s)(\S+)([\s,;:.?!\)\]]|$)/g;
   var _rxWords;
-  var _rxHyphen = /[-·]/g;
+  
+  /* U+00B7 MIDDLE DOT (often found in online dictionaries) */
+  var _rxHyphen = /[-\00b7]/g;
+  
   var _chShy = "\u00ad";
   var _rxShy = new RegExp(_chShy, "g");
   
