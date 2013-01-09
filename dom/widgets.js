@@ -6,7 +6,7 @@
  * @requires dom.js, events.js
  * @section Copyright & Disclaimer
  *
- * @author (C) 2010, 2011 Thomas Lahn <js@PointedEars.de>
+ * @author (C) 2010-2013 Thomas Lahn <js@PointedEars.de>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
