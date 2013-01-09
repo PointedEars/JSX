@@ -59,30 +59,29 @@ jsx.dom.widgets = {
  *   Reference to the DOM object that represents the
  *   element that provides the client area for the widget. Pass a
  *   false-value to create a new element.
- * @param oParent : Element
- *   Reference to the DOM object that represents the parent
- *   element for this widget. Pass <code>null</code> so that the
- *   widget will not be automatically attached to the document
- *   tree. You can call its {@link #appendTo()} method later to
- *   attach it.
+ * @param oParent : jsx.dom.widgets.Container
+ *   Reference to the <code>Container</code> that should contain
+ *   this widget. Pass <code>null</code> so that the widget will
+ *   not be automatically appended.  You can call its
+ *   {@link #appendTo()} method later to append it.
  * @param oProperties : Object
  */
 jsx.dom.widgets.Widget =
   function jsx_dom_widgets_Widget (oTarget, oParent, oProperties) {
     this._target = oTarget || document.createElement(this.elementType);
-    
+
     if (oParent && !(oParent instanceof jsx_dom_widgets_Widget))
     {
       return jsx.throwThis(jsx.InvalidArgumentError, [null, "Widget", oParent]);
     }
-    
+
     this._parent = oParent || null;
 
     /**
      * @type Array[Widget]
      */
     this.children = [];
-    
+
     for (var propertyName in oProperties)
     {
       /* Do not overwrite methods */
@@ -99,7 +98,7 @@ jsx.dom.widgets.Widget =
         }
       }
     }
-  
+
     if (this._target)
     {
       this.init();
@@ -135,19 +134,19 @@ jsx.dom.widgets.Widget.extend(null, {
    */
   update: (function () {
     var _setStyleProperty = jsx.dom.setStyleProperty;
-    
+
     return function () {
       var style = this.style;
       for (var styleProperty in style)
       {
         _setStyleProperty(this._target, styleProperty, style[styleProperty]);
       }
-      
+
       for (var i = 0, len = this.children.length; i < len; ++i)
       {
         this.children[i].update();
       }
-      
+
       return this;
     };
   }()),
@@ -216,9 +215,9 @@ jsx.dom.widgets.Widget.extend(null, {
     {
       this.children[i].remove();
     }
-    
+
     /* TODO: Clean-up event listener */
-    
+
     return this._parent.removeChild(this);
   },
 
@@ -245,7 +244,7 @@ jsx.dom.widgets.Container =
 jsx.dom.widgets.Container.extend(jsx.dom.widgets.Widget, {
   innerHTML: null,
   text: null,
-    
+
   /*
    * (non JSdoc)
    * @see Widget.prototype#update
@@ -274,7 +273,7 @@ jsx.dom.widgets.Container.extend(jsx.dom.widgets.Widget, {
         else
         {
           jsx.dom.removeChildren(target, target.childNodes);
-          
+
           if (_isArray(html))
           {
             html = _createNodesFromObj(html);
@@ -294,15 +293,15 @@ jsx.dom.widgets.Container.extend(jsx.dom.widgets.Widget, {
       {
         _setTextContent(target, this.text);
       }
-      
+
       target.onclick = this.onclick || null;
       target.onmouseover = this.onmouseover || null;
       target.onmousedown = this.onmousedown || null;
-      
+
       return this;
     };
   }()),
-  
+
   setText: function (text) {
     this.text = text;
     this.innerHTML = null;
@@ -320,13 +319,13 @@ jsx.dom.widgets.Container.extend(jsx.dom.widgets.Widget, {
     var childTarget = child._target;
     var target = this._target;
     var success = true;
-    
+
     if (!target.parentNode || (target != childTarget.parentNode))
     {
       target.appendChild(child._target);
       success = (target.lastChild == childTarget);
     }
-    
+
     if (success)
     {
       var childIndex = this.children.indexOf(child);
@@ -336,13 +335,13 @@ jsx.dom.widgets.Container.extend(jsx.dom.widgets.Widget, {
       }
 
       this.children.push(child);
-      
+
       result = child;
     }
-    
+
     return result;
   },
-  
+
   removeChild: function (child) {
     var childIndex = this.children.indexOf(child);
     if (childIndex >= 0)
@@ -404,18 +403,18 @@ jsx.dom.widgets.CheckBox.extend(jsx.dom.widgets.Widget, {
    * @memberOf jsx.dom.widgets.CheckBox#prototype
    */
   elementType: "input",
-  
+
   labelPosition: jsx.dom.widgets.position.AFTER,
-  
+
   /**
    * Unique ID of this control
    */
   _uid: -1,
-  
+
   init: function () {
     this._target.type = "checkbox";
     this._target.id = "checkbox" + (++this._uid);
-    
+
     var label = this.label;
     if (label)
     {
@@ -427,13 +426,13 @@ jsx.dom.widgets.CheckBox.extend(jsx.dom.widgets.Widget, {
       }
     }
   },
-  
+
   /**
    * @override
    */
   render: function () {
     jsx.dom.widgets.CheckBox._super.prototype.render.call(this);
-    
+
     var label = this.label;
     if (label)
     {
@@ -441,43 +440,43 @@ jsx.dom.widgets.CheckBox.extend(jsx.dom.widgets.Widget, {
       label.render();
     }
   },
-  
+
   /**
    * @override
    */
   unrender: function () {
     jsx.dom.widgets.CheckBox._super.prototype.unrender.call(this);
-    
+
     if (this.label)
     {
       this.label.unrender();
     }
   },
-  
+
   /**
    * @override
    */
   show: function () {
     jsx.dom.widgets.CheckBox._super.protoype.show.call(this);
-    
+
     if (this.label)
     {
       this.label.show();
     }
   },
-  
+
   /**
    * @override
    */
   hide: function () {
     jsx.dom.widgets.CheckBox._super.prototype.hide.call(this);
-    
+
     if (this.label)
     {
       this.label.hide();
     }
   },
-  
+
   /**
    * Appends the widget as a child element
    *
@@ -490,9 +489,9 @@ jsx.dom.widgets.CheckBox.extend(jsx.dom.widgets.Widget, {
     {
       parent = this._parent;
     }
-    
+
     var checkboxTarget = jsx.dom.widgets.CheckBox._super.prototype.appendTo.call(this, parent);
-    
+
     var label = this.label;
     if (label)
     {
@@ -507,7 +506,7 @@ jsx.dom.widgets.CheckBox.extend(jsx.dom.widgets.Widget, {
           labelTarget = parent._target.insertBefore(label._target, this._target.nextSibling);
         }
       }
-      
+
       label.appendTo(parent);
     }
 
@@ -516,7 +515,7 @@ jsx.dom.widgets.CheckBox.extend(jsx.dom.widgets.Widget, {
 
   /**
    * Removes the widget from the document
-   * 
+   *
    * @override
    */
   remove: function () {
@@ -556,7 +555,7 @@ jsx.dom.widgets.Input =
           (typeof e.charCode != "undefined")
             ? e.charCode
             : (typeof e.keyCode != "undefined" ? e.keyCode : charCode);
-  
+
         if (! (charCode < 32
                || me.allowedChars.test(String.fromCharCode(charCode))
             && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey))
@@ -590,12 +589,12 @@ jsx.dom.widgets.Input.extend(jsx.dom.widgets.Widget, {
       {
         this._target.value = this.value;
       }
-      
+
       if (typeof this.tabIndex != "undefined")
       {
         this._target.tabIndex = this.tabIndex;
       }
-      
+
       return this;
     };
   }())
@@ -648,21 +647,21 @@ jsx.dom.widgets.Button.extend(jsx.dom.widgets.Container, {
 jsx.dom.widgets.NumberInput =
   function jsx_dom_widgets_NumberInput (oTarget, oParent, oProperties) {
     jsx_dom_widgets_NumberInput._super.apply(this, arguments);
-  
+
     var me = this;
-  
+
     var target = this._target;
     jsx.dom.addEventListener(target, "blur", function () {
       me.update();
     });
-  
+
     jsx.dom.addEventListener(target, "focus", function () {
       if (me.leadingZero)
       {
         this.value = parseInt(this.value, 10);
       }
     });
-  
+
     if (typeof this.oninput == "function")
     {
       jsx.dom.addEventListener(target, "input", this.oninput);
@@ -751,7 +750,7 @@ jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
       {
         target.value = v;
       }
-      
+
       return this;
     };
   }()),
@@ -823,9 +822,9 @@ jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
 jsx.dom.widgets.SpinnerInput =
   function jsx_dom_widgets_SpinnerInput (oTarget, oParent, oProperties) {
     var me = this;
-  
+
     jsx_dom_widgets_SpinnerInput._super.apply(this, arguments);
-  
+
     var target = this._target;
     if (target.type != "number")
     {
@@ -845,14 +844,14 @@ jsx.dom.widgets.SpinnerInput =
             },
             onclick: function () {
               me.inc();
-  
+
               if (typeof me._target.onchange == "function")
               {
                 me._target.onchange();
               }
             }
           });
-  
+
           me.buttonDown = new jsx.dom.widgets.Button(null, null, {
             text: "\u25BE",
             tabIndex: target.tabIndex,
@@ -866,24 +865,24 @@ jsx.dom.widgets.SpinnerInput =
             },
             onclick: function () {
               me.dec();
-  
+
               if (typeof me._target.onchange == "function")
               {
                 me._target.onchange();
               }
             }
           });
-  
+
           var buttonContainer = document.createElement("div");
           buttonContainer.style.display = "inline-block";
           buttonContainer.style.lineHeight = "1em";
           buttonContainer.style.verticalAlign = "middle";
-  
+
           buttonContainer.appendChild(me.buttonUp._target);
           buttonContainer.appendChild(me.buttonDown._target);
           target.parentNode.insertBefore(buttonContainer, target.nextSibling);
         },
-  
+
         function (e) {
           if (!e || e.name !== "jsx.dom.widgets.InitError")
           {
@@ -892,7 +891,7 @@ jsx.dom.widgets.SpinnerInput =
           }
         }
       );
-  
+
       /* Add event listeners */
       jsx.dom.addEventListener(target, "keydown", jsx.dom.createEventListener(
         function (e) {
@@ -922,7 +921,7 @@ jsx.dom.widgets.SpinnerInput =
           // this.value = v;
           // }
           // } if (me.minValue != -Infinity || me.maxValue != Infinity)
-  
+
           if (typeof e.keyIdentifier != "undefined")
           {
             /* DOM Level 3 Events draft */
@@ -931,7 +930,7 @@ jsx.dom.widgets.SpinnerInput =
               case "Up":
                 me.inc();
                 break;
-  
+
               case "Down":
                 me.dec();
             }
@@ -944,16 +943,16 @@ jsx.dom.widgets.SpinnerInput =
               case 38:
                 me.inc();
                 break;
-  
+
               case 40:
                 me.dec();
             }
           }
-  
+
           me.update();
         }
       ));
-  
+
       jsx.dom.addEventListener(target, "keyup", function () { me.update(); });
     }
   };
@@ -996,7 +995,7 @@ jsx.dom.widgets.SpinnerInput.extend(jsx.dom.widgets.NumberInput, {
    */
   update: (function () {
     var update = jsx.dom.widgets.NumberInput.prototype.update;
-    
+
     return function () {
       update.call(this);
 
@@ -1005,7 +1004,7 @@ jsx.dom.widgets.SpinnerInput.extend(jsx.dom.widgets.NumberInput, {
       {
         target.onchange();
       }
-      
+
       return this;
     };
   }())
@@ -1035,7 +1034,7 @@ jsx.dom.widgets.List.extend(jsx.dom.widgets.Widget, {
     {
       this.items = [];
     }
-    
+
     this.items.push(listItem);
   },
 
@@ -1053,7 +1052,7 @@ jsx.dom.widgets.List.extend(jsx.dom.widgets.Widget, {
       }
     }
   },
-  
+
   init: function () {
     var items = this.items;
     if (items && items.length === 0)
@@ -1066,24 +1065,24 @@ jsx.dom.widgets.List.extend(jsx.dom.widgets.Widget, {
       }
     }
   },
-  
+
   update: (function () {
     var jsx_dom = jsx.dom;
     var _gEBTN = jsx_dom.getElemByTagName;
     var update = jsx_dom.widgets.Widget.prototype.update;
-    
+
     return function () {
       update.call(this);
-      
+
       var items = this.items;
       var i;
       var len = items && items.length || 0;
-      
+
       for (i = len; i--;)
       {
         items[i].update();
       }
-      
+
       var target = this._target;
       var listItems = _gEBTN("li", -1, target);
       var len2 = listItems.length;
@@ -1096,17 +1095,17 @@ jsx.dom.widgets.List.extend(jsx.dom.widgets.Widget, {
           target.replaceChild(item._target, listItem);
         }
       }
-      
+
       for (var j = listItems.length; j-- > i;)
       {
         target.removeChild(listItems[j]);
       }
-      
+
       for (++j; j < len; ++j)
       {
         items[j].appendTo(target);
       }
-      
+
       return this;
     };
   }())
@@ -1146,7 +1145,7 @@ jsx.dom.widgets.Tree.extend(jsx.dom.widgets.Widget, {
    * @memberOf jsx.dom.widgets.Tree#prototype
    */
   _list: null,
-  
+
   init: function () {
     if (!this._list)
     {
@@ -1154,13 +1153,13 @@ jsx.dom.widgets.Tree.extend(jsx.dom.widgets.Widget, {
       this._list.addItem(new jsx.dom.widget.ListItem());
     }
   },
-  
+
   update: (function () {
     var update = jsx.dom.widgets.Tree._super.prototype.update;
-    
+
     return function () {
       update.call(this);
-      
+
       return this;
     };
   })
