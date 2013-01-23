@@ -209,12 +209,14 @@ jsx.dom.getComputedStyle = (function () {
  * Retrieves the value of a style property of an HTMLElement object.
  *
  * @author
- *   (C) 2005  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   (C) 2005, 2013  Thomas Lahn &lt;js@PointedEars.de&gt;
  * @partof
- *   http://pointedears.de/scripts/dhtml.js
+ *   http://pointedears.de/scripts/dom/css.js
  */
 jsx.dom.getStyleProperty = (function () {
+  var _isHostMethod = jsx.object.isHostMethod;
   var _camelize = jsx.dom.css.camelize;
+  var _uncamelize = jsx.dom.css.uncamelize;
   
   /**
    * @param oElement : HTMLElement
@@ -231,45 +233,56 @@ jsx.dom.getStyleProperty = (function () {
   return function (oElement, sPropertyName) {
     if (oElement)
     {
-      sPropertyName = _camelize(sPropertyName);
+      /* TODO: Needed for NN4 DOM as well? */
+      var camelizedName = _camelize(sPropertyName);
   
       if (typeof oElement.style != "undefined")
       {
+        var style = oElement.style;
+        
+        /* Prefer style.getPropertyValue() over mapping to extension properties */
+        if (_isHostMethod(style, "getPropertyValue"))
+        {
+          sPropertyName = _uncamelize(sPropertyName);
+          
+          return style.getPropertyValue(sPropertyName);
+        }
+        
         /* handle the `float' property */
-        var tested = false;
+        var isStyleFloat = false;
   
-        if (sPropertyName == "float")
+        if (camelizedName == "float")
         {
           /* W3C DOM Level 2 CSS */
-          if (typeof oElement.style.cssFloat != "undefined")
+          if (typeof style.cssFloat != "undefined")
           {
-            sPropertyName = "cssFloat";
-            tested = true;
+            camelizedName = "cssFloat";
+            isStyleFloat = true;
           }
   
           /* MSHTML DOM */
-          else if (typeof oElement.style.styleFloat != "undefined")
+          else if (typeof style.styleFloat != "undefined")
           {
-            sPropertyName = "styleFloat";
-            tested = true;
+            camelizedName = "styleFloat";
+            isStyleFloat = true;
           }
         }
   
-        if (tested || typeof oElement.style[sPropertyName] != "undefined")
+        if (isStyleFloat || typeof style[camelizedName] != "undefined")
         {
-          return oElement.style[sPropertyName];
+          return style[camelizedName];
         }
       }
       else
       {
-        if (sPropertyName == "display")
+        if (camelizedName == "display")
         {
-          sPropertyName = "visibility";
+          camelizedName = "visibility";
         }
   
-        if (typeof oElement[sPropertyName] != "undefined")
+        if (typeof oElement[camelizedName] != "undefined")
         {
-          return oElement[sPropertyName];
+          return oElement[camelizedName];
         }
       }
     }
@@ -282,9 +295,9 @@ jsx.dom.getStyleProperty = (function () {
  * Determines whether an HTMLElement object has a style property or not.
  *
  * @author
- *   (C) 2006  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   (C) 2006  Thomas Lahn &lt;js@PointedEars.de&gt;
  * @partof
- *   http://pointedears.de/scripts/dhtml.js
+ *   http://pointedears.de/scripts/dom/css.js
  * @param oElement : HTMLElement
  *   Reference to the element object which style property is to be retrieved.
  * @param sPropertyName : string
@@ -306,9 +319,9 @@ jsx.dom.hasStyleProperty = function (oElement, sPropertyName) {
  *
  * @function
  * @author
- *   (C) 2003-2008  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ *   (C) 2003-2013  Thomas Lahn &lt;js@PointedEars.de&gt;
  * @partof
- *   http://pointedears.de/scripts/dhtml.js
+ *   http://pointedears.de/scripts/dom/css.js
  */
 jsx.dom.setStyleProperty = (function () {
   var _isHostMethod = jsx.object.isHostMethod;
