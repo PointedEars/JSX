@@ -311,7 +311,9 @@ jsx.dom.hasStyleProperty = function (oElement, sPropertyName) {
  *   http://pointedears.de/scripts/dhtml.js
  */
 jsx.dom.setStyleProperty = (function () {
+  var _isHostMethod = jsx.object.isHostMethod;
   var _camelize = jsx.dom.css.camelize;
+  var _uncamelize = jsx.dom.css.uncamelize;
   
   /**
    * @param oElement : HTMLElement
@@ -337,53 +339,73 @@ jsx.dom.setStyleProperty = (function () {
   return function (oElement, sPropertyName, propValue, altValue) {
     if (oElement)
     {
-      sPropertyName = _camelize(sPropertyName);
-  
+      /* TODO: Needed for NN4 DOM as well? */
+      var camelizedName = _camelize(sPropertyName);
+      
       if (typeof oElement.style != "undefined")
       {
+        var style = oElement.style;
+        
+        /* Prefer style.setProperty() over mapping to extension properties */
+        if (_isHostMethod(style, "setProperty"))
+        {
+          sPropertyName = _uncamelize(sPropertyName);
+          
+          style.setProperty(sPropertyName, propValue);
+          
+          if (!_isHostMethod(style, "getPropertyValue"))
+          {
+            return true;
+          }
+
+          return (String(style.getPropertyValue(sPropertyName)).toLowerCase()
+                  == String(propValue).toLowerCase());
+        }
+        
         /* handle the `float' property */
         var isStyleFloat = false;
   
-        if (sPropertyName == "float")
+        if (camelizedName == "float")
         {
           /* W3C DOM Level 2 CSS */
-          if (typeof oElement.style.cssFloat != "undefined")
+          if (typeof style.cssFloat != "undefined")
           {
-            sPropertyName = "cssFloat";
+            camelizedName = "cssFloat";
             isStyleFloat = true;
           }
   
           /* MSHTML DOM */
-          else if (typeof oElement.style.styleFloat != "undefined")
+          else if (typeof style.styleFloat != "undefined")
           {
-            sPropertyName = "styleFloat";
+            camelizedName = "styleFloat";
             isStyleFloat = true;
           }
         }
   
-        if (isStyleFloat || typeof oElement.style[sPropertyName] != "undefined")
+        if (isStyleFloat || typeof style[camelizedName] != "undefined")
         {
           /*
            * NOTE: Shortcut evaluation changed behavior;
            * result of assignment is *right-hand side* operand
            */
-          oElement.style[sPropertyName] = propValue;
-          return (String(oElement.style[sPropertyName]).toLowerCase()
+          style[camelizedName] = propValue;
+          return (String(style[camelizedName]).toLowerCase()
                   == String(propValue).toLowerCase());
         }
       }
       else
       {
-        if (sPropertyName == "display" && altValue)
+        /* NN4 DOM */
+        if (camelizedName == "display" && altValue)
         {
-          sPropertyName = "visibility";
+          camelizedName = "visibility";
         }
   
-        if (typeof oElement[sPropertyName] != "undefined")
+        if (typeof oElement[camelizedName] != "undefined")
         {
           var newValue = (altValue || propValue);
-          oElement[sPropertyName] = newValue;
-          return (String(oElement[sPropertyName]).toLowerCase()
+          oElement[camelizedName] = newValue;
+          return (String(oElement[camelizedName]).toLowerCase()
             == String(newValue).toLowerCase());
         }
       }
