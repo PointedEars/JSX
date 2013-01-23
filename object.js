@@ -2839,5 +2839,5 @@ jsx.object.PropertyError.extend(jsx.object.ObjectError, {
   /**
    * @memberOf jsx.object.PropertyError#prototype
    */
-  //name: "jsx.object.PropertyError"
+  name: "jsx.object.PropertyError"
 });
