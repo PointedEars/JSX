@@ -1088,28 +1088,19 @@ jsx.dom.createNodesFromObj = (function () {
         if (prop == "style")
         {
           var style = properties[prop];
-          for (var styleProp in style)
+          var _setStyleProperty = jsx.dom.css
+          if (typeof style != "string" && typeof _setStyleProperty != "function")
           {
-            if (!style.hasOwnProperty(styleProp))
+            jsx.warn("JSX:dom/css.js:jsx.dom.setStyleProperty()"
+              + " is recommended for setting style object properties");
+            el[prop] = style;
+          }
+          else
+          {
+            for (var styleProp in style)
             {
-              continue;
+              _setStyleProperty(el, styleProp, style[styleProp]);
             }
-
-            var targetProp = styleProp;
-            if (targetProp === "float")
-            {
-              if (typeof style.cssFloat != "undefined")
-              {
-                targetProp = "cssFloat";
-              }
-              else if (typeof style.styleFloat != "undefined")
-              {
-                targetProp = "styleFloat";
-              }
-
-            }
-
-            el.style[targetProp] = style[styleProp];
           }
         }
         else
