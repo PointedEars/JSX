@@ -5,34 +5,69 @@ RedirectMatch permanent ^(/scripts)/((dom|es)-matrix.*) $1/test/$2
 RedirectMatch permanent ^/scripts/websvn /websvn/listing.php?repname=JSX\&path=/trunk/
 
 Options +Indexes
-AddDescription "Creates documentation markup from JSdoc&trade; comments within JavaScript&trade; source code" JSdoc AddDescription "LCARS Extensions" LCARS.js
+AddDescription "Automatic cache control and gzipping, by Mark Nottingham; see also <a href='http://www.mnot.net/cgi_buffer/'>http://www.mnot.net/cgi_buffer/</a>" cgi_buffer
+AddDescription "Old versions" _*
 AddDescription "ECMAScript Support Matrix" es-matrix
 AddDescription "LCARS Extensions: \"ACCESSING...\"" accessng.js
-AddDescription "Array Library" array.js
+AddDescription "When we saved the Internet" anti-SOPA.js
+AddDescription "JSX: Array library" array.js
 AddDescription "LCARS Extensions: PageBack" back.js
 AddDescription "back.js Documentation" back.txt
-AddDescription "CSS Library" css.js
-AddDescription "Collection Library" collection.js
-AddDescription "JavaScript Cookie Data Access Prototype" cookie.js
+AddDescription "PointedEars' Resource Builder (see <a href='websvn/'>websvn</a> for more)" builder.php
+AddDescription "JSX: Collection library" collection.js
+AddDescription "JSX: CSS colors library" color.js
+AddDescription "JSX: Compatibility layer" compat.js
+AddDescription "JavaScript cookie data access prototype (legacy code)" cookie.js
 AddDescription "cookie.js Documentation" cookie.txt
 AddDescription "JavaScript ClosePage Support" close.js
-AddDescription "DOM Library" dhtml.js
+AddDescription "JSX: DOM Events library" events.js
+AddDescription "Creates documentation markup from JSdoc&trade; comments within JavaScript&trade; source code" JSdoc
+AddDescription "JSdoc note template" jsdoc-note.js
+AddDescription "JavaScript routines and objects to create temporary documents" document.js
+AddDescription "JSX live documentation (experimental)" doc
+AddDescription "JSX: DOM base library (see <a href='dom'>dom</a> package for more)" dom.js
+AddDescription "JSX: DOM package" dom
 AddDescription "JavaScript Routines and Objects to Create Temporary Documents" document.js
 AddDescription "enhanced.js Documentation" enhanced.htm
 AddDescription "JSX: Level-1 Enhanced Website Features" enhanced.js
 AddDescription "enhancd2.js Documentation" enhancd2.htm
-AddDescription "JSX: Level-2 Enhanced Website Features (depends on enhanced.js)" enhancd2.js
-AddDescription "Global Object Support Library" global.js
-AddDescription "JSX: Math Library" math.js
-AddDescription "Basic Object Library" object.js
-AddDescription "JSX: Support for Outline-styled Structure Using Dynamic HTML Statements" outline.js
-AddDescription "JSX: RegExp Library" regexp.js
+AddDescription "JSX: Level-2 Enhanced Website Features (legacy code, depends on enhanced.js)" enhancd2.js
+AddDescription "JavaScript FAQs that I maintain(ed)" faq
+AddDescription "JSX: Forms library" forms.js
+AddDescription "JSX: Global Object support library" global.js
+AddDescription "JSX: HTTP library" http.js
+AddDescription "LCARS Extensions" LCARS.js
+AddDescription "JSX: Thread-unsafe map implementations" map.js
+AddDescription "JSX: Base math library, see <a href='math/'>math</a> package for more)" math.js
+AddDescription "JSX: Math package" math
+AddDescription "JSX: Base object library (old version)" object-old.js
+AddDescription "JSX: Base object library" object.js
+AddDescription "JSX: Object Package" object
+AddDescription "Support for outline-styled structure using Dynamic HTML statements (legacy code)" outline.js
+AddDescription "CommonJS Promises/A implementation (stub)" parallel.js
+AddDescription "PHPX: MVC-based application framework and libraries" php
+AddDescription "JSX: Pythonic functions for ECMAScript implementations" python.js
+AddDescription "JSX: Regular Expressions (RegExp) support library" regexp.js
 AddDescription "search.js Documentation" search.htm
-AddDescription "JSX: Search-String Library" search.js
-AddDescription "JSX: String Library" string.js
-AddDescription "Documentation Global Style-Sheet" style.css
-AddDescription "JSX: Time Prototypes and Functions" time.js
+AddDescription "JSX: Search-string library" search.js
+AddDescription "Comparison of (s)printf conversion support across programming languages" sprintf.txt
+AddDescription "JSX: DOM Storage library" storage.js
+AddDescription "JSX: String library" string.js
+AddDescription "JSX: String Package" string
+AddDescription "Old global documentation stylesheet" style-old.css
+AddDescription "Global documentation stylesheet" style.css
+AddDescription "JSX: Time prototypes and functions" time.js
 AddDescription "time.js Documentation" time.txt
-AddDescription "Type Function Library" types.js
-AddDescription "Window Function Library" window.js
-AddDescription "XPath Library" xpath.js
+AddDescription "JSX: Timeout library" timeout.js
+AddDescription "JSX: Test cases and development package" test
+AddDescription "JSX: Type methods library" types.js
+AddDescription "JSX: Unicode character properties support library for <a href='regexp.js'>regexp.js</a>" UnicodeData.js
+AddDescription "JSX: Plain-text version of the Unicode Character Database for <a href='regexp.js'>regexp.js</a>" UnicodeData.txt
+AddDescription "Subversion repository browser" websvn
+AddDescription "JSX: Widgets library" widgets.js
+AddDescription "JSX: Legacy widgets library" widgets2.js
+AddDescription "JSX: Window function library" window.js
+AddDescription "JSX: DOM XPath library" xpath.js
+AddDescription "JSX: DOM CSS library (see <a href='css/'>css</a> package for more)" css.js
+AddDescription "JSX: DOM CSS package" css
+
