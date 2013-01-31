@@ -339,7 +339,7 @@ jsx.test.runner = {
             + context + " thead th:first-child { text-align: right; }"
             + context + " tbody th { text-align: right; }"
             + context + " tbody td.info { background-color: green; color: white; }"
-            + context + " tbody td.error { background-color: red; color: white; }"
+            + context + " tbody td.error { background-color: red; color: white; font-family: monospace; }"
             + context + " thead th,"
             + context + " tbody th,"
             + context + " tbody td,"
@@ -445,7 +445,10 @@ jsx.test.runner = {
       tr.appendChild(td);
       
       td = document.createElement("td");
-      td.appendChild(document.createTextNode(this._htmlEscape(result)));
+      
+      /* FIXME: Use standards-compliant methods instead */
+      td.innerHTML = this._htmlEscape(result).replace(/\r?\n|\r/g, "<br>");
+      
       td.className = msgType;
       tr.appendChild(td);
       
