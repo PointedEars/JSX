@@ -60,9 +60,9 @@ jsx.dom.css = {
 jsx.dom.css.camelize = (function () {
   var _jsx_object = jsx.object;
 
-  if (typeof Map == "function")
+  if (typeof jsx.map != "undefined" && typeof jsx.map.Map == "function")
   {
-    var cache = new Map();
+    var cache = new jsx.map.Map();
   }
   else
   {
@@ -110,9 +110,9 @@ jsx.dom.css.camelize = (function () {
 jsx.dom.css.uncamelize = (function () {
   var _jsx_object = jsx.object;
   
-  if (typeof Map == "function")
+  if (typeof jsx.map != "undefined" && typeof jsx.map.Map == "function")
   {
-    var cache = new Map();
+    var cache = new jsx.map.Map();
   }
   else
   {
@@ -537,6 +537,7 @@ jsx.dom.hoverImg.clMouseout = "#000";
 jsx.dom.hoverImg.clMouseover = "#fff";
 
 jsx.dom.getAbsPos = function (oNode) {
+  /* TODO: One initialization for all properties? */
   var result = {};
   result.x = result.y = 0;
   result.toString = function () {
