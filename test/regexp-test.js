@@ -588,7 +588,7 @@ function runTests ()
             {
               out.push(rx);
             }
-          },
+          }
         },
         {
           name: "Throw exception on undefined property class",
