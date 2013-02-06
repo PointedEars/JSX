@@ -209,7 +209,7 @@ function antiSOPA (contentName)
                 childNodes: [
                              " – “Captain\xA0Picard”, ibid.",
                              ]
-              },
+              }
             ]
           },
           {
@@ -285,7 +285,7 @@ function antiSOPA (contentName)
             ]
           }
         ]
-      },
+      }
     ]
   });
 
