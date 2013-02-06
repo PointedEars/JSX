@@ -349,7 +349,7 @@ jsx.dom.widgets.Container.extend(jsx.dom.widgets.Widget, {
       this._target.removeChild(child._target);
       this.children.splice(childIndex, 1);
     }
-  },
+  }
 });
 
 jsx.dom.widgets.Section =
@@ -625,7 +625,7 @@ jsx.dom.widgets.Button.extend(jsx.dom.widgets.Container, {
           jsx_dom_widgets_Button_prototype_init);
       }
     );
-  },
+  }
 });
 
 /**
@@ -1120,7 +1120,7 @@ jsx.dom.widgets.OrderedList.extend(jsx.dom.widgets.List, {
   /**
    * @memberOf jsx.dom.widgets.OrderedList#prototype
    */
-  elementType: "ol",
+  elementType: "ol"
 });
 
 jsx.dom.widgets.UnorderedList =
@@ -1132,7 +1132,7 @@ jsx.dom.widgets.UnorderedList.extend(jsx.dom.widgets.List, {
   /**
    * @memberOf jsx.dom.widgets.UnorderedList#prototype
    */
-  elementType: "ul",
+  elementType: "ul"
 });
 
 jsx.dom.widgets.Tree =
