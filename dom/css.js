@@ -51,7 +51,102 @@ if (typeof jsx.dom == "undefined")
  * @namespace
  */
 jsx.dom.css = {
-  version: "0.1.$Revision$"
+  version: "0.1.$Revision$",
+  
+  /**
+   * Supported CSS data types.  Properties include:
+   *        <dl>
+   *          <dt><code>NUMBER</code></dt>
+   *            <dd></dd>
+   *
+   *          <dt><code>LENGTH</code></dt>
+   *            <dd></dd>
+   *
+   *          <dt><code>PERCENTAGE</code></dt>
+   *            <dd></dd>
+   *
+   *          <dt><code>URI</code></dt>
+   *            <dd>Uniform Resource Identifier or URI-reference (see RFC 3986),
+   *                enclosed in <code>url(…)</code></dd>
+   *
+   *          <dt><code>COUNTER</code></dt>
+   *            <dd>CSS counter</dd>
+   *
+   *          <dt><code>COLOR</code></dt>
+   *            <dd>Color in RGB(A) or HSV format</dd>
+   *
+   *          <dt><code>STRING</code></dt>
+   *            <dd>Unicode string</dd>
+   *        </dl>
+   *
+   * @namespace
+   */
+  types: {
+    /**
+     * Numeric scalar value
+     */
+    NUMBER:     0,
+    
+    /**
+     * Length given relative in <code>em</code> (width of the
+     * M&nbsp;square) or <code>ex</code> (height of the x square),
+     * or absolute in <code>in</code> (inches), <code>cm</code>
+     * (centimeters), <code>mm</code> (millimeters), <code>pt</code>
+     * (points), <code>pc</code> (picas), or <code>px</code>
+     * (pixels).
+     */
+    LENGTH:     1,
+    
+    /**
+     * Length given in percentage of the parent
+     */
+    PERCENTAGE: 2,
+    
+    /**
+     * Uniform Resource Identifier or URI-reference (see RFC 3986),
+     * enclosed in <code>url(…)</code>.
+     */
+    URI:        3,
+    
+    /**
+     * CSS counter
+     */
+    COUNTER:    4,
+    
+    /**
+     * Color given in RGB(A) or HSV format
+     */
+    COLOR:      5,
+    
+    /**
+     * String of Unicode characters
+     */
+    STRING:     6,
+    
+    /**
+     * List of transformations
+     */
+    TRANSFORM:  7,
+  }
+};
+
+/**
+ * Provides information about the type of a CSS property and its relation
+ * to other CSS properties
+ * 
+ * @namespace
+ */
+jsx.dom.css.propertyInfo = {
+  left:   {type: jsx.dom.css.types.LENGTH, correspondsTo: "top"},
+  top:    {type: jsx.dom.css.types.LENGTH, correspondsTo: "left"},
+  right:  {type: jsx.dom.css.types.LENGTH, correspondsTo: "bottom"},
+  bottom: {type: jsx.dom.css.types.LENGTH, correspondsTo: "right"},
+  width:  {type: jsx.dom.css.types.LENGTH, correspondsTo: "height"},
+  height: {type: jsx.dom.css.types.LENGTH, correspondsTo: "width"},
+  color:  {type: jsx.dom.css.types.COLOR},
+  backgroundColor:    {type: jsx.dom.css.types.COLOR},
+  "background-color": {type: jsx.dom.css.types.COLOR},
+  transform: {type: jsx.dom.css.types.TRANSFORM}
 };
 
 /**
