@@ -1,6 +1,7 @@
 /**
  * @author PointedEars
  * @requires dom.js
+ * @requires dom/css.js
  */
 
 if (typeof jsx == "undefined")
@@ -52,96 +53,7 @@ if (typeof jsx.dom == "undefined")
  * @namespace
  */
 jsx.dom.animation = {
-  version: "0.1.2.2011020523",
-
-  /**
-   * Supported CSS data types.  Properties include:
-   *        <dl>
-   *          <dt><code>NUMBER</code></dt>
-   *            <dd></dd>
-   *
-   *          <dt><code>LENGTH</code></dt>
-   *            <dd></dd>
-   *
-   *          <dt><code>PERCENTAGE</code></dt>
-   *            <dd></dd>
-   *
-   *          <dt><code>URI</code></dt>
-   *            <dd>Uniform Resource Identifier or URI-reference (see RFC 3986),
-   *                enclosed in <code>url(…)</code></dd>
-   *
-   *          <dt><code>COUNTER</code></dt>
-   *            <dd>CSS counter</dd>
-   *
-   *          <dt><code>COLOR</code></dt>
-   *            <dd>Color in RGB(A) or HSV format</dd>
-   *
-   *          <dt><code>STRING</code></dt>
-   *            <dd>Unicode string</dd>
-   *        </dl>
-   *
-   * @namespace
-   */
-  types: {
-    /**
-     * Numeric scalar value
-     */
-    NUMBER:     0,
-    
-    /**
-     * Length given relative in <code>em</code> (width of the
-     * M&nbsp;square) or <code>ex</code> (height of the x square),
-     * or absolute in <code>in</code> (inches), <code>cm</code>
-     * (centimeters), <code>mm</code> (millimeters), <code>pt</code>
-     * (points), <code>pc</code> (picas), or <code>px</code>
-     * (pixels).
-     */
-    LENGTH:     1,
-    
-    /**
-     * Length given in percentage of the parent
-     */
-    PERCENTAGE: 2,
-    
-    /**
-     * Uniform Resource Identifier or URI-reference (see RFC 3986),
-     * enclosed in <code>url(…)</code>.
-     */
-    URI:        3,
-    
-    /**
-     * CSS counter
-     */
-    COUNTER:    4,
-    
-    /**
-     * Color given in RGB(A) or HSV format
-     */
-    COLOR:      5,
-    
-    /**
-     * String of Unicode characters
-     */
-    STRING:     6
-  }
-};
-
-/**
- * Provides information about the type of a CSS property and its relation
- * to other CSS properties
- * 
- * @namespace
- */
-jsx.dom.animation.propertyInfo = {
-  left:   {type: jsx.dom.animation.types.LENGTH, correspondsTo: "top"},
-  top:    {type: jsx.dom.animation.types.LENGTH, correspondsTo: "left"},
-  right:  {type: jsx.dom.animation.types.LENGTH, correspondsTo: "bottom"},
-  bottom: {type: jsx.dom.animation.types.LENGTH, correspondsTo: "right"},
-  width:  {type: jsx.dom.animation.types.LENGTH, correspondsTo: "height"},
-  height: {type: jsx.dom.animation.types.LENGTH, correspondsTo: "width"},
-  color:  {type: jsx.dom.animation.types.COLOR},
-  backgroundColor:    {type: jsx.dom.animation.types.COLOR},
-  "background-color": {type: jsx.dom.animation.types.COLOR}
+  version: "0.1.$Revision$"
 };
 
 /**
@@ -551,6 +463,7 @@ jsx.dom.animation.Timeline.extend(null, {
     var
       _jsx_object = jsx.object,
       _jsx_dom = jsx.dom,
+      _jsx_dom_css = _jsx_dom.css,
       _jsx_dom_animation = _jsx_dom.animation,
       _Color = _jsx_dom.css.Color;
 
@@ -580,10 +493,10 @@ jsx.dom.animation.Timeline.extend(null, {
               }
               
               var propertyType = _jsx_object.getProperty(
-                _jsx_dom_animation.propertyInfo, stylePropertyName, {type: null}).type;
+                _jsx_dom_css.propertyInfo, stylePropertyName, {type: null}).type;
               switch (propertyType)
               {
-                case _jsx_dom_animation.types.LENGTH:
+                case _jsx_dom_css.types.LENGTH:
                   if (isNaN(oldStylePropertyValue))
                   {
                     oldStylePropertyValue = parseFloat(oldStylePropertyValue);
@@ -604,7 +517,7 @@ jsx.dom.animation.Timeline.extend(null, {
                   }
                   break;
               
-                case _jsx_dom_animation.types.COLOR:
+                case _jsx_dom_css.types.COLOR:
                   if (!_jsx_object.isInstanceOf(oldStylePropertyValue, _Color))
                   {
                     oldStylePropertyValue = new _Color(oldStylePropertyValue);
@@ -775,7 +688,8 @@ jsx.dom.animation.Timeline.extend(null, {
     var
       _jsx_object = jsx.object,
       _jsx_dom = jsx.dom,
-      _jsx_dom_animation = jsx.dom.animation,
+      _jsx_dom_animation = _jsx_dom.animation,
+      _jsx_dom_css = _jsx_dom.css,
       getPropertySetter = function (target, values, bDontPlay, oTimeline) {
         return function () {
           var setToRelative = false;
@@ -787,8 +701,8 @@ jsx.dom.animation.Timeline.extend(null, {
               var style = values.style;
               for (var styleProperty in style)
               {
-                var thisPropertyInfo = _jsx_dom_animation.propertyInfo[styleProperty];
-                if (thisPropertyInfo && thisPropertyInfo.type == _jsx_dom_animation.types.LENGTH)
+                var thisPropertyInfo = _jsx_dom_css.propertyInfo[styleProperty];
+                if (thisPropertyInfo && thisPropertyInfo.type == _jsx_dom_css.types.LENGTH)
                 {
                   if (!setToRelative && typeof style.position == "undefined")
                   {
@@ -1133,7 +1047,9 @@ jsx.dom.animation.KeyFrame.extend(jsx.dom.animation.Frame, {
     var _jsx_object = jsx.object;
     var _getKeys = _jsx_object.getKeys;
     var _getProperty = _jsx_object.getProperty;
-    var _jsx_dom_animation = jsx.dom.animation;
+    var _jsx_dom = jsx.dom;
+    var _jsx_dom_animation = _jsx_dom.animation;
+    var _jsx_dom_css = _jsx_dom.css;
     
     return function () {
       var style = this.values.style;
@@ -1145,10 +1061,10 @@ jsx.dom.animation.KeyFrame.extend(jsx.dom.animation.Frame, {
         var propertyValue = style[stylePropertyName];
         
         var propertyType = _getProperty(
-          _jsx_dom_animation.propertyInfo, stylePropertyName, {type: null}).type;
+          _jsx_dom_css.propertyInfo, stylePropertyName, {type: null}).type;
         switch (propertyType)
         {
-          case _jsx_dom_animation.types.LENGTH:
+          case _jsx_dom_css.types.LENGTH:
             propertyValue += "px";
             break;
         }
