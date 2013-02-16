@@ -2,7 +2,7 @@
 /**
  * <title>PointedEars' DOM Library: CSS Colors</title>
  * @version $Id$
- * @requires css.js
+ * @requires dom/css.js
  *
  * @section Copyright & Disclaimer
  *
