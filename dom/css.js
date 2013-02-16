@@ -1,7 +1,8 @@
 /**
  * <title>PointedEars' DOM Library: CSS</title>
  * @version $Id$
- * @requires dom.js, collection.js
+ * @requires dom.js
+ * @recommends collection.js
  *
  * @section Copyright & Disclaimer
  *

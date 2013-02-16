@@ -92,7 +92,7 @@ class ResourceBuilder
    */
   protected $_typeMap = array(
     'text/javascript' => 'js',
-    'text/css' => 'css'
+    'text/css'        => 'css',
   );
   
   /**
@@ -123,19 +123,19 @@ class ResourceBuilder
   protected $_commentCount = 0;
   
   protected $_jsxDeps = array(
-    'types'          => array('object'),
-    'xpath'          => array('object'),
-    'http'           => array('object', 'string'),
-    'debug'          => array('object','types', 'array'),
-    'dom'            => array('types'),
     'collection'     => array('object'),
-    'dom/css'        => array('dom', 'collection'),
-    'dom/events'     => array('dom'),
+    'dom'            => array('object'),
+    'dom/css'        => array('dom'),
     'dom/css/color'  => array('dom/css'),
+    'dom/events'     => array('dom'),
+    'dom/xpath'      => array('object'),
+    'http'           => array('object', 'string'),
+    'test/debug'     => array('object', 'types', 'array'),
+    'types'          => array('object'),
   );
   
   /**
-   * If <code>true</code> resolve JSX dependencies statically
+   * If <code>true</code>, resolve JSX dependencies statically
    * (EXPERIMENTAL)
    * @var boolean
    */
@@ -442,7 +442,7 @@ class ResourceBuilder
         . ($this->verbose
             ?   " * Type:          {$contentType}\n"
               . " * Common Prefix: " . ($prefix ? $prefix : '<none>') . "\n"
-               . " * Resources:     " . implode(', ', $this->sources) . "\n"
+              . " * Resources:     " . implode(', ', $this->sources)  . "\n"
             : '')
         . " *\n"
         . " * Please see the original files for the complete source code.\n"
