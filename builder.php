@@ -145,38 +145,31 @@ class ResourceBuilder
   {
     if (isset($_GET['src']))
     {
-      if (isset($_GET['prefix']))
+      $params = array(
+        'prefix',
+        'sources' => 'src',
+        'contentType' => 'type',
+        'debug',
+        'verbose',
+        'force_gzip' => 'gzip',
+        'resolve'
+      );
+      
+      foreach ($params as $property => $param)
       {
-        $this->prefix = $_GET['prefix'];
+        if (isset($_GET[$param]))
+        {
+          $value = $_GET[$param];
+          
+          if (is_int($property))
+          {
+            $property = $param;
+          }
+          
+          $this->$property = $value;
+        }
       }
-      
-      $this->sources = $_GET['src'];
-      
-      if (isset($_GET['type']))
-      {
-        $this->contentType = $_GET['type'];
-      }
-      
-      if (isset($_GET['debug']))
-      {
-        $this->debug = $_GET['debug'];
-      }
-      
-      if (isset($_GET['verbose']))
-      {
-        $this->verbose = $_GET['verbose'];
-      }
-      
-      if (isset($_GET['gzip']))
-      {
-        $this->force_gzip = $_GET['gzip'];
-      }
-      
-      if (isset($_GET['resolve']))
-      {
-        $this->resolve = $_GET['resolve'];
-      }
-      
+            
       $this->commentCount = 0;
     }
   }
