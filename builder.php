@@ -24,7 +24,7 @@
 
 if (!function_exists('lcfirst'))
 {
-  function lcfirst($name)
+  function lcfirst ($name)
   {
     return strtolower(substr($name, 0, 1)) . substr($name, 1);
   }
@@ -60,6 +60,8 @@ if (!function_exists('lcfirst'))
  */
 class ResourceBuilder
 {
+  const SCRIPT_CONTENT_TYPE = 'text/javascript';
+  
   /**
     * Class version
    * @var string
@@ -82,7 +84,7 @@ class ResourceBuilder
    * Content-type to be used
    * @var string
    */
-  protected $_contentType = 'text/javascript';
+  protected $_contentType = self::SCRIPT_CONTENT_TYPE;
   
   /**
    * @property-read  array $typeMap
@@ -121,16 +123,25 @@ class ResourceBuilder
   protected $_commentCount = 0;
   
   protected $_jsxDeps = array(
-    'types'  => 'object',
-    'xpath'  => 'object',
-    'http'   => 'object,string',
-    'debug'  => 'object,types,array',
-    'dom'    => 'types',
-    'css'    => 'dom,collection',
-    'events' => 'dom',
+    'types'          => array('object'),
+    'xpath'          => array('object'),
+    'http'           => array('object', 'string'),
+    'debug'          => array('object','types', 'array'),
+    'dom'            => array('types'),
+    'collection'     => array('object'),
+    'dom/css'        => array('dom', 'collection'),
+    'dom/events'     => array('dom'),
+    'dom/css/color'  => array('dom/css'),
   );
-    
-  public function __construct()
+  
+  /**
+   * If <code>true</code> resolve JSX dependencies statically
+   * (EXPERIMENTAL)
+   * @var boolean
+   */
+  protected $_resolve = false;
+  
+  public function __construct ()
   {
     if (isset($_GET['src']))
     {
@@ -161,6 +172,11 @@ class ResourceBuilder
         $this->force_gzip = $_GET['gzip'];
       }
       
+      if (isset($_GET['resolve']))
+      {
+        $this->resolve = $_GET['resolve'];
+      }
+      
       $this->commentCount = 0;
     }
   }
@@ -172,7 +188,7 @@ class ResourceBuilder
    * @return mixed Property value
    * @throws DomainException if no specific getter or such a property exists
    */
-  public function __get($name)
+  public function __get ($name)
   {
     $getter = 'get' . ucfirst($name);
     $property = '_' . lcfirst($name);
@@ -205,7 +221,7 @@ class ResourceBuilder
    * @param mixed $value
    * @throws DomainException if no specific setter or such a property exists
    */
-  public function __set($name, $value)
+  public function __set ($name, $value)
   {
     $setter = 'set' . ucfirst($name);
     $property = '_' . lcfirst($name);
@@ -238,7 +254,7 @@ class ResourceBuilder
    *
    * @param string|array $value  Sources to process
    */
-  protected function setSources($value)
+  protected function setSources ($value)
   {
     if (!is_array($value))
     {
@@ -251,21 +267,21 @@ class ResourceBuilder
   /**
    * Sets the _contentType property
    *
-   * @param string $type
+   * @param string $value
    */
-  protected function setContentType($type)
+  protected function setContentType ($value)
   {
-    $this->_contentType = ($type ? $type : 'text/javascript');
+    $this->_contentType = ($value ? $value : 'text/javascript');
   }
   
   /**
    * Sets the _debug property
    *
-   * @param string $debug
+   * @param string $value
    */
-  protected function setDebug($debug)
+  protected function setDebug ($value)
   {
-    if ($debug != 0)
+    if ($value != 0)
     {
       $this->_debug = true;
     }
@@ -274,24 +290,37 @@ class ResourceBuilder
   /**
    * Sets the _verbose property
    *
-   * @param string $verbose
+   * @param string $value
    */
-  protected function setVerbose($verbose)
+  protected function setVerbose ($value)
   {
-    if ($verbose != 0)
+    if ($value != 0)
     {
       $this->_verbose = true;
     }
   }
   
   /**
-   * Sets the _force_gzip property
+   * Sets the <code>_force_gzip</code> property
    *
-   * @param mixed $gzip
+   * @param mixed $value
    */
-  protected function setForce_gzip($gzip)
+  protected function setForce_gzip($value)
   {
-    $this->_force_gzip = ($gzip !== null) ? !!$gzip : $gzip;
+    $this->_force_gzip = ($value !== null) ? !!$value : $value;
+  }
+  
+  /**
+   * Sets the <code>_resolve</code> property
+   *
+   * @param mixed $value
+   */
+  protected function setResolve ($value)
+  {
+    if ($value != 0)
+    {
+      $this->_resolve = true;
+    }
   }
   
   /**
@@ -300,7 +329,7 @@ class ResourceBuilder
    * @return string
    *   Original comment or the empty string
    */
-  protected function commentReplacer($match)
+  protected function commentReplacer ($match)
   {
     ++$this->_commentCount;
 
@@ -320,7 +349,7 @@ class ResourceBuilder
    * @return string Processed source code
    * @todo Do not strip from within literals
    */
-  protected function uncomment($s)
+  protected function uncomment ($s)
   {
     return preg_replace('#^[\\t ]*//.*(?:\\r?\\n|\\r)*#m', '',
       preg_replace('/^\\s+|\\s+$/', '',
@@ -339,7 +368,7 @@ class ResourceBuilder
    * @return string Processed source code
    * @todo Do not strip from within literals
    */
-  protected function stripJSdoc($s)
+  protected function stripJSdoc ($s)
   {
     $s = preg_replace_callback(
       '#[\\t ]*/\\*\\*(?:[^*]|\\*[^/])*\\*/(?:\\r?\\n|\\r)?#',
@@ -350,70 +379,40 @@ class ResourceBuilder
   }
 
   /**
-   * @todo
+   * Resolves JSX dependencies from static information
+   * @todo Use dynamic inline information
+   *
+   * @param array $sources
+   *   List of required resources
+   * @param array $new_sources [optional $name => $name]
+   *   Associative array used internally to build the list
+   *   of sources with their dependencies
+   * @return array
+   *   List of sources with their dependencies resolved
    */
-  protected function resolveDeps()
+  protected function resolveDeps (array $sources, array &$new_sources = array())
   {
     $deps = $this->jsxDeps;
-    $old_sources = $this->sources;
-    $new_sources = $old_sources;
     
-    /*
-     * "css"
-     *
-     */
-    
-    $seen = array();
-    
-    foreach ($old_sources as $key => $source)
+    foreach ($sources as $name)
     {
-      if (!array_key_exists($source, $seen))
+      if (!array_key_exists($name, $new_sources)
+          && array_key_exists($name, $deps))
       {
-        $new_sources[] = $source;
-        $seen[$source] = $key;
-        
-        if (array_key_exists($source, $deps))
-        {
-          /* if the needed script has dependencies */
-          $source_deps = $deps[$source];
-
-          if (!is_array($source_deps))
-          {
-            $source_deps = explode(',', $source_deps);
-          }
-          
-          /* for all dependences of that script */
-          foreach ($source_deps as $dep)
-          {
-            if (!array_key_exists($dep, $seen))
-            {
-              /*
-               * if the dependency has not yet been included, insert it before
-               * the script
-               */
-              /* Insert dependencies */
-              /*
-               * events   http ---> string
-               *  |         |        |
-               *  v         v        v
-               * dom ---> types --> object <--- xpath
-               *  ^          ^      ^
-               *  |           \    /
-               * css          debug
-               *  |             |
-               *  v             v
-               * collection   array
-               */
-            }
-          }
-        }
+        $this->resolveDeps($deps[$name], $new_sources);
       }
+
+      $new_sources[$name] = $name;
     }
+    
+    return $new_sources;
   }
   
-  public function output()
+  public function output ()
   {
-    header('Content-Type: ' . $this->contentType);
+    $contentType = $this->contentType;
+    
+    header('Content-Type: ' . $contentType);
     
     header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
 
@@ -439,12 +438,16 @@ class ResourceBuilder
     
     $prefix = $this->prefix;
     
-//     $this->resolveDeps();
-    
+    if ($contentType === self::SCRIPT_CONTENT_TYPE
+        && $this->resolve)
+    {
+      $this->sources = $this->resolveDeps($this->sources);
+    }
+        
     $out = "/*\n"
         . " * Compacted with PointedEars' ResourceBuilder {$this->version}\n"
         . ($this->verbose
-            ?   " * Type:          {$this->contentType}\n"
+            ?   " * Type:          {$contentType}\n"
               . " * Common Prefix: " . ($prefix ? $prefix : '<none>') . "\n"
                . " * Resources:     " . implode(', ', $this->sources) . "\n"
             : '')
@@ -483,8 +486,8 @@ class ResourceBuilder
       }
       
       $file = $prefix . $source
-        . (array_key_exists($this->contentType, $this->typeMap)
-          ? '.' . $this->typeMap[$this->contentType]
+        . (array_key_exists($contentType, $this->typeMap)
+          ? '.' . $this->typeMap[$contentType]
           : '');
 
       /*
