@@ -2,7 +2,7 @@
  * <title>Window Function Library</title>
  * @file window.js
  * @author
- *   (C) 1999‒2011  Thomas Lahn &lt;window.js@PointedEars.de&gt;
+ *   (C) 1999‒2013  Thomas Lahn &lt;window.js@PointedEars.de&gt;
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -78,9 +78,9 @@ function EInvalidArgNum(sFunctionName, iArg)
  * @type boolean
  * @return true
  */
-function setStatus(sCaption)
+function setStatus (sCaption)
 {
-  window.status = sCaption;
+  window.status = String(sCaption);
   return true;
 }
 
@@ -88,7 +88,7 @@ function setStatus(sCaption)
  * @type boolean
  * @return true
  */
-function resetStatus()
+function resetStatus ()
 {
   window.status = window.defaultStatus;
   return true;
