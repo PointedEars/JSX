@@ -26,11 +26,57 @@
  * http://pointedears.de/scripts/JSDoc/
  * for details.
  */
-var windowVersion   = "1.29.2009052620";
-var windowCopyright = "Copyright \xA9 1999-2009";
-var windowAuthor    = "Thomas Lahn";
-var windowEmail     = "window.js@PointedEars.de";
-var windowPath      = "http://pointedears.de/scripts/";
+
+if (typeof jsx == "undefined")
+{
+  var jsx = {};
+}
+
+if (typeof jsx.dom == "undefined")
+{
+  jsx.dom = {};
+}
+
+jsx.dom.window = {
+  version:   "1.29.$Revision$",
+  copyright: "Copyright \xA9 1999-2013",
+  author:    "Thomas Lahn",
+  email:     "js@PointedEars.de",
+  path:      "http://pointedears.de/scripts/",
+  
+  screenInfo: {
+    getDim: function () {
+      return {
+        width: screen.width,
+        height: screen.height
+      };
+    },
+
+    getAvailDim: function () {
+      return {
+        width:  screen.availWidth,
+        height: screen.availHeight
+      };
+    },
+
+    getInnerDim: function () {
+      return {
+        width:  window.innerWidth,
+        height: window.innerHeight
+      };
+    },
+    
+    getColorDepth: function () {
+      return (screen.colorDepth || screen.pixelDepth);
+    }
+  }
+};
+
+var windowVersion   = jsx.dom.window.version;
+var windowCopyright = jsx.dom.window.copyright;
+var windowAuthor    = jsx.dom.window.author;
+var windowEmail     = jsx.dom.window.email;
+var windowPath      = jsx.dom.window.path;
 // var windowDocURL = windowPath + "window.htm";
 
 /* Script exceptions */
