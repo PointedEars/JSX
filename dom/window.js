@@ -108,13 +108,11 @@ var sLinkOutMsg = sLinkOutMsg_de;
 /**
  * @param sURL : string
  * @param sLink : string
- * @param bShowURL : boolean
- * @param aTarget : number|string
- * @param iWidth : number
- * @param iHeight : number
- * @param sOptions : string
- * @type boolean
- * @return false
+ * @param bShowURL : optional boolean
+ * @param aTarget : optional string|number
+ * @param iWidth : optional number
+ * @param iHeight : optional number
+ * @param sOptions : optional string
  */
 function linkOut(sURL, sLink, bShowURL, aTarget, iWidth, iHeight, sOptions)
 {
@@ -235,17 +233,6 @@ function LoadFrame(sURL, targetFrame)
     return EInvalidArgNum("LoadFrame", 2);
   }
 
-  if (isNaN(targetFrame))
-  {
-    if (parent.eval(targetFrame))
-    {
-      parent.eval(targetFrame).location.href = sURL;
-      return sURL;
-    }
-
-    return targetFrame;
-  }
-
   if (parent.frames[targetFrame])
   {
     parent.frames[targetFrame].location.href = sURL;
@@ -259,13 +246,35 @@ var sEnlargeImgTitle_de = "Klicken, um Fenster zu schliessen";
 var sEnlargeImgTitle    = sEnlargeImgTitle_en;
 
 /**
+ * Opens a dependent browser child window containing an (enlarged)
+ * image. A primary mouse button click on the image or the window
+ * closes the window.
+ * 
+ * @partof PointedEars' JavaScript Extensions (JSX)
+ * @author
+ *   (c) 2000-2005  Thomas Lahn &lt;PointedEars@gmx.de&gt;
+ *   Protected under the terms of the GNU General Public License.
+ *   See http://www.fsf.org/copyleft/gpl.html for details.
  * @param sImageURL : string
- * @param sCaption : string
- * @param iWidth : number
- * @param iHeight : number
- * @param bCenter : boolean
- * @type boolean
- * @return false
+ *   Required. URL of the (enlarged) image.
+ * @param sCaption : optional string
+ *   Optional. Caption of the browser child window.
+ *   If not provided, sImageURL will be used as caption.
+ * @param iWidth : optional number
+ *   Optional. Width of the browser child window in pixels.
+ *   If not provided or 0, the window will be resized to fit
+ *   image width.
+ * @param iHeight : optional number
+ *   Height of the browser child window in pixels.
+ *   If not provided or 0, the window will be resized to fit
+ *   image height.
+ * @param bCenter : optional boolean
+ *   Optional. If <code>true</code>, the window will be centered
+ *   on the desktop. Note: Use with caution! Not all desktops
+ *   return the correct/viable position for the centered window.
+ * @return type boolean
+ *   Always <code>false</code> which allows for
+ *   <a href="..." ... onclick="return enlargeImg(...);">
  */
 function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter)
 {
