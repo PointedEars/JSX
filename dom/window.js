@@ -562,89 +562,20 @@ jsx.dom.window.fullscreen = (function () {
       return supportedProperty && document[supportedProperty] != null;
     },
 
-    cancel: function (target, oldHandler, textTarget, text) {
+    cancel: function () {
       var supportedCancel = this.getCancelMethodName();
       if (supportedCancel)
       {
         document[supportedCancel]();
-        
-        var me = this;
-        var listener = function () {
-          var supportedElement = me.getElementPropertyName();
-          if (supportedElement)
-          {
-            if (document[supportedElement] == null)
-            {
-              if (textTarget && text)
-              {
-                textTarget.textContent = text;
-              }
-              
-              if (target)
-              {
-                target.onclick = oldHandler;
-              }
-            }
-          }
-        };
-        
-        var _addEventListener;
-        if ((_addEventListener = jsx.object.getFeature(jsx, "dom", "addEventListener")))
-        {
-          var listenerWrapper = function () {
-            if (listener) listener();
-            listener = null;
-            jsx.dom.removeEventListener(listenerWrapper);
-            listenerWrapper = null;
-          };
-          
-          _addEventListener(window, "resize", listenerWrapper);
-        }
-        else
-        {
-          listener();
-          listener = null;
-        }
       }
     },
     
-    requestOn: function (elem, eventTarget, textTarget, windowText) {
+    requestOn: function (elem) {
       var requestMethodName;
 
       if (elem && (requestMethodName = this.isSupportedBy(elem)))
       {
         elem[requestMethodName]();
-        
-        var me = this;
-        var listener = function () {
-          if (textTarget && me.isFullscreen())
-          {
-            var oldText = textTarget.textContent;
-            var oldHandler = eventTarget.onclick;
-            eventTarget.onclick = function () {
-              me.cancel(this, oldHandler, textTarget);
-            };
-            textTarget.textContent = windowText;
-          }
-        };
-        
-        var _addEventListener;
-        if ((_addEventListener = jsx.object.getFeature(jsx, "dom", "addEventListener")))
-        {
-          var listenerWrapper = function () {
-            if (listener) listener();
-            listener = null;
-            jsx.dom.removeEventListener(listenerWrapper);
-            listenerWrapper = null;
-          };
-          
-          _addEventListener(window, "resize", listenerWrapper);
-        }
-        else
-        {
-          listener();
-          listener = null;
-        }
       }
     }
   };
