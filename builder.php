@@ -75,6 +75,13 @@ class ResourceBuilder
   protected $_prefix = '';
 
   /**
+   * Common path suffix for all resources.
+   * Determined from <var>$_contentType</var> if <code>null</code>.
+   * @var string
+   */
+  protected $_suffix = null;
+
+  /**
    * Sources to be processed in order
    * @var array
    */
@@ -147,6 +154,7 @@ class ResourceBuilder
     {
       $params = array(
         'prefix',
+        'suffix',
         'sources' => 'src',
         'contentType' => 'type',
         'debug',
@@ -437,11 +445,13 @@ class ResourceBuilder
       $this->sources = $this->resolveDeps($this->sources);
     }
         
+    $suffix = $this->suffix;
     $out = "/*\n"
         . " * Compacted with PointedEars' ResourceBuilder {$this->version}\n"
         . ($this->verbose
             ?   " * Type:          {$contentType}\n"
               . " * Common Prefix: " . ($prefix ? $prefix : '<none>') . "\n"
+              . " * Common Suffix: " . $suffix . "\n"
               . " * Resources:     " . implode(', ', $this->sources)  . "\n"
             : '')
         . " *\n"
@@ -479,9 +489,11 @@ class ResourceBuilder
       }
       
       $file = $prefix . $source
-        . (array_key_exists($contentType, $this->typeMap)
-          ? '.' . $this->typeMap[$contentType]
-          : '');
+        . ($suffix !== null
+            ? $suffix
+            : (array_key_exists($contentType, $this->typeMap)
+                ? '.' . $this->typeMap[$contentType]
+                : ''));
 
       /*
        * NOTE: No file_get_contents(), so that PHP in resource gets parsed.
