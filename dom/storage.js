@@ -55,7 +55,14 @@ if (typeof jsx.dom.storage == "undefined")
 jsx.dom.storage.isSupported = function (storageName) {
   if (storageName)
   {
-    return (typeof window[storageName + "Storage"] != "undefined");
+    return jsx.tryThis(
+      function () {
+        return (typeof window[storageName + "Storage"] != "undefined");
+      },
+      function () {
+        return false;
+      }
+    );
   }
   
   var _storage = jsx.dom.storage;
