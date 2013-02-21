@@ -498,3 +498,154 @@ function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter)
  * compatibility with previous versions
  */
 var Enlarge = enlargeImg;
+
+jsx.dom.window.fullscreen = (function () {
+  var _isHostMethod = jsx.object.isHostMethod;
+  
+  return {
+    getSupportedPropertyName: function (base, names, test) {
+      for (var i = 0, len = names.length; i < len; ++i)
+      {
+        var name = names[i];
+        if (test.call(null, base, name))
+        {
+          return name;
+        }
+      }
+
+      return null;
+    },
+
+    getCancelMethodName: (function () {
+      var _supportedCancel;
+
+      return function () {
+        if (typeof _supportedCancel == "undefined")
+        {
+          var properties = ["cancelFullScreen", "mozCancelFullScreen",
+                            "webkitCancelFullScreen"];
+        
+          _supportedCancel = this.getSupportedPropertyName(document, properties, _isHostMethod);
+        }
+
+        return _supportedCancel;
+      };
+    }()),
+    
+    getElementPropertyName: (function () {
+      var _supportedElement;
+
+      return function () {
+        if (typeof _supportedElement == "undefined")
+        {
+          var properties = ["fullscreenElement", "mozFullScreenElement",
+                            "webkitFullscreenElement"];
+
+          _supportedElement = this.getSupportedPropertyName(document, properties,
+            function (base, name) {
+              return typeof base[name] != "undefined";
+            });
+        }
+
+        return _supportedElement;
+      };
+    }()),
+    
+    isSupportedBy: function (elem) {
+      var methods = ["requestFullscreen", "mozRequestFullScreen",
+                     "webkitRequestFullscreen"];
+      return this.getSupportedPropertyName(elem, methods, _isHostMethod);
+    },
+
+    isFullscreen: function () {
+      var supportedProperty = this.getElementPropertyName();
+      return supportedProperty && document[supportedProperty] != null;
+    },
+
+    cancel: function (target, oldHandler, textTarget, text) {
+      var supportedCancel = this.getCancelMethodName();
+      if (supportedCancel)
+      {
+        document[supportedCancel]();
+        
+        var me = this;
+        var listener = function () {
+          var supportedElement = me.getElementPropertyName();
+          if (supportedElement)
+          {
+            if (document[supportedElement] == null)
+            {
+              if (textTarget && text)
+              {
+                textTarget.textContent = text;
+              }
+              
+              if (target)
+              {
+                target.onclick = oldHandler;
+              }
+            }
+          }
+        };
+        
+        var _addEventListener;
+        if ((_addEventListener = jsx.object.getFeature(jsx, "dom", "addEventListener")))
+        {
+          var listenerWrapper = function () {
+            if (listener) listener();
+            listener = null;
+            jsx.dom.removeEventListener(listenerWrapper);
+            listenerWrapper = null;
+          };
+          
+          _addEventListener(window, "resize", listenerWrapper);
+        }
+        else
+        {
+          listener();
+          listener = null;
+        }
+      }
+    },
+    
+    requestOn: function (elem, eventTarget, textTarget, windowText) {
+      var requestMethodName;
+
+      if (elem && (requestMethodName = this.isSupportedBy(elem)))
+      {
+        elem[requestMethodName]();
+        
+        var me = this;
+        var listener = function () {
+          if (textTarget && me.isFullscreen())
+          {
+            var oldText = textTarget.textContent;
+            var oldHandler = eventTarget.onclick;
+            eventTarget.onclick = function () {
+              me.cancel(this, oldHandler, textTarget);
+            };
+            textTarget.textContent = windowText;
+          }
+        };
+        
+        var _addEventListener;
+        if ((_addEventListener = jsx.object.getFeature(jsx, "dom", "addEventListener")))
+        {
+          var listenerWrapper = function () {
+            if (listener) listener();
+            listener = null;
+            jsx.dom.removeEventListener(listenerWrapper);
+            listenerWrapper = null;
+          };
+          
+          _addEventListener(window, "resize", listenerWrapper);
+        }
+        else
+        {
+          listener();
+          listener = null;
+        }
+      }
+    }
+  };
+}());
