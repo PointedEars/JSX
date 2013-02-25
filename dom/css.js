@@ -127,7 +127,7 @@ jsx.dom.css = {
     /**
      * List of transformations
      */
-    TRANSFORM:  7,
+    TRANSFORM:  7
   }
 };
 
