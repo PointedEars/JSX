@@ -7,14 +7,14 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2001-2011  Thomas Lahn &lt;string.js@PointedEars.de&gt;
+ *   (C) 2001-2013  Thomas Lahn &lt;string.js@PointedEars.de&gt;
  * @author
  *   Parts Copyright (C) 2003<br>
  *   Dietmar Meier &lt;meier@innoline-systemtechnik.de&gt;<br>
  *   Martin Honnen &lt;Martin.Honnen@gmx.de&gt;
- * 
+ *
  * @partof PointedEars' JavaScript Extensions (JSX)
- * 
+ *
  * JSX is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -36,8 +36,8 @@ if (typeof jsx === "undefined")
 
 jsx.string = {
   /** @version */
-  version:   "1.29.9.2010051216",
-  copyright: "Copyright \xA9 1999-2010",
+  version:   "1.29.$Rev$",
+  copyright: "Copyright \xA9 1999-2013",
   author:    "Thomas Lahn",
   email:     "string.js@PointedEars.de",
   path:      "http://pointedears.de/scripts/"
@@ -98,7 +98,7 @@ function StringException(Msg)
 
 /**
  * Adds backslashes to escape " and ' in strings.
- * 
+ *
  * @author Copyright (c) 2003
  *   Martin Honnen &lt;Martin.Honnen@gmx.de&gt;,
  *   Thomas Lahn &lt;string.js@PointedEars.de&gt;
@@ -108,7 +108,6 @@ function StringException(Msg)
  * @return string
  *   The replaced string if String.replace(...)
  *   is supported, the original string otherwise.
- * @type string
  */
 function addSlashes (s)
 {
@@ -129,7 +128,7 @@ function addSlashes (s)
 /**
  * Tries hard to escape a string according to the query component
  * specification in RFC3986.
- * 
+ *
  * @param s : string
  * @return string
  *   <code>s</code> escaped, or unescaped if escaping through
@@ -141,19 +140,19 @@ function addSlashes (s)
  */
 var esc = (function () {
   var
-    jsx_global = jsx.global,
-    jsx_object = jsx.object;
-  
-  return (jsx_object.isMethod(jsx_global, "encodeURIComponent")
+    _global = jsx.global,
+    _isNativeMethod = jsx.object.isNativeMethod;
+
+  return (_isNativeMethod(_global, "encodeURIComponent")
           ? encodeURIComponent
-          : (jsx_object.isMethod(jsx_global, "escape")
+          : (_isNativeMethod(_global, "escape")
              ? escape
              : function (s) { return s; }));
 }());
 
 /**
  * Tries hard to make a string a URI or URI-reference according to RFC 3986.
- * 
+ *
  * @param s
  * @return string
  *   <code>s</code> escaped, or unescaped if escaping through
@@ -161,10 +160,10 @@ var esc = (function () {
  */
 var escURI = (function (s) {
   var
-    jsx_global = jsx.global,
-    jsx_object = jsx.object;
+    _global = jsx.global,
+    _isNativeMethod = jsx.object.isNativeMethod;
 
-  return (jsx_object.isMethod(jsx_global, "encodeURI")
+  return (_isNativeMethod(_global, "encodeURI")
           ? encodeURI
           : function (s) { return s; });
 }());
@@ -172,7 +171,7 @@ var escURI = (function (s) {
 /**
  * Tries hard to unescape a string according to the query component
  * specification in RFC&nbsp;3986.
- * 
+ *
  * @param s : string
  * @return string
  *   <code>s</code> unescaped, or escaped if unescaping through
@@ -184,12 +183,12 @@ var escURI = (function (s) {
  */
 var unesc = (function () {
   var
-    jsx_global = jsx.global,
-    jsx_object = jsx.object;
+    _global = jsx.global,
+    _isNativeMethod = jsx.object.isNativeMethod;
 
-  return (jsx_object.isMethod(jsx_global, "decodeURIComponent")
+  return (_isNativeMethod(_global, "decodeURIComponent")
           ? decodeURIComponent
-          : (jsx_object.isMethod(jsx_global, "unescape")
+          : (_isNativeMethodd(_global, "unescape")
              ? unescape
              : function (s) { return s; }));
 }());
@@ -216,7 +215,7 @@ if (typeof Number.prototype.toFixed == "undefined")
     {
       decLen = result.length - dotPos - 1;
     }
-    
+
     if (decLen <= iPrecision)
     {
       result = jsx.string.pad(result, iPrecision, '0', true, decLen);
@@ -258,14 +257,14 @@ if (typeof Number.prototype.toUnsigned == "undefined")
      * x is positive and -1 if x is negative.) [...]
      */
     n = (n < 0 ? -1 : 1) * Math.floor(i);
- 
+
     /*
      * 4. Compute Result(3) modulo 2^iMax; that is, a finite integer
      * value k of Number type with positive sign and less than 2^iMax
      * in magnitude such the mathematical difference of Result(3) and
      * k is mathematically an integer multiple of 2^iMax.  The default
      * for iMax is 32.
-     * 
+     *
      * 5. Return Result(4).
      */
     return n % Math.pow(2, iMax || 32);
@@ -281,7 +280,7 @@ if (typeof Number.prototype.toUnsigned == "undefined")
  * Parses a string of characters into a Number value.  It replaces the
  * built-in function in that it supports fractional parts on non-decimal
  * representations, and uses the built-in for decimal representations.
- * 
+ *
  * @param s : String
  *   String representation to be parsed
  * @param iBase : Number
@@ -292,7 +291,7 @@ if (typeof Number.prototype.toUnsigned == "undefined")
  */
 var parseFloat = jsx.string.parseFloat = (function () {
   var origPF = parseFloat;
-  
+
   return function (s, iBase) {
     if ((!iBase || iBase === 10) && origPF)
     {
@@ -311,8 +310,8 @@ var parseFloat = jsx.string.parseFloat = (function () {
                     : "")
             : "")),
       f = (s.match(new RegExp("\\.([" + chars + "]{1,198})", "i")) || [, "0"])[1];
-    
-    
+
+
     return i + (/^\s*-/.test(s) ? -1 : 1)
       * parseInt(f, iBase) / Math.pow(iBase, f.length);
   };
@@ -542,25 +541,25 @@ var parseFloat = jsx.string.parseFloat = (function () {
 jsx.string._rxFormatSpec = new RegExp(
   /* flags */
   "%(\\(([^)]*)\\))?([#0+' _-]*)"
-  
+
   /* field width */
   + "([1-9]*\\d+|(\\*((\\d+)\\$)?))?"
-  
+
   /* precision */
   + "(\\.([+-]?\\d+|(\\*((\\d+)\\$)?))?)?"
-  
+
   /* member delimiter */
   + "(,)?"
-  
+
   /* conversion */
   + "([%aAbdiouxXeEfFgGcsCSpn])",
-  
+
   /* global match */
   "g");
 
 /**
  * A more efficient rewrite of the previous format() function.
- * 
+ *
  * @param sFormat
  * @return string
  */
@@ -571,7 +570,7 @@ jsx.string.sprintf = function (sFormat) {
     i = 1,
     jsx_string = jsx.string,
     ignoredArgs = [];
-  
+
   return String(sFormat).replace(
     rxFormatSpec,
     function (m, p1, propertyName, flags,
@@ -582,7 +581,7 @@ jsx.string.sprintf = function (sFormat) {
       {
         i++;
       }
-      
+
       if (argFieldWidth)
       {
         if (!uFieldWidthArg)
@@ -593,7 +592,7 @@ jsx.string.sprintf = function (sFormat) {
         {
           uFieldWidthArg = +uFieldWidthArg;
         }
-        
+
         ignoredArgs[uFieldWidthArg] = true;
         fieldWidth = args[uFieldWidthArg];
       }
@@ -603,32 +602,32 @@ jsx.string.sprintf = function (sFormat) {
       {
         v = v[propertyName];
       }
-      
+
       switch (convSpecifier)
       {
         case "%":
           v = "%";
           i--;
           break;
-          
+
         case "a":
         case "A":
           v = Array.prototype.join.call(v, memberDelim);
           break;
-        
+
         case "b":
         case "d":
         case "o":
         case "x":
         case "X":
           v = +v;
-          
+
           switch (convSpecifier)
           {
             case "b":
               v = v.toString(2);
               break;
-              
+
             case "o":
               v = v.toString(8);
               if (flags.indexOf("#") > -1 && v.charAt(0) !== "0")
@@ -636,7 +635,7 @@ jsx.string.sprintf = function (sFormat) {
                 v = "0" + v;
               }
               break;
-              
+
             case "x":
             case "X":
               v = v.toString(16);
@@ -644,13 +643,13 @@ jsx.string.sprintf = function (sFormat) {
               {
                 v = "0x" + v;
               }
-              
+
               if (convSpecifier === "X")
               {
                 v = v.toUpperCase();
               }
           }
-          
+
           break;
 
         case "c":
@@ -673,9 +672,9 @@ jsx.string.sprintf = function (sFormat) {
           {
             v = String(v).toUpperCase();
           }
-          
+
           break;
-                    
+
         case "i":
         case "u":
           v = (+v < 0) ? Math.ceil(v) : Math.floor(v);
@@ -692,7 +691,7 @@ jsx.string.sprintf = function (sFormat) {
         case "g":
         case "G":
           v = (+v).toString();
-          
+
           if (/e/i.test(convSpecifier))
           {
             var
@@ -702,7 +701,7 @@ jsx.string.sprintf = function (sFormat) {
               uintPart  = sUintPart && parseInt(sUintPart, 10) || 0,
               fracPart  = numParts[4] || "",
               exponent  = numParts[6] && parseInt(numParts[6], 10) || 0;
-              
+
             if (uintPart > 0)
             {
               if (uintPart > 9)
@@ -722,12 +721,12 @@ jsx.string.sprintf = function (sFormat) {
               fracPart = fracPart.slice(numLeadingZeroes + 1);
               exponent -= numLeadingZeroes + 1;
             }
-            
+
             if (!parseInt(fracPart, 10))
             {
               fracPart = "0";
             }
-                          
+
             v = sign + sUintPart + "." + fracPart
               + "e" + (exponent >= 0 ? "+" : "") + exponent;
 
@@ -743,21 +742,21 @@ jsx.string.sprintf = function (sFormat) {
               v = String(v).toUpperCase();
             }
           }
-          
+
           break;
       }
-            
+
       fieldWidth = +fieldWidth;
       if (fieldWidth)
       {
         if (flags.indexOf("0") > -1 && /[bdoxXiueEfFgG]/.test(convSpecifier))
         {
           v = String(v);
-          
+
           var
             padCharacter = "0",
             wasNegative = (v.charAt(0) === "-");
-            
+
           if (wasNegative)
           {
             v = v.slice(1);
@@ -766,18 +765,18 @@ jsx.string.sprintf = function (sFormat) {
         }
 
         v = jsx_string.pad(v, fieldWidth, padCharacter);
-        
+
         if (wasNegative)
         {
           v = "-" + v;
         }
       }
-      
+
       if (!propertyName)
       {
         i++;
       }
-      
+
       return v;
     });
 };
@@ -790,56 +789,52 @@ String.prototype.format = jsx.string.format = (function () {
   var _hasOwnProperty = jsx.object._hasOwnProperty;
 
    /**
-    * @param format
+    * @param sFormat
     * @return {String}
     */
-  return function (s) {
+  return function (sFormat) {
     var start = 1;
-    
+
     if (_getClass(this) === "String")
     {
-      s = this.constructor(this);
+      sFormat = this.constructor(this);
       start = 0;
     }
-    
+
     for (var i = start, len = arguments.length; i < len; ++i)
     {
       var format = arguments[i];
-      
+
       if (_getClass(format) === "Object")
       {
         for (var property in format)
         {
           if (_hasOwnProperty(format, property))
           {
-            s = s.replace(new RegExp("\\{" + property + "\\}", "g"),
+            sFormat = sFormat.replace(new RegExp("\\{" + property + "\\}", "g"),
                   format[property]);
           }
         }
       }
       else
       {
-        s = s.replace(new RegExp("\\{" + (i - start) + "\\}", "g"), format);
+        sFormat = sFormat.replace(new RegExp("\\{" + (i - start) + "\\}", "g"), format);
       }
     }
-    
-    return s;
+
+    return sFormat;
   };
 }());
 
 /**
  * Parses values out of a string using the specified format
- * 
- * @param s : String
- * @param format : String
- * @return Array
  */
 jsx.string.sscanf = (function () {
   var formatSpec = {
     dec: "([+-]?(?:0|[1-9]\\d+)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)",
     "int": "([+-]?(?:0|[1-9]\\d+)(?:[eE][+-]?\\d+)?)"
   };
-  
+
   var formatMap = {
     "%d": {
       spec: formatSpec.dec,
@@ -852,7 +847,7 @@ jsx.string.sscanf = (function () {
       }
     }
   };
-  
+
   function replacer(match)
   {
     if (typeof formatMap[match] != "undefined")
@@ -860,35 +855,40 @@ jsx.string.sscanf = (function () {
       replaced.push(match);
       match = formatMap[match].spec;
     }
-    
+
     return match;
   }
-  
+
   var rxFormatSpec = jsx.string._rxFormatSpec;
 
+  /**
+   * @param s : String
+   * @param format : String
+   * @return Array
+   */
   return function (s, format) {
     var replaced = [];
     format = format.replace(rxFormatSpec, replacer);
     var matches = s.match(new RegExp(format));
     matches.shift();
-    
+
     /* TODO: Convert values to specified type */
 
     for (var i = 0, len = replaced.length; i < len; ++i)
     {
       var replace = replaced[i];
-      
-      
+
+
       switch (replace)
       {
         case formatSpec.dec:
           matches[i] = parseFloat(matches[i]);
           break;
-          
-        
+
+
       }
     }
-    
+
     return matches;
   };
 }());
@@ -954,7 +954,7 @@ function format1k(s, s1kDelim)
 
 /**
  * String.hashCode() as defined in the Sun Java2 1.4 API.
- * 
+ *
  * The function takes a string as argument, or
  * the <code>this</code> value if the argument is missing or
  * a false-value, and the <code>this</code> value refers
@@ -966,7 +966,7 @@ function format1k(s, s1kDelim)
  * than 15 characters, x = 39 otherwise.  If the string is 16
  * characters long or longer, at the average every eighth
  * character is not included in the sum.
- * 
+ *
  * @author
  *   Implementation in ECMAScript
  *   (C) 2003 Thomas Lahn &lt;hashCode.js@PointedEars.de&gt;
@@ -994,7 +994,7 @@ function hashCode(s)
   var len = s.length;
   var val = strToCodeArray(s);
   var i;
-  
+
   if (len < 16)
   {
     for (i = len; i > 0; i--)
@@ -1011,7 +1011,7 @@ function hashCode(s)
       h = (h * 39) + val[off];
     }
   }
-  
+
   return h;
 }
 
@@ -1054,7 +1054,7 @@ var leadingZero = jsx.string.leadingZero = function (s, n) {
   {
     s = this;
   }
-   
+
   return jsx.string.pad(s, n, "0");
 };
 
@@ -1155,25 +1155,25 @@ function levenshtein(s, t)
   {
     s = s.toString();
   }
-  
+
   if (typeof t != "string")
   {
     t = t.toString();
   }
-  
+
   var n = s.length;
   var m = t.length;
-  
+
   if (n == 0)
   {
     return m;
   }
-  
+
   if (m == 0)
   {
     return n;
   }
-  
+
   /* matrix */
   var d = new Array();
 
@@ -1216,7 +1216,7 @@ function levenshtein(s, t)
  * Returns the input string with all substrings that
  * may be interpreted as markup are escaped, that is,
  * those prefixed by `&' or `<'.
- * 
+ *
  * @param s : optional string
  * @type string
  * @return string
@@ -1271,35 +1271,35 @@ var pad = jsx.string.pad = function (s, n, c, bRight, iStart) {
   {
     s = this;
   }
-  
+
   if (!n)
   {
     n = 1;
   }
-  
+
   if (!c)
   {
     c = CH_NBSP;
   }
-  
+
   if (typeof s != "string")
   {
     s = String(s);
   }
-  
+
   if (typeof iStart == "undefined")
   {
     iStart = s.length;
   }
-  
+
   if (n <= iStart)
   {
     return s;
   }
-  
+
   var a = [];
   var missingLength = n - iStart + 1;
-  
+
   if (typeof a.join === "function"
       && (missingLength > -1) && (missingLength < Math.pow(2, 32)))
   {
@@ -1326,7 +1326,7 @@ var pad = jsx.string.pad = function (s, n, c, bRight, iStart) {
       {
         s = c + s;
       }
-  
+
       iStart++;
     }
   }
@@ -1381,7 +1381,7 @@ function replaceText(sText, sReplaced, sReplacement, bForceLoop)
     {
       return a.join(sReplacement);
     }
-    
+
     var i = sText.indexOf(sReplaced);
 
     if (i > -1)
@@ -1406,7 +1406,7 @@ function replaceText(sText, sReplaced, sReplacement, bForceLoop)
  * @param options : optional Object
  *   The property values of the passed object determine
  *   one or more of the following display options:
- * 
+ *
  *   @option depth: number = 0
  *     Depth down to which recursive serialization should
  *     be performed.  The default is 0 (no recursion).
@@ -1414,21 +1414,21 @@ function replaceText(sText, sReplaced, sReplacement, bForceLoop)
  *     CAUTION: Recursive references are not detected;
  *     in that case, a stack overflow will happen because
  *     of too much recursion.
- * 
+ *
  *   @option showType: boolean = false
  *     If <code>true</code>, <code>typeof</code> is used
  *     to display the type of each property following a
  *     colon after the identifier.  The value delimiter
  *     then changes into a equals (`<code>=</code>').
- * 
+ *
  *   @option showConstructor: boolean = false
  *     If <code>true</code>, <code>constructor</code> is used
  *     to display the constructor of each property in brackets
  *     after the identifier.
- * 
+ *
  *   @option iIndent: number = 0
  *     Indentation level
- * 
+ *
  *   @option sIndent: string = "  "
  *     Character string to use for indenting code
  * @return string
@@ -1439,26 +1439,26 @@ function serialize(o, options)
   {
     options = {};
   }
-    
+
   if (typeof options.depth == "undefined")
   {
     options.depth = 0;
   }
-     
+
   if (typeof options.iIndent == "undefined")
   {
     options.iIndent = 0;
   }
-    
+
   if (typeof options.sIndent == "undefined")
   {
     options.sIndent = "  ";
   }
-  
+
   var
     a = [],
     indent = strRepeat(options.sIndent, options.iIndent);
-  
+
   for (var p in o)
   {
     var v = o[p];
@@ -1483,7 +1483,7 @@ function serialize(o, options)
         sIndent: options.sIndent
       });
     }
-    
+
     a.push(
         indent
       + options.sIndent
@@ -1503,7 +1503,7 @@ function serialize(o, options)
           : v)
     );
   }
-  
+
   if (a.length > 0)
   {
     return "{\n" + a.join(",\n") + "\n" + indent + "}";
@@ -1514,7 +1514,7 @@ function serialize(o, options)
 
 /**
  * Calculates the number of occurrences of one string in another.
- * 
+ *
  * @param s : string
  * @param substr : string
  * @param bCaseSensitive : optional boolean
@@ -1529,7 +1529,7 @@ function strCount(s, substr, bCaseSensitive)
   {
     return -1;
   }
-  
+
   if (s && this.toLowerCase)
   {
     s = this;
@@ -1580,7 +1580,7 @@ function strCount(s, substr, bCaseSensitive)
 /**
  * Compares strings against each other, with the default possibility of
  * taking Unicode compositing sequences into account.
- * 
+ *
  * @param s1
  * @param s2
  * @param compositeAware
@@ -1602,12 +1602,12 @@ function strCompare(s1, s2, compositeAware)
   {
     compositeLength = 3;
   }
-  
+
   if (arguments.length < compositeLength)
   {
     compositeAware = true;
   }
-  
+
   var equivalenceMap = {
     "\u00e0": "\u0061\u0300"
   };
@@ -1621,7 +1621,7 @@ function strCompare(s1, s2, compositeAware)
       {
         return false;
       }
-      
+
       /*
        * When the characters at the same position are not equal, see if
        * there is a composite character sequence for each character …
@@ -1661,7 +1661,7 @@ function strCompare(s1, s2, compositeAware)
       }
     }
   }
-  
+
   return true;
 }
 String.prototype.equals = strCompare;
@@ -1670,7 +1670,7 @@ String.prototype.equals = strCompare;
  * Strips <code>&lt;tags&gt;</code> and optionally the
  * content between start and respective end tags from
  * a string.  Uses RegExp if supported.
- * 
+ *
  * @author
  *   (C) 2001-2004  Thomas Lahn &lt;js@PointedEars.de&gt;,
  *   Advanced RegExp parsing (C) 2003  Dietmar Meier
@@ -1730,7 +1730,7 @@ function stripTags(s, bStripContent, bCaseSensitive, tags, bElements)
               tags[tags.length] = "/" + tags[i];
             }
           }
-          
+
           sRxTags = tags.join("|");
         }
         else if (tags.length)
@@ -1742,7 +1742,7 @@ function stripTags(s, bStripContent, bCaseSensitive, tags, bElements)
             {
               sRxTags += "/" + tags[i];
             }
-            
+
             if (i < tags.length - 1)
             {
               sRxTags += "|";
@@ -1817,7 +1817,7 @@ function stripTags(s, bStripContent, bCaseSensitive, tags, bElements)
  * has to be greater than or equal to 0.  If <var>n</var> converted
  * to number is <code>NaN</code> or a value less then 1, the function
  * will return the empty string.
- * 
+ *
  * Note that this may be used also as method of the {@link String}
  * prototype (if supported), applicable to <code>String</code> objects
  * and literals.  If <var>s</var> is not provided, if it is numeric
@@ -1825,7 +1825,7 @@ function stripTags(s, bStripContent, bCaseSensitive, tags, bElements)
  * <code>String</code> object is taken instead of it.  If the first
  * argument is then numeric, it is taken for <var>n</var> and the latter
  * argument is ignored.
- * 
+ *
  * @param s : string|number
  * @param n : optional number
  * @type string
@@ -1839,12 +1839,12 @@ function strRepeat(s, n)
     s = this;
     n = !isNaN(s) ? s : 0;
   }
-  
+
   if (isNaN(n))
   {
     return s;
   }
-  
+
   if (s)
   {
     var aResult = [];
@@ -1878,7 +1878,7 @@ function strToArray(s)
   }
 
   var a = null;
-    
+
   if (s.split)
   {
     a = s.split("");
@@ -1892,7 +1892,7 @@ function strToArray(s)
       a[i] = s.charAt(i);
     }
   }
-  
+
   return a;
 }
 /* TODO: */
@@ -1910,12 +1910,12 @@ function strToArray(s)
 function strArrayToCharClass(as)
 {
   var hashTable = [];
-  
+
   for (var i = as.length; i--; 0)
   {
     var s = as[i];
     var c = hashCode(s);
-    
+
     if (typeof hashTable[c] == "undefined")
     {
       hashTable[c] = new Collection(s);
@@ -1954,7 +1954,7 @@ function strToCodeArray(s)
   }
 
   var a, i, alen;
-    
+
   if (isMethod(s, "split") && isMethod(_global, "strToArray"))
   {
     a = strToArray(s);
@@ -1974,7 +1974,7 @@ function strToCodeArray(s)
       a[i] = s.charCodeAt(i);
     }
   }
-  
+
   return a;
 }
 /* TODO: */
@@ -1985,7 +1985,7 @@ function strToCodeArray(s)
 
 /**
  * Returns the input string with all leading and trailing whitespace removed.
- * 
+ *
  * @param s : optional string
  * @return string
  * @see #trimLeft(), #trimRight()
@@ -2014,7 +2014,7 @@ function trim(s)
 
 /**
  * Returns the input string with all leading whitespace removed.
- * 
+ *
  * @param s : optional string
  * @return string
  */
@@ -2049,7 +2049,7 @@ function trimLeft(s)
 
 /**
  * Returns the input string with all trailing whitespace removed.
- * 
+ *
  * @param s : optional string
  * @return string
  */
@@ -2073,7 +2073,7 @@ function trimRight(s)
            i >= 0 && (a = s.charAt(i)) <= " " || a == CH_NBSP;
            i--)
       {
-        
+        ;
       }
       s = s.substring(0, i + 1);
     }
@@ -2085,7 +2085,7 @@ function trimRight(s)
 /**
  * Converts a Python str (e.g. 'K\xc3\xb6ln') into
  * an ECMAScript-compliant string (e.g. 'Köln').
- * 
+ *
  * @param s : string
  *   The string to be converted
  * @return string
