@@ -14,23 +14,23 @@ function runTests ()
   var _runAsync = jsx.dom.timeout.runAsync;
   _runAsync(function () {
     message.appendChild(document.createTextNode("Unit test in progress…"));
-    
+
     var hint = document.createElement("p");
     var strong = document.createElement("strong");
     strong.appendChild(document.createTextNode("See error console for details."));
     hint.appendChild(strong);
-    
+
     var body = document.body;
     body.appendChild(message);
     body.appendChild(hint);
   });
-  
+
   _runAsync(function () {
     var assert = jsx.test.assert;
     var assertTrue = jsx.test.assertTrue;
     var assertFalse = jsx.test.assertFalse;
     var out = [];
-  
+
     jsx.test.runner.run({
       file: "regexp.js",
       feature: "jsx.regexp.RegExp",
@@ -64,289 +64,289 @@ function runTests ()
           code: function () {
             var rx = jsx.regexp.concat(/foo/, /bar/g);
             assertTrue(rx.global && !rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/, /bar/);
             assertTrue(!rx.global && !rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/, /bar/g);
             assertTrue(rx.global && !rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/, /bar/i);
             assertTrue(!rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/, /bar/m);
             assertTrue(!rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/, /bar/gi);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/, /bar/gm);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/, /bar/gim);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/g, /bar/);
             assertTrue(rx.global && !rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/g, /bar/g);
             assertTrue(rx.global && !rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/g, /bar/i);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/g, /bar/m);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/g, /bar/gi);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/g, /bar/gm);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/g, /bar/gim);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/i, /bar/);
             assertTrue(!rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/i, /bar/g);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/i, /bar/i);
             assertTrue(!rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/i, /bar/m);
             assertTrue(!rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/i, /bar/gi);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/i, /bar/gm);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/i, /bar/gim);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/m, /bar/);
             assertTrue(!rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/m, /bar/g);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/m, /bar/i);
             assertTrue(!rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/m, /bar/m);
             assertTrue(!rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/m, /bar/gi);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/m, /bar/gm);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/m, /bar/gim);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gi, /bar/);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gi, /bar/g);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gi, /bar/i);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gi, /bar/m);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gi, /bar/gi);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gi, /bar/gm);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gi, /bar/gim);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gm, /bar/);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gm, /bar/g);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gm, /bar/i);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gm, /bar/m);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gm, /bar/gi);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gm, /bar/gm);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gm, /bar/gim);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gim, /bar/);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gim, /bar/g);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gim, /bar/gi);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gim, /bar/gm);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gim, /bar/gim);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/.concat(/bar/g);
             assertTrue(rx.global && !rx.ignoreCase && !rx.multiline);
-  
+
             rx = /foo/.concat(/bar/);
             assertTrue(!rx.global && !rx.ignoreCase && !rx.multiline);
-  
+
             rx = /foo/.concat(/bar/g);
             assertTrue(rx.global && !rx.ignoreCase && !rx.multiline);
-  
+
             rx = /foo/.concat(/bar/i);
             assertTrue(!rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = /foo/.concat(/bar/m);
             assertTrue(!rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/.concat(/bar/gi);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = /foo/.concat(/bar/gm);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/.concat(/bar/gim);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/g.concat(/bar/);
             assertTrue(rx.global && !rx.ignoreCase && !rx.multiline);
-  
+
             rx = /foo/g.concat(/bar/g);
             assertTrue(rx.global && !rx.ignoreCase && !rx.multiline);
-  
+
             rx = /foo/g.concat(/bar/i);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = /foo/g.concat(/bar/m);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/g.concat(/bar/gi);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = /foo/g.concat(/bar/gm);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/g.concat(/bar/gim);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/i.concat(/bar/);
             assertTrue(!rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = /foo/i.concat(/bar/g);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = /foo/i.concat(/bar/i);
             assertTrue(!rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = /foo/i.concat(/bar/m);
             assertTrue(!rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/i.concat(/bar/gi);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = /foo/i.concat(/bar/gm);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/i.concat(/bar/gim);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/m.concat(/bar/);
             assertTrue(!rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/m.concat(/bar/g);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/m.concat(/bar/i);
             assertTrue(!rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/m.concat(/bar/m);
             assertTrue(!rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/m.concat(/bar/gi);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/m.concat(/bar/gm);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/m.concat(/bar/gim);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/gi.concat(/bar/);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = /foo/gi.concat(/bar/g);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = /foo/gi.concat(/bar/i);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = /foo/gi.concat(/bar/m);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/gi.concat(/bar/gi);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = /foo/gi.concat(/bar/gm);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/gi.concat(/bar/gim);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/gm.concat(/bar/);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/gm.concat(/bar/g);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/gm.concat(/bar/i);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/gm.concat(/bar/m);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/gm.concat(/bar/gi);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/gm.concat(/bar/gm);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/gm.concat(/bar/gim);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/gim.concat(/bar/);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/gim.concat(/bar/g);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/gim.concat(/bar/gi);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/gim.concat(/bar/gm);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = /foo/gim.concat(/bar/gim);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
           }
@@ -359,7 +359,7 @@ function runTests ()
             assert(jsx.regexp.concat(/foo/, "|", /bar/).source == "foo|bar");
             assert(jsx.regexp.concat(/foo/, "|", "bar").source == "foo|bar");
             assert(jsx.regexp.concat("foo", "|", "bar").source == "foo|bar");
-  
+
             assert(/foo/.concat("|", /bar/).source == "foo|bar");
             assert(/foo/.concat("|", "bar").source == "foo|bar");
           }
@@ -371,142 +371,142 @@ function runTests ()
           code: function () {
             var rx = jsx.regexp.concat(/foo/, "|", /bar/);
             assertTrue(!rx.global && !rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/, "|", /bar/g);
             assertTrue(rx.global && !rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/, "|", /bar/i);
             assertTrue(!rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/, "|", /bar/m);
             assertTrue(!rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/, "|", /bar/gi);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/, "|", /bar/gm);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/, "|", /bar/gim);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/g, "|", /bar/);
             assertTrue(rx.global && !rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/g, "|", /bar/g);
             assertTrue(rx.global && !rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/g, "|", /bar/i);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/g, "|", /bar/m);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/g, "|", /bar/gi);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/g, "|", /bar/gi);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/g, "|", /bar/gm);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/g, "|", /bar/gim);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/i, "|", /bar/);
             assertTrue(!rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/i, "|", /bar/g);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/i, "|", /bar/i);
             assertTrue(!rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/i, "|", /bar/m);
             assertTrue(!rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/i, "|", /bar/gi);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/i, "|", /bar/gim);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/m, "|", /bar/);
             assertTrue(!rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/m, "|", /bar/g);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/m, "|", /bar/i);
             assertTrue(!rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/m, "|", /bar/m);
             assertTrue(!rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/m, "|", /bar/gi);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/m, "|", /bar/gim);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gi, "|", /bar/);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gi, "|", /bar/g);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gi, "|", /bar/i);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gi, "|", /bar/m);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gi, "|", /bar/gi);
             assertTrue(rx.global && rx.ignoreCase && !rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gi, "|", /bar/gim);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gm, "|", /bar/);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gm, "|", /bar/g);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gm, "|", /bar/i);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gm, "|", /bar/m);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gm, "|", /bar/gi);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gm, "|", /bar/gm);
             assertTrue(rx.global && !rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gm, "|", /bar/gim);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gim, "|", /bar/);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gim, "|", /bar/g);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gim, "|", /bar/i);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gim, "|", /bar/m);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gim, "|", /bar/gi);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gim, "|", /bar/gm);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
-  
+
             rx = jsx.regexp.concat(/foo/gim, "|", /bar/gim);
             assertTrue(rx.global && rx.ignoreCase && rx.multiline);
           }
@@ -617,7 +617,7 @@ function runTests ()
                   jsx.rethrowThis(e);
                 }
               });
-            
+
             assertTrue(thrown);
           }
         },
@@ -660,7 +660,7 @@ function runTests ()
           code: function () {
             var rx = new RegExp2(".", "s");
             assert(rx.source == "[\\S\\s]");
-            
+
             assert("\n".match(rx)[0] == "\n");
           }
         },
@@ -669,7 +669,7 @@ function runTests ()
           code: function () {
             var rx = new RegExp2("a.b(?-s)c.d(?s)e.f", "s");
             assert(rx.source == "a[\\S\\s]bc.de[\\S\\s]f");
-  
+
             assert(("a\nbc.de\nf".match(rx) || [])[0] === "a\nbc.de\nf");
             assert("a\nbc\nde\nf".match(rx) === null);
           }
@@ -695,13 +695,13 @@ function runTests ()
           code: function () {
             var rx = new RegExp2("(?<foo>bar)");
             assert(rx.groups[1] === "foo");
-            
+
             var s = new jsx.regexp.String("bar");
             assert(s == "bar");
             assert("bar" == s);
             assertFalse(s === "bar");
             assertFalse("bar" === s);
-            
+
             var m = s.match(rx);
             assert(m.groups.foo === "bar");
           }
@@ -712,13 +712,13 @@ function runTests ()
           code: function () {
             var rx = new RegExp2("(?P'foo'bar)");
             assert(rx.groups[1] === "foo");
-            
+
             var s = new jsx.regexp.String("bar");
             assert(s == "bar");
             assert("bar" == s);
             assertFalse(s === "bar");
             assertFalse("bar" === s);
-            
+
             var m = s.match(rx);
             assert(m.groups.foo === "bar");
           }
@@ -729,13 +729,13 @@ function runTests ()
           code: function () {
             var rx = new RegExp2("(?P<foo>bar)");
             assert(rx.groups[1] === "foo");
-            
+
             var s = new jsx.regexp.String("bar");
             assert(s == "bar");
             assert("bar" == s);
             assertFalse(s === "bar");
             assertFalse("bar" === s);
-            
+
             var m = s.match(rx);
             assert(m.groups.foo === "bar");
           }
@@ -890,7 +890,7 @@ function runTests ()
               + " before non-ASCII letter is trimmed",
           code: function () {
             var rx = new RegExp2("\\bä", "u");
-            assert((RegExp2.exec(rx, " ä") || [])[0] === "ä");
+            assert((RegExp2.exec(" ä", rx) || [])[0] === "ä");
           }
         },
         {
@@ -923,7 +923,7 @@ function runTests ()
         }
       ]
     });
-    
+
     removeMessage();
 
     if (out.length > 0)
