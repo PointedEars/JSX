@@ -139,7 +139,7 @@ var regexp_concat = jsx.regexp.concat = function () {
         return a.join("");
       }
   };
-  
+
   var regexp2str = jsx.regexp.toString2;
 
   if (c && c == RegExp)
@@ -270,7 +270,7 @@ String.prototype.regExpEscape = strRegExpEscape;
 
 /**
  * Creates and returns an extended {@link RegExp} object.
- * 
+ *
  * This constructor accepts pattern and flags arguments where you
  * can use some features of Perl and Perl-compatible regular
  * expressions (PCRE); like {@link RegExp()}, it can also be called
@@ -434,7 +434,7 @@ String.prototype.regExpEscape = strRegExpEscape;
  *
  * The returned {@link RegExp} has additional properties to
  * accomodate syntax extensions in the pattern string:
- * 
+ *
  * @property pattern : String
  *   The original pattern string, including pattern-match
  *   modifiers.
@@ -776,7 +776,7 @@ jsx.regexp.RegExp = (function () {
 
     var pattern = expression;
     var flags = sFlags || "";
-    
+
     var extended = false;
     var dotAll = false;
     var unicodeMode = false;
@@ -787,12 +787,12 @@ jsx.regexp.RegExp = (function () {
       {
         var originalExtended = extended = true;
       }
-      
+
       if (sFlags.indexOf("s") > -1)
       {
         var originalDotAll = dotAll = true;
       }
-      
+
       if (sFlags.indexOf("u") > -1)
       {
         var originalUnicodeMode = unicodeMode = true;
@@ -800,7 +800,7 @@ jsx.regexp.RegExp = (function () {
 
       sFlags = sFlags.replace(/[xsu]/g, "");
     }
-        
+
     /* Support for capturing and special groups */
     var groupCount = 0;
     var groups = _getDataObject();
@@ -870,7 +870,7 @@ jsx.regexp.RegExp = (function () {
               }
             }
           }
-          
+
           if (capturingGroup)
           {
             /* Support for named capturing groups (PCRE-compliant) */
@@ -881,24 +881,24 @@ jsx.regexp.RegExp = (function () {
               {
                 jsx.throwThis("SyntaxError", "Duplicate symbolic name");
               }
-  
+
               groups[groupCount] = name;
               names[name] = groupCount;
             }
-  
+
             /*
              * NOTE: Helps with determining in exec() and match()
              * whether \b matched at beginning and \Ws need to be
              * ltrimmed from match
              */
             patternGroups.push(all.substring(index));
-            
+
             return "(";
           }
-  
+
           return emptyGroup ? "" : "(?" + nonCapturingGroup;
         }
-        
+
         /* PCRE_EXTENDED */
         if (extended)
         {
@@ -907,20 +907,20 @@ jsx.regexp.RegExp = (function () {
           {
             return "";
           }
-    
+
           /* Keep escaped whitespace, remove escape */
           if (escapedWS)
           {
             return escapedWS;
           }
-          
+
           /* Remove unescaped whitespace */
           if (whitespace)
           {
             return "";
           }
         }
-        
+
         /* PCRE_DOTALL */
         if (dotAll && plainDot)
         {
@@ -940,7 +940,7 @@ jsx.regexp.RegExp = (function () {
         "s": "\\p{Space}",
         "w": "\\p{Word}"
       };
-      
+
       expression = expression.replace(
         /\[(([^\\\]]|\\.)*)\]|(\\([dsw]))/gi,
         function (match, charClassContent, p2, classCharacter, escapeLetter) {
@@ -1049,10 +1049,10 @@ jsx.regexp.RegExp.exec = (function () {
   var _RegExp = jsx.regexp.RegExp;
   var rx2;
 
-  return function (rx, s) {
+  return function (s, rx) {
+    /* NOTE: Use passed expression only when called statically */
     if (this.constructor == RegExp)
     {
-      s = rx;
       rx = this;
     }
 
@@ -1141,7 +1141,7 @@ jsx.regexp.String.prototype.match = (function () {
           rxNonWordChars = new _RegExp2("^\\W+", "u");
         }
       }
-      
+
       if (rx.global)
       {
         /* Trim \b matches */
@@ -1171,7 +1171,7 @@ jsx.regexp.String.prototype.match = (function () {
               matches[i] = matches[i].replace(rxNonWordChars, "");
             }
           }
-          
+
           matches.groups[rx.groups[i] || i] = matches[i];
         }
       }
