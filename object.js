@@ -2,7 +2,7 @@
  * @fileOverview <title>Basic Object Library</title>
  * @file $Id$
  *
- * @author (C) 2004-2012 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
+ * @author (C) 2004-2013 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -72,7 +72,7 @@ jsx.object = (function (global) {
      * @version
      */
     version:   "0.2.$Revision$ ($Date$)",
-    copyright: "Copyright \xA9 2004-2012",
+    copyright: "Copyright \xA9 2004-2013",
     author:    "Thomas Lahn",
     email:     "js@PointedEars.de",
     path:      "http://PointedEars.de/scripts/",
@@ -368,7 +368,7 @@ jsx.object.isMethodType = function (s) {
  */
 jsx.dmsg = (function () {
   var
-    isMethod = jsx.object.isMethod,
+    _isMethod = jsx.object.isMethod,
     msgMap = {
       data: {
         info: "INFO",
@@ -404,7 +404,7 @@ jsx.dmsg = (function () {
     /* Firebug 0.4+ and others */
     if (typeof console != "undefined")
     {
-      if (!sType || !isMethod(console, sType) && sType != "log")
+      if (!sType || !_isMethod(console, sType) && sType != "log")
       {
         sMsg = msgMap.getString(sType) + sMsg;
         sType = "log";
@@ -415,7 +415,7 @@ jsx.dmsg = (function () {
         sMsg += "\n" + jsx.getStackTrace();
       }
 
-      if (isMethod(console, sType))
+      if (_isMethod(console, sType))
       {
         /* MSHTML's console methods do not implement call() */
         Function.prototype.call.call(console[sType], console, sMsg);
@@ -423,7 +423,7 @@ jsx.dmsg = (function () {
       }
     }
     else if (typeof opera != "undefined"
-              && isMethod(opera, "postError"))
+              && _isMethod(opera, "postError"))
     {
       opera.postError(msgMap.getString(sType) + sMsg);
       return true;
@@ -849,7 +849,7 @@ jsx.object.hasPropertyValue =
       {
         continue;
       }
-  
+
       var propertyValue = obj[property];
       if (params && params.recursive)
       {
@@ -861,7 +861,7 @@ jsx.object.hasPropertyValue =
           }
         }
       }
-  
+
       if (params && params.strict)
       {
         if (propertyValue === needle)
@@ -878,7 +878,7 @@ jsx.object.hasPropertyValue =
         }
       }
     }
-  
+
     return false;
   };
 
@@ -1992,10 +1992,10 @@ jsx.importOnce = (function () {
           }
         }
       }
-      
+
       return false;
     }
-    
+
     var result = false;
 
     if (uri
@@ -2120,7 +2120,7 @@ if (jsx.options.emulate)
 //  },
 //  Object.prototype);
 
-  if (jsx.object.isMethod(this, "eval"))
+  if (jsx.object.isNativeMethod(this, "eval"))
   {
     /*
      * KJS 3.5.1 does not support named FunctionExpressions within Object
@@ -2349,11 +2349,13 @@ if (jsx.options.emulate)
  * @function
  */
 Function.prototype.extend = (function () {
-  var _jsx_object = jsx.object;
+  var _jsx = jsx;
+  var _global = _jsx.global;
+  var _jsx_object = _jsx.object;
 
   var _iterator = (function () {
     /* Optimize if ECMAScript 5 features were available */
-    if (_jsx_object.isMethod(jsx.tryThis("Object"), "defineProperties"))
+    if (_jsx_object.isNativeMethod(_global.Object, "defineProperties"))
     {
       return function () {
         return this;
@@ -2361,7 +2363,7 @@ Function.prototype.extend = (function () {
     }
 
     return function () {
-      jsx.warn("for (var p in o.iterator()) { f(); } is inefficient,"
+      _jsx.warn("for (var p in o.iterator()) { f(); } is inefficient,"
         + " consider using o.forEach(f, ...) instead");
 
       var o = new Object();
@@ -2388,9 +2390,9 @@ Function.prototype.extend = (function () {
   function _forEach(fCallback, thisObj)
   {
     var t = typeof fCallback;
-    if (!jsx.object.isMethod(fCallback))
+    if (!_jsx_object.isMethod(fCallback))
     {
-      jsx.throwThis(
+      _jsx.throwThis(
         "TypeError",
         (!/^\s*unknown\s*$/i.test(t) ? fCallback : "arguments[0]")
           + " is not a function",
@@ -2439,7 +2441,7 @@ Function.prototype.extend = (function () {
       if (typeof fConstructor == "undefined")
       {
         /* Passing undefined is probably unintentional, so warn about it */
-        jsx.warn((_jsx_object.getFunctionName(me) || "[anonymous Function]")
+        _jsx.warn((_jsx_object.getFunctionName(me) || "[anonymous Function]")
           + ".extend(" + "undefined, " + oProtoProps + "):"
           + " Parent constructor is undefined, using Object");
       }
@@ -2458,13 +2460,13 @@ Function.prototype.extend = (function () {
      */
     if (typeof fConstructor.valueOf() == "string")
     {
-      fConstructor = jsx.global[fConstructor];
+      fConstructor = _jsx.global[fConstructor];
     }
 
     var t = typeof fConstructor;
     if (t != "function")
     {
-      jsx.throwThis("TypeError",
+      _jsx.throwThis("TypeError",
         (/\s*unknown\s*/i.test(t) ? "Unknown" : t) + " is not a function");
       return null;
     }
@@ -2495,7 +2497,7 @@ Function.prototype.extend = (function () {
     }
 
     /* Optimize iteration if ECMAScript 5 features are available */
-    if (_jsx_object.isMethod(jsx.global.Object, "defineProperties"))
+    if (_jsx_object.isNativeMethod(_global.Object, "defineProperties"))
     {
       var
         userDefProtoProps = ["_super", "constructor", "iterator"],
@@ -2511,18 +2513,18 @@ Function.prototype.extend = (function () {
         };
       }
 
-      jsx.tryThis(
+      _jsx.tryThis(
         function () {
           Object.defineProperties(proto, oDescriptors);
         },
         function (e) {
-          jsx.warn(_jsx_object.getFunctionName(me) + ".extend("
+          _jsx.warn(_jsx_object.getFunctionName(me) + ".extend("
             + _jsx_object.getFunctionName(fConstructor) + ", "
             + oProtoProps + "): " + e.name + ': ' + e.message);
         });
     }
 
-    if (!jsx.object.isMethod(this.prototype, "forEach"))
+    if (!jsx.object.isNativeMethod(this.prototype, "forEach"))
     {
       /**
        * Calls a function for each real property of the object
@@ -2536,9 +2538,9 @@ Function.prototype.extend = (function () {
       this.prototype.forEach = _forEach;
 
       /* Optimize iteration if ECMAScript 5 features are available */
-      if (_jsx_object.isMethod(jsx.global.Object, "defineProperty"))
+      if (_jsx_object.isNativeMethod(_jsx.global.Object, "defineProperty"))
       {
-        jsx.tryThis(
+        _jsx.tryThis(
           function () {
             Object.defineProperty(me.prototype, "forEach", {
               value: me.prototype.forEach,
@@ -2547,7 +2549,7 @@ Function.prototype.extend = (function () {
           },
           function (e) {
             /* IE 8 goes here */
-            jsx.warn(
+            _jsx.warn(
               'Borken implementation: Object.defineProperty is a method'
               + ' but [[Call]](this.prototype, "forEach") throws exception ("'
               + e.name + ': ' + e.message + '")');
