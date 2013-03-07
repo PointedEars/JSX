@@ -1,9 +1,8 @@
 /**
- * <title>PointedEars' Array Library</title>
+ * @fileOverview <title>Array Library</title>
+ * @file $Id$
  *
- * @section Copyright & Disclaimer
- *
- * @author (C) 2004-2011  Thomas Lahn &lt;array.js@PointedEars.de&gt;
+ * @author (C) 2004-2013 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -19,14 +18,6 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
- */
-/*
- * Refer array.htm file for a printable
- * documentation.
- *
- * This document contains JavaScriptDoc. See
- * http://pointedears.de/scripts/JSDoc/
- * for details.
  */
 
 if (typeof jsx == "undefined")
@@ -45,10 +36,10 @@ if (typeof jsx.array == "undefined")
   jsx.array = {};
 }
 
-jsx.array.version = "0.1.2008062516";
-jsx.array.copyright = "Copyright \xA9 2004-2008";
+jsx.array.version = "0.1.$Rev$";
+jsx.array.copyright = "Copyright \xA9 2004-2013";
 jsx.array.author = "Thomas Lahn";
-jsx.array.email = "array.js@PointedEars.de";
+jsx.array.email = "js@PointedEars.de";
 jsx.array.path = "http://pointedears.de/scripts/";
 // jsx.array.docURL = jsx.array.path + "array.htm";
 
@@ -828,7 +819,7 @@ jsx.array.every = (function () {
     {
       thisObject = this;
     }
-    
+
     if (_isNativeMethod(thisObject, "every"))
     {
       return thisObject.every(callback);
@@ -855,12 +846,12 @@ jsx.array.equals = (function () {
     {
       thisObject = this;
     }
-    
+
     if (thisObject.length != otherObject.length)
     {
       return false;
     }
-    
+
     for (var i = 0, len = thisObject.length; i < len; ++i)
     {
       if (strict)
@@ -878,10 +869,105 @@ jsx.array.equals = (function () {
         }
       }
     }
-    
+
     return true;
   };
 }());
+
+/**
+ * Sorts an array in place, optionally by a property of
+ * the elements as key.
+ *
+ * @param a : Array
+ *   Array to be sorted
+ * @param aKeys : Array[String]|Array[Object]
+ *   Array of keys that <var>a</var> should be sorted by, in order.
+ *   A key may be a {@link String} or another native object.
+ *   If it is a <code>String</code>, it specifies the property name
+ *   of the sort key.  If it is another native object, the following
+ *   of its properties are used as options:
+ *   <table>
+ *     <tr>
+ *       <th><code>key</code></th>
+ *       <td>The name of the property of the elements of <var>a</var>
+ *           whose value <var>a</var> should be sorted by.  If this
+ *           option is not present or a false-value, <var>a</var>
+ *           is sorted using the element value as key.</td>
+ *     </tr>
+ *     <tr>
+ *       <th><code>descending</code></th>
+ *       <td>If a true-value, the sort order is descending
+ *           instead of the default ascending.</td>
+ *     </tr>
+ *     <tr>
+ *       <th><code>numeric</code></th>
+ *       <td>If a true-value, the values are sorted as if they were
+ *           <code>Number</code> values instead of the default
+ *           generic sort order that uses the operators <code>==</code>
+ *           (non-strict) or <code>===</code> (strict), and
+ *           <code>&lt;</code>, and <code>></code>.</td>
+ *     </tr>
+ *     <tr>
+ *       <th><code>strict</code></th>
+ *       <td>If a true-value, the values are sorted
+ *           using the <code>===</code> operator.  The value of
+ *           this property is overridden by <var>bStrict</var>
+ *           if that argument is not <code>undefined</code>.</td>
+ *     </tr>
+ *   </table>
+ * @param bStrict : boolean
+ *   If a true-value, use strict comparison.  If not
+ *   <code>undefined</code>, the argument overrides
+ *   the <var>strict</var> property of <var>aKeys</var> elements.
+ */
+jsx.array.sortBy = function (a, aKeys, bStrict) {
+  if (jsx.object.isArray(this))
+  {
+    /* shift arguments */
+    bStrict = aKeys;
+    aKeys = a;
+    a = this;
+  }
+
+  var comparator = function (el1, el2) {
+    for (var i = 0, len = aKeys.length; i < len; ++i)
+    {
+      var key = aKeys[i];
+      var propertyName = (typeof key.valueOf() == "string") ? key : key && key.key;
+
+      var el1Value = (propertyName != null ? el1[propertyName] : el1);
+      var el2Value = (propertyName != null ? el2[propertyName] : el2);
+
+      var equals = ((typeof bStrict != "undefined" && bStrict) || key.strict
+        ? (el1Value === el2Value)
+        : (el1Value == el2Value)
+      );
+      if (equals)
+      {
+        if (i == len - 1)
+        {
+          /* last key, same value */
+          return 0;
+        }
+      }
+      else
+      {
+        var descending = key.descending;
+        return (
+          key.numeric
+            ? (descending
+                ? el1Value - el2Value
+                : el2Value - el1Value)
+            : (descending
+                ? (el1Value < el2Value ? -1 : 1)
+                : (el1Value > el2Value ? -1 : 1))
+        );
+      }
+    }
+  };
+
+  return a.sort(comparator);
+};
 
 if (jsx.array.emulate)
 {
@@ -897,6 +983,7 @@ if (jsx.array.emulate)
       push:        jsx.array.push,
       reverse:     jsx.array.reverse,
       search:      jsx.array.search,
+      sortBy:      jsx.array.sortBy,
       splice:      jsx.array.splice,
       toUpperCase: jsx.array.toUpperCase,
 
