@@ -49,7 +49,7 @@ if (typeof jsx.array.emulate == "undefined")
 }
 
 /**
- * @param {String} sMsg (optional)
+ * @param {string} sMsg (optional)
  * @return {boolean} false
  */
 jsx.array.ArrayError = function(sMsg) {
@@ -654,7 +654,7 @@ jsx.array.changeCase = (function () {
    * @param {boolean} bConvertNonStrings = false
    *   If <code>false</code> default, changes only the case of
    *   string elements.  If <code>true</code>, converts non-string
-   *   elements to String and changes their case.
+   *   elements to <code>string</code> and changes their case.
    * @return {Array}
    *   A copy of <code>a</code> or the Array object with its
    *   elements' value uppercased or lowercased.  If <code>a</code>
@@ -713,7 +713,7 @@ jsx.array.toLowerCase = (function () {
    * @param {boolean} bConvertNonStrings = false
    *   If <code>false</code> (default), changes only the case of
    *   string elements.  If <code>true</code>, converts non-string
-   *   elements to String and changes their case.
+   *   elements to <code>string</code> and changes their case.
    * @return {Array}
    *   A copy of <code>a</code> or the Array object with its
    *   elements' value lowercased.  If <code>a</code> has no
@@ -751,7 +751,7 @@ jsx.array.toUpperCase = (function () {
    * @param {boolean} bConvertNonStrings = false
    *   If <code>false</code> default, changes only the case of
    *   string elements.  If <code>true</code>, converts non-string
-   *   elements to String and changes their case.
+   *   elements to <code>string</code> and changes their case.
    * @return {Array}
    *   A copy of <code>a</code> or the Array object with its
    *   elements' value uppercased.  If <code>a</code> has no
@@ -878,8 +878,8 @@ jsx.array.equals = (function () {
  * @author (C) 2013 Thomas 'PointedEars' Lahn &lt;js@PointedEars.de&gt;
  * @param {Array} aKeys
  *   Array of keys that should be sorted by, in order.
- *   A key may be a {@link String} or another native object.
- *   If it is a <code>String</code>, it specifies the property name
+ *   A key may be a {@link string} value or a native object.
+ *   If it is a <code>string</code>, it specifies the property name
  *   of the sort key.  If it is another native object, the following
  *   of its properties are used as options.  See the <var>options</var>
  *   parameter for the default values of these options.
