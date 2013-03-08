@@ -4,10 +4,10 @@
  * @file types.js
  * @requires object.js
  * @author
- *   (C) 2001-2009  Thomas Lahn &lt;types.js@PointedEars.de&gt;
+ *   (C) 2001-2009, 2013  Thomas Lahn &lt;types.js@PointedEars.de&gt;
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
- * 
+ *
  * JSX is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -59,10 +59,10 @@ if (typeof de.pointedears.jsx == "undefined")
 }
 
 /**
- * @param sMsg : optional string
- * @return boolean false
+ * @param {string} sMsg (optional)
+ * @return {boolean} false
  */
-var TypesException = jsx.types.TypesException = function(sMsg) {
+var TypesException = jsx.types.TypesException = function (sMsg) {
   window.alert(
     "types.js "
       + types.version
@@ -81,19 +81,19 @@ var TypesException = jsx.types.TypesException = function(sMsg) {
  * Returns <code>true</code> if a property is defined and its value
  * is different from <code>undefined</code>, <code>false</code> otherwise.
  *
- * @param o : optional Object
+ * @param {Object} o (optional)
  *   Base object; the default is the calling object.
- * @param p : String
+ * @param {String} p
  *   Property name; required.
- * @return boolean
+ * @return {boolean}
  */
-var isDefined = jsx.types.isDefined = function(o, p) {
+var isDefined = jsx.types.isDefined = function (o, p) {
   if (!p)
   {
     p = o;
     o = this;
   }
-  
+
   return (typeof o[p] != "undefined");
 };
 
@@ -101,13 +101,13 @@ var isDefined = jsx.types.isDefined = function(o, p) {
  * Returns <code>true</code> if a property is undefined or
  * its value is `undefined', <code>false</code> otherwise.
  *
- * @param o : optional Object
+ * @param {Object} o (optional)
  *   Base object; the default is the calling object.
- * @param p : String
+ * @param {String} p
  *   Property name; required.
- * @return boolean
+ * @return {boolean}
  */
-var isUndefined = jsx.types.isUndefined = function(o, p) {
+var isUndefined = jsx.types.isUndefined = function (o, p) {
   if (!p)
   {
     p = o;
@@ -122,14 +122,14 @@ jsx.types.isInstanceOf = jsx.object.isInstanceOf;
 
 /**
  * Determines whether an object is an array
- * 
+ *
  * @author
  *   (C) 2003, 2009, 2011 Thomas Lahn &lt;object.js@PointedEars.de&gt;
  * @partof http://pointedears.de/scripts/object.js
  * @requires jsx.object#isInstanceOf
- * @param a : Object
+ * @param {Object} a
  *   Expression to be determined an array.
- * @return boolean
+ * @return {boolean}
  *   <code>true</code> if <code>a</code> is an object
  *   derived from Array, <code>false</code> otherwise.
  *   Returns also <code>false</code> if the language
@@ -137,14 +137,14 @@ jsx.types.isInstanceOf = jsx.object.isInstanceOf;
  *   before 1.1).
  * @todo
  */
-var isArray = jsx.types.isArray = function(a) {
+var isArray = jsx.types.isArray = function (a) {
   return jsx.object.isInstanceOf(a, typeof Array != "undefined" ? Array : null);
 };
 
 /**
  * @author
  *   (C) 2003  Thomas Lahn &lt;types.js@PointedEars.de&gt;
- * @param o : Object
+ * @param {Object} o
  *   to be determined iterable, i.e. to be determined
  *   whether it provides the <code>length</code> property and
  *   has at least the <code>0</code> (zero) property.  This
@@ -154,11 +154,11 @@ var isArray = jsx.types.isArray = function(a) {
  *   <code>HTMLCollection</code> or
  *   <code>HTMLOptionsCollection</code> interfaces defined in
  *   the W3C DOM Level 2 Specification.
- * @return boolean
+ * @return {boolean}
  *   <code>true</code> if <code>o</code> is an iterable object,
  *   <code>false</code> otherwise.
  */
-var isIterable = jsx.types.isIterable = function(o) {
+var isIterable = jsx.types.isIterable = function (o) {
   return !!(
     o
     && typeof o.length != "undefined"
@@ -168,15 +168,15 @@ var isIterable = jsx.types.isIterable = function(o) {
 /**
  * Converts a string using bracket property accessor syntax
  * to one that uses dot property accessor syntax.
- * 
- * @param s : string
+ *
+ * @param {string} s
  *   String of the form "root['branch']['leaf']['...']..." or
  *   "root[branch][leaf][...]..." to be converted.  Required.
- * @return string
+ * @return {string}
  *   A string of the form `root.branch.leaf...' converted from
  *   <var>s</var>.
  */
-var bracketsToDots = jsx.bracketsToDots = function(s) {
+var bracketsToDots = jsx.bracketsToDots = function (s) {
   /* FIXME: What about non-identifier names? */
   return s.replace(/\[['"]?/g, '.').replace(/['"]?\]/g, '');
 };
@@ -184,11 +184,11 @@ var bracketsToDots = jsx.bracketsToDots = function(s) {
 /**
  * Converts a string using dot property accessor syntax
  * to one that uses bracket property accessor syntax.
- * 
- * @param s : string
+ *
+ * @param {string} s
  *   of the form `root.branch.leaf' to be converted.
  *   Required.
- * @param bStringsOnly : optional boolean = false
+ * @param {boolean} bStringsOnly = false
  *   Specifies if all parts of the tree should be converted
  *   or not.  Optional.
  *   If not provided or <code>false</code>, all parts are
@@ -197,19 +197,19 @@ var bracketsToDots = jsx.bracketsToDots = function(s) {
  *   required by dot notation must start with a character in
  *   <code>[A-Za-z_$]</code>, while parameters of bracket
  *   notation may be in any format.)
- * @return string
+ * @return {string}
  *   A string of the form "root['branch']['leaf']" converted
  *   from <var>s</var>.
  */
-var dotsToBrackets = jsx.dotsToBrackets = function(s, bStringsOnly) {
+var dotsToBrackets = jsx.dotsToBrackets = function (s, bStringsOnly) {
   var a = s.split(".");
-  
+
   s = [a[0]];
 
   for (var i = 1, len = a.length; i < len; i++)
   {
     var propName = a[i];
-    
+
     if (bStringsOnly && /^[a-z_$]/i.test(propName))
     {
       s.push(".", propName);
@@ -219,7 +219,7 @@ var dotsToBrackets = jsx.dotsToBrackets = function(s, bStringsOnly) {
       s.push("['", propName.replace(/'/g, "\\$&"), "']");
     }
   }
-  
+
   return s.join("");
 };
 
@@ -230,22 +230,22 @@ var dotsToBrackets = jsx.dotsToBrackets = function(s, bStringsOnly) {
 
 /**
  * Determines whether a feature is available.
- * 
+ *
  * @author
  *   (C) 2008  Thomas Lahn &lt;types.js@PointedEars.de&gt;
- * @param o : Object
+ * @param {Object} o
  *   Base object
- * @params : string
+ * @params {string}
  *   Name(s) of the property/properties that are required for
  *   the feature.  For example, passing "foo" and "bar"
  *   determines whether o["foo"]["bar"] is an available feature.
- * @return boolean
+ * @return {boolean}
  *   The feature's value if the arguments refer to a feature,
  *   <code>false</code> otherwise.  Note that if a feature
  *   has <code>boolean</code> documented as its type, you
  *   should therefore not use this method to determine its
  *   availability.
- * 
+ *
  *   Also, if a reference leading to the feature resolves to
  *   a value for that the result of the <code>typeof</code>
  *   operation is <code>"unknown"</code>, testing of further
@@ -256,17 +256,17 @@ var dotsToBrackets = jsx.dotsToBrackets = function(s, bStringsOnly) {
  *   the return value of this method only as an indicator that
  *   there is such a method.
  */
-var isFeature = jsx.types.isFeature = function(o) {
+var isFeature = jsx.types.isFeature = function (o) {
   if (typeof o != "undefined" && o)
   {
     var
       rxUnknown = /^\s*unknown\s*$/i,
       rxUndefined = /^\s*undefined\s*$/i;
-    
+
     for (var i = 1, len = arguments.length; i < len; i++)
     {
       var arg = arguments[i];
-      
+
       var t = typeof o[arg], isUnknown;
       if ((isUnknown = rxUnknown.test(t))
           || !rxUndefined.test(t) && o[arg])
@@ -284,6 +284,6 @@ var isFeature = jsx.types.isFeature = function(o) {
       }
     }
   }
-  
+
   return o;
 };
