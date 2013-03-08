@@ -1,13 +1,11 @@
 /**
- * <title>PointedEars' JSX: String Library – Hyphenation</title>
- * @file string/hyphenation.js
- *
+ * @fileOverview <title>PointedEars' JSX: String Library -- Hyphenation</title>
+ * @file $Id$
  * @requires object.js
  *
  * @section Copyright & Disclaimer
  *
- * @author
- *   (C) 2012, 2013  Thomas Lahn &lt;js@PointedEars.de&gt;
+ * @author (C) 2012, 2013  Thomas Lahn &lt;js@PointedEars.de&gt;
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -74,9 +72,9 @@ jsx.string.hyphenation = (function () {
      * one {@link jsx.string.hyphenation#addRule} or
      * {@link jsx.string.hyphenation#addRules} call.
      *
-     * @param dictionary : String
+     * @param {String} dictionary
      *   URI of the dictionary
-     * @return boolean
+     * @return {boolean}
      *   <code>true</code> if the dictionary could be successfully
      *   <em>loaded</em> (not: included), <code>false</code> otherwise.
      * @requires jsx.net.http#Request
@@ -91,12 +89,12 @@ jsx.string.hyphenation = (function () {
      * at least one {@link jsx.string.hyphenation#addRule} or
      * {@link jsx.string.hyphenation#addRules} call.
      *
-     * @param dictionaries : Array[String]
+     * @param {Array} dictionaries
      *   URIs of the dictionaries
-     * @param returnEarly : optional Boolean
+     * @param {Boolean} returnEarly (optional)
      *   If <code>true</code>, return as soon as loading one
      *   dictionary fails.  The default is <code>false</code>.
-     * @return boolean
+     * @return {boolean}
      *   <code>true</code> if all dictionaries could be successfully
      *   <em>loaded</em> (not: included), <code>false</code> otherwise.
      * @requires jsx.net.http#Request

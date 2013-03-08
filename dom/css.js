@@ -7,7 +7,7 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2005-2012 Thomas Lahn <js@PointedEars.de>
+ *   (C) 2005-2013 Thomas Lahn <js@PointedEars.de>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -53,7 +53,7 @@ if (typeof jsx.dom == "undefined")
  */
 jsx.dom.css = {
   version: "0.1.$Revision$",
-  
+
   /**
    * Supported CSS data types.  Properties include:
    *        <dl>
@@ -87,7 +87,7 @@ jsx.dom.css = {
      * Numeric scalar value
      */
     NUMBER:     0,
-    
+
     /**
      * Length given relative in <code>em</code> (width of the
      * M&nbsp;square) or <code>ex</code> (height of the x square),
@@ -97,33 +97,33 @@ jsx.dom.css = {
      * (pixels).
      */
     LENGTH:     1,
-    
+
     /**
      * Length given in percentage of the parent
      */
     PERCENTAGE: 2,
-    
+
     /**
      * Uniform Resource Identifier or URI-reference (see RFC 3986),
      * enclosed in <code>url(…)</code>.
      */
     URI:        3,
-    
+
     /**
      * CSS counter
      */
     COUNTER:    4,
-    
+
     /**
      * Color given in RGB(A) or HSV format
      */
     COLOR:      5,
-    
+
     /**
      * String of Unicode characters
      */
     STRING:     6,
-    
+
     /**
      * List of transformations
      */
@@ -134,7 +134,7 @@ jsx.dom.css = {
 /**
  * Provides information about the type of a CSS property and its relation
  * to other CSS properties
- * 
+ *
  * @namespace
  */
 jsx.dom.css.propertyInfo = {
@@ -182,8 +182,8 @@ jsx.dom.css.camelize = (function () {
   var rxHyphenated = /-([a-z])/gi;
 
   /**
-   * @param sProperty : String
-   * @return string
+   * @param {String} sProperty
+   * @return {string}
    *   <var>sProperty</var> with all hyphen-minuses followed by an
    *   ASCII letter replaced by the letter's uppercase counterpart
    */
@@ -205,7 +205,7 @@ jsx.dom.css.camelize = (function () {
  */
 jsx.dom.css.uncamelize = (function () {
   var _jsx_object = jsx.object;
-  
+
   if (typeof jsx.map != "undefined" && typeof jsx.map.Map == "function")
   {
     var cache = new jsx.map.Map();
@@ -213,27 +213,27 @@ jsx.dom.css.uncamelize = (function () {
   else
   {
     var prefix = " ", suffix = "";
-    
+
     cache = _jsx_object.getDataObject();
     cache.get = function (s) {
       return _jsx_object.getProperty(this, prefix + s + suffix, false);
     };
-    
+
     cache.put = function (s, v) {
       this[prefix + s + suffix] = v;
     };
   }
-  
+
   function f (match)
   {
     return "-" + match.toLowerCase();
   }
-  
+
   var rxUppercase = /[A-Z]/g;
-  
+
   /**
-   * @param sProperty : String
-   * @return string
+   * @param {String} sProperty
+   * @return {string}
    *   <var>sProperty</var> with all capital ASCII letters replaced
    *   by the letter's lowercase counterpart, and preceded by a
    *   hyphen-minus.
@@ -244,7 +244,7 @@ jsx.dom.css.uncamelize = (function () {
     {
       return p;
     }
-    
+
     var s2 = sProperty.replace(rxUppercase, f);
     cache.put(sProperty, s2);
     return s2;
@@ -260,7 +260,7 @@ jsx.dom.css.uncamelize = (function () {
 jsx.dom.getComputedStyle = (function () {
   var _camelize = jsx.dom.css.camelize;
   var _getProperty = jsx.object.getProperty;
-  
+
   var
     hasGCS = jsx.object.isMethod(document, "defaultView", "getComputedStyle"),
     propertyMap = {
@@ -268,16 +268,16 @@ jsx.dom.getComputedStyle = (function () {
     };
 
   /**
-   * @param oElement : Element
+   * @param {Element} oElement
    *   Element for which the computed style should be retrieved.
-   * @param sPseudoEl : string
+   * @param {string} sPseudoEl
    *   The name of the pseudo-element, such as ":first-child".
    *   Use <code>null</code> (default) for the element itself.
-   * @param sProperty : string
+   * @param {string} sProperty
    *   The property name in CSS or script syntax (names are mapped
    *   automatically according to the feature used).  If not passed
    *   or empty, the entire computed style is returned.
-   * @return CSSStyleDeclaration | currentStyle | string
+   * @return {CSSStyleDeclaration|currentStyle|string}
    */
   return function (oElement, sPseudoEl, sProperty) {
     if (hasGCS || typeof oElement.currentStyle != "undefined")
@@ -313,16 +313,16 @@ jsx.dom.getStyleProperty = (function () {
   var _isHostMethod = jsx.object.isHostMethod;
   var _camelize = jsx.dom.css.camelize;
   var _uncamelize = jsx.dom.css.uncamelize;
-  
+
   /**
-   * @param oElement : HTMLElement
+   * @param {HTMLElement} oElement
    *   Reference to the element object which style is to be modified.
-   * @param sPropertyName : String
+   * @param {String} sPropertyName
    *   Name of the style property of which the value should be retrieved.
    *   If "display", and there is no
    *   <code>style[<var>sPropertyName</var>]</code> property,
    *   "visibility" is used instead (fallback for the NN4 DOM).
-   * @return string|null
+   * @return {string|null}
    *   <code>null</code> if no matching object exists or if the
    *   DOM does not provide for retrieval of the property value.
    */
@@ -331,22 +331,22 @@ jsx.dom.getStyleProperty = (function () {
     {
       /* TODO: Needed for NN4 DOM as well? */
       var camelizedName = _camelize(sPropertyName);
-  
+
       if (typeof oElement.style != "undefined")
       {
         var style = oElement.style;
-        
+
         /* Prefer style.getPropertyValue() over mapping to extension properties */
         if (_isHostMethod(style, "getPropertyValue"))
         {
           sPropertyName = _uncamelize(sPropertyName);
-          
+
           return style.getPropertyValue(sPropertyName);
         }
-        
+
         /* handle the `float' property */
         var isStyleFloat = false;
-  
+
         if (camelizedName == "float")
         {
           /* W3C DOM Level 2 CSS */
@@ -355,7 +355,7 @@ jsx.dom.getStyleProperty = (function () {
             camelizedName = "cssFloat";
             isStyleFloat = true;
           }
-  
+
           /* MSHTML DOM */
           else if (typeof style.styleFloat != "undefined")
           {
@@ -363,7 +363,7 @@ jsx.dom.getStyleProperty = (function () {
             isStyleFloat = true;
           }
         }
-  
+
         if (isStyleFloat || typeof style[camelizedName] != "undefined")
         {
           return style[camelizedName];
@@ -375,14 +375,14 @@ jsx.dom.getStyleProperty = (function () {
         {
           camelizedName = "visibility";
         }
-  
+
         if (typeof oElement[camelizedName] != "undefined")
         {
           return oElement[camelizedName];
         }
       }
     }
-  
+
     return null;
   };
 }());
@@ -394,14 +394,14 @@ jsx.dom.getStyleProperty = (function () {
  *   (C) 2006  Thomas Lahn &lt;js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dom/css.js
- * @param oElement : HTMLElement
+ * @param {HTMLElement} oElement
  *   Reference to the element object which style property is to be retrieved.
- * @param sPropertyName : string
+ * @param {string} sPropertyName
  *   Name of the style property which is to be checked.
  *   If "display", and there is no
  *   <code>style[<var>sPropertyName</var>]</code> property,
  *   "visibility" is used instead (fallback for the NN4 DOM).
- * @return boolean
+ * @return {boolean}
  *   <code>false</code> if no matching object exists or if the
  *   DOM does not provide for retrieval of the property value;
  *   <code>true</code> otherwise.
@@ -423,22 +423,22 @@ jsx.dom.setStyleProperty = (function () {
   var _isHostMethod = jsx.object.isHostMethod;
   var _camelize = jsx.dom.css.camelize;
   var _uncamelize = jsx.dom.css.uncamelize;
-  
+
   /**
-   * @param oElement : HTMLElement
+   * @param {HTMLElement} oElement
    *   Reference to the element object which style is to be modified.
-   * @param sPropertyName : string
+   * @param {string} sPropertyName
    *   Name of the style property of which the value should be set.
    *   If "display" and there is no <code>style[<var>sPropertyName</var>]</code>
    *   property and <code>altValue</code> was provided, "visibility" is used
    *   instead (fallback for the NN4 DOM).
    * @param propValue
    *   Value of the style property to be set.
-   * @param altValue : optional _
+   * @param {_} altValue (optional)
    *   Alternative value to be set if the the style property is a property of
    *   the object itself instead of its `style' property.  Fallback for the
    *   NN4 DOM.
-   * @return boolean
+   * @return {boolean}
    *   <code>false</code> if no such object exists, the
    *   DOM does not provide for setting the property value,
    *   or if the assignment failed (invalid value).
@@ -450,18 +450,18 @@ jsx.dom.setStyleProperty = (function () {
     {
       /* TODO: Needed for NN4 DOM as well? */
       var camelizedName = _camelize(sPropertyName);
-      
+
       if (typeof oElement.style != "undefined")
       {
         var style = oElement.style;
-        
+
         /* Prefer style.setProperty() over mapping to extension properties */
         if (_isHostMethod(style, "setProperty"))
         {
           sPropertyName = _uncamelize(sPropertyName);
-          
+
           style.setProperty(sPropertyName, propValue);
-          
+
           if (!_isHostMethod(style, "getPropertyValue"))
           {
             return true;
@@ -470,10 +470,10 @@ jsx.dom.setStyleProperty = (function () {
           return (String(style.getPropertyValue(sPropertyName)).toLowerCase()
                   == String(propValue).toLowerCase());
         }
-        
+
         /* handle the `float' property */
         var isStyleFloat = false;
-  
+
         if (camelizedName == "float")
         {
           /* W3C DOM Level 2 CSS */
@@ -482,7 +482,7 @@ jsx.dom.setStyleProperty = (function () {
             camelizedName = "cssFloat";
             isStyleFloat = true;
           }
-  
+
           /* MSHTML DOM */
           else if (typeof style.styleFloat != "undefined")
           {
@@ -490,7 +490,7 @@ jsx.dom.setStyleProperty = (function () {
             isStyleFloat = true;
           }
         }
-  
+
         if (isStyleFloat || typeof style[camelizedName] != "undefined")
         {
           /*
@@ -509,7 +509,7 @@ jsx.dom.setStyleProperty = (function () {
         {
           camelizedName = "visibility";
         }
-  
+
         if (typeof oElement[camelizedName] != "undefined")
         {
           var newValue = (altValue || propValue);
@@ -519,7 +519,7 @@ jsx.dom.setStyleProperty = (function () {
         }
       }
     }
-  
+
     return false;
   };
 }());
@@ -531,9 +531,9 @@ jsx.dom.setStyleProperty = (function () {
  *   (C) 2004-2006  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @param oElement : HTMLElement
+ * @param {HTMLElement} oElement
  *   Reference to the DOM object to be rendered or not.
- * @param bShow : boolean
+ * @param {boolean} bShow
  *   Renders the object referenced by <code>o</code> if
  *   <code>true</code>, does not render it if <code>false</code>.
  *   Note that not to render an element is different from
@@ -541,7 +541,7 @@ jsx.dom.setStyleProperty = (function () {
  *   longer reserved.
  *
  *   If this argument is omitted, the current property value is returned.
- * @return boolean
+ * @return {boolean}
  *   When retrieving: <code>true</code> if visible, <code>false</code>
  *   otherwise; when setting: <code>true</code> if successful,
  *   <code>false</code> otherwise.
@@ -574,16 +574,16 @@ jsx.dom.display = function (oElement, bShow) {
  *   (C) 2004-2006  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
  * @partof
  *   http://pointedears.de/scripts/dhtml.js
- * @param oElement : HTMLElement
+ * @param {HTMLElement} oElement
  *   Reference to the DOM object to be either shown or hidden.
- * @param bVisible : optional Boolean
+ * @param {Boolean} bVisible (optional)
  *   Shows the object referenced by <code>o</code> if <code>true</code>,
  *   hides it if <code>false</code>.  Note that hiding an element is
  *   different from not rendering it, as the space it takes up is still
  *   reserved.
  *
  *   If this argument is omitted, the current property value is returned.
- * @return boolean
+ * @return {boolean}
  *   When retrieving: <code>true</code> if visible, <code>false</code>
  *   otherwise; when setting: <code>true</code> if successful,
  *   <code>false</code> otherwise.
@@ -611,9 +611,9 @@ jsx.dom.visibility = jsx.dom.visible = function (oElement, bVisible) {
 };
 
 /**
- * @param imgID : Number|String
- * @param state : optional Number
- * @return boolean
+ * @param {Number|String} imgID
+ * @param {Number} state (optional)
+ * @return {boolean}
  *   The return value of {@link #setStyleProperty} for setting the
  *   borderColor of the image
  */
@@ -714,10 +714,10 @@ jsx.dom.css.selectors = {
  * {@link Collection}.
  *
  * @constructor
- * @param oDocument : optional Object
+ * @param {Object} oDocument (optional)
  *   Object reference to override the default
  *   <code>document</code> object reference.
- * @return jsx.dom.css.RuleList
+ * @return {jsx.dom.css.RuleList}
  */
 jsx.dom.css.RuleList = function (oDocument) {
   arguments.callee._super.call(this);
@@ -736,10 +736,10 @@ jsx.dom.css.RuleList.extend(jsx.Collection, {
    * of the document.
    *
    * @memberOf jsx.dom.css.RuleList#prototype
-   * @param oDocument : optional Object
+   * @param {Object} oDocument (optional)
    *   Object reference to override the default
    *   <code>document</code> object reference.
-   * @return boolean
+   * @return {boolean}
    */
   get: function (oDocument) {
     if (oDocument)
@@ -774,9 +774,9 @@ jsx.dom.css.RuleList.extend(jsx.Collection, {
    * Returns a reference to the first rule
    * with a simple selector.
    *
-   * @param sSelector : String
+   * @param {String} sSelector
    *   Simple selector
-   * @return CSSStyleRule | Null
+   * @return {CSSStyleRule|Null}
    */
   findBySimpleSelector: function (sSelector) {
     var i = this.iterator();
@@ -840,8 +840,8 @@ jsx.dom.css.getSpecificity = (function () {
     selectors.ELEMENT + "|" + selectors.PSEUDOELEMENT, "g");
 
   /**
-   * @param selector : String
-   * @return Number
+   * @param {String} selector
+   * @return {Number}
    *   The specificity of <var>selector</var> where the value modulo 100
    *   is the number of ID selectors, the value modulo 10 is the number of
    *   class selectors, attributes selectors, and pseudo-classes, and the
@@ -868,9 +868,9 @@ jsx.dom.css.getElemByClassName = jsx.dom.css.gEBCN = (function () {
   var rxWhiteSpace = new RegExp(sWhiteSpace);
 
   /**
-   * @param sClassNames : Array|String
-   * @param contextNode : optional Element
-   * @return Array
+   * @param {Array|String} sClassNames
+   * @param {Element} contextNode (optional)
+   * @return {Array}
    *   An <code>Array</code> of references to objects representing
    *   matching elements
    */
@@ -990,9 +990,9 @@ jsx.dom.css.getComputedStyle = (function () {
   _defaultView;
 
   /**
-   * @param obj : Element
-   * @param cssProperty : string
-   * @return CSSStyleDeclaration|string
+   * @param {Element} obj
+   * @param {string} cssProperty
+   * @return {CSSStyleDeclaration|string}
    *   The return value depends on both the passed arguments
    *   and the capabilities of the user agent:
    *
@@ -1047,7 +1047,7 @@ jsx.dom.css.makeInline = (function () {
   };
 
   /**
-   * @param obj : Element
+   * @param {Element} obj
    */
   return function (obj) {
     var computedStyle = jsx.dom.css.getComputedStyle(obj);
@@ -1103,8 +1103,8 @@ jsx.dom.css.focusElement = function (s) {
  * Removes all occurences of a CSS class name from the
  * <code>class</code> attribute of an {@link Element}.
  *
- * @param o : Element
- * @param sClassName : string
+ * @param {Element} o
+ * @param {string} sClassName
  */
 jsx.dom.css.removeClassName = function (o, sClassName) {
   var curClassNames = o.className;
@@ -1126,15 +1126,15 @@ jsx.dom.css.addClassName = (function () {
    * Adds a CSS class name to the <code>class</code> attribute of
    * an {@link Element}.
    *
-   * @param o : Element
-   * @param sClassName : string
-   * @param bRemove : boolean
+   * @param {Element} o
+   * @param {string} sClassName
+   * @param {boolean} bRemove
    *   If the class name is already there, and this argument is
    *   <code>true</code>, all instances of it are removed first.
    *   If the class is there and this argument is <code>false</code>,
    *   exit without changing anything.  The default is <code>false</code>,
    *   which is more efficient.
-   * @return boolean
+   * @return {boolean}
    *   <code>true</code> if the class name could be added successfully or
    *   was already there, <code>false</code> otherwise.
    */
