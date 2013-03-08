@@ -1,7 +1,8 @@
 /**
- * <title>PointedEars' DOM Library</title>
- * @partof
- *   PointedEars JavaScript Extensions (JSX)
+ * @fileOverview <title>PointedEars' DOM Library</title>
+ * @file $Id$
+ *
+ * @partof PointedEars JavaScript Extensions (JSX)
  * @requires object.js
  * @recommends types.js, dom/xpath.js
  * @source Based upon
@@ -125,8 +126,8 @@ if (typeof document != "undefined")
       if (jsx_object.isMethod(document, "getElementById"))
       {
         /**
-         * @param sId : String
-         * @return any
+         * @param {string} sId
+         * @return {Element|Null}
          *   Reference to an {@link Element} object representing
          *   the element with the given ID, <code>null</code> or
          *   <code>undefined</code> if there is no such element.
@@ -138,18 +139,17 @@ if (typeof document != "undefined")
           return document.getElementById(sId);
         };
       }
-      else if ((jsx.dom.hasDocumentAll = jsx_object.isMethod(document, "all")))
+
+      if ((jsx.dom.hasDocumentAll = jsx_object.isMethod(document, "all")))
       {
         return function (sId) {
           return document.all(sId);
         };
       }
-      else
-      {
-        return function (sId) {
+
+      return function (sId) {
           return document[sId];
-        };
-      }
+      };
     }
   )();
 
@@ -170,9 +170,9 @@ if (typeof document != "undefined")
     {
       /* W3C DOM Level 2 HTML */
       /**
-       * @param sName : String
-       * @param index : optional Number
-       * @return Element|Layer|null|undefined
+       * @param {string} sName
+       * @param {number} index (optional)
+       * @return Element|Layer|Null|Undefined
        */
       return function (sName, index) {
         var result = document.getElementsByName(sName);
@@ -220,10 +220,10 @@ if (typeof document != "undefined")
     {
       /* W3C DOM Level 3 XPath */
       /**
-       * @param sTagName : String
-       * @param index : optional Number
-       * @param oContextNode : optional Element
-       * @return Array|Element
+       * @param {string} sTagName
+       * @param {number} index (optional)
+       * @param {Element} oContextNode (optional)
+       * @return {Array|Element}
        *   An <code>Array</code> of references to objects representing
        *   matching elements, or one reference to such an object if
        *   <var>index</var> was provided.
@@ -255,16 +255,17 @@ if (typeof document != "undefined")
         return result;
       };
     }
-    else if ((jsx.dom.hasGetElementsByTagName =
-                typeof document != "undefined"
-                && jsx_object.isMethod(document, "getElementsByTagName")))
+
+    if ((jsx.dom.hasGetElementsByTagName =
+          (typeof document != "undefined"
+            && jsx_object.isMethod(document, "getElementsByTagName"))))
     {
       /* W3C DOM Level 2 Core */
       /**
-       * @param sTagName : String
-       * @param index : optional Number
-       * @param oContextNode : optional Element
-       * @return NodeList|Element|null
+       * @param {string} sTagName
+       * @param {number} index (optional)
+       * @param {Element} oContextNode (optional)
+       * @return {NodeList|Element|Null}
        *   An <code>NodeList</code> of references to objects representing
        *   matching elements, or one reference to such an object if
        *   <var>index</var> was provided; <code>null</code> if there
@@ -292,7 +293,7 @@ if (typeof document != "undefined")
         {
           return null;
         }
-        
+
         var result = oContextNode.getElementsByTagName(sTagName);
         if (result && !isNaN(index) && index > -1)
         {
@@ -302,13 +303,14 @@ if (typeof document != "undefined")
         return result;
       };
     }
-    else if (jsx.dom.hasDocumentAll && isMethod(document.all, "tags"))
+
+    if (jsx.dom.hasDocumentAll && isMethod(document.all, "tags"))
     {
       /**
-       * @param sTagName : String
-       * @param index : optional Number
-       * @param oContextNode : optional Element
-       * @return NodeList|Element|undefined
+       * @param {string} sTagName
+       * @param {number} index (optional)
+       * @param {Element} oContextNode (optional)
+       * @return {NodeList|Element|Undefined}
        *   An <code>NodeList</code> of references to objects representing
        *   matching elements, or one reference to such an object if
        *   <var>index</var> was provided; <code>null</code>
@@ -341,12 +343,10 @@ if (typeof document != "undefined")
         return result;
       };
     }
-    else
-    {
-      return function () {
-        return null;
-      };
-    }
+
+    return function () {
+      return null;
+    };
   }());
 
   jsx.dom.getElemByIndex = jsx.dom.gEBIdx = (function () {
@@ -363,28 +363,30 @@ if (typeof document != "undefined")
     if (jsx.dom.hasGetElementsByTagName)
     {
       /**
-       * @param index : Number
-       * @return Element|null|undefined
+       * @param {number} index
+       * @return Element|Null|Undefined
        */
       return function (index) {
         return (result = document.getElementsByTagName('*')[index]);
       };
     }
-    else if (jsx.dom.hasDocumentAll)
+
+    if (jsx.dom.hasDocumentAll)
     {
       /**
-       * @param index : Number
-       * @return Element|null|undefined
+       * @param {number} index
+       * @return Element|Null|Undefined
        */
       return function (index) {
         return document.all(index);
       };
     }
-    else if (jsx.dom.hasDocumentLayers)
+
+    if (jsx.dom.hasDocumentLayers)
     {
       /**
-       * @param index : Number
-       * @return Layer|null|undefined
+       * @param {number} index
+       * @return Layer|Null|Undefined
        */
       return function (index) {
         return document.layers[index];
@@ -444,9 +446,9 @@ if (typeof de.pointedears.jsx == "undefined")
  * Shows an exception alert and allows for
  * displaying a stack trace.
  *
- * @param sMessage : optional string = ""
+ * @param {string} sMessage = ""
  *   Error message to be displayed.
- * @return boolean
+ * @return {boolean}
  *   Always <code>false</code>
  */
 jsx.dom.DHTMLException = function (sMessage) {
@@ -527,20 +529,17 @@ jsx.dom.write = function (s) {
  *
  * @author
  *   (C) 2003, 2004  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
- * @partof
- *   http://pointedears.de/scripts/dhtml.js
- * @param sType : string
+ * @param {string} sType
  *   Defines the type of <code>sValue</code>. Valid values are
  *   "id", "name", "tagname", "index" and "classname". The
  *   argument is case-insensitive.
- * @param sValue : optional string
+ * @param {string} sValue (optional)
  *   Case-sensitive ID, name or tag name of object (collection).
- * @param index : optional number
- *   Optional. Numeric index of an element of the selected
+ * @param {number} index (optional)
+ *   Numeric index of an element of the selected
  *   collection. For IDs must be unique throughout a document,
  *   this argument is ignored if <code>sType</code> is "id".
- * @type object
- * @return HTMLElement|HTMLNodeList
+ * @return {HTMLElement?|HTMLNodeList?}
  *   A reference to an object if <code>sType</code> is "id", or
  *   if it is "name" or "tagname" and <code>index</code> is
  *   specified; otherwise a collection of objects matching the
@@ -548,7 +547,7 @@ jsx.dom.write = function (s) {
  *   exists.
  */
 jsx.dom.getElem = function (sType, sValue, index) {
-  /**
+  /*
    * Calls DHTMLException() for an invalid type.
    */
   function invalidType()
@@ -563,14 +562,14 @@ jsx.dom.getElem = function (sType, sValue, index) {
   {
     jsx.dom.DHTMLException(
         "getElem: Invalid type: " + sType + "\n"
-      + "Must be String.");
+      + "Must be string.");
   }
 
   if (!sValue || typeof sValue != "string")
   {
     jsx.dom.DHTMLException(
         "getElem: Invalid value: " + sValue + "\n"
-      + "Must be String.");
+      + "Must be string.");
   }
 
   var o = null;
@@ -605,16 +604,13 @@ jsx.dom.getElem = function (sType, sValue, index) {
 /**
  * Retrieves the content of an HTMLElement object.
  *
- * @author
- *   (C) 2003-2005, 2010  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
- * @partof
- *   http://pointedears.de/scripts/dhtml.js
- * @param oElement : HTMLElement
+ * @author (C) 2003-2005, 2010  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ * @param {HTMLElement} oElement
  *   Element which content is to be retrieved.
- * @param bHTML : optional boolean
+ * @param {boolean} bHTML (optional)
  *   If <code>true</code>, returns the HTML content instead of
  *   the text content in case the latter cannot be retrieved.
- * @return string
+ * @return {string}
  *  A string with the content of the element; a null-string if
  *  no such element object exists or if the DOM does not provide
  *  retrieval of the element's content.
@@ -658,15 +654,12 @@ jsx.dom.getCont = function (oElement, bHTML) {
 /**
  * Specifies the content of an HTMLElement object.
  *
- * @author
- *   (C) 2003-2005, 2010  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
- * @partof
- *   http://pointedears.de/scripts/dhtml.js
- * @param oElement : HTMLElement
+ * @author (C) 2003-2005, 2010  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
+ * @param {HTMLElement} oElement
  *   Element which content is to be changed.
- * @param sNodeValue : string
+ * @param {string} sNodeValue
  *   New content of the element.
- * @return boolean
+ * @return {boolean}
  *   <code>true</code> if successful, <code>false</code>
  *   otherwise.
  */
@@ -714,14 +707,12 @@ jsx.dom.setCont = function (oElement, sNodeValue) {
  *
  * @author
  *   (C) 2005 Thomas Lahn <dhtml.js@PointedEars.de>
- * @partof
- *   http://pointedears.de/scripts/dhtml.js
- * @param oNode : Node
+ * @param {Node} oNode
  *   Reference to the document node.
- * @param bGetHTML : optional boolean
+ * @param {boolean} bGetHTML (optional)
  *   If <code>true</code>, returns the HTML content instead of
  *   the text content in case the latter cannot be retrieved.
- * @return string
+ * @return {string}
  *   The text content of @{(oNode)}.
  * @todo Duplicate of getCont(..., false)?
  */
@@ -769,12 +760,10 @@ jsx.dom.getContent = function (oNode, bGetHTML) {
  *
  * @author
  *   (C) 2005 Thomas Lahn <dhtml.js@PointedEars.de>
- * @partof
- *   http://pointedears.de/scripts/dhtml.js
- * @param oNode : Node
+ * @param {Node} oNode
  *   Reference to the document node.
- * @param sContent : string
- * @return boolean
+ * @param {string} sContent
+ * @return {boolean}
  *   <code>true</code> if successful, <code<false</code> otherwise.
  */
 jsx.dom.setTextContent = function (oNode, sContent) {
@@ -817,13 +806,11 @@ jsx.dom.setTextContent = function (oNode, sContent) {
  *
  * @author
  *   (C) 2003, 2008, 2010  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
- * @param oElement : HTMLElement
- * @partof
- *   http://pointedears.de/scripts/dhtml.js
- * @param sAttrName : string
+ * @param {HTMLElement} oElement
+ * @param {string} sAttrName
  *   Name of the attribute from which the value
  *   should be retrieved.
- * @return any
+ * @return {any}
  *   The value of the object if <code>sType</code> is "id",
  *   or if it is "name" or "tagname" and <code>index</code>
  *   is specified;
@@ -886,10 +873,8 @@ jsx.dom.attrMap = {
  *
  * @author
  *   (C) 2003, 2006  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
- * @partof
- *   http://pointedears.de/scripts/dhtml.js
  * @param o
- * @param sAttrName : string
+ * @param {string} sAttrName
  *   Name of the attribute for which the value should be set.
  *   Attribute names for which an ECMAScript language binding
  *   is defined in W3C DOM Level 2 HTML, are automatically
@@ -908,7 +893,7 @@ jsx.dom.attrMap = {
  * @param attrValue
  *   Value of the attribute to be set.  The value is
  *   converted to number if it can be interpreted as such.
- * @return any
+ * @return {any}
  *   The value of the attribute of the element object;
  *   a null-string if no matching object exists or if the DOM
  *   does not provide retrieval of the attribute's values.
@@ -930,8 +915,8 @@ jsx.dom.setAttr = function (o, sAttrName, attrValue) {
       /**
        * Converts a string, if possible, to a number
        *
-       * @param s : String
-       * @return string|number
+       * @param {string} s
+       * @return {string|number}
        *   The converted value
        */
       function (s) {
@@ -980,8 +965,6 @@ jsx.dom.setAttr = function (o, sAttrName, attrValue) {
  * @function
  * @author
  *   &copy; 2004, 2006, 2010  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
- * @partof
- *   http://pointedears.de/scripts/dhtml.js
  * @see <a href="dom2-core#ID-2141741547">DOM Level 2 Core: Document::createElement()</a>
  * @see <a href="msdn#workshop/author/dhtml/reference/methods/createelement.asp">MSDN Library: createElement()</a>
  */
@@ -989,12 +972,12 @@ jsx.dom.createElement = (function () {
   var _setAttr = jsx.dom.setAttr;
 
   /**
-   * @param sTag : string
+   * @param {string} sTag
    *   Start tag or element type of the element to be created.
    *   Passing a start tag even works if the UA is not MSIE,
    *   as attributes and values given are parsed from left to
    *   right into the corresponding element object properties.
-   * @return object
+   * @return {Element}
    *   A reference to a new <code>Element</code> object with the
    *   <code>nodeName</code> property set to <code>sTagName</code>,
    *   and the <code>localName</code>, <code>prefix</code>,
@@ -1044,7 +1027,7 @@ jsx.dom.createNodesFromObj = (function () {
   var _isArray = jsx.object.isArray;
 
   /**
-   * @param data : Array|Object
+   * @param {Array|Object} data
    * @return TextNode|Array[Node]|Element
    */
   return function (data) {
@@ -1123,9 +1106,9 @@ jsx.dom.createNodesFromObj = (function () {
 /**
  * Appends several child nodes to a parent node in the specified order.
  *
- * @param parentNode : Node
- * @param childNodes : NodeList|Array
- * @return boolean
+ * @param {Node} parentNode
+ * @param {NodeList|Array} childNodes
+ * @return {boolean}
  *   <code>true</code> on success, <code>false</code> otherwise.
  */
 jsx.dom.appendChildren = function (parentNode, childNodes) {
@@ -1145,9 +1128,9 @@ jsx.dom.appendChildren = function (parentNode, childNodes) {
 /**
  * Removes several child nodes of a parent node in reverse order.
  *
- * @param parentNode : Node
- * @param childNodes : NodeList|Array
- * @return boolean
+ * @param {Node} parentNode
+ * @param {NodeList|Array} childNodes
+ * @return {boolean}
  *   <code>true</code> on success, <code>false</code> otherwise.
  */
 jsx.dom.removeChildren = function (parentNode, childNodes) {
@@ -1288,8 +1271,8 @@ jsx.dom.HTMLSerializer = (
  * return the first child <em>element</em> node, and return values do vary
  * across DOMs.
  * </p>
- * @param oNode : Node
- * @returns {Node} The first child node of another node.
+ * @param {Node} oNode
+ * @return {Node} The first child node of another node.
  */
 jsx.dom.getFirstChild = function (oNode) {
   var result = null;
@@ -1312,8 +1295,8 @@ jsx.dom.getFirstChild = function (oNode) {
 /**
  * Returns the parent node of a node
  *
- * @param oNode : Node
- * @returns {Node} The parent node of <var>oNode</var>
+ * @param {Node} oNode
+ * @return {Node} The parent node of <var>oNode</var>
  */
 jsx.dom.getParent = function (oNode) {
   var result = null;
@@ -1348,15 +1331,13 @@ jsx.dom.getParent = function (oNode) {
  *   (C) 2004-2009  Thomas Lahn <dhtml.js@PointedEars.de>,
  *       2004       Ulrich Kritzner <droeppez@web.de>
  *
- * @partof http://PointedEars.de/scripts/dhtml.js
  * @requires jsx.object#isMethod()
- * @param sURI : string
+ * @param {string} sURI
  *   URI of the script resource to be loaded.
- * @param sType : optional string = "text/javascript"
+ * @param {string} sType = "text/javascript"
  *   MIME type of the script to be loaded.  Used as value of the
- *   <code>type</code> attribute, the default is (still proprietary,
- *   but commonly used) "text/javascript".
- * @param sLanguage : optional string
+ *   <code>type</code> attribute.
+ * @param {string} sLanguage (optional)
  *   Value of the <code>language</code> attribute (deprecated in
  *   HTML 4.01 and XHTML 1.0, absent from XHTML 1.1 and later
  *   versions) to specify the version of the script language.
@@ -1367,7 +1348,7 @@ jsx.dom.getParent = function (oNode) {
  *   <code>src</code> attribute to be added; if <code>false</code>
  *   (default), the attempt to load a script that has already been loaded
  *   fails silently.
- *  @return boolean
+ *  @return {boolean}
  *    <code>false</code> if the script could not be loaded,
  *    <code>true</code> otherwise.
  */
@@ -1454,16 +1435,14 @@ jsx.dom.loadScript = function (sURI, sType, sLanguage, bReload) {
  *
  * @author
  *   (C) 2004  Thomas Lahn <dhtml.js@PointedEars.de>
- * @partof
- *   http://pointedears.de/scripts/dhtml.js
  * @requires
  *   http://pointedears.de/scripts/collection.js
- * @param o : optional Document|Element
+ * @param {Document|Element} o (optional)
  *   Reference to a {@link dom2-core#Document Document} or
  *   {@link dom2-core#Element Element} object from which to retrieve
  *   descendant elements.  If omitted or evaluated to
  *   <code>false</code>, it is tried to use the calling object.
- * @return Collection
+ * @return {Collection}
  *   A reference to a {@link #Collection} object containing
  *   the descendant elements of <var>o</var> or the calling
  *   {@link dom2-core#Document Document}/{@link dom2-core#Element Element}
@@ -1572,12 +1551,14 @@ jsx.dom.hyphenate = (function () {
   var _hyphenation, _hyphenate, _me;
 
   /**
-   * @param contextNodes : Array[Node]
-   *   Hyphenation is applied to these nodes and their descendant
-   *   text nodes.  The default is the document node referred
-   *   by the <code>document</code> property of the next
-   *   fitting object in the scope chain (usually the Global
+   * @param {Array} contextNodes = document
+   *   Hyphenation is applied to these {@link Node}s and their
+   *   descendant text nodes.  The default is the <code>Document</code>
+   *   node referred by the <code>document</code> property of the
+   *   next fitting object in the scope chain (usually the Global
    *   Object).
+   * @param {boolean} hyphenateAll
+   *   If a true-value,
    */
   return function (contextNodes, hyphenateAll) {
     /* imports */

@@ -4,7 +4,7 @@
  * @file $Id$
  * @requires object.js
  *
- * @author (C) 2011, 2012 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
+ * @author (C) 2011-2013 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -38,7 +38,7 @@ jsx.python = {
    * @version
    */
   version:   "$Revision$ ($Date$)",
-  copyright: "Copyright \xA9 2011, 2012",
+  copyright: "Copyright \xA9 2011-2013",
   author:    "Thomas Lahn",
   email:     "js@PointedEars.de",
   path:      "http://PointedEars.de/scripts/"
@@ -50,9 +50,9 @@ jsx.python = {
  * <var>end</var> exclusive using step width <var>step</var>
  * (may be negative).
  *
- * @param start : Number
- * @param end : Number
- * @param step : optional Number = 1
+ * @param {number} start
+ * @param {number} end
+ * @param {number} step = 1
  * @return {Array}
  */
 jsx.python.range = function (start, end, step) {
@@ -86,8 +86,6 @@ jsx.python.range = function (start, end, step) {
  * returns a reference to a passed Array.
  *
  * @function
- * @param iterable : Object
- * @return {Array}
  */
 jsx.python.list = (function () {
   var _jsx_object = jsx.object;
@@ -95,6 +93,7 @@ jsx.python.list = (function () {
   var _hasOwnProperty = _jsx_object._hasOwnProperty;
 
   /**
+   * @param {Object} iterable
    * @return {Array}
    */
   return function (iterable) {
@@ -128,11 +127,6 @@ jsx.python.list = (function () {
  * if <var>condition</var> is a <code>true-value</code> or
  * <code>undefined</code>, and no items if it is another
  * false-value).
- *
- * @param mapper : Function|any
- * @param iterable : Object
- * @param condition : Function|Boolean
- * @return {Array}
  */
 jsx.python.list.from = (function () {
   var _jsx_object = jsx.object;
@@ -141,6 +135,12 @@ jsx.python.list.from = (function () {
   var _isObject = _jsx_object.isObject;
   var _range = jsx.python.range;
 
+  /**
+   * @param {Function|any} mapper
+   * @param {Object} iterable
+   * @param {Function|boolean} condition
+   * @return {Array}
+   */
   return function (mapper, iterable, condition) {
     var result = [];
 
@@ -241,9 +241,6 @@ jsx.python.dict = function (mapping, values) {
 
 /**
  * Build an unordered collection of unique elements.
- *
- * @param iterable : Object
- * @return {Array}
  */
 jsx.python.set = (function () {
   var _jsx = jsx;
@@ -252,6 +249,10 @@ jsx.python.set = (function () {
   var _getKeys = _jsx_object.getKeys;
   var _isMethod = _jsx_object.isMethod;
 
+  /**
+   * @param {Object} iterable
+   * @return {Array}
+   */
   return function jsx_python_set (iterable) {
     if (!(this instanceof jsx_python_set))
     {
@@ -352,7 +353,7 @@ jsx.python.set.extend(null, {
  * element from each of the argument Arrays.  The returned Array is
  * truncated in length to the length of the shortest argument Array.
  *
- * @param arg1 : Array
+ * @param {Array} arg1
  * @return {Array}
  */
 jsx.python.zip = function (arg1, arg2) {
@@ -384,8 +385,10 @@ jsx.python.zip = function (arg1, arg2) {
  * To emphasize this, there is no explicit return value (i.e. returns
  * <code>undefined</code>).
  *
- * @param list1 : Array which is to be extended
- * @param list2 : Array which elements should be appended to <var>list1</var>
+ * @param {Array} list1
+ *   Array which is to be extended
+ * @param {Array} list2
+ *   Array which elements should be appended to <var>list1</var>
  */
 jsx.python.extend = function (list1, list2) {
   for (var i = 0, len = list2.length; i < len; ++i)

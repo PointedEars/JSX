@@ -1,14 +1,15 @@
 /**
- * <title>PointedEars' JSX: Basic Math Library</title>
+ * @fileOverview <title>PointedEars' JSX: Basic Math Library</title>
+ * @file $Id$
  * @requires object.js
  *
  * @section Copyright & Disclaimer
- * 
+ *
  * @author
- *   (C) 2000-2011  Thomas Lahn &lt;math.js@PointedEars.de&gt;
+ *   (C) 2000-2011, 2013 Thomas Lahn &lt;math.js@PointedEars.de&gt;
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
- * 
+ *
  * JSX is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -26,7 +27,7 @@
  * This document contains JavaScriptDoc[tm], see
  * <http://pointedears.de/scripts/JSDoc/>
  * for details.
- * 
+ *
  * Refer math.htm file for general documentation.
  */
 
@@ -42,8 +43,8 @@ if (typeof jsx == "undefined")
  * @namespace
  */
 jsx.math = {
-  version:   "1.16.2005052117",
-  copyright: "Copyright \xA9 1999-2005",
+  version:   "1.16.$Rev$",
+  copyright: "Copyright \xA9 1999-2011, 2013",
   author:    "Thomas Lahn",
   email:     "math.js@PointedEars.de",
   path:      "http://pointedears.de/scripts/"
@@ -106,14 +107,14 @@ jsx.math.MathError.extend(jsx.Error);
  */
 jsx.math.InvalidArgumentError = function(sMethodCall, iErrorCode) {
   var sSubErrType = jsx.math.msgInvArg;
-  
+
   switch (iErrorCode)
   {
     case -1:
       sSubErrType = jsx.math.msgArgMissing;
       break;
   }
-  
+
   jsx.math.MathError.call(this, sSubErrType);
 };
 
@@ -136,7 +137,7 @@ jsx.math.DivisionByZeroError = function() {
 
 /*
  * TODO:
- 
+
 "I want the *option* to switch from standard 32-bit doubles to double
 precision long doubles since it is not always necessary to run at such
 high precision [sometimes I'll trade performance for precision.]
