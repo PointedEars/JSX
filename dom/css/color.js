@@ -7,7 +7,7 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2011, 2012 Thomas Lahn <js@PointedEars.de>
+ *   (C) 2011-2013 Thomas Lahn &lt;js@PointedEars.de>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -53,18 +53,18 @@ if (typeof jsx.dom.css == "undefined")
  * The <code>Color</code> prototype encapsulates
  * color data given in RGB format.
  *
- * @param iRed : Number|Color|String
+ * @param {Number|Color|String} iRed
  *   Red value or RGB color.  Supported formats for RGB color are:
  *   <code>rgb(<var>r</var>, <var>g</var>, <var>b</var>)</code>,
  *   <code>#rgb</code> and <code>#rrggbb</code>.  If a <code>Color</code>,
  *   its red component is used.
- * @param iGreen : Number|Color
+ * @param {Number|Color} iGreen
  *   Green value (optional).  If both <code>iRed</code> and this argument
  *   are <code>Color</code>s, this arguments's green component is used.
- * @param iBlue : Number|Color
+ * @param {Number|Color} iBlue
  *   Blue value (optional).  If both <code>iRed</code> and this argument
  *   are <code>Color</code>s, this arguments's blue component is used.
- * @param fOpacity : Number|Color
+ * @param {Number|Color} fOpacity
  *   Opacity value (optional).  If both <code>iRed</code> and this argument
  *   are <code>Color</code>s, this arguments's opacity value is used.
  * @property red : Number
@@ -75,7 +75,7 @@ if (typeof jsx.dom.css == "undefined")
  *   Blue value.
  * @property opacity : Number
  *   Opacity value
- * @return jsx.dom.css.Color
+ * @return {jsx.dom.css.Color}
  */
 jsx.dom.css.Color = function (iRed, iGreen, iBlue, fOpacity) {
   return this.set(iRed, iGreen, iBlue, fOpacity);
@@ -86,9 +86,9 @@ jsx.dom.css.Color.MAX_VALUE = 255;
 
 /**
  * Returns the difference between two colors.
- * 
- * @param color1 : jsx.dom.css.Color|String
- * @param color2 : jsx.dom.css.Color|String
+ *
+ * @param {jsx.dom.css.Color|String} color1
+ * @param {jsx.dom.css.Color|String} color2
  * @returns {red, green, blue, opacity}
  * @see jsx.dom.css.Color.prototype.diff()
  */
@@ -102,14 +102,14 @@ jsx.dom.css.Color.diff = function (color1, color2) {
  * in the HSV (Hue, Saturation, Value) color space.
  * If any of the coordinates is not provided, it is assumed to be
  * 0 (zero).
- * 
- * @param iHue : number
+ *
+ * @param {number} iHue
  *   Hue, from 0 to 360 (degrees).
- * @param fSaturation : number
+ * @param {number} fSaturation
  *   Saturation, from 0.0 to 1.0 (0 to 100%).
- * @param fValue : number
+ * @param {number} fValue
  *   Brightness value, from 0.0 to 1.0 (0 to 100%).
- * @return jsx.dom.css.Color
+ * @return {jsx.dom.css.Color}
  */
 jsx.dom.css.Color.hsv2rgb = function (iHue, fSaturation, fValue) {
   return (new jsx.dom.css.HSVColor(iHue, fSaturation, fValue)).toRGB();
@@ -119,7 +119,7 @@ jsx.dom.css.Color.extend(null, {
   /**
    * Sets the color values from Red, Green, Blue and Opacity values or a
    * RGB(A) value.
-   * 
+   *
    * @memberOf jsx.dom.css.Color.prototype
    * @param iRed {number|Color|string}
    *   Red value or RGB color.  Supported formats
@@ -130,7 +130,7 @@ jsx.dom.css.Color.extend(null, {
    *   Blue value (optional)
    * @param fOpacity : {number|Color}
    *   Opacity value (optional)
-   * @return jsx.dom.css#Color
+   * @return {jsx.dom.css#Color}
    */
   set: function (iRed, iGreen, iBlue, fOpacity) {
     if (typeof iRed != "undefined")
@@ -145,7 +145,7 @@ jsx.dom.css.Color.extend(null, {
         if (jsx.object.isInstanceOf(iRed, this.constructor))
         {
           this.setRed(iRed.red);
-  
+
           var argc = arguments.length;
           if (jsx.object.isInstanceOf(iGreen, this.constructor)
               && jsx.object.isInstanceOf(iBlue, this.constructor)
@@ -175,12 +175,12 @@ jsx.dom.css.Color.extend(null, {
         }
       }
     }
-    
+
     this.fix();
-    
+
     return this;
   },
-    
+
   /**
    * @private
    * @param {String} sComponent
@@ -191,42 +191,42 @@ jsx.dom.css.Color.extend(null, {
     {
       value = this.constructor.MAX_VALUE * (parseFloat(value, 10) / 100);
     }
-    
+
     if (isNaN(value))
     {
       return jsx.throwThis("jsx.InvalidArgumentError",
         ["Invalid component value", String(value), "number"]);
     }
-    
+
     this[sComponent] = parseFloat(value, 10);
   },
-    
+
   setRed: function (value) {
     this._setComponent("red", value);
   },
-    
+
   setGreen: function (value) {
     this._setComponent("green", value);
   },
-    
+
   setBlue: function (value) {
     this._setComponent("blue", value);
   },
-  
+
   setOpacity: function (value) {
     if (isNaN(value))
     {
       return jsx.throwThis("jsx.InvalidArgumentError",
         ["Invalid opacity value", String(value), "number"]);
     }
-    
+
     this.opacity = parseFloat(value);
   },
-  
+
   /**
    * Returns the difference between two colors.
-   * 
-   * @param color2 : jsx.dom.css.Color
+   *
+   * @param {jsx.dom.css.Color} color2
    * @return {Object}
    *   The difference between the current color (A)
    *   and another color (B) as a tuple (Object) consisting
@@ -234,7 +234,7 @@ jsx.dom.css.Color.extend(null, {
    *   the opacity of each color.  That is, if A := (r1, g1, b1, o1)
    *   and B := (r2, g2, b2, o2) then <code>A.diff(B)</code>
    *   returns B - A := (r2 - r1, g2 - g1, b2 - b1, o2 - o1).
-   * 
+   *
    *   Note that since each component value of the result
    *   may be negative, the result is normalized through
    *   {@link jsx.dom.css.Color.prototype#fix} if its properties
@@ -247,7 +247,7 @@ jsx.dom.css.Color.extend(null, {
     {
       color2 = new _Color(color2);
     }
-    
+
     return {
       red:     color2.red     - this.red,
       green:   color2.green   - this.green,
@@ -255,18 +255,18 @@ jsx.dom.css.Color.extend(null, {
       opacity: color2.opacity - this.opacity
     };
   },
-  
+
   /**
    * Fixes RGB values, i.e. brings them into range
    * if they are out of range, and returns the new value.
    * NOTE: Disregards brightness and contrast.
-   * 
-   * @return jsx.dom.css#Color
+   *
+   * @return {jsx.dom.css#Color}
    */
   fix: function () {
     var rgbMin = this.constructor.MIN_VALUE;
     var rgbMax = this.constructor.MAX_VALUE;
-    
+
     for (var component in {red: 1, green: 1, blue: 1})
     {
       this[component] = Math.round(this[component]);
@@ -283,7 +283,7 @@ jsx.dom.css.Color.extend(null, {
         }
       }
     }
-  
+
     if (typeof this.opacity == "undefined" || this.opacity > 1)
     {
       this.opacity = 1;
@@ -292,17 +292,17 @@ jsx.dom.css.Color.extend(null, {
     {
       this.opacity = 0;
     }
-  
+
     return this;
   },
-    
+
   /**
    * Increase/decrease one or more RGB components of a color.
-   * 
+   *
    * @param iRed
    * @param iGreen
    * @param iBlue
-   * @return jsx.dom.css#Color
+   * @return {jsx.dom.css#Color}
    */
   inc: function (iRed, iGreen, iBlue) {
     switch (iRed.constructor)
@@ -310,50 +310,50 @@ jsx.dom.css.Color.extend(null, {
       case String:
         iRed = new jsx.dom.css.Color(iRed);
         break;
-      
+
       case Object:
       case this.constructor:
         if (typeof iRed.green != "undefined")
         {
           iGreen = iRed.green;
         }
-        
+
         if (typeof iRed.blue != "undefined")
         {
           iBlue  = iRed.blue;
         }
-        
+
         iRed = iRed.red;
         break;
-        
+
       case Array:
         if (typeof iRed[1] != "undefined")
         {
           iGreen = iRed[1];
         }
-        
+
         if (typeof iRed[2] != "undefined")
         {
           iBlue  = iRed[2];
         }
-        
+
         iRed = iRed[0];
         break;
     }
-  
+
     this.red   += (parseFloat(iRed, 10) || 0);
     this.green += (parseFloat(iGreen, 10) || 0);
     this.blue  += (parseFloat(iBlue, 10) || 0);
-    
+
     return this.fix();
   },
-    
+
   /**
    * Sets the color values from an RGB(A) value.
-   * 
-   * @param v : string
+   *
+   * @param {string} v
    *   RGB(A) value as supported by @{#Color()}.
-   * @return jsx.dom.css#Color
+   * @return {jsx.dom.css#Color}
    */
   setRGB: function (v) {
     /*
@@ -368,7 +368,7 @@ jsx.dom.css.Color.extend(null, {
       integer = "\\d+",
       number = "(" + integer + "|\\d*\\.\\d+)",
       percentage_opt = number + "%?";
-    
+
     var rx = new RegExp(
       "rgb(a)?\\(\\s*(" + percentage_opt + ")"
       + "\\s*,\\s*(" + percentage_opt + ")"
@@ -376,7 +376,7 @@ jsx.dom.css.Color.extend(null, {
       + "(\\s*,\\s*("+ number + "))?\\s*\\)"
       + "|#([0-9a-f]{3})([0-9a-f]{3})?",
       "i");
-    
+
     var m;
     if ((m = rx.exec(v)))
     {
@@ -389,13 +389,13 @@ jsx.dom.css.Color.extend(null, {
         opacity = m[9],
         hex3    = m[11],
         hex6    = m[12];
-  
+
       if (red)
       {
         this.setRed(red);
         this.setGreen(green);
         this.setBlue(blue);
-  
+
         if (rgba)
         {
           this.setOpacity(opacity);
@@ -425,54 +425,54 @@ jsx.dom.css.Color.extend(null, {
         }
       }
     }
-  
+
     this.fix();
-  
+
     return this;
   },
-    
+
   /**
    * Returns the monochrome version of a color as an object.
-   * 
-   * @return jsx.dom.css#Color
+   *
+   * @return {jsx.dom.css#Color}
    */
   getMono: function () {
     var v = this.toHSV().getValue();
     return new this.constructor(v, v, v);
   },
-    
+
   /**
    * Sets the color values from Red, Green and Blue values or
    * an RGB value and returns a monochrome version of the color
    * as an object.
-   * 
-   * @param iRed : number|string
+   *
+   * @param {number|string} iRed
    *   Red value or RGB color.  Supported formats
    *   for RGB color are the same as for @{#Color()}.
-   * @param iGreen : optional number
+   * @param {number} iGreen (optional)
    *   Green value.
-   * @param iBlue : optional number
+   * @param {number} iBlue (optional)
    *   Blue value.
-   * @return jsx.dom.css#Color
+   * @return {jsx.dom.css.Color}
    */
   setMono: function (iRed, iGreen, iBlue) {
     this.set(iRed, iGreen, iBlue);
-    
+
     var c = this.getMono();
     this.red   = c.red;
     this.green = c.green;
     this.blue  = c.blue;
-  
+
     return this;
   },
-    
+
   /**
    * Returns the next similar color to the represented color on the
    * 214-color Web-safe palette, i.e. a color where each sRGB component
    * is one of the hexadecimal values 0x00 (0), 0x33 (51), 0x66 (102),
    * 0x99 (153), 0xCC (204), and 0xFF (255).
-   * 
-   * @return jsx.dom.css#Color
+   *
+   * @return {jsx.dom.css.Color}
    */
   getWebSafe: function () {
     function getNearestSafeValue (value)
@@ -481,76 +481,77 @@ jsx.dom.css.Color.extend(null, {
       {
         return 0xFF;
       }
-            
+
       if (value <= 0)
       {
         return 0;
       }
-  
+
       for (var safeValues = [0, 0x33, 0x66, 0x99, 0xCC, 0xFF],
                 i = safeValues.length - 1;
            i--;)
       {
         var item = safeValues[i];
-        
+
         if (value >= item)
         {
           if (value == item)
           {
             return value;
           }
-          
+
           var nextItem = safeValues[i + 1];
           if (value - item < nextItem - value)
           {
             return item;
           }
-  
+
           return nextItem;
         }
       }
       return -1;
     }
-  
+
     return new this.constructor(
       getNearestSafeValue(this.red),
       getNearestSafeValue(this.green),
       getNearestSafeValue(this.blue));
   },
-    
+
   setWebSafe: function (iRed, iGreen, iBlue) {
     this.set(iRed, iGreen, iBlue);
-    
+
     var c = this.getWebSafe();
     this.red   = c.red;
     this.green = c.green;
     this.blue  = c.blue;
-  
+
     return this;
   },
-  
+
   /**
    * Returns the color in the sRGB color space as an object
    * identifying the coordinates of that color in the
    * HSL (Hue, Saturation, Lightness) color space.
-   * 
+   *
    * @requires jsx.math.max(), jsx.math.min() from <tt>math/float.js</tt>
-   * @return jsx.dom.css.HSLColor
+   * @return {jsx.dom.css.HSLColor}
    */
   toHSL: function () {
     /* Cf. <http://www5.informatik.tu-muenchen.de/lehre/vorlesungen/graphik/info/csc/COL_26.htm#topic25> */
-    
+
     jsx.importOnce(jsx.absPath("../../math/float.js", jsx.importFrom.lastImport));
-    
+
     var
       red = this.red,
       green = this.green,
       blue = this.blue,
       min = jsx.math.min(red, green, blue),
       max = jsx.math.max(red, green, blue),
-      hue, saturation,
+      hue = 0,
+      saturation,
       lightness = ((max + min) / 2) / this.constructor.MAX_VALUE;
-    
+
     if (max == min)
     {
       saturation = 0;
@@ -568,7 +569,7 @@ jsx.dom.css.Color.extend(null, {
     }
 
     var delta = max - min;
-    
+
     if (red == max)
     {
       hue = (green - blue) / delta;
@@ -583,7 +584,7 @@ jsx.dom.css.Color.extend(null, {
     }
 
     hue *= 60;
-    
+
     if (hue < 0)
     {
       hue += 360;
@@ -596,9 +597,9 @@ jsx.dom.css.Color.extend(null, {
    * Returns the color in the sRGB color space as an object
    * identifying the coordinates of that color in the
    * HSV (Hue, Saturation, Value) color space.
-   * 
+   *
    * @requires jsx.math.max(), jsx.math.min() from <tt>math/float.js</tt>
-   * @return jsx.dom.css.HSVColor
+   * @return {jsx.dom.css.HSVColor}
    */
   toHSV: function () {
     /* Cf. http://en.wikipedia.org/wiki/HSV_color_space#Transformation_between_HSV_and_RGB */
@@ -629,7 +630,7 @@ jsx.dom.css.Color.extend(null, {
         hue = (4 + (red - green) / delta) * 60;
       }
     }
-    
+
     if (hue < 0)
     {
       hue += 360;
@@ -645,13 +646,13 @@ jsx.dom.css.Color.extend(null, {
     }
 
     value = 100 * max;
-    
+
     return new jsx.dom.css.HSVColor(hue, saturation, value, this.opacity);
   },
 
   /**
    * @requires jsx.string.leadingZero() from string.js
-   * @returns {String}
+   * @return {string}
    */
   toHex: function () {
     var _leadingZero = jsx.string.leadingZero;
@@ -661,14 +662,14 @@ jsx.dom.css.Color.extend(null, {
       blue = _leadingZero(this.blue.toString(16), 2),
       rx = /([0-9a-f])\1([0-9a-f])\2([0-9a-f])\3/i,
       m;
-       
+
     if ((m = rx.exec(red + green + blue)))
     {
       red = m[1];
       green = m[2];
       blue = m[3];
     }
-      
+
     return '#' + red + green + blue;
   },
 
@@ -676,9 +677,9 @@ jsx.dom.css.Color.extend(null, {
    * Returns the color as a string
    * <code>rgb(<var>red</var>,<var>green</var>,<var>blue</var>)</code>
    * representation supported by CSS.
-   * 
+   *
    * @function
-   * @return string
+   * @return {string}
    */
   toRGBString: function () {
     return 'rgb(' + this.red + ',' + this.green + ',' + this.blue + ')';
@@ -686,13 +687,13 @@ jsx.dom.css.Color.extend(null, {
 
   /**
    * Returns the JavaScript Object Notation for the instance.
-   * 
+   *
    * Returns
    * <code>{"red": <var>r</var>, "green": <var>g</var>, "blue": <var>b</var>,
    * "opacity": <var>op</var>}</code>
    * as supported by e.g. JSON.
-   * 
-   * @return string
+   *
+   * @return {string}
    */
   toJSON: function () {
     return '{'
@@ -706,13 +707,13 @@ jsx.dom.css.Color.extend(null, {
 
 /**
  * Revives a <code>Color</code> instance from its JavaScript Object Notation.
- * 
+ *
  * Pass as second argument to {@link JSON#parse()} or call in another reviver:
  * <pre><code>  var Color = jsx.dom.css.Color;
  *  var myColor = JSON.parse(new Color("#f00"), Color.reviver);</code></pre>
- * 
+ *
  * @see jsx.dom.css.Color#fromJSON
- * @return number|jsx.dom.css.Color
+ * @return {number|jsx.dom.css.Color}
  */
 jsx.dom.css.Color.reviver = function (property, value) {
   return (typeof value == "object")
@@ -722,9 +723,9 @@ jsx.dom.css.Color.reviver = function (property, value) {
 
 /**
  * Creates a <code>Color</code> instance from JavaScript Object Notation.
- * 
- * @param sJSON : String
- * @return jsx.dom.css.Color|null
+ *
+ * @param {String} sJSON
+ * @return {jsx.dom.css.Color|null}
  *   The <code>Color</code> if successful, <code>null</code> otherwise.
  */
 jsx.dom.css.Color.fromJSON = function (sJSON) {
@@ -736,17 +737,17 @@ jsx.dom.css.Color.fromJSON = function (sJSON) {
   var
     color = null,
     error = null;
-  
+
   jsx.tryThis(
     function () { color = eval("(" + sJSON + ")"); },
     function (e) { error = e; }
   );
-  
+
   if (!color || error && error.name == "SyntaxError")
   {
     return null;
   }
-  
+
   return new this(color.red, color.green, color.blue, color.opacity);
 };
 
@@ -754,9 +755,9 @@ jsx.dom.css.Color.fromJSON = function (sJSON) {
  * Returns the color as a string
  * <code>rgba(<var>red</var>,<var>green</var>,<var>blue</var>, <var>opacity</var>)</code>
  * representation supported by CSS.
- * 
+ *
  * @function
- * @return string
+ * @return {string}
  */
 jsx.dom.css.Color.prototype.toString =
 jsx.dom.css.Color.prototype.toRGBAString = function () {
@@ -767,13 +768,13 @@ jsx.dom.css.Color.prototype.toRGBAString = function () {
 /**
  * Creates a HSV color value (not to be confused with
  * {@link jsx.dom.css#HSLColor}).
- * 
+ *
  * If any of the coordinates is not provided, it is assumed to be
  * 0 (zero).
- * 
- * @param iHue : int
- * @param fSaturation : float
- * @param fValue : float
+ *
+ * @param {int} iHue
+ * @param {float} fSaturation
+ * @param {float} fValue
  * @constructor
  * @property hue : int
  *   Hue value
@@ -794,60 +795,61 @@ jsx.dom.css.HSVColor = function (iHue, fSaturation, fValue, fOpacity) {
 jsx.dom.css.HSVColor.extend(null, {
   /**
    * @memberOf jsx.dom.css.HSVColor.prototype
-   * @param value : int
+   * @param {int} value
    */
   setHue: function (value) {
     this.hue = value || 0;
   },
 
   /**
-   * @param value : float
+   * @param {float} value
    */
   setSaturation: function (value) {
     this.saturation = value || 0;
   },
 
   /**
-   * @param value : float
+   * @param {float} value
    */
   setValue: function (value) {
     this.value = value || 0;
   },
-  
+
   setOpacity: (function () {
     var _setOpacity = jsx.dom.css.Color.prototype.setOpacity;
-    
+
     return function (value) {
       return _setOpacity.call(this, value);
     };
   }()),
 
   /**
-   * @returns number
+   * @return {number}
    */
   getValue: function () {
     return this.value;
   },
-  
+
   /**
    * Returns the RGB color for the HSV color
-   * 
-   * @return jsx.dom.css.Color
    */
   toRGB: (function () {
     var _Color = jsx.dom.css.Color;
-    
+
+    /**
+     * @return {jsx.dom.css.Color}
+     */
     return function () {
       /* Cf. http://en.wikipedia.org/wiki/HSV_color_space#Transformation_between_HSV_and_RGB */
       var
         v = this.value,
         rgbMax = _Color.MAX_VALUE;
-      
+
       if (this.saturation == 0.0)
       {
         return new _Color(v * rgbMax, v * rgbMax, v * rgbMax);
       }
-    
+
       var
         h_i = Math.floor(this.hue / 60) % 6,
         f = (this.hue / 60) - h_i,
@@ -855,37 +857,37 @@ jsx.dom.css.HSVColor.extend(null, {
         q = v * (1 - f * this.saturation),
         t = v * (1 - (1 - f) * this.saturation),
         red, green, blue;
-        
+
       switch (h_i)
       {
         case 0:
           red = v; green = t; blue = p;
           break;
-          
+
         case 1:
           red = q; green = v; blue = p;
           break;
-          
+
         case 2:
           red = p; green = v; blue = t;
           break;
-          
+
         case 3:
           red = p; green = q; blue = v;
           break;
-          
+
         case 4:
           red = t; green = p; blue = v;
           break;
-          
+
         case 5:
           red = v; green = p; blue = q;
           break;
-          
+
         default:
           return null;
       }
-      
+
       return new _Color(red * rgbMax, green * rgbMax, blue * rgbMax, this.opacity);
     };
   }())
@@ -894,17 +896,17 @@ jsx.dom.css.HSVColor.extend(null, {
 /**
  * Creates a HSL color value (not to be confused with
  * {@link jsx.dom.css#HSVColor}).
- * 
+ *
  * If any of the coordinates is not provided, it is assumed to be
  * 0 (zero).
- * 
- * @param iHue : int
+ *
+ * @param {int} iHue
  *   Hue in degrees
- * @param fSaturation : float
+ * @param {float} fSaturation
  *   Saturation per cent
- * @param fLightness : float
+ * @param {float} fLightness
  *   Lightness per cent
- * @param fOpacity : float
+ * @param {float} fOpacity
  *   Opacity between 0 (0%) and 1 (100%) inclusive
  * @constructor
  * @property hue : int
@@ -925,13 +927,13 @@ jsx.dom.css.HSLColor = function (iHue, fSaturation, fLightness, fOpacity) {
 
 /**
  * Revives a <code>Color</code> instance from its JavaScript Object Notation.
- * 
+ *
  * Pass as second argument to {@link JSON#parse()} or call in another reviver:
  * <pre><code>  var Color = jsx.dom.css.Color;
  *  var myColor = JSON.parse(new Color("#f00"), Color.reviver);</code></pre>
- * 
+ *
  * @see jsx.dom.css.Color#fromJSON
- * @return number|jsx.dom.css.Color
+ * @return {number|jsx.dom.css.Color}
  */
 jsx.dom.css.HSLColor.reviver = function (property, value) {
   return (typeof value == "object")
@@ -941,9 +943,9 @@ jsx.dom.css.HSLColor.reviver = function (property, value) {
 
 /**
  * Creates a <code>HSLColor</code> instance from JavaScript Object Notation.
- * 
- * @param sJSON : String
- * @return jsx.dom.css.HSLColor|null
+ *
+ * @param {String} sJSON
+ * @return {jsx.dom.css.HSLColor|null}
  *   The <code>HSLColor</code> if successful,
  *   <code>null</code> otherwise.
  * @see JSON#parse(String, Function)
@@ -957,17 +959,17 @@ jsx.dom.css.HSLColor.fromJSON = function (sJSON) {
   var
     color = null,
     error = null;
-  
+
   jsx.tryThis(
     function () { color = eval("(" + sJSON + ")"); },
     function (e) { error = e; }
   );
-  
+
   if (!color || error && error.name == "SyntaxError")
   {
     return null;
   }
-  
+
   return new this(color.hue, color.saturation, color.lightness, color.opacity);
 };
 
@@ -975,45 +977,51 @@ jsx.dom.css.HSLColor.fromJSON = function (sJSON) {
 jsx.dom.css.HSLColor.extend(null, {
   /**
    * @memberOf jsx.dom.css.HSLColor.prototype
-   * @param value : int
+   * @param {int} value
    */
   setHue: function (value) {
     this.hue = value || 0;
   },
-  
+
   /**
-   * @param value : float
+   * @param {float} value
    */
   setSaturation: function (value) {
     this.saturation = value || 0;
   },
-  
+
   /**
-   * @param value : float
+   * @param {float} value
    */
   setLightness: function (value) {
     this.lightness = value || 0;
   },
-  
+
+  /**
+   * @function
+   */
   setOpacity: (function () {
     var _setOpacity = jsx.dom.css.Color.prototype.setOpacity;
-      
+
     /**
-     * @param value : float
+     * @param {float} value
      */
     return function (value) {
       return _setOpacity.call(this, value);
     };
   }()),
-  
+
   /**
    * Returns the RGB color for the HSL color
-   * 
-   * @return jsx.dom.css.Color
+   *
+   * @function
    */
   toRGB: (function () {
     var _Color = jsx.dom.css.Color;
-    
+
+    /**
+     * @return {jsx.dom.css.Color}
+     */
     return function () {
       /* Cf. <http://www5.informatik.tu-muenchen.de/lehre/vorlesungen/graphik/info/csc/COL_26.htm#topic25> */
       function getRGBValue(n1, n2, hue)
@@ -1026,9 +1034,9 @@ jsx.dom.css.HSLColor.extend(null, {
         {
           hue = hue + 360;
         }
-    
+
         var value;
-        
+
         if (hue < 60)
         {
           value = n1 + (n2 - n1) * hue / 60;
@@ -1045,16 +1053,16 @@ jsx.dom.css.HSLColor.extend(null, {
         {
           value = n1;
         }
-    
+
         return value;
       }
-      
+
       var
         hue = this.hue,
         saturation = this.saturation / 100,
         lightness = this.lightness / 100,
         m2, red, green, blue;
-      
+
       if (lightness <= 0.5)
       {
         m2 = lightness * (1 + saturation);
@@ -1063,9 +1071,9 @@ jsx.dom.css.HSLColor.extend(null, {
       {
         m2 = lightness + saturation - lightness * saturation;
       }
-    
+
       var m1 = 2 * lightness - m2;
-    
+
       if (saturation == 0)
       {
         red = green = blue = lightness;
@@ -1076,28 +1084,28 @@ jsx.dom.css.HSLColor.extend(null, {
         green = getRGBValue(m1, m2, hue);
         blue = getRGBValue(m1, m2, hue - 120);
       }
-      
+
       var rgbMax = _Color.MAX_VALUE;
-      
+
       return new _Color(red * rgbMax, green * rgbMax, blue * rgbMax, this.opacity);
     };
   }()),
-  
+
   toHSLString: function () {
     return ('hsl(' + this.hue
       + ', ' + this.saturation + '%'
       + ', ' + this.lightness + '%)');
   },
-  
+
   /**
    * Returns the JavaScript Object Notation for the instance.
-   * 
+   *
    * Returns
    * <code>{"red": <var>r</var>, "green": <var>g</var>, "blue": <var>b</var>,
    * "opacity": <var>op</var>}</code>
    * as supported by e.g. JSON.
-   * 
-   * @return string
+   *
+   * @return {string}
    */
   toJSON: function () {
     return '{'
@@ -1119,12 +1127,12 @@ jsx.dom.css.HSLColor.prototype.toHSLAString = function () {
 
 /**
  * Changes the current document into a monochrome version of itself.
- * 
+ *
  * @function
  */
 jsx.dom.css.makeMono = (function () {
   var _Color = new jsx.dom.css.Color();
-  
+
   return function () {
     var
       ruleList = new jsx.dom.css.RuleList(),
@@ -1136,7 +1144,7 @@ jsx.dom.css.makeMono = (function () {
         'outlineColor', 'color'
       ],
       j, propertyValue;
-      
+
     while ((rule = iter.next()))
     {
       for (j = colorProperties.length; j--;)
@@ -1148,7 +1156,7 @@ jsx.dom.css.makeMono = (function () {
         }
       }
     }
-    
+
     for (var elems = dhtml.getElemByTagName('*'), i = elems && elems.length; i--;)
     {
       var elem = elems[i];

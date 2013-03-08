@@ -8,7 +8,7 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2005‒2012  Thomas Lahn &lt;js@PointedEars.de&gt;
+ *   (C) 2005-2013  Thomas Lahn &lt;js@PointedEars.de&gt;
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -40,7 +40,7 @@ if (typeof jsx != "object")
 jsx.regexp = {
   /** @version */
   version:   "0.1.$Revision$",
-  copyright: "Copyright \xA9 2005-2012",
+  copyright: "Copyright \xA9 2005-2013",
   author:    "Thomas Lahn",
   email:     "js@PointedEars.de",
   path:      "http://pointedears.de/scripts/"
@@ -52,8 +52,8 @@ jsx.regexp = {
  * Returns the string representation of a {@link RegExp}
  * without delimiters.
  *
- * @param rx : RegExp
- * @return string
+ * @param {RegExp} rx
+ * @return {string}
  *   The string representation of <var>rx</var>
  */
 var regexp2str = jsx.regexp.toString2 = function (rx) {
@@ -89,7 +89,7 @@ RegExp.prototype.toString2 = regexp2str;
  *   If this function is called as method of a <code>RegExp</code>,
  *   the expressions given are concatenated beginning with the
  *   <code>this</code> value.
- * @return RegExp
+ * @return {RegExp}
  *   The resulting <code>RegExp</code>
  */
 var regexp_concat = jsx.regexp.concat = function () {
@@ -122,7 +122,7 @@ var regexp_concat = jsx.regexp.concat = function () {
 
     toString:
       /**
-       * @return string
+       * @return {string}
        */
       function () {
         var
@@ -255,8 +255,8 @@ RegExp.prototype.intersect = regexp_intersect;
  * as an argument to {@link Global#RegExp(string, string) RegExp()}
  * to match that string.
  *
- * @param s : string
- * @return string
+ * @param {string} s
+ * @return {string}
  */
 var strRegExpEscape = jsx.regexp.escape = function (s) {
   if (arguments.length == 0 && this.constructor == String)
@@ -477,23 +477,6 @@ String.prototype.regExpEscape = strRegExpEscape;
  *
  * @function
  * @constructor
- * @param expression : String|RegExp
- *   A regular expression pattern string that may use the features
- *   described above.  If it is a {@link RegExp}, its
- *   <code>source</code> property is used and combined with
- *   <var>sFlags</var>.  That is, <code>jsx.regexp.RegExp(/foo/, "i")</code>
- *   returns the same as <code>jsx.regexp.RegExp(/foo/i)</code>.
- * @param sFlags : String
- *   Optional string containing none, one or more of the standard
- *   {@link RegExp} modifiers and the flags described above.
- *   Unsupported flags are ignored, but passed on to {@link RegExp}.
- *   Note that modifiers in <var>expression</var> can temporarily
- *   unset and set the "s" and "x" flags.  Following Perl, the "u"
- *   flag (Unicode mode) can only be enabled, but not disabled.
- * @return RegExp
- *   A regular expression with the property class escape sequences
- *   expanded according to the specified data, with the specified
- *   flags set if they are natively supported.
  */
 jsx.regexp.RegExp = (function () {
   var
@@ -690,7 +673,7 @@ jsx.regexp.RegExp = (function () {
        * Retrieves class ranges by property class, and throws a specialized
        * exception if this fails.
        *
-       * @param propertyClass : String
+       * @param {String} propertyClass
        * @throws jsx.regexp#UndefinedPropertyClassError
        */
       var _getRanges = function (propertyClass) {
@@ -755,6 +738,25 @@ jsx.regexp.RegExp = (function () {
       return result;
     };
 
+  /**
+   * @param {String|RegExp} expression
+   *   A regular expression pattern string that may use the features
+   *   described above.  If it is a {@link RegExp}, its
+   *   <code>source</code> property is used and combined with
+   *   <var>sFlags</var>.  That is, <code>jsx.regexp.RegExp(/foo/, "i")</code>
+   *   returns the same as <code>jsx.regexp.RegExp(/foo/i)</code>.
+   * @param {String} sFlags
+   *   Optional string containing none, one or more of the standard
+   *   {@link RegExp} modifiers and the flags described above.
+   *   Unsupported flags are ignored, but passed on to {@link RegExp}.
+   *   Note that modifiers in <var>expression</var> can temporarily
+   *   unset and set the "s" and "x" flags.  Following Perl, the "u"
+   *   flag (Unicode mode) can only be enabled, but not disabled.
+   * @return {RegExp}
+   *   A regular expression with the property class escape sequences
+   *   expanded according to the specified data, with the specified
+   *   flags set if they are natively supported.
+   */
   return function jsx_regexp_RegExp (expression, sFlags) {
     if (expression && expression.constructor == RegExp)
     {
@@ -1033,12 +1035,6 @@ jsx.regexp.RegExp = (function () {
 
 /**
  * Determines if an object has been constructed using this constructor
- *
- * @param rx
- *   Instance to be tested
- * @return boolean
- *   <code>true</code> if <var>rx</var> has been constructed
- *   using this constructpr, <code>false</code> otherwise.
  */
 jsx.regexp.RegExp.isInstance = function (rx) {
   return !!rx.pattern;
@@ -1049,6 +1045,14 @@ jsx.regexp.RegExp.exec = (function () {
   var _RegExp = jsx.regexp.RegExp;
   var rx2;
 
+  /**
+   * @param {string} s
+   * @param {jsx.regexp.RegExp} rx
+   *   Instance to be tested
+   * @return {boolean}
+   *   <code>true</code> if <var>rx</var> has been constructed
+   *   using this constructpr, <code>false</code> otherwise.
+   */
   return function (s, rx) {
     /* NOTE: Use passed expression only when called statically */
     if (this.constructor == RegExp)
@@ -1118,16 +1122,17 @@ jsx.regexp.String.extend(String);
 /**
  * Matches a string against a regular expression, using special features
  * of jsx.regexp.RegExp if possible
- *
- * @param rx : RegExp|jsx.regexp.RegExp
- * @return Array
- *   The Array as if returned by String.prototype.match.call(this, rx)
  */
 jsx.regexp.String.prototype.match = (function () {
   var _getDataObject = jsx.object.getDataObject;
   var _RegExp2 = jsx.regexp.RegExp;
   var rxLeadingGroups, rxNonWordChars;
 
+  /**
+   * @param {RegExp|jsx.regexp.RegExp} rx
+   * @return {Array}
+   *   The Array as if returned by String.prototype.match.call(this, rx)
+   */
   return function (rx) {
     var matches = this.value.match(rx);
 
@@ -1194,9 +1199,9 @@ jsx.regexp.String.prototype.toString =
  * but the Unicode Character Database (UCD) cannot be loaded
  *
  * @constructor
- * @param sUCDScript : String
+ * @param {String} sUCDScript
  *   The script that contains the UCD in the specified form
- * @param sHTTPScript : String
+ * @param {String} sHTTPScript
  *   The script that contains the HTTP request type to load the UCD
  *   dynamically
  * @extends jsx#Error

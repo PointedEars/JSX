@@ -1,13 +1,9 @@
 /**
- * <title>PointedEars' JSX: String Library</title>
- * @file string.js
- *
+ * @fileOverview <title>PointedEars' JSX: String Library</title>
+ * @file $Id$
  * @requires object.js
  *
- * @section Copyright & Disclaimer
- *
- * @author
- *   (C) 2001-2013  Thomas Lahn &lt;string.js@PointedEars.de&gt;
+ * @author (C) 2001-2013  Thomas Lahn &lt;string.js@PointedEars.de&gt;
  * @author
  *   Parts Copyright (C) 2003<br>
  *   Dietmar Meier &lt;meier@innoline-systemtechnik.de&gt;<br>
@@ -77,10 +73,10 @@ de.pointedears.jsx = jsx;
 var CH_NBSP = "\xA0";
 
 /**
- * @param Msg
- * @return boolean false
+ * @param {string} sMsg
+ * @return {boolean} false
  */
-function StringException(Msg)
+function StringException (sMsg)
 {
   alert(
     "string.js "
@@ -92,7 +88,7 @@ function StringException(Msg)
       + " <"
       + String.email
       + ">\n\n"
-      + Msg);
+      + sMsg);
   return false;
 }
 
@@ -102,10 +98,10 @@ function StringException(Msg)
  * @author Copyright (c) 2003
  *   Martin Honnen &lt;Martin.Honnen@gmx.de&gt;,
  *   Thomas Lahn &lt;string.js@PointedEars.de&gt;
- * @param s : optional string
+ * @param {string} s (optional)
  *   String where " and ' should be escaped.  Ignored if
  *   the function is called as a method of a String object.
- * @return string
+ * @return {string}
  *   The replaced string if String.replace(...)
  *   is supported, the original string otherwise.
  */
@@ -129,8 +125,8 @@ function addSlashes (s)
  * Tries hard to escape a string according to the query component
  * specification in RFC3986.
  *
- * @param s : string
- * @return string
+ * @param {string} s
+ * @return {string}
  *   <code>s</code> escaped, or unescaped if escaping through
  *   <code>encodeURIComponent()</code> or <code>escape()</code>
  *   is not possible.
@@ -154,7 +150,7 @@ var esc = (function () {
  * Tries hard to make a string a URI or URI-reference according to RFC 3986.
  *
  * @param s
- * @return string
+ * @return {string}
  *   <code>s</code> escaped, or unescaped if escaping through
  *   <code>encodeURI()</code> or is not possible.
  */
@@ -172,8 +168,8 @@ var escURI = (function (s) {
  * Tries hard to unescape a string according to the query component
  * specification in RFC&nbsp;3986.
  *
- * @param s : string
- * @return string
+ * @param {string} s
+ * @return {string}
  *   <code>s</code> unescaped, or escaped if unescaping through
  *   <code>decodeURIComponent()</code> or <code>unescape()</code>
  *   is not possible.
@@ -201,9 +197,8 @@ var unesc = (function () {
 if (typeof Number.prototype.toFixed == "undefined")
 {
   /**
-   * @param iPrecision
-   * @type string
-   * @return string
+   * @param {number} iPrecision
+   * @return {string}
    */
   Number.prototype.toFixed = function (iPrecision) {
     var
@@ -232,9 +227,8 @@ if (typeof Number.prototype.toFixed == "undefined")
 if (typeof Number.prototype.toUnsigned == "undefined")
 {
   /**
-   * @param iMax : number
-   * @type number
-   * @return number
+   * @param {number} iMax
+   * @return {number}
    */
   Number.prototype.toUnsigned = function (iMax) {
     var n = this;
@@ -253,7 +247,7 @@ if (typeof Number.prototype.toUnsigned == "undefined")
 
     /*
      * 3. Compute sign(Result(1)) * floor(abs(Result(1))).
-     * (The mathematical function sign(x) yields 1 if
+     * (The mathematical function sign (x) yields 1 if
      * x is positive and -1 if x is negative.) [...]
      */
     n = (n < 0 ? -1 : 1) * Math.floor(i);
@@ -277,17 +271,18 @@ if (typeof Number.prototype.toUnsigned == "undefined")
 }
 
 /**
- * Parses a string of characters into a Number value.  It replaces the
- * built-in function in that it supports fractional parts on non-decimal
- * representations, and uses the built-in for decimal representations.
+ * Parses a string of characters into a <code>Number</code> value.
+ * It replaces the built-in function in that it supports fractional
+ * parts on non-decimal representations, and uses the built-in
+ * for decimal representations.
  *
- * @param s : String
+ * @param {String} s
  *   String representation to be parsed
- * @param iBase : Number
+ * @param {number} iBase
  *   Numeric base of the representation, from 2 to 35.  If not provided,
  *   after trimming leading white-space the prefix "0x" or "0X" designates
  *   base 16 (hexadecimal).
- * @return number
+ * @return {number}
  */
 var parseFloat = jsx.string.parseFloat = (function () {
   var origPF = parseFloat;
@@ -353,12 +348,12 @@ var parseFloat = jsx.string.parseFloat = (function () {
 // *   Distributed under the GNU GPLv2.
 // * @partof
 // *   http://pointedears.de/scripts/string.js
-// * @param sFormat : string
-// * @param values : _
-// * @return string
+// * @param {string} sFormat
+// * @param {_} values
+// * @return {string}
 // *   The formatted string.
 // */
-//function format(sFormat)
+//function format (sFormat)
 //{
 //  arguments.skip = [];
 //  for (var i = 1, len = arguments.length; i < len; i++)
@@ -561,7 +556,7 @@ jsx.string._rxFormatSpec = new RegExp(
  * A more efficient rewrite of the previous format() function.
  *
  * @param sFormat
- * @return string
+ * @return {string}
  */
 jsx.string.sprintf = function (sFormat) {
   var
@@ -848,7 +843,7 @@ jsx.string.sscanf = (function () {
     }
   };
 
-  function replacer(match)
+  function replacer (match)
   {
     if (typeof formatMap[match] != "undefined")
     {
@@ -862,9 +857,9 @@ jsx.string.sscanf = (function () {
   var rxFormatSpec = jsx.string._rxFormatSpec;
 
   /**
-   * @param s : String
-   * @param format : String
-   * @return Array
+   * @param {String} s
+   * @param {String} format
+   * @return {Array}
    */
   return function (s, format) {
     var replaced = [];
@@ -900,21 +895,21 @@ jsx.string.sscanf = (function () {
  *   (C) 2004 Thomas Lahn <string.js@PointedEars.de>
  * @partof
  *   http://pointedears.de/scripts/string.js
- * @param s : optional string|number
+ * @param {string|number} s (optional)
  *   Un(completely )formatted number (decimal, hexadecimal
  *   or octal) or a string representing such a number.
  *   If the function is called as a method of
  *   {@link jsref#String} objects and <code>s</code> is
  *   provided, the value of <code>s</code> is formatted
  *   instead of the @link{jsref#String} object.
- * @param s1kDelim : optional string = ","
+ * @param {string} s1kDelim = ","
  *   Character or character sequence to delimit a sequence
  *   of three digits on the left-hand side of the point.
  *   The default is ",".
- * @return string|number
+ * @return {string|number}
  *   the formatted number as string, <code>NaN</code> on error.
  */
-function format1k(s, s1kDelim)
+function format1k (s, s1kDelim)
 {
   var result = NaN;
 
@@ -970,19 +965,19 @@ function format1k(s, s1kDelim)
  * @author
  *   Implementation in ECMAScript
  *   (C) 2003 Thomas Lahn &lt;hashCode.js@PointedEars.de&gt;
- * @param s : optional string
+ * @param {string} s (optional)
  *   Optional string of which the hash code is computed. If
  *   not provided or a false-value, it is assumed that
  *   the function is used as method of the String prototype,
  *   applied to a String object or literal.
- * @return number
+ * @return {number}
  *   The hash code of the string, designed for implementing hash
  *   code access to associative arrays which can be implemented
  *   as objects with named properties in JavaScript 1.x.
  * @see
  *   #strToCodeArray() java2:String#hashCode()
  */
-function hashCode(s)
+function hashCode (s)
 {
   if (!s && this.charCodeAt)
   {
@@ -1016,11 +1011,10 @@ function hashCode(s)
 }
 
 /**
- * @param s : optional string
- * @type string
- * @return string
+ * @param {string} s (optional)
+ * @return {string}
  */
-function leadingCaps(s)
+function leadingCaps (s)
 {
   if (!s && this.charAt)
   {
@@ -1036,13 +1030,13 @@ function leadingCaps(s)
 }
 
 /**
- * @param s : optional string
+ * @param {string} s (optional)
  *   Input string.  If omitted and the calling object
  *   is a String object, it is used instead.
- * @param n : optional number
+ * @param {number} n (optional)
  *   Length of the resulting string.  The default is 1,
  *   i.e. if the input string is empty, "0" is returned.
- * @return string
+ * @return {string}
  *   Input string with leading zeros so that
  *   its length is @{(n)}.
  * @see
@@ -1144,11 +1138,11 @@ int LevenshteinDistance(char s[1..n], char t[1..m])
  *   </tbody>
  * </table>
  *
- * @param s : optional string
- * @param t : optional string
- * @return number
+ * @param {string} s (optional)
+ * @param {string} t (optional)
+ * @return {number}
  */
-function levenshtein(s, t)
+function levenshtein (s, t)
 {
   /* Step 1 */
   if (typeof s != "string")
@@ -1217,11 +1211,10 @@ function levenshtein(s, t)
  * may be interpreted as markup are escaped, that is,
  * those prefixed by `&' or `<'.
  *
- * @param s : optional string
- * @type string
- * @return string
+ * @param {string} s (optional)
+ * @return {string}
  */
-function maskMarkup(s)
+function maskMarkup (s)
 {
   if (!s)
   {
@@ -1236,32 +1229,31 @@ function maskMarkup(s)
 }
 
 /**
- * @param s : string
- * @type string
- * @return string
+ * @param {string} s
+ * @return {string}
  */
-function nl2br(s)
+function nl2br (s)
 {
   return s.replace(/\r\n?|\n/g, "<br>");
 }
 
 /**
- * @param s : optional string
+ * @param {string} s (optional)
  *   Input string.  If omitted and the calling object
  *   is a String object, it is used instead.
- * @param n : optional number = 1
+ * @param {number} n = 1
  *   Length of the resulting string.  The default is 1,
  *   i.e. if the input string is empty, "0" is returned
  *   if c is <code>'0'</code>.
- * @param c : optional string = CH_NBSP
+ * @param {string} c = CH_NBSP
  *   Character string to use for padding.  The default
  *   is one non-breaking space.
- * @param bRight : optional boolean = false
+ * @param {boolean} bRight = false
  *   If <code>true</code>, s is padded on the right,
  *   otherwise on the left.
- * @param iStart : optional number
+ * @param {number} iStart (optional)
  *   Assume that s is iStart characters long.
- * @return string
+ * @return {string}
  *   The padded input string so that its length is n.
  */
 var pad = jsx.string.pad = function (s, n, c, bRight, iStart) {
@@ -1336,13 +1328,12 @@ var pad = jsx.string.pad = function (s, n, c, bRight, iStart) {
 
 /**
  * @param sText
- * @param sReplaced : string
- * @param sReplacement : string
- * @param bForceLoop : boolean
- * @type string
- * @return string
+ * @param {string} sReplaced
+ * @param {string} sReplacement
+ * @param {boolean} bForceLoop
+ * @return {string}
  */
-function replaceText(sText, sReplaced, sReplacement, bForceLoop)
+function replaceText (sText, sReplaced, sReplacement, bForceLoop)
 {
   var result = "";
 
@@ -1401,9 +1392,9 @@ function replaceText(sText, sReplaced, sReplacement, bForceLoop)
 }
 
 /**
- * @param o : Object
+ * @param {Object} o
  *   Object to be serialized
- * @param options : optional Object
+ * @param {Object} options (optional)
  *   The property values of the passed object determine
  *   one or more of the following display options:
  *
@@ -1431,9 +1422,9 @@ function replaceText(sText, sReplaced, sReplacement, bForceLoop)
  *
  *   @option sIndent: string = "  "
  *     Character string to use for indenting code
- * @return string
+ * @return {string}
  */
-function serialize(o, options)
+function serialize (o, options)
 {
   if (typeof options != "object" || !options)
   {
@@ -1515,13 +1506,12 @@ function serialize(o, options)
 /**
  * Calculates the number of occurrences of one string in another.
  *
- * @param s : string
- * @param substr : string
- * @param bCaseSensitive : optional boolean
- * @type number
- * @return number
+ * @param {string} s
+ * @param {string} substr
+ * @param {boolean} bCaseSensitive (optional)
+ * @return {number}
  */
-function strCount(s, substr, bCaseSensitive)
+function strCount (s, substr, bCaseSensitive)
 {
   var result = 0;
 
@@ -1586,10 +1576,10 @@ function strCount(s, substr, bCaseSensitive)
  * @param compositeAware
  *   If <code>true</code> (default), composited characters are taken
  *   into account.  Otherwise strings are compared character-by-character.
- * @returns {Boolean}
+ * @return {boolean}
  *   <code>true</code> if the strings are equal, <code>false</code> otherwise
  */
-function strCompare(s1, s2, compositeAware)
+function strCompare (s1, s2, compositeAware)
 {
   if (this.constructor == String)
   {
@@ -1675,32 +1665,32 @@ String.prototype.equals = strCompare;
  *   (C) 2001-2004  Thomas Lahn &lt;js@PointedEars.de&gt;,
  *   Advanced RegExp parsing (C) 2003  Dietmar Meier
  *    &lt;meier@innoline-systemtechnik.de&gt;
- * @param s : optional string
+ * @param {string} s (optional)
  *   String where all tags should be stripped from. If not
  *   provided or <code>false</code>, it is assumed that the
  *   function is used as method of the String prototype,
  *   applied to a String object or literal. Note that in
  *   this case the method will not modify the String object
  *   either, but return a second String object.
- * @param bStripContent : optional boolean = false
+ * @param {boolean} bStripContent = false
  *   If <code>true</code>, the content between a start tag and
  *   a corresponding end tag is also removed.
  *   If <code>false</code> (default), only start and end tags
  *   are removed.
- * @param bCaseSensitive : optional boolean = false
+ * @param {boolean} bCaseSensitive = false
  *   <code>true</code> for case-sensitive matches,
  *   <code>false</code> (default) otherwise.
- * @param tags : optional string|Array of string
+ * @param {optional} tags string|Array of string
  *   String or array of values that can be evaluated as string to
  *   specify the tag(s) to be stripped.  If omitted, all tags are
  *   stripped.
- * @param bElements : optional boolean = false
+ * @param {boolean} bElements = false
  *   If <code>true</code>, strip elements, i.e. start and end tags.
- * @return string
+ * @return {string}
  *   String where all tags are stripped from.
  * @see String.prototype#replace()
  */
-function stripTags(s, bStripContent, bCaseSensitive, tags, bElements)
+function stripTags (s, bStripContent, bCaseSensitive, tags, bElements)
 {
   if (!s)
   {
@@ -1826,12 +1816,11 @@ function stripTags(s, bStripContent, bCaseSensitive, tags, bElements)
  * argument is then numeric, it is taken for <var>n</var> and the latter
  * argument is ignored.
  *
- * @param s : string|number
- * @param n : optional number
- * @type string
- * @return string
+ * @param {string|number} s
+ * @param {number} n (optional)
+ * @return {string}
  */
-function strRepeat(s, n)
+function strRepeat (s, n)
 {
   var c;
   if ((c = this.constructor) && c == String && typeof s != "string")
@@ -1858,18 +1847,18 @@ function strRepeat(s, n)
 /**
  * @author
  *   (C) 2003 Thomas Lahn &lt;string.js@PointedEars.de&gt;
- * @param s : optional string
+ * @param {string} s (optional)
  *   Optional string to be split into array elements.  If not
  *   provided or <code>false</code>, it is assumed that the
  *   function is used as method of the String prototype, applied
  *   to a String object or literal.
- * @return Array
+ * @return {Array}
  *   An array with every character of <code>s</code> an element
  *   of it.
  * @see String.prototype#charAt
  * @see String.prototype#split
  */
-function strToArray(s)
+function strToArray (s)
 {
   var c;
   if (!s && (c = this.constructor) && c == String)
@@ -1896,18 +1885,18 @@ function strToArray(s)
   return a;
 }
 /* TODO: */
-// function arrayFromStr(s)
+// function arrayFromStr (s)
 // {
 //   return strToArray(s);
 // }
 
 /**
- * @param as : [string,]
+ * @param {[string,]} as
  *   Input string array.
  * @todo return RegExp
  *   A regular expression to match all the string array elements.
  */
-function strArrayToCharClass(as)
+function strArrayToCharClass (as)
 {
   var hashTable = [];
 
@@ -1931,7 +1920,7 @@ function strArrayToCharClass(as)
 /**
  * @author
  *   (C) 2003 Thomas Lahn &lt;string.js@PointedEars.de&gt;
- * @param s : optional string
+ * @param {string} s (optional)
  *   Optional string to be split into an array where each
  *   element represents the ASCII or Unicode value of a
  *   character (depending on the implementation) of the
@@ -1939,14 +1928,14 @@ function strArrayToCharClass(as)
  *   If not provided or <code>false</code>, it is assumed
  *   that the function is used as method of the String
  *   prototype, applied to a String object or literal.
- * @return Array
+ * @return {Array}
  *   An array where every element is the ASCII character
  *   of <code>s</code> an element of it.
  * @see #strToArray()
  * @see String.prototype#charCodeAt()
  * @see String.prototype#split()
  */
-function strToCodeArray(s)
+function strToCodeArray (s)
 {
   if (!s && this.charCodeAt)
   {
@@ -1978,7 +1967,7 @@ function strToCodeArray(s)
   return a;
 }
 /* TODO: */
-// function codeArrayFromStr(s)
+// function codeArrayFromStr (s)
 // {
 //   return strToCodeArray(s);
 // }
@@ -1986,11 +1975,11 @@ function strToCodeArray(s)
 /**
  * Returns the input string with all leading and trailing whitespace removed.
  *
- * @param s : optional string
- * @return string
+ * @param {string} s (optional)
+ * @return {string}
  * @see #trimLeft(), #trimRight()
  */
-function trim(s)
+function trim (s)
 {
   if (!s && this.charAt)
   {
@@ -2015,10 +2004,10 @@ function trim(s)
 /**
  * Returns the input string with all leading whitespace removed.
  *
- * @param s : optional string
- * @return string
+ * @param {string} s (optional)
+ * @return {string}
  */
-function trimLeft(s)
+function trimLeft (s)
 {
   if (!s && this.charAt)
   {
@@ -2050,10 +2039,10 @@ function trimLeft(s)
 /**
  * Returns the input string with all trailing whitespace removed.
  *
- * @param s : optional string
- * @return string
+ * @param {string} s (optional)
+ * @return {string}
  */
-function trimRight(s)
+function trimRight (s)
 {
   if (!s && this.charAt)
   {
@@ -2086,12 +2075,12 @@ function trimRight(s)
  * Converts a Python str (e.g. 'K\xc3\xb6ln') into
  * an ECMAScript-compliant string (e.g. 'Köln').
  *
- * @param s : string
+ * @param {string} s
  *   The string to be converted
- * @return string
+ * @return {string}
  *   The converted string
  */
-function pyUTF8toString(s)
+function pyUTF8toString (s)
 {
   return unesc(
     s.replace(/[\x80-\xff]/g,
