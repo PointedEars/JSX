@@ -78,30 +78,35 @@ jsx.object = (function (global) {
     path:      "http://PointedEars.de/scripts/",
 
     /**
+     * Used by {@link jsx.object#addProperties()} to overwrite existing
+     * properties.
+     *
      * @type number
-     *   Used by {@link jsx.object#addProperties()} to overwrite existing
-     *   properties.
+     * @field
      */
     ADD_OVERWRITE: 1,
 
     /**
+     * Used by {@link jsx.object#addProperties()} and {@link jsx.object#clone()}
+     * to make a shallow copy of all enumerable properties (default).
+     *
      * @type number
-     *   Used by {@link jsx.object#addProperties()} and {@link jsx.object#clone()}
-     *   to make a shallow copy of all enumerable properties (default).
      */
     COPY_ENUM: 0,
 
     /**
+     * Used by {@link jsx.object#addProperties()} and {@link jsx.object#clone()}
+     * to make a deep copy of all enumerable properties.
+     *
      * @type number
-     *   Used by {@link jsx.object#addProperties()} and {@link jsx.object#clone()}
-     *   to make a deep copy of all enumerable properties.
      */
     COPY_ENUM_DEEP: 2,
 
     /**
+     * Used by {@link jsx.object#addProperties()} and {@link jsx.object#clone()}
+     * to copy a property by inheritance.
+     *
      * @type number
-     *   Used by {@link jsx.object#addProperties()} and {@link jsx.object#clone()}
-     *   to copy a property by inheritance.
      */
     COPY_INHERIT: 4,
 
@@ -255,14 +260,6 @@ jsx.object = (function (global) {
  */
 jsx.global = this;
 
-/**
- * @author pelinux
- *
- */
-/**
- * @author pelinux
- *
- */
 jsx.object.areMethods =
   jsx.object.isHostMethod = jsx.object.areHostMethods = jsx.object.isMethod;
 
