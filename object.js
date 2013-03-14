@@ -71,7 +71,7 @@ jsx.object = (function (global) {
     /**
      * @version
      */
-    version:   "0.2.$Revision$ ($Date$)",
+    version:   "$Revision$ ($Date$)",
     copyright: "Copyright \xA9 2004-2013",
     author:    "Thomas Lahn",
     email:     "js@PointedEars.de",
