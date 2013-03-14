@@ -1885,6 +1885,9 @@ jsx._import = (function () {
   };
 }());
 
+/* ES 5: Reserved words may be used in MemberExpression */
+jsx["import"] = jsx._import;
+
 /**
  * Imports a script, and optionally the object it defines, or some of their
  * properties, into the global namespace.
