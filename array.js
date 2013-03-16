@@ -71,8 +71,7 @@ jsx.array.ArrayError = function(sMsg) {
  * Splits the array <code>a</code> into several arrays with
  * <code>iSize</code> values in them.
  *
- * @author (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
- * @partof http://pointedears.de/scripts/array.js
+ * @author (C) 2004 Thomas Lahn  &lt;js@PointedEars.de&gt;
  * @requires jsx.object#isArray()
  * @function
  */
@@ -125,8 +124,7 @@ jsx.array.chunk = (function () {
  * Returns an object using the values of the array <code>a</code>
  * as properties and their frequency in <code>a</code> as values.
  *
- * @author (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
- * @partof http://pointedears.de/scripts/array.js
+ * @author (C) 2004 Thomas Lahn  &lt;js@PointedEars.de&gt;
  * @requires jsx.object#isArray()
  * @function
  */
@@ -162,8 +160,7 @@ jsx.array.countValues = (function () {
  * of the <code>value</code> argument, indexes starting at the
  * value of the <code>iStart</code> argument.
  *
- * @author (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
- * @partof http://pointedears.de/scripts/array.js
+ * @author (C) 2004 Thomas Lahn  &lt;js@PointedEars.de&gt;
  * @requires jsx.object#isArray()
  * @function
  */
@@ -206,8 +203,7 @@ jsx.array.fill = (function () {
  * Returns an array containing all the elements of <code>a</code>
  * filtered according a callback function <code>fCallback</code>.
  *
- * @author (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
- * @partof http://pointedears.de/scripts/array.js
+ * @author (C) 2004 Thomas Lahn  &lt;js@PointedEars.de&gt;
  * @requires jsx.object#isArray()
  * @function
  */
@@ -282,8 +278,7 @@ jsx.array.filter = (function () {
  * element.  This method changes the length of the array, if
  * applied directly to an array object.
  *
- * @author (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
- * @partof http://pointedears.de/scripts/array.js
+ * @author (C) 2004 Thomas Lahn  &lt;js@PointedEars.de&gt;
  * @requires jsx.object#isArray()
  * @function
  */
@@ -320,8 +315,7 @@ jsx.array.pop = (function () {
 }());
 
 /**
- * @author (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
- * @partof http://pointedears.de/scripts/array.js
+ * @author (C) 2004 Thomas Lahn  &lt;js@PointedEars.de&gt;
  * @requires jsx.object#isArray()
  * @function
  */
@@ -357,8 +351,7 @@ jsx.array.push = (function () {
  * object and returns a new <code>Array</code> object with the
  * order of the elements reversed.
  *
- * @author (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
- * @partof http://pointedears.de/scripts/array.js
+ * @author (C) 2004 Thomas Lahn  &lt;js@PointedEars.de&gt;
  * @requires jsx.object#isArray()
  * @function
  */
@@ -396,8 +389,7 @@ jsx.array.reverse = (function () {
  * Searches an array for a given value and returns
  * the corresponding index or vector if successful.
  *
- * @author (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
- * @partof http://pointedears.de/scripts/array.js
+ * @author (C) 2004 Thomas Lahn  &lt;js@PointedEars.de&gt;
  * @requires jsx.object#isArray()
  * @function
  */
@@ -596,8 +588,7 @@ jsx.array.search = (function () {
 }());
 
 /**
- * @author (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
- * @partof http://pointedears.de/scripts/array.js
+ * @author (C) 2004 Thomas Lahn  &lt;js@PointedEars.de&gt;
  * @requires jsx.object#isArray()
  * @param value
  * @param {Array} a
@@ -635,8 +626,7 @@ jsx.array.contains = function (value, a, bExactMatch, bDeepSearch) {
  * object with all string elements (optionally all elements regardless
  * of their type) either lowercased or uppercased.
  *
- * @author (C) 2004, 2008 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
- * @partof http://pointedears.de/scripts/array.js
+ * @author (C) 2004, 2008 Thomas Lahn  &lt;js@PointedEars.de&gt;
  * @requires jsx.object#isArray()
  * @function
  */
@@ -698,8 +688,7 @@ jsx.array.changeCase = (function () {
  * string elements (optionally all elements regardless of their
  * type) lowercased.
  *
- * @author (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
- * @partof http://pointedears.de/scripts/array.js
+ * @author (C) 2004 Thomas Lahn  &lt;js@PointedEars.de&gt;
  * @requires #array_changeCase()
  * @function
  */
@@ -736,8 +725,7 @@ jsx.array.toLowerCase = (function () {
  * string elements (optionally all elements regardless of their
  * type) uppercased.
  *
- * @author (C) 2004 Thomas Lahn  &lt;array.js@PointedEars.de&gt;
- * @partof http://pointedears.de/scripts/array.js
+ * @author (C) 2004 Thomas Lahn  &lt;js@PointedEars.de&gt;
  * @requires #array_changeCase()
  * @function
  */
