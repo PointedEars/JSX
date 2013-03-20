@@ -539,7 +539,7 @@ jsx.dom.write = function (s) {
  *   Numeric index of an element of the selected
  *   collection. For IDs must be unique throughout a document,
  *   this argument is ignored if <code>sType</code> is "id".
- * @return {HTMLElement?|HTMLNodeList?}
+ * @return {HTMLElement|NodeList|Null}
  *   A reference to an object if <code>sType</code> is "id", or
  *   if it is "name" or "tagname" and <code>index</code> is
  *   specified; otherwise a collection of objects matching the
@@ -547,7 +547,7 @@ jsx.dom.write = function (s) {
  *   exists.
  */
 jsx.dom.getElem = function (sType, sValue, index) {
-  /*
+  /**
    * Calls DHTMLException() for an invalid type.
    */
   function invalidType()
@@ -1020,10 +1020,74 @@ jsx.dom.createElement = (function () {
 }());
 
 /**
+ * Creates a node or several nodes from an object.
+ *
+ * Creates a DOM {@link Node} or an {@link Array} of several
+ * <code>Node</code>s from the argument, depending on its type:
+ * <table>
+ *   <thead>
+ *     <tr>
+ *       <th>Type</th>
+ *       <th>Return value</th>
+ *     </tr>
+ *   </thead>
+ *   <tbody>
+ *     <tr>
+ *       <th>{@link String}</th>
+ *       <td>{@link Text}</td>
+ *     </tr>
+ *     <tr>
+ *       <th><code>Array</code> of {@link Object} or <code>String</code></th>
+ *       <td><code>Array</code> of <code>Node</code>.  The input
+ *           <code>Array</code>'s elements are processed recursively.</td>
+ *     </tr>
+ *     <tr>
+ *       <th><code>Object</code></th>
+ *       <td>{@link Element}.  The following of the input
+ *           <code>Object</code>'s properties are considered:
+ *           <table>
+ *             <thead>
+ *               <th>Property</th>
+ *               <th>Expected type</th>
+ *               <th>Meaning</th>
+ *             </thead>
+ *             <tbody>
+ *               <tr>
+ *                 <th><code><var>elementType</var></code> or
+ *                     <code><var>type</var></code></th>
+ *                 <td><code>String</code></td>
+ *                 <td>Element type (case-sensitivity depends on
+ *                     the document type)</td>
+ *               </tr>
+ *               <tr>
+ *                 <th><code><var>properties</var></code></th>
+ *                 <td><code>Object</code></td>
+ *                 <td>Properties of the element object.  The property
+ *                     <code>style</code> is handled specially: Its
+ *                     value should be an <code>Object</code> whose
+ *                     property names are <code>style</code> property
+ *                     names and whose property values are the
+ *                     corresponding values, as supported by
+ *                     {@link jsx.dom#setStyleProperty()}.
+ *               </tr>
+ *               <tr>
+ *                 <th><code><var>childNodes</var></code></th>
+ *                 <td><code>Array</code> of <code>Object</code>
+ *                     or <code>String</code></td>
+ *                 <td>Child nodes of the element node.
+ *                     The elements of the <code>Array</code>
+ *                     are processed recursively.
+ *               </tr>
+ *             </tbody>
+ *           </table></td>
+ *     </tr>
+ *   </tbody>
+ * </table>
  * @function
  */
 jsx.dom.createElementFromObj = jsx.dom.createNodeFromObj =
 jsx.dom.createNodesFromObj = (function () {
+  var _getKeys = jsx.object.getKeys;
   var _isArray = jsx.object.isArray;
 
   /**
@@ -1071,7 +1135,7 @@ jsx.dom.createNodesFromObj = (function () {
         if (prop == "style")
         {
           var style = properties[prop];
-          var _setStyleProperty = jsx.dom.css
+          var _setStyleProperty = jsx.dom.setStyleProperty;
           if (typeof style != "string" && typeof _setStyleProperty != "function")
           {
             jsx.warn("JSX:dom/css.js:jsx.dom.setStyleProperty()"
@@ -1080,8 +1144,10 @@ jsx.dom.createNodesFromObj = (function () {
           }
           else
           {
-            for (var styleProp in style)
+            var keys = _getKeys(style);
+            for (var i = 0, len = keys.length; i < len; ++i)
             {
+              var styleProp = keys[i];
               _setStyleProperty(el, styleProp, style[styleProp]);
             }
           }
