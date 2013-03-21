@@ -161,8 +161,15 @@ jsx.net.http = {
   }
 };
 
+/**
+ * @namespace
+ * @name jsx.net.http.Request
+ */
 jsx.object.addProperties(
   {
+    /**
+     * @namespace
+     */
     method: {
       /**
        * Use the predefined properties to avoid problems
@@ -172,6 +179,9 @@ jsx.object.addProperties(
       POST: "POST"
     },
 
+    /**
+     * @namespace
+     */
     readyState: {
       UNINITIALIZED: 0,
       LOADING: 1,
@@ -180,6 +190,9 @@ jsx.object.addProperties(
       COMPLETED: 4
     },
 
+    /**
+     * @namespace
+     */
     status: {
       /*
        * NOTE: MSXML translates 204 to 1223, see
@@ -356,7 +369,7 @@ jsx.net.http.Request.prototype = {
    * exception.
    *
    * @param {HTTPResponseListener} fResponseListener
-   * @throws jsx.InvalidArgumentError
+   * @throws jsx.InvalidArgumentError if the argument is not a method
    */
   setResponseListener: function (fResponseListener) {
     /* initialization */
@@ -390,10 +403,10 @@ jsx.net.http.Request.prototype = {
    * exception.
    *
    * @param {HTTPResponseListener} fSuccessListener
-   * @return {boolean}
    *   <code>true</code> if the listener could be successfully
    *   set or changed; <code>false</code> on error, unless an exception is thrown.
-   * @throws jsx.InvalidArgumentError
+   * @throws jsx.InvalidArgumentError if the argument is not a method
+   * @return {boolean} <code>true</code> on success, <code>false</code> otherwise
    */
   setSuccessListener: function (fSuccessListener) {
     /* initialization */
@@ -428,7 +441,7 @@ jsx.net.http.Request.prototype = {
    * exception.
    *
    * @param {HTTPResponseListener} fErrorListener
-   * @throws jsx.InvalidArgumentError
+   * @throws jsx.InvalidArgumentError if the argument is not a method
    */
   setErrorListener: function (fErrorListener) {
     if (typeof fErrorListener == "undefined"
@@ -488,7 +501,7 @@ jsx.net.http.Request.prototype = {
     {
       if (bUseFormMethod)
       {
-        this.method = f.method;
+        this.setMethod(f.method);
       }
 
       var aData = [];
@@ -714,12 +727,14 @@ jsx.net.http.Request.prototype = {
       sMethod = this.method;
     }
 
+    sMethod = sMethod.toUpperCase();
+
     var bGET = (sMethod == C.method.GET);
 
     bAsync = (arguments.length > 3) ? !!bAsync : this.async;
 
     x.open(
-      sMethod.toUpperCase(),
+      sMethod,
       sURL
         + ((bGET && (sData || !this.useCache))
             ? (!/[?&]$/.test(sURL)
