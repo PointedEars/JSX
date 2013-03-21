@@ -6,10 +6,10 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2004-2011 Thomas Lahn <js@PointedEars.de>
+ *   (C) 2004-2011, 2013 Thomas Lahn <js@PointedEars.de>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
- * 
+ *
  * JSX is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -43,18 +43,16 @@ if (typeof jsx.dom == "undefined")
  *
  * @author
  *   (C) 2004  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
- * @partof
- *   http://pointedears.de/scripts/dhtml.js
- * @param oInput : HTMLInputElement
+ * @param {HTMLInputElement} oInput
  *   Required.  Reference to an HTMLInputElement object.
- * @param sValue : string
+ * @param {string} sValue
  *   New value of the <code>value</code> property of the
  *   HTMLInputElement object.
- * @param bSetTitle : optional boolean = false
+ * @param {boolean} bSetTitle = false
  *   Specifies if the <code>title</code> property should be set to
  *   the same value as the <code>value</code> property.  The default
  *   is <code>false</code>.
- * @return boolean
+ * @return {boolean}
  *   If <var>bSetTitle</var> evaluates to <code>false</code>
  *   or omitted:
  *
@@ -87,15 +85,13 @@ jsx.dom.setValue = function(oInput, sValue, bSetTitle) {
  *
  * @author
  *   Copyright (C) 2004, 2007  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
- * @partof
- *   http://pointedears.de/scripts/dhtml.js
- * @param oForm : HTMLFormElement
+ * @param {HTMLFormElement} oForm
  *   Required. Reference to an HTMLFormElement object to contain
  *   the radio button group.
- * @param sGroup : string
+ * @param {string} sGroup
  *   Name of the radio button group from which the
  *   checked radio button should be retrieved.
- * @return object|boolean|HTMLInputElement
+ * @return {Object|boolean|HTMLInputElement}
  *   <code>null</code> if <var>oForm</var> is invalid or there is no such
  *   <var>sGroup</var>;
  *   <code>false</code> if no radio button of <var>sGroup</var> is checked;
@@ -124,13 +120,11 @@ jsx.dom.getCheckedRadio = function(oForm, sGroup) {
  *
  * @author
  *   (C) 2003  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
- * @partof
- *   http://pointedears.de/scripts/dhtml.js
- * @param oSelect : HTMLSelectElement
+ * @param {HTMLSelectElement} oSelect
  *   Reference to a HTMLSelectElement object.
- * @param bAllowReload : boolean
+ * @param {boolean} bAllowReload
  *   If <code>true</code>, reloads the document.
- * @return boolean
+ * @return {boolean}
  *   <code>true</code> if successful, <code>false</code>
  *   otherwise.
  */
@@ -171,15 +165,13 @@ jsx.dom.removeOptions = function(oSelect, bAllowReload) {
  *
  * @author
  *   (C) 2003, 2012  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
- * @partof
- *   http://pointedears.de/scripts/dom/forms.js
- * @param oSelect : HTMLSelectElement
+ * @param {HTMLSelectElement} oSelect
  *   Required reference to an HTMLSelectElement object.
- * @param sText : string
+ * @param {string} sText
  *   Required text of the new HTMLOptionElement object.
- * @param sValue : optional string
+ * @param {string} sValue (optional)
  *   Optional value of the new HTMLOptionElement object.
- * @return object
+ * @return {Option|HTMLOptionElement}
  *   A reference to the new option if successful,
  *   <code>null</code> otherwise.
  */
@@ -193,9 +185,9 @@ jsx.dom.addOption = function (oSelect, sText, sValue) {
   {
     return null;
   }
-  
+
   var oNew = new Option(sText, (arguments.length < 3) ? "" : sValue);
-  
+
   var o = oSelect.options;
   o[o.length] = oNew;
 
@@ -208,12 +200,10 @@ jsx.dom.addOption = function (oSelect, sText, sValue) {
  *
  * @author
  *   (C) 2003  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
- * @partof
- *   http://pointedears.de/scripts/dhtml.js
- * @param oForm : HTMLFormElement
+ * @param {HTMLFormElement} oForm
  *   Reference to the <code>HTMLFormElement</code> object
  *   which contains the <code>HTMLInputElement</code> object.
- * @param aName : _
+ * @param aName
  *   Name of the radio button, i.e. the value of the
  *   <code>name</code> attribute of the respective
  *   <code>input</code> (X)HTML element or the value
@@ -221,7 +211,7 @@ jsx.dom.addOption = function (oSelect, sText, sValue) {
  *   <code>HTMLInputElement</code> object.  Use an expression
  *   that is evaluated to <code>false</code> for the argument
  *   to be ignored.
- * @param sValue : string
+ * @param {string} sValue
  *   Value of the radio button, i.e. the value of the
  *   <code>value</code> attribute of the respective
  *   <code>input</code> (X)HTML element or the value
@@ -248,12 +238,10 @@ jsx.dom.selectRadioBtn = function(oForm, aName, sValue) {
  *
  * @author
  *   (C) 2003, 2010  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
- * @partof
- *   http://pointedears.de/scripts/dhtml.js
- * @param oElementGroup : HTMLElement|HTML(Options)Collection
+ * @param {HTMLElement|HTML(Options)Collection} oElementGroup
  *   Reference to the <code>HTMLElement</code> or to
  *   the <code>HTML(Options)Collection</code> object.
- * @param index : optional Number|String
+ * @param {Number|String} index (optional)
  *   Optional number or string to specify
  *   one element within the collection.
  */
@@ -275,12 +263,12 @@ jsx.dom.disableElementGroup = function(oElementGroup, index) {
 /**
  * Disables or enables form controls by name/ID.
  *
- * @param oForm : HTMLFormElement
+ * @param {HTMLFormElement} oForm
  *   Reference to the <code>form</code> element object.
  * @params String|HTMLElement
  *   Names/IDs of the elements or references
  *   to the element objects to disable/enable.
- * @param bDisable : optional boolean
+ * @param {boolean} bDisable (optional)
  *   If <code>false</code>, elements will be
  *   enabled, otherwise disabled.
  */
@@ -329,23 +317,24 @@ jsx.dom.disableElements = function(oForm) {
  * @function
  */
 jsx.dom.serializeForm = (function() {
+  var _getFeature = jsx.object.getFeature;
   var
     rxSubmit = /(^|\s)(submit|image)(\s|$)/i,
     rxSelect = /(^|\s)(select(-one)?|undefined)(\s|$)/i,
     rxFileReset = /^\s*(file|reset)\s*$/i,
     rxObject = /^\s*object\s*$/i;
-  
+
   /**
-   * @param form : HTMLFormElement
-   * @param submitButton : optional HTMLInputElement
+   * @param {HTMLFormElement} form
+   * @param {HTMLInputElement} submitButton (optional)
    *   Reference to the submit button that should be successful.
    *   By default, only the first submit button is successful.
-   * @return string
+   * @return {string}
    *   The serialization of this form
    */
   return function(form, submitButton) {
     /**
-     * @param control : HTMLSelectElement|HTMLInputElement|HTMLTextAreaElement|HTMLButtonElement
+     * @param {HTMLSelectElement|HTMLInputElement|HTMLTextAreaElement|HTMLButtonElement} control
      */
     function serializeControl(control)
     {
@@ -354,7 +343,7 @@ jsx.dom.serializeForm = (function() {
       {
         return;
       }
-      
+
       /*
        * If a form contains more than one submit button,
        * only the activated submit button is successful.
@@ -367,7 +356,7 @@ jsx.dom.serializeForm = (function() {
         {
           gotSubmit = true;
         }
-        
+
         /*
          * For menus, the control name is provided by a SELECT element
          * and values are provided by OPTION elements. Only selected
@@ -390,7 +379,7 @@ jsx.dom.serializeForm = (function() {
               items.add(control.name, control.options[control.selectedIndex].value);
             }
           }
-          
+
           /* select */
           else if (m[2])
           {
@@ -408,7 +397,7 @@ jsx.dom.serializeForm = (function() {
             }
           }
         }
-        
+
         /*
          * All "on" checkboxes may be successful.
          * For radio buttons that share the same value of the
@@ -423,20 +412,20 @@ jsx.dom.serializeForm = (function() {
         }
       }
     }
-        
-    var es = getFeature(form, "elements");
+
+    var es = _getFeature(form, "elements");
     if (!es)
     {
       return "";
     }
 
     var items = [];
-    
+
     items.add = function(sName, sValue) {
-      var s = esc(sName) + "=" + esc(sValue);
+      var s = encodeURIComponent(sName) + "=" + encodeURIComponent(sValue);
       this.push(s);
     };
-    
+
     if (!jsx.object.isMethod(items, "push"))
     {
       items.push = function() {
@@ -446,13 +435,13 @@ jsx.dom.serializeForm = (function() {
         }
       };
     }
-    
+
     var gotSubmit = false;
 
     for (var i = 0, len = es.length; i < len; i++)
     {
       var e = es[i];
-      
+
       /*
        * Elements with the same name create a NodeList object,
        * however options of select objects are also indexable in Gecko.
@@ -469,7 +458,7 @@ jsx.dom.serializeForm = (function() {
         serializeControl(e);
       }
     }
-    
+
     return items.join("&");
   };
 })();
