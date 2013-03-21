@@ -61,7 +61,7 @@ if (!function_exists('lcfirst'))
 class ResourceBuilder
 {
   const SCRIPT_CONTENT_TYPE = 'text/javascript';
-  
+
   /**
     * Class version
    * @var string
@@ -86,13 +86,13 @@ class ResourceBuilder
    * @var array
    */
   protected $_sources = array();
-  
+
   /**
    * Content-type to be used
    * @var string
    */
   protected $_contentType = self::SCRIPT_CONTENT_TYPE;
-  
+
   /**
    * @property-read  array $typeMap
    *   Maps MIME media types to file extensions
@@ -101,13 +101,13 @@ class ResourceBuilder
     'text/javascript' => 'js',
     'text/css'        => 'css',
   );
-  
+
   /**
    * If <code>true</code>, preserve original file content
    * @var boolean
    */
   protected $_debug = false;
-  
+
   /**
    * If <code>true</code>, produce verbose messages
    * @var boolean
@@ -122,13 +122,13 @@ class ResourceBuilder
    * @var boolean
    */
   protected $_force_gzip = false;
-  
+
   /**
    * Number of comments processed so far
    * @var int
    */
   protected $_commentCount = 0;
-  
+
   protected $_jsxDeps = array(
     'collection'     => array('object'),
     'dom'            => array('object'),
@@ -136,18 +136,18 @@ class ResourceBuilder
     'dom/css/color'  => array('dom/css'),
     'dom/events'     => array('dom'),
     'dom/xpath'      => array('object'),
-    'http'           => array('object', 'string'),
+    'http'           => array('object'),
     'test/debug'     => array('object', 'types', 'array'),
     'types'          => array('object'),
   );
-  
+
   /**
    * If <code>true</code>, resolve JSX dependencies statically
    * (EXPERIMENTAL)
    * @var boolean
    */
   protected $_resolve = false;
-  
+
   public function __construct ()
   {
     if (isset($_GET['src']))
@@ -162,26 +162,26 @@ class ResourceBuilder
         'force_gzip' => 'gzip',
         'resolve'
       );
-      
+
       foreach ($params as $property => $param)
       {
         if (isset($_GET[$param]))
         {
           $value = $_GET[$param];
-          
+
           if (is_int($property))
           {
             $property = $param;
           }
-          
+
           $this->$property = $value;
         }
       }
-            
+
       $this->commentCount = 0;
     }
   }
-  
+
   /**
    * Universal getter
    *
@@ -193,12 +193,12 @@ class ResourceBuilder
   {
     $getter = 'get' . ucfirst($name);
     $property = '_' . lcfirst($name);
-    
+
     if (method_exists($this, $getter))
     {
       return $this->$getter();
     }
-    
+
     if (property_exists($this, $property))
     {
       return $this->$property;
@@ -206,7 +206,7 @@ class ResourceBuilder
 
     $exceptionClass = 'DomainException';
     $message = "No method '$getter' or property '$property' on this object";
-    
+
     if (function_exists($exceptionClass))
     {
       throw new $exceptionClass($message);
@@ -226,12 +226,12 @@ class ResourceBuilder
   {
     $setter = 'set' . ucfirst($name);
     $property = '_' . lcfirst($name);
-        
+
     if (method_exists($this, $setter))
     {
       return $this->$setter($value);
     }
-    
+
     if (property_exists($this, $property))
     {
       $this->$property = $value;
@@ -240,7 +240,7 @@ class ResourceBuilder
     {
       $exceptionClass = 'DomainException';
       $message = "No method '$setter' or property '$property' on this object";
-      
+
       if (function_exists($exceptionClass))
       {
         throw new $exceptionClass($message);
@@ -249,7 +249,7 @@ class ResourceBuilder
       throw new Exception($message);
     }
   }
-  
+
   /**
    * Sets the _sources property
    *
@@ -261,7 +261,7 @@ class ResourceBuilder
     {
       $value = explode(',', $value);
     }
-    
+
     $this->_sources = $value;
   }
 
@@ -274,7 +274,7 @@ class ResourceBuilder
   {
     $this->_contentType = ($value ? $value : 'text/javascript');
   }
-  
+
   /**
    * Sets the _debug property
    *
@@ -300,7 +300,7 @@ class ResourceBuilder
       $this->_verbose = true;
     }
   }
-  
+
   /**
    * Sets the <code>_force_gzip</code> property
    *
@@ -310,7 +310,7 @@ class ResourceBuilder
   {
     $this->_force_gzip = ($value !== null) ? !!$value : $value;
   }
-  
+
   /**
    * Sets the <code>_resolve</code> property
    *
@@ -323,7 +323,7 @@ class ResourceBuilder
       $this->_resolve = true;
     }
   }
-  
+
   /**
    * @param array $match
    *   Comment to work on
@@ -375,7 +375,7 @@ class ResourceBuilder
       '#[\\t ]*/\\*\\*(?:[^*]|\\*[^/])*\\*/(?:\\r?\\n|\\r)?#',
       array('self', 'commentReplacer'),
       $s);
-    
+
     return $s;
   }
 
@@ -394,7 +394,7 @@ class ResourceBuilder
   protected function resolveDeps (array $sources, array &$new_sources = array())
   {
     $deps = $this->jsxDeps;
-    
+
     foreach ($sources as $name)
     {
       if (!array_key_exists($name, $new_sources)
@@ -405,21 +405,21 @@ class ResourceBuilder
 
       $new_sources[$name] = $name;
     }
-    
+
     return $new_sources;
   }
-  
+
   public function output ()
   {
     $contentType = $this->contentType;
-    
+
     header('Content-Type: ' . $contentType);
-    
+
     header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
 
     /* Cached resource expires in HTTP/1.1 caches 24h after last retrieval */
     header('Cache-Control: max-age=86400, s-maxage=86400, must-revalidate, proxy-revalidate');
-    
+
     /* Cached resource expires in HTTP/1.0 caches 24h after last retrieval */
     header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 86400) . ' GMT');
 
@@ -436,15 +436,15 @@ class ResourceBuilder
         header('Vary: Accept-Encoding');
       }
     }
-    
+
     $prefix = $this->prefix;
-    
+
     if ($contentType === self::SCRIPT_CONTENT_TYPE
         && $this->resolve)
     {
       $this->sources = $this->resolveDeps($this->sources);
     }
-        
+
     $suffix = $this->suffix;
     $out = "/*\n"
         . " * Compacted with PointedEars' ResourceBuilder {$this->version}\n"
@@ -457,25 +457,25 @@ class ResourceBuilder
         . " *\n"
         . " * Please see the original files for the complete source code.\n"
         . " */\n\n";
-    
+
     if (!$use_gzip)
     {
       echo $out;
     }
-    
+
     $verbose = $this->verbose;
-    
+
     /* Compute sizes only when needed */
     if ($verbose)
     {
       $totalSize = 0;
       $totalCompactedSize = 0;
     }
-    
+
     foreach ($this->sources as $index => $source)
     {
       $this->commentCount = 0;
-      
+
       if ($index > 0)
       {
         if ($use_gzip)
@@ -487,7 +487,7 @@ class ResourceBuilder
           echo "\n\n";
         }
       }
-      
+
       $file = $prefix . $source
         . ($suffix !== null
             ? $suffix
@@ -501,27 +501,27 @@ class ResourceBuilder
        */
       ob_start();
         require_once $file;
-  
+
         if ($verbose)
         {
           $originalSize = ob_get_length();
         }
-        
+
         $content = ob_get_contents();
       ob_end_clean();
-      
+
       if ($verbose)
       {
         $totalSize += $originalSize;
         $originalSizeFormatted = number_format($originalSize, 0, '.', "'");
       }
-      
+
       if (!$this->debug)
       {
         $content = $this->uncomment($content);
         $content = $this->stripJSdoc($content);
       }
-      
+
       if ($verbose)
       {
         $compactedSize = strlen($content);
@@ -530,7 +530,7 @@ class ResourceBuilder
         $ratioPercentage = $compactedSize / $originalSize * 100;
         $ratioFormatted = sprintf('%.1f %%', $ratioPercentage);
       }
-      
+
       $content =
           implode("\n", array(
             '/*',
@@ -542,7 +542,7 @@ class ResourceBuilder
             " */\n"
           ))
         . $content;
-      
+
       if ($use_gzip)
       {
         $out .= $content;
@@ -559,11 +559,11 @@ class ResourceBuilder
       $totalCompactedSizeFormatted = number_format($totalCompactedSize, 0, '.', "'");
       $ratioPercentage = $totalCompactedSize / $totalSize * 100;
       $ratioFormatted = sprintf('%.1f %%', $ratioPercentage);
-    
+
       $summary = "\n\n/*"
         . " Total of {$totalSizeFormatted} bytes reduced to {$totalCompactedSizeFormatted} bytes"
         . " ({$ratioFormatted}). */";
-      
+
       if ($use_gzip)
       {
         $out .= $summary;
@@ -573,7 +573,7 @@ class ResourceBuilder
         echo $summary;
       }
     }
-    
+
     if ($use_gzip)
     {
       $zipped = gzencode($out);
