@@ -2,8 +2,7 @@
  * @fileOverview <title>HTTP Library</title>
  * @file $Id$
  * @requires
- *   object.js for jsx.object#isMethod(),
- *   string.js for #esc(), #escURI()
+ *   object.js for jsx.object#isMethod()
  *
  * @author (C) 2004-2013 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
  *
@@ -299,13 +298,12 @@ jsx.net.http.Request.prototype = {
    *   If not provided or a false-value, the
    *   URL of the sending recource is set.
    * @param {boolean} bDontEncode (optional)
-   *   If <code>true</code>, do not encode the request URI
-   *   with {@link jsx.string#escURI()}.
+   *   If <code>true</code>, do not encode the request URI.
    */
   setURL: function (sURL, bDontEncode) {
     if (!bDontEncode && sURL)
     {
-      sURL = escURI(sURL);
+      sURL = encodeURI(sURL);
     }
 
     /**
@@ -500,7 +498,7 @@ jsx.net.http.Request.prototype = {
         var o = es[i];
         if (o.name)
         {
-          aData.push(esc(o.name) + "=" + esc(o.value != "" ? o.value : ""));
+          aData.push(encodeURIComponent(o.name) + "=" + encodeURIComponent(o.value != "" ? o.value : ""));
         }
       }
 
