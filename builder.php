@@ -495,6 +495,12 @@ class ResourceBuilder
                 ? '.' . $this->typeMap[$contentType]
                 : ''));
 
+      /* Minimum negotiation for dynamic content */
+      if (!file_exists($file) && file_exists($file . '.php'))
+      {
+        $file .= '.php';
+      }
+
       /*
        * NOTE: No file_get_contents(), so that PHP in resource gets parsed.
        * See globals caveat in class's PHPdoc.
