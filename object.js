@@ -1549,7 +1549,7 @@ if (jsx.options.emulate)
  * Returns a feature of an object
  *
  * @param {Object} obj
- *   Native object which provides the feature
+ *   Object which provides the feature
  * @params {string}
  *   Property names on the feature path, including the property
  *   for the feature itself.  For example, use
@@ -2783,13 +2783,74 @@ if (jsx.options.emulate)
 
   if (typeof Array.from == "undefined")
   {
+    /**
+     * Returns an <code>Array</code> created from mapping items
+     * of an Array-like object.
+     *
+     * @function
+     */
     Array.from = (function () {
       var _map = Array.prototype.map;
 
+      /**
+       * @param {Function} builder
+       *   Mapping function whose return value specifies the
+       *   mapped value in the new <code>Array</code>
+       * @param {Object} iterable
+       *   <code>Array</code>-like object
+       * @param {Object} oThis
+       *   <code>this</code> value in the mapping function
+       * @return {Array}
+       * @see Array.prototype#map
+       */
       return function (builder, iterable, oThis) {
         return _map.call(iterable, builder, oThis);
       };
     }());
+  }
+
+  if (typeof Array.destructure == "undefined")
+  {
+    /**
+     * Maps elements of an <code>Array</code>-like object
+     * to named properties of another object.
+     *
+     * <p>NOTE: Equivalent to Array destructuring (JavaScript 1.7+):</p>
+     * <pre><code>var o = Array.destructure(["bar", "foo"], ["foo", "bar"]);</code></pre>
+     * is equivalent to
+     * <pre><code>var o = {};
+     * [o.foo, o.bar] = ["bar", "foo"];</code></pre>
+     *
+     * @param {Object} a
+     *   <code>Array</code>-like object whose elements should be mapped.
+     * @param {Array} properties
+     *   Names of the properties that array elements should be mapped to.
+     *   If an element of this <code>Array</code> is <code>undefined</code>
+     *   or <code>null</code> (the former can be facilitated with
+     *   simply omitting the element value in an <code>Array</code>
+     *   Initialiser when not the last element of this <code>Array</code>),
+     *   the corresponding element of <var>a</var> is not mapped.
+     * @param {Object} oTarget
+     *   Target object.  If a false-value, a new <code>Object</code>
+     *   instance is being created.
+     * @returns {Object}
+     *   <var>oTarget</var> or a new <code>Object</code> instance
+     *   augmented with the specified properties and values.
+     */
+    Array.destructure = function (a, properties, oTarget) {
+      var o = oTarget || {};
+
+      for (var i = 0, len = properties.length; i < len; ++i)
+      {
+        var propertyName = properties[i];
+        if (propertyName != null)
+        {
+          o[propertyName] = a[i];
+        }
+      }
+
+      return o;
+    };
   }
 }
 
