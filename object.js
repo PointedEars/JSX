@@ -1104,7 +1104,7 @@ jsx.throwThis = (function () {
     _addslashes = function (e) {
       return (typeof e == "string")
         ? '"' + e.replace(/["'\\]/g, "\\$&").replace(/\r?\n|\r/g, "\\n") + '"'
-        : e;
+        : (e && typeof e.map == "function" ? "[" + e + "]" : e);
     };
 
   /**
@@ -2924,7 +2924,7 @@ jsx.InvalidArgumentError =
   function jsx_InvalidArgumentError (sReason, sGot, sExpected) {
     jsx_InvalidArgumentError._super.call(this,
       (sReason || "Invalid argument(s)")
-        + (sGot ? ": " + sGot : "")
+        + (sGot && sGot.length > 0 ? ": " + sGot : "")
         + (sExpected ? "; expected " + sExpected : ""));
   };
 
