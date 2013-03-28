@@ -86,10 +86,15 @@ jsx.date.isValid = function (year, month, date, hours, minutes, seconds, ms) {
  */
 jsx.date.strftime = (function () {
   var _jsx_string, _leadingZero, _pad;
-  var _weekdays, _months, _daytimes, _timezones;
+  var _strftime, _weekdays, _months, _daytimes, _timezones;
 
   var _rxDateFormats = /%([aAdejuwUVWbBhmCgGyYHkIlMpPrTSTXzZcDFsxnt%])/g;
   var _formatter = function (placeholder, conversion) {
+    if (typeof _strftime == "undefined")
+    {
+      _strftime = jsx.date.strftime;
+    }
+
     switch (conversion)
     {
       /* Day */
@@ -126,9 +131,9 @@ jsx.date.strftime = (function () {
       case "M": return _leadingZero(this.getMinutes(), 2);
       case "P": return _daytimes[this.getHours() < 12 ? "am" : "pm"].toUpperCase();
       case "p": return _daytimes[this.getHours() < 12 ? "am" : "pm"];
-      case "R": return this.strftime("%H:%M");
+      case "R": return _strftime(this, "%H:%M");
       case "S": return _leadingZero(this.getSeconds(), 2);
-      case "T": return this.strftime("%H:%M:%S");
+      case "T": return _strftime(this, "%H:%M:%S");
       case "X": return this.toLocaleTimeString();
       case "z":
         var tzOffset = this.getTimezoneOffset();
@@ -141,12 +146,22 @@ jsx.date.strftime = (function () {
           + _leadingZero(minutes, 2);
 
       case "Z":
-        return _timezones[this.getTimezoneOffset()] || "unknown";
+        var tzNames = _timezones[this.getTimezoneOffset()];
+
+        /*
+         * If no time zone name is defined for the offset,
+         * return UTC(+|-)HH:MM
+         */
+        tzOffset = _strftime(this, "%z");
+
+        return (tzNames && tzNames.join("/")
+          || ("UTC" + tzOffset.substring(0, tzOffset.length - 1)
+              + ":" + tzOffset.substring(tzOffset.length - 1)));
 
       /* Time and Date Stamps */
       case "c": return this.toLocaleString();
-      case "D": return this.strftime("%m/%d/%y");
-      case "F": return this.strftime("%Y-%m-%d");
+      case "D": return _strftime(this, "%m/%d/%y");
+      case "F": return _strftime(this, "%Y-%m-%d");
 
       /* Unix timestamp */
       case "s": return Math.floor(this.valueOf() / 1000);
@@ -168,9 +183,10 @@ jsx.date.strftime = (function () {
    * @param {Date} date
    * @param {String} format
    * @return {string}
+   *   <var>date</var> formatted according to <var>format</var>
    */
   return function jsx_date_strftime (date, format) {
-    if (arguments.length < 2)
+    if (arguments.length < 2 || typeof format == "undefined")
     {
       return jsx.throwThis(jsx.InvalidArgumentError,
         ["Not enough arguments", "", "(date : Date, format : String)"]);
@@ -178,7 +194,7 @@ jsx.date.strftime = (function () {
 
     if (typeof _jsx_string == "undefined")
     {
-      /* imports for _formatter() */
+      /* one-time imports for _formatter() */
       _jsx_string = jsx.string;
       _leadingZero = _jsx_string.leadingZero;
       _pad = _jsx_string.pad;
@@ -194,42 +210,72 @@ jsx.date.strftime = (function () {
   };
 }());
 
-jsx.date.strftime.WEEKDAYS = [
-  ["Sun", "Sunday"], ["Mon", "Monday"], ["Tue", "Tuesday"],
-  ["Wed", "Wednesday"], ["Thu", "Thursday"], ["Fri", "Friday"],
-  ["Sat", "Saturday"]
-];
+jsx.object.addProperties(
+  {
+    /**
+     * @memberOf jsx.string.strftime
+     */
+    WEEKDAYS: [
+      ["Sun", "Sunday"], ["Mon", "Monday"], ["Tue", "Tuesday"],
+      ["Wed", "Wednesday"], ["Thu", "Thursday"], ["Fri", "Friday"],
+      ["Sat", "Saturday"]
+    ],
 
-jsx.date.strftime.MONTHS = [
-  ["Jan", "January"], ["Feb", "February"], ["Mar", "March"],
-  ["Apr", "April"], ["May", "May"], ["Jun", "June"],
-  ["Jul", "July"], ["Aug", "August"], ["Sep", "September"],
-  ["Oct", "October"], ["Nov", "November"], ["Dec", "December"]
-];
+    MONTHS: [
+      ["Jan", "January"], ["Feb", "February"], ["Mar", "March"],
+      ["Apr", "April"], ["May", "May"], ["Jun", "June"],
+      ["Jul", "July"], ["Aug", "August"], ["Sep", "September"],
+      ["Oct", "October"], ["Nov", "November"], ["Dec", "December"]
+    ],
 
-jsx.date.strftime.DAYTIMES = {am: "am", pm: "pm"};
+    DAYTIMES: {am: "am", pm: "pm"},
 
-jsx.date.strftime.TIMEZONES = {
-  "0":    "GMT",
-  "-60":  "CET",
-  "-120": "CEST"
-};
+    TIMEZONES: {
+       "540": ["Alaska Standard Time (AKST)"],
+       "480": ["Alaska Daylight Time (AKDT)"],
+       "240": ["Atlantic Standard Time (AST)"],
+       "180": ["Atlantic Daylight Time (ADT)",
+               "Argentina Time (ART)"],
+         "0": ["Greenwich Mean Time (GMT)"],
+       "-60": ["Central European Time (CET)"],
+      "-180": ["Arabia Standard Time (AST)"],
+      "-240": ["Armenia Time (AMT)"],
+      "-270": ["Afghanistan Time (AFT)"],
+      "-480": ["Australian Western Standard Time (AWST)",
+               "ASEAN Common Time (ACT)"],
+      "-570": ["Australian Central Standard Time (ACST)"],
+      "-600": ["Australian Eastern Standard Time (AEST)"],
+      "-630": ["Australian Central Daylight Time (ACDT)"],
+      "-660": ["Australian Eastern Daylight Time (AEDT)"]
+    }
+  },
+  jsx.object.ADD_OVERWRITE, jsx.date.strftime);
 
 if (jsx.options.emulate)
 {
-  if (typeof Date.isValid == "undefined")
-  {
-    Date.isValid = jsx.date.isValid;
-  }
+  jsx.object.addProperties(
+    {
+      isValid: jsx.date.isValid
+    },
+    0, Date);
 
-  if (typeof Date.prototype.strftime == "undefined")
-  {
-    Date.prototype.strftime = (function () {
-      var _strftime = jsx.date.strftime;
+  jsx.object.addProperties(
+    {
+      /**
+       * @memberOf Date#prototype
+       * @function
+       */
+      strftime: (function () {
+        var _strftime = jsx.date.strftime;
 
-      return function () {
-        return _strftime.apply(null, [this].concat([].slice.call(arguments)));
-      };
-    }());
-  }
+        /**
+         * @param {String} format
+         * @see jsx.date#strftime(Date, String)
+         */
+        return function (format) {
+          return _strftime(this, format);
+        };
+      }())
+    },
+    0, Date.prototype);
 }
