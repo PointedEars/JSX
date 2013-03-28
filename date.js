@@ -2,7 +2,7 @@
  * @fileOverview <title>Date Library</title>
  * @file $Id$
  * @requires object.js
- * @requires string.js for Date.protoype.format()
+ * @requires string.js for Date.protoype.strftime()
  *
  * @author (C) 2013 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
  *
@@ -87,9 +87,7 @@ if (typeof Date.prototype.strftime == "undefined")
    * @namespace
    */
   Date.prototype.strftime = (function () {
-    var _jsx_string = jsx.string;
-    var _leadingZero = _jsx_string.leadingZero;
-    var _pad = _jsx_string.pad;
+    var _jsx_string, _leadingZero, _pad;
     var _weekdays, _months, _daytimes, _timezones;
 
     var _rxDateFormats = /%([aAdejuwUVWbBhmCgGyYHkIlMpPrTSTXzZcDFsxnt%])/g;
@@ -137,13 +135,12 @@ if (typeof Date.prototype.strftime == "undefined")
         case "z":
           var tzOffset = this.getTimezoneOffset();
           var hours = Math.floor(Math.abs(tzOffset) / 60);
-          var minutes = Math.abs(tzOffset) - (hours * 60);
-          var width = 2;
+          var minutes = Math.floor(Math.abs(tzOffset) - (hours * 60));
 
           /* NOTE: Negative offset means _ahead_ of UTC */
           return (tzOffset < 0 ? "+" : "-")
-            + _leadingZero(hours, width)
-            + _leadingZero(Math.floor(minutes), 2);
+            + _leadingZero(hours, 2)
+            + _leadingZero(minutes, 2);
 
         case "Z":
           return _timezones[this.getTimezoneOffset()] || "unknown";
@@ -171,13 +168,21 @@ if (typeof Date.prototype.strftime == "undefined")
 
     /**
      * @param {String} format
-     * @return string
+     * @return {string}
      */
     return function Date_prototype_strftime (format) {
       if (arguments.length < 1)
       {
         return jsx.throwThis(jsx.InvalidArgumentError,
           ["Not enough arguments", "", "(format : String)"]);
+      }
+
+      if (typeof _jsx_string == "undefined")
+      {
+        /* imports for _formatter() */
+        _jsx_string = jsx.string;
+        _leadingZero = _jsx_string.leadingZero;
+        _pad = _jsx_string.pad;
       }
 
       var me = Date_prototype_strftime;
