@@ -1049,7 +1049,25 @@ var leadingZero = jsx.string.leadingZero = function (s, n) {
     s = this;
   }
 
-  return jsx.string.pad(s, n, "0");
+  var isNegative = (s && typeof s.valueOf() == "number" && s < 0);
+  if (isNegative)
+  {
+    s = -s;
+
+    if (typeof n == "number" && !isNaN(n))
+    {
+      --n;
+    }
+  }
+
+  var result = jsx.string.pad(s, n, "0");
+
+  if (isNegative)
+  {
+    result = "-" + result;
+  }
+
+  return result;
 };
 
 /*
