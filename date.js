@@ -62,7 +62,7 @@ jsx.date = {
  *   constructor, <code>false</code> otherwise.
  * @see Date
  */
-Date.isValid = function (year, month, date, hours, minutes, seconds, ms) {
+jsx.date.isValid = function (year, month, date, hours, minutes, seconds, ms) {
   if (arguments.length < 3)
   {
     return jsx.throwThis(jsx.InvalidArgumentError,
@@ -215,13 +215,21 @@ jsx.date.strftime.TIMEZONES = {
   "-120": "CEST"
 };
 
-if (jsx.options.emulate && typeof Date.prototype.strftime == "undefined")
+if (jsx.options.emulate)
 {
-  Date.prototype.strftime = (function () {
-    var _strftime = jsx.date.strftime;
+  if (typeof Date.isValid == "undefined")
+  {
+    Date.isValid = jsx.date.isValid;
+  }
 
-    return function () {
-      return _strftime.apply(null, [this].concat([].slice.call(arguments)));
-    };
-  }());
+  if (typeof Date.prototype.strftime == "undefined")
+  {
+    Date.prototype.strftime = (function () {
+      var _strftime = jsx.date.strftime;
+
+      return function () {
+        return _strftime.apply(null, [this].concat([].slice.call(arguments)));
+      };
+    }());
+  }
 }
