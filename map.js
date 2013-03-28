@@ -694,6 +694,7 @@ jsx.map.Map.prototype.putAll = function(map) {
     this.put(o[0], o[1]);
   }
 };
+
 /**
  * Returns <code>true</code> if the argument is a {@link jsx.map#Map Map}
  *
