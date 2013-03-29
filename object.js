@@ -470,6 +470,80 @@ jsx.error = function (sMsg) {
 };
 
 /**
+ * Determines if an object has a (non-inherited) property
+ */
+jsx.object._hasOwnProperty = (function () {
+  var _isMethod = jsx.object.isMethod;
+
+  /**
+   * @param {Object} obj (optional)
+   *   Object which property should be checked for existence.
+   * @param {string} sProperty
+   *   Name of the property to check.
+   * @return {boolean}
+   *   <code>true</code> if there is such a property;
+   *   <code>false</code> otherwise.
+   */
+  return function (obj, sProperty) {
+    if (arguments.length < 2 && obj)
+    {
+      sProperty = obj;
+      obj = this;
+    }
+
+    var proto;
+
+    return (_isMethod(obj, "hasOwnProperty")
+      ? obj.hasOwnProperty(sProperty)
+      : (typeof obj[sProperty] != "undefined"
+          && ((typeof obj.constructor != "undefined"
+                && (proto = obj.constructor.prototype)
+                && typeof proto[sProperty] == "undefined")
+              || (typeof obj.constructor == "undefined"))));
+  };
+}());
+
+/**
+ * Returns the own enumerable properties of an object
+ *
+ * @function
+ */
+jsx.object.getKeys = (function () {
+  var
+    _jsx = jsx,
+    _global = _jsx.global,
+    _isNativeMethod = _jsx.object.isNativeMethod,
+    _hasOwnProperty = jsx.object._hasOwnProperty;
+
+  /**
+   * @param {Object} obj
+   *   Object from which to get the keys
+   * @return {Array}
+   *   Own enumerable properties of <var>obj</var>
+   * @see Object#keys
+   */
+  return function (obj) {
+    if (_isNativeMethod(_global.Object, "keys")
+        && !Object.keys._emulated)
+    {
+      return Object.keys(obj);
+    }
+
+    var a = new Array();
+
+    for (var p in obj)
+    {
+      if (_hasOwnProperty(obj, p))
+      {
+        a.push(p);
+      }
+    }
+
+    return a;
+  };
+}());
+
+/**
  * Creates a duplicate (clone) of an object
  *
  * @function
@@ -571,14 +645,15 @@ jsx.object.clone = (function () {
  */
 jsx.object.setProperties = (function () {
   var
-    jsx_object = jsx.object,
-    clone = jsx_object.clone,
-    ADD_OVERWRITE = jsx_object.ADD_OVERWRITE,
-    COPY_ENUM_DEEP = jsx_object.COPY_ENUM_DEEP,
-    COPY_INHERIT = jsx_object.COPY_INHERIT;
+    _jsx_object = jsx.object,
+    _getKeys = _jsx_object.getKeys,
+    _clone = _jsx_object.clone,
+    _ADD_OVERWRITE = _jsx_object.ADD_OVERWRITE,
+    _COPY_ENUM_DEEP = _jsx_object.COPY_ENUM_DEEP,
+    _COPY_INHERIT = _jsx_object.COPY_INHERIT;
 
   /**
-   * @param {Object} oOwner
+   * @param {Object} oTarget
    *   Target object whose properties should be set.
    * @param {Object} oSource
    *   Object specifying the properties to be set.
@@ -589,22 +664,24 @@ jsx.object.setProperties = (function () {
    *   Flags for the modification, see {@link Object#ADD_OVERWRITE
    *   ADD_*} and {@link Object#COPY_ENUM COPY_*}.
    */
-  return function (oOwner, oSource, iFlags) {
+  return function (oTarget, oSource, iFlags) {
     if (typeof iFlags == "undefined")
     {
       iFlags = 0;
     }
 
-    /* FIXME: Only consider own enumerable properties */
-    for (var p in oSource)
+    for (var i = 0, keys = _getKeys(oSource), len = keys.length;
+         i < len; ++i)
     {
-      if (typeof oOwner[p] == "undefined" || (iFlags & ADD_OVERWRITE))
+      var p = keys[i];
+
+      if (typeof oTarget[p] == "undefined" || (iFlags & _ADD_OVERWRITE))
       {
         jsx.tryThis(function () {
-          oOwner[p] = clone(
-            iFlags & (COPY_ENUM_DEEP | COPY_INHERIT),
+          oTarget[p] = _clone(
+            iFlags & (_COPY_ENUM_DEEP | _COPY_INHERIT),
             oSource[p]);
-          oOwner[p]._userDefined = true;
+          oTarget[p]._userDefined = true;
         });
       }
     }
@@ -676,40 +753,6 @@ jsx.object.defineProperties = function (oTarget, oProperties, sContext) {
     }
   );
 };
-
-/**
- * Determines if an object has a (non-inherited) property
- */
-jsx.object._hasOwnProperty = (function () {
-  var _isMethod = jsx.object.isMethod;
-
-  /**
-   * @param {Object} obj (optional)
-   *   Object which property should be checked for existence.
-   * @param {string} sProperty
-   *   Name of the property to check.
-   * @return {boolean}
-   *   <code>true</code> if there is such a property;
-   *   <code>false</code> otherwise.
-   */
-  return function (obj, sProperty) {
-    if (arguments.length < 2 && obj)
-    {
-      sProperty = obj;
-      obj = this;
-    }
-
-    var proto;
-
-    return (_isMethod(obj, "hasOwnProperty")
-      ? obj.hasOwnProperty(sProperty)
-      : (typeof obj[sProperty] != "undefined"
-          && ((typeof obj.constructor != "undefined"
-                && (proto = obj.constructor.prototype)
-                && typeof proto[sProperty] == "undefined")
-              || (typeof obj.constructor == "undefined"))));
-  };
-}());
 
 /**
  * Determines if a (non-inherited) property of an object is enumerable
@@ -1239,46 +1282,6 @@ jsx.object.getDataObject = (function () {
   };
 }());
 
-/**
- * Returns the own enumerable properties of an object
- *
- * @function
- */
-jsx.object.getKeys = (function () {
-  var
-    _jsx = jsx,
-    _global = _jsx.global,
-    _isNativeMethod = _jsx.object.isNativeMethod,
-    _hasOwnProperty = jsx.object._hasOwnProperty;
-
-  /**
-   * @param {Object} obj
-   *   Object from which to get the keys
-   * @return {Array}
-   *   Own enumerable properties of <var>obj</var>
-   * @see Object#keys
-   */
-  return function (obj) {
-    if (_isNativeMethod(_global.Object, "keys")
-        && !Object.keys._emulated)
-    {
-      return Object.keys(obj);
-    }
-
-    var a = new Array();
-
-    for (var p in obj)
-    {
-      if (_hasOwnProperty(obj, p))
-      {
-        a[a.length] = p;
-      }
-    }
-
-    return a;
-  };
-}());
-
 if (jsx.options.emulate)
 {
   if (!jsx.object.isNativeMethod(jsx.tryThis("Object"), "create"))
@@ -1675,7 +1678,7 @@ jsx.getStackTrace = function () {
 //            name = 'anonymous';
 //          }
 //
-//          stack[stack.length] = name;
+//          stack.push(name);
 //      }
       stack = stacklist;
 
