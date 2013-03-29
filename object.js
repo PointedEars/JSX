@@ -123,6 +123,10 @@ jsx.object = {
    * @author (C) 2003-2010  <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
    * @memberOf jsx.object
    * @function
+   * @return {boolean}
+   *   <code>true</code> if all arguments refer to methods,
+   *   <code>false</code> otherwise.
+   * @see jsx.object#isMethodType()
    */
   isMethod: (function () {
     var
@@ -157,10 +161,6 @@ jsx.object = {
      *   this array are used for property names; e.g.
      *   <code>(o, "foo", ["bar", "baz"])</code>.  This allows for testing
      *   several properties of the same object with one call.
-     * @return {boolean}
-     *   <code>true</code> if all arguments refer to methods,
-     *   <code>false</code> otherwise.
-     * @see jsx.object#isMethodType()
      */
     return function (obj, prop) {
       var len = arguments.length;
@@ -520,9 +520,9 @@ jsx.object.clone = (function () {
        *       original's prototype, if possible.
        */
       var i,
-        o2 = (typeof oSource == "object" && oSource)
-           ? createTypedObject(oSource)
-           : oSource.valueOf();
+          o2 = (typeof oSource == "object" && oSource)
+             ? createTypedObject(oSource)
+             : oSource.valueOf();
 
       /* just in case "var i in ..." does not copy the array elements */
       if (typeof Array != "undefined" && o2.constructor == Array)
@@ -1872,6 +1872,10 @@ jsx.absPath = function (relativePath, basePath) {
  * jsx.importFrom() for that and include jsx.net.http.
  *
  * @function
+ * @return {boolean}
+ *   <code>false</code> if <var>properties</var> is provided and not
+ *   all properties could be imported; <code>true</code> otherwise.
+ * @throws TypeError, if <var>obj</var> is not an iterable object
  */
 jsx._import = (function () {
   var _jsx_object = jsx.object;
@@ -1881,7 +1885,7 @@ jsx._import = (function () {
 
   /**
    * @param {Object} obj
-   * @param {string|Array?} properties (optional)
+   * @param {string|Array|Null} properties (optional)
    *   Name or list of names of properties to import.  If not
    *   provided or <code>null</code>, all own enumerable properties
    *   of <var>obj</var> are imported.
@@ -1896,10 +1900,6 @@ jsx._import = (function () {
    *   There must be specified as many aliases as properties were
    *   specified.  Ignored if <var>properties</var> is
    *   <code>null</code>.
-   * @throws TypeError, if <var>obj</var> is not an iterable object
-   * @return {boolean}
-   *   <code>false</code> if <var>properties</var> is provided and not
-   *   all properties could be imported; <code>true</code> otherwise.
    */
   return function (obj, properties, objAlias, propertyAliases) {
     if (!obj)
@@ -1981,6 +1981,9 @@ jsx["import"] = jsx._import;
  *
  * @function
  * @requires jsx.net.http#Request
+ * @return {boolean}
+ *   <code>true</code> if the script could be successfully <em>loaded</em>
+ *   (not: included), <code>false</code> otherwise.
  */
 jsx.importFrom = (function () {
   /* Imports */
@@ -1999,9 +2002,6 @@ jsx.importFrom = (function () {
    *   See {@link jsx#_import}.
    * @param {Array} propertyAliases (optional)
    *   See {@link jsx#_import}.
-   * @return {boolean}
-   *   <code>true</code> if the script could be successfully <em>loaded</em>
-   *   (not: included), <code>false</code> otherwise.
    */
   return function jsx_importFrom (uri, obj, properties, objAlias, propertyAliases) {
     /* One-time import */
@@ -2049,6 +2049,8 @@ jsx.importFrom = (function () {
  * from a script resource into the global namespace.
  *
  * @function
+ * @return {boolean}
+ * @see jsx#importFrom
  */
 jsx.importOnce = (function () {
   var _getProperty = jsx.object.getProperty;
@@ -2067,7 +2069,6 @@ jsx.importOnce = (function () {
    *   See {@link jsx#_import}.
    * @param {Array} propertyAliases (optional)
    *   See {@link jsx#_import}.
-   * @see jsx#importFrom
    */
   function importOnce (uri, obj, properties, objAlias, propertyAliases)
   {
@@ -2119,6 +2120,11 @@ jsx.importOnce = (function () {
 
 /**
  * Executes a function if and once its requirements are fulfilled.
+ *
+ * @function
+ * @return {any}
+ *   The return value of <var>callback</var>,
+ *   <code>false</code> otherwise.
  */
 jsx.require = (function () {
   var _importOnce = jsx.importOnce;
@@ -2130,9 +2136,6 @@ jsx.require = (function () {
    *   specifying the requirement(s)
    * @param {Function} callback
    *   Function to be executed
-   * @return
-   *   The return value of <var>callback</var>,
-   *   <code>false</code> otherwise.
    */
   return function (uri, callback) {
     if (!_isArray(uri))
@@ -2185,6 +2188,7 @@ if (jsx.options.emulate)
        *
        * @memberOf Function#prototype
        * @function
+       * @return {any}
        */
       apply: (function () {
         var
@@ -2267,6 +2271,8 @@ if (jsx.options.emulate)
        * <code>Function</code> with default parameters.
        *
        * @function
+       * @return {Function}
+       * @see 15.3.4.5 Function.prototype.bind (thisArg [, arg1 [, arg2, ...]])
        */
       bind: (function () {
         var _slice;
@@ -2277,8 +2283,6 @@ if (jsx.options.emulate)
          *   <code>this</code> value of the returned
          *   <code>Function</code>
          * @params Default parameters
-         * @return {Function}
-         * @see 15.3.4.5 Function.prototype.bind (thisArg [, arg1 [, arg2, ...]])
          */
         return function (thisArg) {
           var target = this;
@@ -2350,6 +2354,7 @@ if (jsx.options.emulate)
        * @author Courtesy of Asen Bozhilov, slightly adapted
        * @function
        * @memberOf Function#prototype
+       * @return {Object} Reference to the new instance
        */
       construct2: (function () {
         function Dummy(constructor, argArray) {
@@ -2358,7 +2363,6 @@ if (jsx.options.emulate)
 
         /**
          * @param {Array} argArray
-         * @return {Object} Reference to the new instance
          */
         return function (argArray) {
           Dummy.prototype = this.prototype;
@@ -2394,12 +2398,20 @@ if (jsx.options.emulate)
  * </p>
  *
  * @function
+ * @return {Function}
+ *   A reference to the constructor of the extended prototype object
+ *   if successful; <code>null</code> otherwise.
  */
 Function.prototype.extend = (function () {
   var _jsx = jsx;
   var _global = _jsx.global;
   var _jsx_object = _jsx.object;
 
+  /**
+   * @private
+   * @function
+   * @return {Object}
+   */
   var _iterator = (function () {
     /* Optimize if ECMAScript 5 features were available */
     if (_jsx_object.isNativeMethod(_global.Object, "defineProperties"))
@@ -2472,9 +2484,6 @@ Function.prototype.extend = (function () {
    *   properties.  Of those, the <code>_super</code>,
    *   <code>constructor</code>, and <code>_userDefined</code>
    *   properties are ignored as they are used internally.
-   * @return {Function}
-   *   A reference to the constructor of the extended prototype object
-   *   if successful; <code>null</code> otherwise.
    */
   return function (fConstructor, oProtoProps) {
     var me = this;
@@ -2613,6 +2622,9 @@ jsx.array = {
   /**
    * Maps one array to another
    *
+   * @function
+   * @return {Array}
+   *   <var>array</var> with <var>callback</var> applied to each element.
    * @see ECMAScript Language Specification, Edition 5.1, section 15.4.4.19
    */
   map: (function () {
@@ -2623,8 +2635,6 @@ jsx.array = {
      *   Array to be mapped
      * @param {Callable} callback
      * @param {Object} oThis (optional)
-     * @return {Array}
-     *   <var>array</var> with <var>callback</var> applied to each element.
      */
     return function (array, callback, oThis) {
       if (!_isMethod(callback))
