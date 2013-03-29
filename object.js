@@ -1783,6 +1783,56 @@ jsx.object.getProperty = function (obj, sProperty, aDefault) {
 };
 
 /**
+ * Determines if a value refers to an object.
+ *
+ * <p>Returns <code>true</code> if the value is a reference
+ * to an object; <code>false</code> otherwise.</p>
+ *
+ * <p>An value "is an object" if it is a function or
+ * <code>typeof "object"</code> but not <code>null</code>.
+ *
+ * @return {boolean}
+ */
+jsx.object.isObject = function (a) {
+  var t = typeof a;
+  return t == "function" || t == "object" && a !== null;
+};
+
+/**
+ * Determines if a value refers to an {@link Array}.
+ * <p>
+ * Returns <code>true</code> if the value is a reference to an object
+ * whose <code>[[Class]]</code> internal property is <code>"Array"</code>;
+ * <code>false</code> otherwise.
+ * </p>
+ *
+ * @function
+ * @see ECMAScript Language Specification, Edition 5.1, section 15.4.3.2
+ */
+jsx.object.isArray = (function () {
+  var _jsx = jsx;
+  var _global = _jsx.global;
+  var _jsx_object = jsx.object;
+  var _getClass = _jsx_object.getClass;
+  var _isNativeMethod = _jsx_object.isNativeMethod;
+
+  /**
+   * @param a
+   *   Potential <code>Array</code>
+   * @return {boolean}
+   */
+  return function (a) {
+    if (_isNativeMethod(_global.Array, "isArray")
+        && !Array.isArray._emulated)
+    {
+      return Array.isArray(a);
+    }
+
+    return (_getClass(a) === "Array");
+  };
+}());
+
+/**
  * Returns the absolute path for a URI-reference
  *
  * @param {string} relativePath
@@ -1873,7 +1923,7 @@ jsx._import = (function () {
     {
       properties = _getKeys(obj);
     }
-    else if (_isArray(properties))
+    else if (!_isArray(properties))
     {
       properties = [properties];
     }
@@ -2065,56 +2115,6 @@ jsx.importOnce = (function () {
   importOnce.imports = {};
 
   return importOnce;
-}());
-
-/**
- * Determines if a value refers to an object.
- *
- * <p>Returns <code>true</code> if the value is a reference
- * to an object; <code>false</code> otherwise.</p>
- *
- * <p>An value "is an object" if it is a function or
- * <code>typeof "object"</code> but not <code>null</code>.
- *
- * @return {boolean}
- */
-jsx.object.isObject = function (a) {
-  var t = typeof a;
-  return t == "function" || t == "object" && a !== null;
-};
-
-/**
- * Determines if a value refers to an {@link Array}.
- * <p>
- * Returns <code>true</code> if the value is a reference to an object
- * whose <code>[[Class]]</code> internal property is <code>"Array"</code>;
- * <code>false</code> otherwise.
- * </p>
- *
- * @function
- * @see ECMAScript Language Specification, Edition 5.1, section 15.4.3.2
- */
-jsx.object.isArray = (function () {
-  var _jsx = jsx;
-  var _global = _jsx.global;
-  var _jsx_object = jsx.object;
-  var _getClass = _jsx_object.getClass;
-  var _isNativeMethod = _jsx_object.isNativeMethod;
-
-  /**
-   * @param a
-   *   Potential <code>Array</code>
-   * @return {boolean}
-   */
-  return function (a) {
-    if (_isNativeMethod(_global.Array, "isArray")
-        && !Array.isArray._emulated)
-    {
-      return Array.isArray(a);
-    }
-
-    return (_getClass(a) === "Array");
-  };
 }());
 
 /**
