@@ -36,7 +36,7 @@ if (typeof jsx == "undefined")
 jsx.global = this;
 
 /*
- * NOTE: Cannot use addProperties() for the following
+ * NOTE: Cannot use jsx.object.setProperties() for the following
  * because values have not been defined yet!
  *
  * TODO: Should syntactic sugar be provided to work around
@@ -84,7 +84,7 @@ jsx.object = {
   path:      "http://PointedEars.de/scripts/",
 
   /**
-   * Used by {@link jsx.object#addProperties()} to overwrite existing
+   * Used by {@link jsx.object#setProperties()} to overwrite existing
    * properties.
    *
    * @type number
@@ -93,7 +93,7 @@ jsx.object = {
   ADD_OVERWRITE: 1,
 
   /**
-   * Used by {@link jsx.object#addProperties()} and {@link jsx.object#clone()}
+   * Used by {@link jsx.object#setProperties()} and {@link jsx.object#clone()}
    * to make a shallow copy of all enumerable properties (default).
    *
    * @type number
@@ -101,7 +101,7 @@ jsx.object = {
   COPY_ENUM: 0,
 
   /**
-   * Used by {@link jsx.object#addProperties()} and {@link jsx.object#clone()}
+   * Used by {@link jsx.object#setProperties()} and {@link jsx.object#clone()}
    * to make a deep copy of all enumerable properties.
    *
    * @type number
@@ -109,7 +109,7 @@ jsx.object = {
   COPY_ENUM_DEEP: 2,
 
   /**
-   * Used by {@link jsx.object#addProperties()} and {@link jsx.object#clone()}
+   * Used by {@link jsx.object#setProperties()} and {@link jsx.object#clone()}
    * to copy a property by inheritance.
    *
    * @type number
@@ -569,9 +569,8 @@ jsx.object.clone = (function () {
  *
  * @function
  */
-jsx.object.addProperties = (function () {
+jsx.object.setProperties = (function () {
   var
-    rxObject = /^\s*(object|function)\s*$/i,
     jsx_object = jsx.object,
     clone = jsx_object.clone,
     ADD_OVERWRITE = jsx_object.ADD_OVERWRITE,
@@ -579,31 +578,24 @@ jsx.object.addProperties = (function () {
     COPY_INHERIT = jsx_object.COPY_INHERIT;
 
   /**
+   * @param {Object} oOwner
+   *   Target object whose properties should be set.
    * @param {Object} oSource
-   *   Object specifying the properties to be added/replaced.
+   *   Object specifying the properties to be set.
    *   The name of each property serves as the name for the
    *   property of the target object, its value as the value
    *   of that property.
    * @param {Number} iFlags = 0
    *   Flags for the modification, see {@link Object#ADD_OVERWRITE
    *   ADD_*} and {@link Object#COPY_ENUM COPY_*}.
-   * @param {Object} oOwner (optional)
-   *   If provided, used as target object instead of the
-   *   calling object.  This makes it possible to call
-   *   the method without an explicit calling object.
    */
-  return function (oSource, iFlags, oOwner) {
-    if (rxObject.test(typeof iFlags))
+  return function (oOwner, oSource, iFlags) {
+    if (typeof iFlags == "undefined")
     {
-      oOwner = iFlags;
       iFlags = 0;
     }
 
-    if (!oOwner)
-    {
-      oOwner = jsx.global;
-    }
-
+    /* FIXME: Only consider own enumerable properties */
     for (var p in oSource)
     {
       if (typeof oOwner[p] == "undefined" || (iFlags & ADD_OVERWRITE))
@@ -2170,13 +2162,12 @@ jsx.require = (function () {
 if (jsx.options.emulate)
 {
 /* Disabled until ECMAScript allows to hide properties from iteration */
-//addProperties({
-//    addProperties  : addProperties,
+//jsx.object.setProperties(Object.prototype, {
+//    setProperties  : setProperties,
 //    clone          : clone,
 //    findNewProperty: findNewProperty,
 //    _hasOwnProperty: _hasOwnProperty
-//  },
-//  Object.prototype);
+//  });
 
   if (jsx.object.isNativeMethod(this, "eval"))
   {
@@ -2187,196 +2178,194 @@ if (jsx.options.emulate)
      * fixed since <http://bugs.kde.org/show_bug.cgi?id=123529>
      */
 
-    jsx.object.addProperties(
-      {
-        /**
-         * Applies a method of another object in the context
-         * of a different object (the calling object).
-         *
-         * @memberOf Function#prototype
-         * @function
-         */
-        apply: (function () {
-          var
-            jsx_object = jsx.object,
-            jsx_global = jsx.global;
-
-          /**
-           * @param {Object} thisArg
-           *   Reference to the calling object
-           * @param {Array} argArray
-           *   Arguments for the object
-           */
-          return function (thisArg, argArray) {
-            if (!thisArg)
-            {
-              thisArg = jsx_global;
-            }
-
-            var
-              o = {},
-              p = jsx_object.findNewProperty(o);
-
-            if (p)
-            {
-              o[p] = thisArg || this;
-
-              var a = new Array();
-              for (var i = 0, len = argArray.length; i < len; i++)
-              {
-                a[i] = "argArray[" + i + "]";
-              }
-
-              eval("o[p](" + a + ")");
-
-              delete o[p];
-            }
-          };
-        }()),
+    jsx.object.setProperties(Function.prototype, {
+      /**
+       * Applies a method of another object in the context
+       * of a different object (the calling object).
+       *
+       * @memberOf Function#prototype
+       * @function
+       */
+      apply: (function () {
+        var
+          jsx_object = jsx.object,
+          jsx_global = jsx.global;
 
         /**
-         * Calls (executes) a method of another object in the
-         * context of a different object (the calling object).
-         *
-         * @memberOf Function#prototype
          * @param {Object} thisArg
-         *   Reference to the calling object.  SHOULD NOT
-         *   be a host object, since augmentation is required.
-         * @params {_}
-         *   Arguments for the object.
+         *   Reference to the calling object
+         * @param {Array} argArray
+         *   Arguments for the object
          */
-        call: function (thisArg) {
-          var a = new Array();
-
-          for (var i = 1, len = arguments.length; i < len; i++)
-          {
-            a[i] = "arguments[" + i + "]";
-          }
-
+        return function (thisArg, argArray) {
           if (!thisArg)
           {
-            thisArg = jsx.global;
+            thisArg = jsx_global;
           }
 
           var
             o = {},
-            p = jsx.object.findNewProperty(o);
+            p = jsx_object.findNewProperty(o);
 
           if (p)
           {
-            o[p] = this;
+            o[p] = thisArg || this;
+
+            var a = new Array();
+            for (var i = 0, len = argArray.length; i < len; i++)
+            {
+              a[i] = "argArray[" + i + "]";
+            }
+
             eval("o[p](" + a + ")");
+
             delete o[p];
-            o = null;
           }
-        },
+        };
+      }()),
+
+      /**
+       * Calls (executes) a method of another object in the
+       * context of a different object (the calling object).
+       *
+       * @memberOf Function#prototype
+       * @param {Object} thisArg
+       *   Reference to the calling object.  SHOULD NOT
+       *   be a host object, since augmentation is required.
+       * @params {_}
+       *   Arguments for the object.
+       */
+      call: function (thisArg) {
+        var a = new Array();
+
+        for (var i = 1, len = arguments.length; i < len; i++)
+        {
+          a[i] = "arguments[" + i + "]";
+        }
+
+        if (!thisArg)
+        {
+          thisArg = jsx.global;
+        }
+
+        var
+          o = {},
+          p = jsx.object.findNewProperty(o);
+
+        if (p)
+        {
+          o[p] = this;
+          eval("o[p](" + a + ")");
+          delete o[p];
+          o = null;
+        }
+      },
+
+      /**
+       * Returns a <code>Function</code> that has a defined
+       * <code>this</code> value and calls the calling
+       * <code>Function</code> with default parameters.
+       *
+       * @function
+       */
+      bind: (function () {
+        var _slice;
+        var _getClass = jsx.object.getClass;
 
         /**
-         * Returns a <code>Function</code> that has a defined
-         * <code>this</code> value and calls the calling
-         * <code>Function</code> with default parameters.
-         *
-         * @function
+         * @param {Object} thisArg
+         *   <code>this</code> value of the returned
+         *   <code>Function</code>
+         * @params Default parameters
+         * @return {Function}
+         * @see 15.3.4.5 Function.prototype.bind (thisArg [, arg1 [, arg2, ...]])
          */
-        bind: (function () {
-          var _slice;
-          var _getClass = jsx.object.getClass;
+        return function (thisArg) {
+          var target = this;
+          if (typeof target != "function")
+          {
+            return jsx.throwThis("TypeError");
+          }
 
-          /**
-           * @param {Object} thisArg
-           *   <code>this</code> value of the returned
-           *   <code>Function</code>
-           * @params Default parameters
-           * @return {Function}
-           * @see 15.3.4.5 Function.prototype.bind (thisArg [, arg1 [, arg2, ...]])
-           */
-          return function (thisArg) {
-            var target = this;
-            if (typeof target != "function")
+          if (!_slice)
+          {
+            _slice = Array.prototype.slice;
+          }
+
+          var boundArgs = _slice.call(arguments, 1);
+          var f = function () {
+            return target.apply(thisArg, boundArgs.concat(_slice.call(arguments)));
+          };
+
+          if (_getClass(target) == "Function")
+          {
+            f.length = target.length + boundArgs.length;
+          }
+          else
+          {
+            if (typeof Object.defineProperty == "function")
             {
-              return jsx.throwThis("TypeError");
-            }
-
-            if (!_slice)
-            {
-              _slice = Array.prototype.slice;
-            }
-
-            var boundArgs = _slice.call(arguments, 1);
-            var f = function () {
-              return target.apply(thisArg, boundArgs.concat(_slice.call(arguments)));
-            };
-
-            if (_getClass(target) == "Function")
-            {
-              f.length = target.length + boundArgs.length;
+              /*
+               * [[Writable]]: false, [[Enumerable]]: false,
+               * [[Configurable]]: false
+               */
+              Object.defineProperty(f, "length");
             }
             else
             {
-              if (typeof Object.defineProperty == "function")
-              {
-                /*
-                 * [[Writable]]: false, [[Enumerable]]: false,
-                 * [[Configurable]]: false
-                 */
-                Object.defineProperty(f, "length");
-              }
-              else
-              {
-                f.length = 0;
-              }
+              f.length = 0;
             }
+          }
 
-            return f;
-          };
-        }()),
+          return f;
+        };
+      }()),
+
+      /**
+       * Constructs a new object using the calling object as constructor
+       * and elements of the referred array as items of the arguments list.
+       * <p>
+       * Example:
+       * <pre><code>var d = Date.construct([2009, 8, 1]);</code></pre>
+       * is equivalent to
+       * <pre><code>var d = new Date(2009, 8, 1);</code></pre>
+       * but, by contrast, allows for passing an arbitrary number of
+       * arguments per the array's elements.
+       * </p>
+       * @memberOf Function#prototype
+       * @param {Array} argArray
+       * @return {Object} Reference to the new instance
+       */
+      construct: function (argArray) {
+        var a = new Array();
+        for (var i = 0, len = argArray.length; i < len; ++i)
+        {
+          a[i] = "argArray[" + i + "]";
+        }
+
+        return eval("new this(" + a + ")");
+      },
+
+      /**
+       * @author Courtesy of Asen Bozhilov, slightly adapted
+       * @function
+       * @memberOf Function#prototype
+       */
+      construct2: (function () {
+        function Dummy(constructor, argArray) {
+          constructor.apply(this, argArray);
+        }
 
         /**
-         * Constructs a new object using the calling object as constructor
-         * and elements of the referred array as items of the arguments list.
-         * <p>
-         * Example:
-         * <pre><code>var d = Date.construct([2009, 8, 1]);</code></pre>
-         * is equivalent to
-         * <pre><code>var d = new Date(2009, 8, 1);</code></pre>
-         * but, by contrast, allows for passing an arbitrary number of
-         * arguments per the array's elements.
-         * </p>
-         * @memberOf Function#prototype
          * @param {Array} argArray
          * @return {Object} Reference to the new instance
          */
-        construct: function (argArray) {
-          var a = new Array();
-          for (var i = 0, len = argArray.length; i < len; ++i)
-          {
-            a[i] = "argArray[" + i + "]";
-          }
-
-          return eval("new this(" + a + ")");
-        },
-
-        /**
-         * @author Courtesy of Asen Bozhilov, slightly adapted
-         * @function
-         * @memberOf Function#prototype
-         */
-        construct2: (function () {
-          function Dummy(constructor, argArray) {
-            constructor.apply(this, argArray);
-          }
-
-          /**
-           * @param {Array} argArray
-           * @return {Object} Reference to the new instance
-           */
-          return function (argArray) {
-            Dummy.prototype = this.prototype;
-            return new Dummy(this, argArray);
-          };
-        }())
-      },
-      Function.prototype);
+        return function (argArray) {
+          Dummy.prototype = this.prototype;
+          return new Dummy(this, argArray);
+        };
+      }())
+    });
   }
 }
 
@@ -2666,120 +2655,118 @@ jsx.array = {
 if (jsx.options.emulate)
 {
   /* Defines Array.isArray() if not already defined */
-  jsx.object.addProperties({isArray: jsx.object.isArray}, Array);
+  jsx.object.setProperties(Array, {isArray: jsx.object.isArray});
 
   /* Defines Array.prototype.indexOf and .map() if not already defined */
-  jsx.object.addProperties(
-    {
-      /**
-       * Returns the first index at which a given element can be found in
-       * the array, or -1 if it is not present.
-       *
-       * @param searchElement
-       *   Element to locate in the array.
-       * @param {Number} fromIndex
-       *   The index at which to begin the search. Defaults to 0, i.e.
-       *   the whole array will be searched. If the index is greater than
-       *   or equal to the length of the array, -1 is returned, i.e.
-       *   the array will not be searched. If negative, it is taken as
-       *   the offset from the end of the array. Note that even when
-       *   the index is negative, the array is still searched from front
-       *   to back. If the calculated index is less than 0, the whole array
-       *   will be searched.
-       * @return {number}
-       *   The first index at which a given element can be found in
-       *   the array, or -1 if it is not present.
-       * @author Courtesy of developer.mozilla.org, unverified
-       * @memberOf Array.prototype
-       * @see ECMAScript Language Specification, Edition 5.1, section 15.4.4.14
-       */
-      indexOf: function (searchElement, fromIndex) {
-        "use strict";
-        if (this === void 0 || this === null)
-        {
-          throw new TypeError();
-        }
-
-        var t = Object(this);
-
-        var len = t.length >>> 0;
-        if (len === 0) {
-          return -1;
-        }
-
-        var n = 0;
-        if (arguments.length > 0)
-        {
-          n = Number(fromIndex);
-          if (n !== n) {
-            /* shortcut for verifying if it's NaN */
-            n = 0;
-          }
-          else if (n !== 0 && n !== Infinity && n !== -Infinity)
-          {
-            n = (n > 0 || -1) * Math.floor(Math.abs(n));
-          }
-        }
-
-        if (n >= len)
-        {
-          return -1;
-        }
-
-        var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
-        for (; k < len; k++)
-        {
-          if (k in t && t[k] === searchElement)
-          {
-            return k;
-          }
-        }
-
-        return -1;
-      },
-
-      /**
-       * Maps one array to another
-       *
-       * @param {Callable} callback
-       * @param {Object} oThis (optional)
-       * @return {Array}
-       *   The original array with <var>callback</var> applied to each element.
-       * @see ECMAScript Language Specification, Edition 5.1, section 15.4.4.19
-       */
-      map: function (callback, oThis) {
-        return jsx.array.map(this, callback, oThis);
-      },
-
-      slice: function (start, end) {
-        var a = [];
-        var len = this.length >>> 0;
-        var relativeStart = parseInt(start, 10);
-        var k = ((relativeStart < 0)
-              ? Math.max(len + relativeStart, 0)
-              : Math.min(relativeStart, len));
-        var relativeEnd = ((typeof end == "undefined")
-                        ? len
-                        : parseInt(end, 10));
-        var final = ((relativeEnd < 0)
-                   ? Math.max(len + relativeEnd, 0)
-                   : Math.min(relativeEnd, len));
-        var n = 0;
-        while (k < final)
-        {
-          if ((k in this))
-          {
-            a[n] = this[k];
-          }
-
-          ++k;
-          ++n;
-        }
-
-        return a;
+  jsx.object.setProperties(Array.prototype, {
+    /**
+     * Returns the first index at which a given element can be found in
+     * the array, or -1 if it is not present.
+     *
+     * @param searchElement
+     *   Element to locate in the array.
+     * @param {Number} fromIndex
+     *   The index at which to begin the search. Defaults to 0, i.e.
+     *   the whole array will be searched. If the index is greater than
+     *   or equal to the length of the array, -1 is returned, i.e.
+     *   the array will not be searched. If negative, it is taken as
+     *   the offset from the end of the array. Note that even when
+     *   the index is negative, the array is still searched from front
+     *   to back. If the calculated index is less than 0, the whole array
+     *   will be searched.
+     * @return {number}
+     *   The first index at which a given element can be found in
+     *   the array, or -1 if it is not present.
+     * @author Courtesy of developer.mozilla.org, unverified
+     * @memberOf Array.prototype
+     * @see ECMAScript Language Specification, Edition 5.1, section 15.4.4.14
+     */
+    indexOf: function (searchElement, fromIndex) {
+      "use strict";
+      if (this === void 0 || this === null)
+      {
+        throw new TypeError();
       }
+
+      var t = Object(this);
+
+      var len = t.length >>> 0;
+      if (len === 0) {
+        return -1;
+      }
+
+      var n = 0;
+      if (arguments.length > 0)
+      {
+        n = Number(fromIndex);
+        if (n !== n) {
+          /* shortcut for verifying if it's NaN */
+          n = 0;
+        }
+        else if (n !== 0 && n !== Infinity && n !== -Infinity)
+        {
+          n = (n > 0 || -1) * Math.floor(Math.abs(n));
+        }
+      }
+
+      if (n >= len)
+      {
+        return -1;
+      }
+
+      var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
+      for (; k < len; k++)
+      {
+        if (k in t && t[k] === searchElement)
+        {
+          return k;
+        }
+      }
+
+      return -1;
     },
-    Array.prototype);
+
+    /**
+     * Maps one array to another
+     *
+     * @param {Callable} callback
+     * @param {Object} oThis (optional)
+     * @return {Array}
+     *   The original array with <var>callback</var> applied to each element.
+     * @see ECMAScript Language Specification, Edition 5.1, section 15.4.4.19
+     */
+    map: function (callback, oThis) {
+      return jsx.array.map(this, callback, oThis);
+    },
+
+    slice: function (start, end) {
+      var a = [];
+      var len = this.length >>> 0;
+      var relativeStart = parseInt(start, 10);
+      var k = ((relativeStart < 0)
+            ? Math.max(len + relativeStart, 0)
+            : Math.min(relativeStart, len));
+      var relativeEnd = ((typeof end == "undefined")
+                      ? len
+                      : parseInt(end, 10));
+      var final = ((relativeEnd < 0)
+                 ? Math.max(len + relativeEnd, 0)
+                 : Math.min(relativeEnd, len));
+      var n = 0;
+      while (k < final)
+      {
+        if ((k in this))
+        {
+          a[n] = this[k];
+        }
+
+        ++k;
+        ++n;
+      }
+
+      return a;
+    }
+  });
 
   if (typeof Array.from == "undefined")
   {

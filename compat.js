@@ -2,7 +2,25 @@ var _global = jsx.global;
 var setErrorHandler = jsx.setErrorHandler;
 var clearErrorHandler = jsx.clearErrorHandler;
 
-var addProperties = jsx.object.addProperties;
+var addProperties = jsx.object.addProperties = (function () {
+  var rxObject = /^\s*(object|function)\s*$/i;
+
+  return function (oSource, iFlags, oOwner) {
+    if (rxObject.test(typeof iFlags))
+    {
+      oOwner = iFlags;
+      iFlags = 0;
+    }
+
+    if (!oOwner)
+    {
+      oOwner = jsx.global;
+    }
+
+    return jsx.object.setProperties(oOwner, oSource, iFlags);
+  };
+}());
+
 var isMethod = function () {
   for (var i = arguments.length; i--;)
   {
@@ -11,7 +29,7 @@ var isMethod = function () {
       return false;
     }
   }
-  
+
   return true;
 };
 
