@@ -42,178 +42,274 @@ jsx.date = {
   author:    "Thomas Lahn",
   email:     "js@PointedEars.de",
   path:      "http://PointedEars.de/scripts/",
-};
-
-/**
- * Returns <code>true</code> if the arguments define a valid date-time.
- *
- * @param {Number} year
- *   Year argument for the {@link Date} constructor.  Possible
- *   implementation-dependent correction of two-digit years is
- *   not supported.
- * @param {Number} month
- * @param {Number} date (optional)
- * @param {Number} minutes (optional)
- * @param {Number} seconds (optional)
- * @param {Number} ms (optional)
- * @return {boolean}
- *   <code>true</code> if the arguments would produce a
- *   corresponding time value when passed to the {@link Date}
- *   constructor, <code>false</code> otherwise.
- * @see Date
- */
-jsx.date.isValid = function (year, month, date, hours, minutes, seconds, ms) {
-  if (arguments.length < 3)
-  {
-    return jsx.throwThis(jsx.InvalidArgumentError,
-      ["Not enough arguments", [].slice.call(arguments), "at least (year : int, month : int)"]);
-  }
-
-  var d = Date.construct(arguments);
-
-  return (d.getFullYear() == year
-    && (typeof month == "undefined"   || d.getMonth()   == month)
-    && (typeof hours == "undefined"   || d.getHours()   == hours)
-    && (typeof minutes == "undefined" || d.getMinutes() == minutes)
-    && (typeof seconds == "undefined" || d.getSeconds() == seconds));
-};
-
-/**
- * Returns a {@link Date} as a formatted string
- *
- * @function
- * @namespace
- */
-jsx.date.strftime = (function () {
-  var _jsx_string, _leadingZero, _pad;
-  var _strftime, _weekdays, _months, _daytimes, _timezones;
-
-  var _rxDateFormats = /%([aAdejuwUVWbBhmCgGyYHkIlMpPrTSTXzZcDFsxnt%])/g;
-  var _formatter = function (placeholder, conversion) {
-    if (typeof _strftime == "undefined")
-    {
-      _strftime = jsx.date.strftime;
-    }
-
-    switch (conversion)
-    {
-      /* Day */
-      case "a": return _weekdays[this.getDay()][0];
-      case "A": return _weekdays[this.getDay()][1];
-      case "d": return _leadingZero(this.getDate(), 2);
-      case "e": return _pad(this.getDate(), 2);
-
-      /* ISO 8601 weekday: Sunday (0) is 7 */
-      case "u": return (this.getDay() % 7) || "7";
-
-      case "w": return this.getDay();
-
-      /* Month */
-      case "b":
-      case "h":
-        return _months[this.getMonth()][0];
-      case "B": return _months[this.getMonth()][1];
-      case "m": return _leadingZero(this.getMonth() + 1, 2);
-
-      /* Year */
-      case "C": return _leadingZero(Math.floor(this.getFullYear() / 100), 2);
-      case "y": return _leadingZero(this.getFullYear() % 100, 2);
-      case "Y": return _leadingZero(this.getFullYear(), 4);
-
-      /* Time */
-      case "H": return _leadingZero(this.getHours(), 2);
-      case "k": return _pad(this.getHours(), 2);
-
-      /* 12-hour format, 0 hours is 12am */
-      case "I": return _leadingZero((this.getHours() % 12) || "12", 2);
-      case "l": return _pad((this.getHours() % 12) || "12" , 2);
-
-      case "M": return _leadingZero(this.getMinutes(), 2);
-      case "P": return _daytimes[this.getHours() < 12 ? "am" : "pm"].toUpperCase();
-      case "p": return _daytimes[this.getHours() < 12 ? "am" : "pm"];
-      case "R": return _strftime(this, "%H:%M");
-      case "S": return _leadingZero(this.getSeconds(), 2);
-      case "T": return _strftime(this, "%H:%M:%S");
-      case "X": return this.toLocaleTimeString();
-      case "z":
-        var tzOffset = this.getTimezoneOffset();
-        var hours = Math.floor(Math.abs(tzOffset) / 60);
-        var minutes = Math.floor(Math.abs(tzOffset) - (hours * 60));
-
-        /* NOTE: Negative offset means _ahead_ of UTC */
-        return (tzOffset < 0 ? "+" : "-")
-          + _leadingZero(hours, 2)
-          + _leadingZero(minutes, 2);
-
-      case "Z":
-        var tzNames = _timezones[this.getTimezoneOffset()];
-
-        /*
-         * If no time zone name is defined for the offset,
-         * return UTC(+|-)HH:MM
-         */
-        tzOffset = _strftime(this, "%z");
-
-        return (tzNames && tzNames.join("/")
-          || ("UTC" + tzOffset.substring(0, tzOffset.length - 1)
-              + ":" + tzOffset.substring(tzOffset.length - 1)));
-
-      /* Time and Date Stamps */
-      case "c": return this.toLocaleString();
-      case "D": return _strftime(this, "%m/%d/%y");
-      case "F": return _strftime(this, "%Y-%m-%d");
-
-      /* Unix timestamp */
-      case "s": return Math.floor(this.valueOf() / 1000);
-
-      case "x": return this.toLocaleDateString();
-
-      /* Miscellaneous */
-      case "n": return "\n";
-      case "t": return "\t";
-      case "%": return "%";
-
-      default:
-        jsx.warn("Unsupported conversion specifier: " + placeholder);
-        return placeholder;
-    }
-  };
 
   /**
+   * Returns the number of day within a year
+   *
    * @param {Date} date
-   * @param {String} format
+   * @return {number}
+   * @see http://en.wikipedia.org/wiki/Ordinal_date
+   */
+  dayOfYear: function (date) {
+    var month = date.getMonth();
+    var dayOfMonth = date.getDate();
+    switch (month)
+    {
+      /* January */
+      case 0:
+        return dayOfMonth;
+
+      /* February */
+      case 1:
+        return dayOfMonth + 31;
+
+      default:
+        return Math.floor(30.6 * (month + 1) - 91.4) + dayOfMonth
+          + (jsx.date.isLeapYear(date.getFullYear()) ? 60 : 59);
+    }
+  },
+
+  /**
+   * Determines if a year is a leap year.
+   *
+   * @param {Number} year
+   * @return {boolean}
+   *   Returns <code>true</code> if <var>year</var> is a leap year.
+   */
+  isLeapYear: function (year) {
+    return jsx.date.isValid(year, 1, 29);
+  },
+
+  /**
+   * Calculate the ISO 8601 weekday number of a <code>Date</code>.
+   *
+   * The ISO 8601 weekday number differs from the ECMAScript
+   * weekday number in that Sunday is <code>7</code> instead of
+   * <code>0</code>.
+   *
+   * @param {Date} date
+   * @return {number}
+   */
+  isoWeekday: function (date) {
+    return (date.getDay() % 7) || 7;
+  },
+
+  /**
+   * Calculates the ISO 8601 week number of a <code>Date</code>.
+   *
+   * @param {Date} date
+   * @return {number}
+   * @see http://en.wikipedia.org/wiki/ISO_week_date#Calculating_the_week_number_of_a_given_date
+   */
+  isoWeekNumber: function jsx_date_isoWeekNumber (date) {
+    var result = Math.floor(
+      (jsx.date.dayOfYear(date) - jsx.date.isoWeekday(date)
+      + 10) / 7);
+
+    switch (result)
+    {
+      case 0:
+        result = jsx_date_isoWeekNumber(new Date(date.getFullYear() - 1, 11, 31));
+        break;
+
+      case 53:
+        /* TODO */
+    }
+
+    return result;
+  },
+
+  /**
+   * Determines if the arguments define a valid date-time.
+   *
+   * @param {Number} year
+   *   Year argument for the {@link Date} constructor.  Possible
+   *   implementation-dependent correction of two-digit years is
+   *   not supported.
+   * @param {Number} month
+   * @param {Number} date (optional)
+   * @param {Number} minutes (optional)
+   * @param {Number} seconds (optional)
+   * @param {Number} ms (optional)
+   * @return {boolean}
+   *   <code>true</code> if the arguments would produce a
+   *   corresponding time value when passed to the {@link Date}
+   *   constructor, <code>false</code> otherwise.
+   * @see Date
+   */
+  isValid: function (year, month, date, hours, minutes, seconds, ms) {
+    if (arguments.length < 3)
+    {
+      return jsx.throwThis(jsx.InvalidArgumentError,
+        ["Not enough arguments", [].slice.call(arguments), "at least (year : int, month : int)"]);
+    }
+
+    var d = Date.construct(arguments);
+
+    return (d.getFullYear() == year
+      && (typeof month == "undefined"   || d.getMonth()   == month)
+      && (typeof hours == "undefined"   || d.getHours()   == hours)
+      && (typeof minutes == "undefined" || d.getMinutes() == minutes)
+      && (typeof seconds == "undefined" || d.getSeconds() == seconds));
+  },
+
+  /**
+   * Returns a {@link Date} as a formatted string
+   *
+   * @namespace
+   * @name jsx.date.strftime
+   * @function
    * @return {string}
    *   <var>date</var> formatted according to <var>format</var>
    */
-  return function jsx_date_strftime (date, format) {
-    if (arguments.length < 2 || typeof format == "undefined")
+  strftime: (function () {
+    var _jsx_string, _leadingZero, _pad;
+    var _isoWeekday, _isoWeekNumber;
+    var _weekdays, _months, _daytimes, _timezones;
+
+    var _rxDateFormats = /%([aAdejuwUVWbBhmCgGyYHkIlMpPrTSTXzZcDFsxnt%])/g;
+
+    /**
+     * Replaces a date format placeholder with the corresponding value
+     *
+     * @private
+     * @param {String} placeholder
+     * @param {String} conversion
+     * @return {String}
+     */
+    function _formatter (placeholder, conversion)
     {
-      return jsx.throwThis(jsx.InvalidArgumentError,
-        ["Not enough arguments", "", "(date : Date, format : String)"]);
+      if (typeof _isoWeekday == "undefined")
+      {
+        _isoWeekday = jsx.date.isoWeekday;
+        _isoWeekNumber = jsx.date.isoWeekNumber;
+      }
+
+      switch (conversion)
+      {
+        /* Day */
+        case "a": return _weekdays[this.getDay()][0];
+        case "A": return _weekdays[this.getDay()][1];
+        case "d": return _leadingZero(this.getDate(), 2);
+        case "e": return _pad(this.getDate(), 2);
+
+        /* ISO 8601 weekday: Sunday (0) is 7 */
+        case "u": return _isoWeekday(this);
+
+        case "w": return this.getDay();
+
+        /* Week */
+        case "V": return _leadingZero(_isoWeekNumber(this), 2);
+
+        /* Month */
+        case "b":
+        case "h":
+          return _months[this.getMonth()][0];
+        case "B": return _months[this.getMonth()][1];
+        case "m": return _leadingZero(this.getMonth() + 1, 2);
+
+        /* Year */
+        case "C": return _leadingZero(Math.floor(this.getFullYear() / 100), 2);
+        case "y": return _leadingZero(this.getFullYear() % 100, 2);
+        case "Y": return _leadingZero(this.getFullYear(), 4);
+
+        /* Time */
+        case "H": return _leadingZero(this.getHours(), 2);
+        case "k": return _pad(this.getHours(), 2);
+
+        /* 12-hour format, 0 hours is 12am */
+        case "I": return _leadingZero((this.getHours() % 12) || "12", 2);
+        case "l": return _pad((this.getHours() % 12) || "12" , 2);
+
+        case "M": return _leadingZero(this.getMinutes(), 2);
+        case "P": return _daytimes[this.getHours() < 12 ? "am" : "pm"].toUpperCase();
+        case "p": return _daytimes[this.getHours() < 12 ? "am" : "pm"];
+        case "R": return _strftime(this, "%H:%M");
+        case "S": return _leadingZero(this.getSeconds(), 2);
+        case "T": return _strftime(this, "%H:%M:%S");
+        case "X": return this.toLocaleTimeString();
+        case "z":
+          var tzOffset = this.getTimezoneOffset();
+          var hours = Math.floor(Math.abs(tzOffset) / 60);
+          var minutes = Math.floor(Math.abs(tzOffset) - (hours * 60));
+
+          /* NOTE: Negative offset means _ahead_ of UTC */
+          return (tzOffset < 0 ? "+" : "-")
+            + _leadingZero(hours, 2)
+            + _leadingZero(minutes, 2);
+
+        case "Z":
+          var tzNames = _timezones[this.getTimezoneOffset()];
+
+          /*
+           * If no time zone name is defined for the offset,
+           * return UTC(+|-)HH:MM
+           */
+          tzOffset = _strftime(this, "%z");
+
+          return (tzNames && tzNames.join("/")
+            || ("UTC" + tzOffset.substring(0, tzOffset.length - 1)
+                + ":" + tzOffset.substring(tzOffset.length - 1)));
+
+        /* Time and Date Stamps */
+        case "c": return this.toLocaleString();
+        case "D": return _strftime(this, "%m/%d/%y");
+        case "F": return _strftime(this, "%Y-%m-%d");
+
+        /* Unix timestamp */
+        case "s": return Math.floor(this.valueOf() / 1000);
+
+        case "x": return this.toLocaleDateString();
+
+        /* Miscellaneous */
+        case "n": return "\n";
+        case "t": return "\t";
+        case "%": return "%";
+
+        default:
+          jsx.warn("Unsupported conversion specifier: " + placeholder);
+          return placeholder;
+      }
     }
 
-    if (typeof _jsx_string == "undefined")
+    /**
+     * @param {Date} date
+     * @param {String} format
+     */
+    function _strftime (date, format)
     {
-      /* one-time imports for _formatter() */
-      _jsx_string = jsx.string;
-      _leadingZero = _jsx_string.leadingZero;
-      _pad = _jsx_string.pad;
+      if (arguments.length < 2 || typeof format == "undefined")
+      {
+        return jsx.throwThis(jsx.InvalidArgumentError,
+          ["Not enough arguments", "", "(date : Date, format : String)"]);
+      }
+
+      if (typeof _jsx_string == "undefined")
+      {
+        /* one-time imports for _formatter() */
+        _jsx_string = jsx.string;
+        _leadingZero = _jsx_string.leadingZero;
+        _pad = _jsx_string.pad;
+      }
+
+      var me = _strftime;
+      _weekdays = me.WEEKDAYS;
+      _months = me.MONTHS;
+      _daytimes = me.DAYTIMES;
+      _timezones = me.TIMEZONES;
+
+      return String(format).replace(_rxDateFormats, _formatter.bind(date));
     }
 
-    var me = jsx_date_strftime;
-    _weekdays = me.WEEKDAYS;
-    _months = me.MONTHS;
-    _daytimes = me.DAYTIMES;
-    _timezones = me.TIMEZONES;
-
-    return String(format).replace(_rxDateFormats, _formatter.bind(date));
-  };
-}());
+    return _strftime;
+  }())
+};
 
 jsx.object.setProperties(jsx.date.strftime,
   {
     /**
-     * @memberOf jsx.string.strftime
+     * @type {Array}
+     * @memberOf jsx.date.strftime
      */
     WEEKDAYS: [
       ["Sun", "Sunday"], ["Mon", "Monday"], ["Tue", "Tuesday"],
@@ -254,20 +350,77 @@ jsx.object.setProperties(jsx.date.strftime,
 if (jsx.options.emulate)
 {
   jsx.object.setProperties(Date, {
+    /**
+     * @memberOf Date
+     * @function
+     * @see jsx.date.isLeapYear
+     */
+    isLeapYear: jsx.date.isLeapYear,
+
+    /**
+     * @function
+     * @see jsx.date.isValid
+     */
     isValid: jsx.date.isValid
   });
 
   jsx.object.setProperties(Date.prototype, {
     /**
-     * @memberOf Date#prototype
+     * Returns the ISO weekday number of this <code>Date</code>.
+     *
+     * @function
+     * @memberOf Date.prototype
+     * @see jsx.date.isoWeekNumber(Date)
+     * @return {number}
+     */
+    getISOWeekday: (function () {
+      var _isoWeekday = jsx.date.isoWeekday;
+
+      return function () {
+        return _isoWeekday(this);
+      };
+    }()),
+
+    /**
+     * Returns the ISO week number of this <code>Date</code>.
+     *
+     * @function
+     * @see jsx.date.isoWeekNumber(Date)
+     * @return {number}
+     */
+    getISOWeekNumber: (function () {
+      var _isoWeekNumber = jsx.date.isoWeekNumber;
+
+      return function () {
+        return _isoWeekNumber(this);
+      };
+    }()),
+
+    /**
+     * Returns the number of day within a year
+     *
+     * @function
+     * @see jsx.date.dayOfYear(Date)
+     * @return {number}
+     */
+    getDayOfYear: (function () {
+      var _dayOfYear = jsx.date.dayOfYear;
+
+      return function () {
+        return _dayOfYear(this);
+      };
+    }()),
+
+    /**
+     * @function
+     * @see jsx.date#strftime(Date, String)
+     * @return {string}
      */
     strftime: (function () {
       var _strftime = jsx.date.strftime;
 
       /**
        * @param {String} format
-       * @see jsx.date#strftime(Date, String)
-       * @return {string}
        */
       return function (format) {
         return _strftime(this, format);
