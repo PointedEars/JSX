@@ -9,9 +9,9 @@
  *
  * @author
  *   (C) 2001‒2012  Thomas Lahn &lt;js@PointedEars.de&gt;
- * 
+ *
  * @partof PointedEars' JavaScript Extensions (JSX)
- * 
+ *
  * JSX is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -62,7 +62,7 @@ function DebugException(msg)
 /**
  * Returns a value depending on whether an expression evaluates to
  * a true-value or a false-value.
- * 
+ *
  * @param expression
  *   Expression to be evaluated.  Parsed as a <i>Program</i> if a
  *   <code>String</code>.
@@ -80,9 +80,9 @@ function DebugException(msg)
 jsx.debug.test = function (expression, trueValue, falseValue) {
   var sDefault = "";
   var result = sDefault;
-  
+
   jsx.setErrorHandler();
-  
+
   /* NOTE: Must pass "false" so that any exception is considered failure */
   if (jsx.tryThis(expression, "false"))
   {
@@ -108,12 +108,12 @@ if (typeof test2 == "undefined")
   var test2 = function (sExpression, sTest, expected)
   {
     var out = new Array(), result;
-    
+
     if (sExpression)
     {
       out.push(sExpression);
     }
-  
+
     setErrorHandler();
     eval(new Array(
       'try {',
@@ -131,9 +131,9 @@ if (typeof test2 == "undefined")
       "    + e.message);",
       '}').join("\n"));
     clearErrorHandler();
-    
+
     document.write(out.join('\n') + '\n\n');
-    
+
     return result;
   };
 }
@@ -240,23 +240,23 @@ function time(expr, bPrintResult, loops, repeats)
     {
       result.push("[", i + 1, "] ", cur_expr, "\n");
     }
-    
+
     /* reset stats for this expression */
     var repeat_stats = stats[i] = [];
-    
+
     /* repeat loops */
     for (var j = 0; j < repeats; j++)
     {
       /* reset stats for this repeat */
       repeat_stats[j] = -1;
       var eval_loop_start = new Date();
-      
+
       /* repeat evaluation */
       for (var k = 0; k < loops; k++)
       {
         jsx.tryThis(function () { expr[i]; });
       }
-    
+
       repeat_stats[j] = new Date() - eval_loop_start;
     }
   }
@@ -267,16 +267,16 @@ function time(expr, bPrintResult, loops, repeats)
     result.push(
       "\nEvaluation Results (ms):\n\n\\",
       pad("n|", cnt.toString().length - 1));
-  
+
     var col_width = Math.maxN(repeats, stats).toString().length + 1;
-  
+
     for (j = 0; j < repeats; j++)
     {
       result.push(format("%*2$d", j + 1, col_width));
     }
 
     var expr_width = (cnt + 1).toString().length;
-  
+
     result.push(
       format("\xA0%*4$s\xA0%*4$s\xA0%*4$s\n", "min", "max", "avg", col_width),
       format("%*2$d\\|", "e", expr_width),
@@ -301,14 +301,14 @@ function time(expr, bPrintResult, loops, repeats)
           Math.avgN(stats[i]).toFixed(1),
           col_width));
     }
-  
+
     result = result.join("");
   }
   else
   {
     result = stats;
   }
-  
+
   return result;
 }
 
@@ -393,7 +393,7 @@ eval(new Array(
     '  sError += "\\nLine: " + e2;',
     '}').join("\n"));
 jsx.clearErrorHandler();
-      
+
 if (typeof e.stack != "undefined")
 {
   sError += "\nStack:\n" + e.stack;
@@ -454,7 +454,7 @@ var result = as.join("\n");
   {
     window.alert(result);
   }
-  
+
   return result;
 }
 
@@ -481,7 +481,7 @@ javascript:
     {
       resizeToHelp();
     }
-  
+
     if (a[1] && !isNaN(a[1]))
     {
       void (window.innerHeight=parseInt(a[0]));
@@ -495,7 +495,7 @@ javascript:
   {
     resizeToHelp();
   }
- 
+
  */
 /**
  * @param s : string
@@ -544,7 +544,7 @@ jsx.debug.synhlMatches = [
  * Applies syntax highlighting on contents of <code>code</code>
  * elements unless their <code>class</code> attribute has the
  * value "donthl", or on the given context if provided.
- * 
+ *
  * Requires support for the (currently proprietary)
  * <code>innerHTML</code> property of element objects
  * if no arguments are provided or if a {@link Node}
@@ -569,28 +569,28 @@ var synhl = (function () {
       "do", "else", "finally", "for( +each)?", "function", "if", "in",
       "instanceof", "new", "return", "switch", "this", "throw", "try",
       "typeof", "var", "void", "while", "with",
-      
+
       /* ES5 future reserved words */
       "class", "const", "enum", "export", "extends", "super",
-      
+
       /* ES5 future reserved words in strict mode */
       "implements", "interface", "let", "package", "private", "protected",
       "public", "static", "yield",
-      
+
       /* ES5 special words not specified as reserved */
       "get", "set", "null", "true", "false", "undefined",
-      
+
       /* ES4 additional keywords */
       "abstract", "final", "import", "internal",
-      
+
       /* ES4 additional data types */
       "boolean", "byte", "char", "decimal", "double", "float", "int",
       "long", "sbyte", "short",
-      
+
       /* JScript keywords */
       "expando", "hide", "override", "endif"
     ],
-    
+
     identifiers = [
       "(encode|decode)URI(Component)?", "undefined",
       "Object", "prototype", "__defineGetter__", "__defineSetter__",
@@ -622,9 +622,9 @@ var synhl = (function () {
       "document", "write",
       "window", "clearInterval", "clearTimeout", "setInterval", "setTimeout"
     ],
-    
+
     bUnicode = ("\uFFFD".length == 1),
-    
+
     sElementType = (
         "[:\\w[UNICODE_START]]"
         + "[:\\w[UNICODE_START].\\d[UNICODE_NAME]-]*"
@@ -639,9 +639,9 @@ var synhl = (function () {
       .replace(
         /\[UNICODE_NAME\]/,
         bUnicode ? "\u00B7\u0300-\u036F\u203F-\u2040" : ""),
-    
+
     sOptAttr = "(\\s+[^>]+|)",
-    
+
     rxCode = new RegExp(
       "(//.*|/\\*([^*/]|\\*[^/]|/)*\\*/)"
       + "|(&lt;/?script(.|\\r?\\n|\\r)*?&gt;|^script$)"
@@ -657,25 +657,25 @@ var synhl = (function () {
       "g"),
 
     aReplace = jsx.debug.synhlMatches,
-    
+
     fReplace = (function () {
       var len = aReplace.length;
-      
+
       return function (match) {
         for (var i = 0; i < len; ++i)
         {
           var r = aReplace[i];
-        
+
           if (arguments[r[0]])
           {
             return '<span class="' + r[1] + '">' + match + '<\/span>';
           }
         }
-        
+
         return match;
       };
     }());
-    
+
 //  /**
 //   * @param node : Node
 //   * @param needle : string
@@ -711,13 +711,13 @@ var synhl = (function () {
 //      }
 //    }
 //  };
-   
+
   return function (context) {
     if (jsx_debug.enabled && _isMethod("console", "profile"))
     {
       console.profile("synhl()");
     }
-    
+
     if (_isMethod(context, "valueOf")
         && typeof context.valueOf() == "string")
     {
@@ -732,7 +732,7 @@ var synhl = (function () {
     {
       context = document;
     }
-    
+
     var jsx_xpath = _getFeature(jsx, "dom", "xpath");
     if (jsx.object.isNativeMethod(jsx_xpath, "evaluate"))
     {
@@ -740,7 +740,7 @@ var synhl = (function () {
         '//code[not(contains(concat(" ", @class, " "), " donthl "))]',
         context);
     }
-    
+
     var useXPath = false;
     if ((collCode && (useXPath = true)
           || (_isMethod(context, "getElementsByTagName")
@@ -748,7 +748,7 @@ var synhl = (function () {
         && collCode.length)
     {
       var sNew;
-        
+
       for (var i = collCode.length; i--;)
       {
         var o = collCode[i];
@@ -772,12 +772,12 @@ var synhl = (function () {
         }
       }
     }
-  
+
     if (jsx_debug.enabled && _isMethod("console", "profileEnd"))
     {
       console.profileEnd();
     }
-    
+
     return sNew;
   };
 }());
@@ -786,7 +786,7 @@ var synhl = (function () {
  * Returns a string or the HTML content of a {@link Node}
  * with all syntax highlighting removed that was added
  * with <code>synhl</code> before.
- * 
+ *
  * Requires support for the (currently proprietary)
  * <code>innerHTML</code> property of element objects
  * if no arguments are provided or if a {@link Node}
@@ -807,13 +807,13 @@ var unsynhl = (function () {
     jsx.debug.synhlMatches, function (e) { return e[1]; });
   var rxSynhlClasses = new RegExp(
     '<span class="(' + synhlClasses.join("|") + ')">([^<]+)</span>', 'g');
-  
+
   return function (context) {
     if (jsx_debug.enabled && _isMethod("console", "profile"))
     {
       console.profile("unsynhl()");
     }
-    
+
     if (_isMethod(context, "valueOf")
         && typeof context.valueOf() == "string")
     {
@@ -836,7 +836,7 @@ var unsynhl = (function () {
         '//code[not(contains(concat(" ", @class, " "), " donthl "))]',
         context);
     }
-    
+
     var useXPath = false;
     if ((collCode && (useXPath = true)
           || (_isMethod(context, "getElementsByTagName")
@@ -844,7 +844,7 @@ var unsynhl = (function () {
         && collCode.length)
     {
       var sNew;
-        
+
       for (var i = collCode.length; i--;)
       {
         var o = collCode[i];
@@ -868,7 +868,7 @@ var unsynhl = (function () {
         }
       }
     }
-    
+
     if (jsx_debug.enabled && _isMethod("console", "profileEnd"))
     {
       console.profileEnd();
@@ -1136,14 +1136,14 @@ PropertyArray.prototype.sortById = function (iDir) {
   {
     this.items.sort(this.cmpSortByIdAsc);
   }
-  
+
   this.sortOrder = this.soById;
   this.sortDir = iDir ? iDir : this.sdAscending;
 };
 
 PropertyArray.prototype.unsort =
   PropertyArray.prototype.sortById;
-  
+
 /**
  * @param a : Property
  * @param b : Property
@@ -1164,7 +1164,7 @@ PropertyArray.prototype.cmpSortByNameAsc = function (a, b) {
       return 1;
     }
   }
-  
+
   return 0;
 };
 
@@ -1178,7 +1178,7 @@ PropertyArray.prototype.cmpSortByNameAsc = function (a, b) {
  */
 PropertyArray.prototype.cmpSortByNameDesc = function (a, b) {
   if (a && b)
-    
+
   {
     if (a.name > b.name)
     {
@@ -1205,7 +1205,7 @@ PropertyArray.prototype.sortByName = function (iDir) {
   {
     this.items.sort(this.cmpSortByNameAsc);
   }
-  
+
   this.sortOrder = this.soByName;
   this.sortDir = iDir ? iDir : this.sdAscending;
 };
@@ -1370,7 +1370,7 @@ function (iSortOrder, iSortDir)
     case this.soByID:
       this.sortById(iSortDir);
       break;
-    
+
     case this.soByName:
       this.sortByName(iSortDir);
       break;
@@ -1562,384 +1562,383 @@ ObjectInfo.prototype.aStringProperties = [
   "toLocaleLowerCase", "toUpperCase", "toLocaleUpperCase"
 ];
 
-jsx.object.addProperties({
-    aNonEnumProperties: [
-      new NonEnumProperties(
-        new RegExp("^\\w"), /* any object */
-        [
-          "NaN", "Infinity", "__proto__", "eval", "prototype", "toSource",
-          "unwatch", "watch", "undefined", "constructor", "toString",
-          "toLocaleString", "valueOf", "hasOwnProperty", "isPrototypeOf",
-          "propertyIsEnumerable",
-          "__defineGetter__", "__defineSetter__",
-          "all"
-        ],
-        'object',
-        Object),
-      new NonEnumProperties(
-        /jsx\.global/, /* global object */
-        [
-          "NaN", "Infinity", "length", "undefined",
-          "parseInt", "parseFloat", "isNaN", "isFinite",
-          "decodeURI", "decodeURIComponent", "encodeURI",
-          "encodeURIComponent",
-          "Object", "Function", "Array", "String", "Boolean",
-          "Number", "Date", "RegExp", "Error", "EvalError",
-          "RangeError", "ReferenceError", "SyntaxError",
-          "TypeError", "URIError",
-          "Math",
-          "Components", "sidebar"
-        ]),
-      new NonEnumProperties(
-        new RegExp("(^|\\.)Array(\\.prototype)?$"),
-        [
-          "every", "filter", "forEach", "index", "indexOf", "input",
-          "lastIndexOf", "length", "map", "concat", "join", "pop",
-          "push", "reverse", "shift", "slice", "splice", "some",
-          "sort", "unshift"
-        ],
-        '',
-        typeof Array != "undefined" ? Array : null),
-      new NonEnumProperties(
-        new RegExp("(^|\\.)Date(\\.prototype)?$"),
-        [
-          "getDate", "getDay", "getFullYear", "getHours", "getMilliseconds",
-          "getMinutes", "getMonth", "getSeconds", "getTime",
-          "getTimezoneOffset", "getUTCDate", "getUTCDay", "getUTCFullYear",
-          "getUTCHours", "getUTCMilliseconds", "getUTCMinutes",
-          "getUTCMonth", "getUTCSeconds", "getYear",
-          "parse", "setDate",
-          "setFullYear", "setHours", "setMilliseconds", "setMinutes",
-          "setMonth", "setSeconds", "setTime", "setUTCDate", "setUTCFullYear",
-          "setUTCHours", "setUTCMilliseconds", "setUTCMinutes", "setUTCMonth",
-          "setUTCSeconds", "setYear",
-          "toDateString", "toGMTString", "toLocaleString", "toTimeString",
-          "toLocaleString", "toLocaleDateString", "toLocaleTimeString",
-          "toUTCString", "UTC"
-        ],
-        '',
-        typeof Date != "undefined" ? Date : null),
-      new NonEnumProperties(
-        new RegExp("(^|\\.)Function(\\.prototype)?$"),
-        [
-          "arguments", "arguments.callee", "arguments.caller",
-          "arguments.length", "arity", "length", "apply", "call"
-        ],
-        'function',
-        typeof Function != "undefined" ? Function : null),
-      new NonEnumProperties(
-        new RegExp("(^|\\.)Math$"),
-        ["E", "LN2", "LN10", "LOG2E", "LOG10E", "PI", "SQRT1_2", "SQRT2",
-         "abs", "acos", "asin", "atan", "atan2", "ceil", "cos", "exp",
-         "floor", "log", "max", "min", "pow", "random", "round", "sin",
-         "sqrt", "tan"]),
-      new NonEnumProperties(
-        new RegExp("(^|\\.)Number(\\.prototype)?$"),
-        ["MAX_VALUE", "MIN_VALUE", "NaN", "NEGATIVE_INFINITY",
-         "POSITIVE_INFINITY", "toExponential", "toFixed", "toPrecision"],
-        'number',
-        typeof Number != "undefined" ? Number : null),
-      new NonEnumProperties(
-        new RegExp("(^|\\.)RegExp(\\.prototype)?$"),
-        [
-          "global", "ignoreCase", "lastIndex", "multiline",
-          "source", "exec", "test"
-        ],
-        '',
-        typeof RegExp != "undefined" ? RegExp : null),
-      new NonEnumProperties(
-        new RegExp("(^|\\.)String(\\.prototype)?$"),
-        ObjectInfo.prototype.aStringProperties,
-        'string',
-        typeof String != "undefined" ? String : null),
-      new NonEnumProperties(
-        new RegExp("Error(\\.prototype)?$"),
-        ["message", "name"]),
-      new NonEnumProperties(
-        new RegExp("(^|\\.)Packages(\\.prototype)?$"),
-        ["className", "java", "netscape", "sun"]),
-      new NonEnumProperties(
-        new RegExp("(^|\\.)location$", "i"),
-        [
-          "assign", "hash", "host", "hostname", "href", "pathname",
-          "port", "protocol", "reload", "replace", "search"
-        ].concat(ObjectInfo.prototype.aStringProperties)),
-      new NonEnumProperties(
-        new RegExp("(^|\\.)history$"),
-        [
-          'current', 'length', 'next', 'previous',
-          'back', 'forward', 'go'
-        ]),
-      new NonEnumProperties(
-        new RegExp("(^|\\.)screen$"),
-        [
-          "availHeight", "availLeft", "availTop", "availWidth", "colorDepth",
-          "height", "left", "pixelDepth", "top", "width"
-        ]),
-      /* LiveConnect -- Java System Library classes as of version 1.4.2_03 */
-      new NonEnumProperties(
-        new RegExp("(^|\\.)java$"),
-        [
-          "awt", "beans", "io", "lang", "math", "net", "nio", "rmi",
-          "security", "sql", "text", "util"
-        ]),
-      new NonEnumProperties(
-        new RegExp("(^|\\.)java\\.awt$"),
-        [
-          "color", "datatransfer", "dnd", "event", "font", "geom", "im",
-          "image", "peer", "print",
-          "ActiveEvent", "Adjustable", "AlphaComposite", "AttributeValue",
-          "AWTError", "AWTEvent", "AWTEventMulticaster", "AWTException",
-          "AWTKeyStroke", "AWTPermission", "BasicStroke", "BorderLayout",
-          "Frame"
-        ]),
-      new NonEnumProperties(
-        new RegExp("(^|\\.)java\\.lang$"),
-        ["System"]),
-      new NonEnumProperties(
-        new RegExp("^StyleSheet(\\.prototype)?$"),
-        [
-          "type", "disabled", "ownerNode", "parentStyleSheet", "href",
-          "title", "media"
-        ],
-        '',
-        typeof StyleSheet != "undefined" ? StyleSheet : null),
-      new NonEnumProperties(
-        new RegExp("(^|\\.)StyleSheetList(\\.prototype)?$"),
-        ["length", "item"],
-        '',
-        typeof StyleSheetList != "undefined" ? StyleSheetList : null),
-      new NonEnumProperties(
-        new RegExp("(^|\\.)LinkStyle(\\.prototype)?$"),
-        ["sheet"],
-        '',
-        typeof LinkStyle != "undefined" ? LinkStyle : null),
-      new NonEnumProperties(
-        new RegExp("(^|\\.)DocumentStyle(\\.prototype)?$"),
-        ["styleSheets"],
-        '',
-        typeof DocumentStyle != "undefined" ? DocumentStyle : null)
-    ],
+jsx.object.setProperties(ObjectInfo.prototype, {
+  aNonEnumProperties: [
+    new NonEnumProperties(
+      new RegExp("^\\w"), /* any object */
+      [
+        "NaN", "Infinity", "__proto__", "eval", "prototype", "toSource",
+        "unwatch", "watch", "undefined", "constructor", "toString",
+        "toLocaleString", "valueOf", "hasOwnProperty", "isPrototypeOf",
+        "propertyIsEnumerable",
+        "__defineGetter__", "__defineSetter__",
+        "all"
+      ],
+      'object',
+      Object),
+    new NonEnumProperties(
+      /jsx\.global/, /* global object */
+      [
+        "NaN", "Infinity", "length", "undefined",
+        "parseInt", "parseFloat", "isNaN", "isFinite",
+        "decodeURI", "decodeURIComponent", "encodeURI",
+        "encodeURIComponent",
+        "Object", "Function", "Array", "String", "Boolean",
+        "Number", "Date", "RegExp", "Error", "EvalError",
+        "RangeError", "ReferenceError", "SyntaxError",
+        "TypeError", "URIError",
+        "Math",
+        "Components", "sidebar"
+      ]),
+    new NonEnumProperties(
+      new RegExp("(^|\\.)Array(\\.prototype)?$"),
+      [
+        "every", "filter", "forEach", "index", "indexOf", "input",
+        "lastIndexOf", "length", "map", "concat", "join", "pop",
+        "push", "reverse", "shift", "slice", "splice", "some",
+        "sort", "unshift"
+      ],
+      '',
+      typeof Array != "undefined" ? Array : null),
+    new NonEnumProperties(
+      new RegExp("(^|\\.)Date(\\.prototype)?$"),
+      [
+        "getDate", "getDay", "getFullYear", "getHours", "getMilliseconds",
+        "getMinutes", "getMonth", "getSeconds", "getTime",
+        "getTimezoneOffset", "getUTCDate", "getUTCDay", "getUTCFullYear",
+        "getUTCHours", "getUTCMilliseconds", "getUTCMinutes",
+        "getUTCMonth", "getUTCSeconds", "getYear",
+        "parse", "setDate",
+        "setFullYear", "setHours", "setMilliseconds", "setMinutes",
+        "setMonth", "setSeconds", "setTime", "setUTCDate", "setUTCFullYear",
+        "setUTCHours", "setUTCMilliseconds", "setUTCMinutes", "setUTCMonth",
+        "setUTCSeconds", "setYear",
+        "toDateString", "toGMTString", "toLocaleString", "toTimeString",
+        "toLocaleString", "toLocaleDateString", "toLocaleTimeString",
+        "toUTCString", "UTC"
+      ],
+      '',
+      typeof Date != "undefined" ? Date : null),
+    new NonEnumProperties(
+      new RegExp("(^|\\.)Function(\\.prototype)?$"),
+      [
+        "arguments", "arguments.callee", "arguments.caller",
+        "arguments.length", "arity", "length", "apply", "call"
+      ],
+      'function',
+      typeof Function != "undefined" ? Function : null),
+    new NonEnumProperties(
+      new RegExp("(^|\\.)Math$"),
+      ["E", "LN2", "LN10", "LOG2E", "LOG10E", "PI", "SQRT1_2", "SQRT2",
+       "abs", "acos", "asin", "atan", "atan2", "ceil", "cos", "exp",
+       "floor", "log", "max", "min", "pow", "random", "round", "sin",
+       "sqrt", "tan"]),
+    new NonEnumProperties(
+      new RegExp("(^|\\.)Number(\\.prototype)?$"),
+      ["MAX_VALUE", "MIN_VALUE", "NaN", "NEGATIVE_INFINITY",
+       "POSITIVE_INFINITY", "toExponential", "toFixed", "toPrecision"],
+      'number',
+      typeof Number != "undefined" ? Number : null),
+    new NonEnumProperties(
+      new RegExp("(^|\\.)RegExp(\\.prototype)?$"),
+      [
+        "global", "ignoreCase", "lastIndex", "multiline",
+        "source", "exec", "test"
+      ],
+      '',
+      typeof RegExp != "undefined" ? RegExp : null),
+    new NonEnumProperties(
+      new RegExp("(^|\\.)String(\\.prototype)?$"),
+      ObjectInfo.prototype.aStringProperties,
+      'string',
+      typeof String != "undefined" ? String : null),
+    new NonEnumProperties(
+      new RegExp("Error(\\.prototype)?$"),
+      ["message", "name"]),
+    new NonEnumProperties(
+      new RegExp("(^|\\.)Packages(\\.prototype)?$"),
+      ["className", "java", "netscape", "sun"]),
+    new NonEnumProperties(
+      new RegExp("(^|\\.)location$", "i"),
+      [
+        "assign", "hash", "host", "hostname", "href", "pathname",
+        "port", "protocol", "reload", "replace", "search"
+      ].concat(ObjectInfo.prototype.aStringProperties)),
+    new NonEnumProperties(
+      new RegExp("(^|\\.)history$"),
+      [
+        'current', 'length', 'next', 'previous',
+        'back', 'forward', 'go'
+      ]),
+    new NonEnumProperties(
+      new RegExp("(^|\\.)screen$"),
+      [
+        "availHeight", "availLeft", "availTop", "availWidth", "colorDepth",
+        "height", "left", "pixelDepth", "top", "width"
+      ]),
+    /* LiveConnect -- Java System Library classes as of version 1.4.2_03 */
+    new NonEnumProperties(
+      new RegExp("(^|\\.)java$"),
+      [
+        "awt", "beans", "io", "lang", "math", "net", "nio", "rmi",
+        "security", "sql", "text", "util"
+      ]),
+    new NonEnumProperties(
+      new RegExp("(^|\\.)java\\.awt$"),
+      [
+        "color", "datatransfer", "dnd", "event", "font", "geom", "im",
+        "image", "peer", "print",
+        "ActiveEvent", "Adjustable", "AlphaComposite", "AttributeValue",
+        "AWTError", "AWTEvent", "AWTEventMulticaster", "AWTException",
+        "AWTKeyStroke", "AWTPermission", "BasicStroke", "BorderLayout",
+        "Frame"
+      ]),
+    new NonEnumProperties(
+      new RegExp("(^|\\.)java\\.lang$"),
+      ["System"]),
+    new NonEnumProperties(
+      new RegExp("^StyleSheet(\\.prototype)?$"),
+      [
+        "type", "disabled", "ownerNode", "parentStyleSheet", "href",
+        "title", "media"
+      ],
+      '',
+      typeof StyleSheet != "undefined" ? StyleSheet : null),
+    new NonEnumProperties(
+      new RegExp("(^|\\.)StyleSheetList(\\.prototype)?$"),
+      ["length", "item"],
+      '',
+      typeof StyleSheetList != "undefined" ? StyleSheetList : null),
+    new NonEnumProperties(
+      new RegExp("(^|\\.)LinkStyle(\\.prototype)?$"),
+      ["sheet"],
+      '',
+      typeof LinkStyle != "undefined" ? LinkStyle : null),
+    new NonEnumProperties(
+      new RegExp("(^|\\.)DocumentStyle(\\.prototype)?$"),
+      ["styleSheets"],
+      '',
+      typeof DocumentStyle != "undefined" ? DocumentStyle : null)
+  ],
 
-    /**
-     * @param sObject : Object
-     * @param sName : string
-     * @param bCalledFromProperty : boolean
-     * @return ObjectInfo
-     */
-    forObject: function (sObject, sName, bCalledFromProperty) {
-      this.name =
-        (typeof sObject == "string"
-          ? sObject
-          : (sName ? sName : "_odo"));
-      
-      this.properties = new PropertyArray();
-    
-      if (typeof sObject == "string")
-      {
-        var tc = false;
-        setErrorHandler();
-        eval(new Array(
-            'try {',
-            '  tc = true;',
-            '  this.target = eval(dotsToBrackets(sObject, true));',
-            '} catch (e) {',
-            '  try {',
-            '    this.target = eval(dotsToBrackets(sObject));',
-            '  } catch (e) {',
-            '    try {',
-            '      this.target = jsx.global["' + sObject + '"];',
-            '    } catch (e) {',
-            '      this.target = null;',
-            '    }',
-            '  }',
-            '}').join("\n"));
-        window.onerror = null;
-        if (! tc)
-        {
-          this.target = null;
-        }
-      }
-      else
-      {
-        this.target = sObject;
-      }
+  /**
+   * @param sObject : Object
+   * @param sName : string
+   * @param bCalledFromProperty : boolean
+   * @return ObjectInfo
+   */
+  forObject: function (sObject, sName, bCalledFromProperty) {
+    this.name =
+      (typeof sObject == "string"
+        ? sObject
+        : (sName ? sName : "_odo"));
 
-      if (this.target)
-      {
-        this.type = typeof this.target;
-        var ti, t, i;
-    
-        /* Retrieve enumerable properties */
-        for (i in this.target)
-        {
-          /* Fixes problem with document.config (Mozilla 1.5b) */
-          ti = "";
-          t = null;
-          setErrorHandler();
-          eval(new Array(
-              'try {',
-              '  ti = this.target[i];',
-              '  t = this.target;',
-              '} catch (e) {',
-              '  ti = null;',
-              '  t = null;',
-              '}').join("\n"));
-          clearErrorHandler();
-            
-          /* avoid dupes */
-          this.properties.addProperty(
-            i,                      /* name */
-            ti,                     /* value */
-            this.properties.length, /* ID */
-            t,                      /* owner reference */
-            bCalledFromProperty);   /* avoid infinity recursion */
-        }
-          
-        /* Retrieve non-enumerable properties by guessing them */
-        /** @property boolean */ this.hasNonEnumProperties = false;
-              
-        for (i = this.aNonEnumProperties.length; i--; 0)
-        {
-          var j = this.aNonEnumProperties[i];
-          if (j.pattern.test(this.name)
-              || typeof this.target == j.type
-              || (typeof this.target.constructor != "undefined"
-                  && this.target.constructor == j.fConstructor))
-          {
-            for (var k = j.names.length; k--; 0)
-            {
-              var p = undefined;
-              eval(new Array(
-                'try {',
-                '  if (typeof this.target[j.names[k]] != "undefined") {',
-                '    p = this.target[j.names[k]];',
-                '  }',
-                '} catch (e) {',
-                '}').join("\n"));
-                           
-              /* see object.js */
-              if (typeof this.target._hasOwnProperty == "function"
-                  && this.target._hasOwnProperty(j.names[k]))
-              {
-                this.hasNonEnumProperties = true;
-                
-                ti = "";
-                t = null;
-                setErrorHandler();
-                eval(new Array(
-                  'try {',
-                  '  ti = p;',
-                  '  t = this.target;',
-                  '} catch (e) {',
-                  '  ti = null;',
-                  '  t = null;',
-                  '}').join("\n"));
-                clearErrorHandler();
-    
-                /* avoid dupes */
-                this.properties.addProperty(
-                  j.names[k],             /* name */
-                  ti,                     /* value */
-                  this.properties.length, /* ID */
-                  t,                      /* owner reference */
-                  true);                  /* is non-enumerable */
-              }
-            }
-          }
-        }
-        this.hasProperties = (this.properties.length > 0);
-    
-        return this;
-      }
-      else
-      {
-        this.type = "undefined";
-        this.hasProperties = false;
-    
-        return null;
-      }
-    },
+    this.properties = new PropertyArray();
 
-    /**
-     * @param rxName : optional RegExp = .*
-     * @param rxType : optional string = //
-     * @param bInvert : optional boolean = false
-     * @param aValue : optional _ = undefined
-     * @return PropertyArray
-     *   An array with the data of all properties that
-     *   match the passed conditions as elements.
-     */
-    getProperties: function (rxName, rxType, bInvert, aValue) {
-      if (typeof rxType == "string")
-      {
-        rxType = new RegExp(rxType, "i");
-      }
-      
-      if (typeof rxName != "object" || !rxName.test)
-      {
-        rxName = new RegExp(rxName);
-      }
-      
-      if (!rxName.test)
-      {
-        rxName = null;
-      }
-    
-      var a = new PropertyArray();
-        
-      for (var i = 0, len = this.properties.length; i < len; i++)
-      {
-        var p = this.properties.items[i];
-        
-        var b = ((rxName && rxName.test(p.name)) || !rxName)
-                 && ((rxType && rxType.test(p.type.toLowerCase()))
-                     || !rxType)
-                 && ((arguments.length >= 4 && aValue == p.value)
-                     || arguments.length < 4);
-    
-        if (bInvert)
-        {
-          b = !b;
-        }
-        
-        if (b)
-        {
-          a.addProperty(p.name, p.value, p.id, p.owner, !p.enumerable);
-        }
-      }
-      
-      return a;
-    },
-
-    /**
-     * @return string
-     */
-    toString: function () {
-      var s = "";
+    if (typeof sObject == "string")
+    {
+      var tc = false;
       setErrorHandler();
       eval(new Array(
           'try {',
-          '  for (var i = 0; i < this.properties.length; i++) {',
-          '    var p = this.properties[i];',
-          '    s += "[" + p.id + "] "',
-          '      +  p.name',
-          '      +  " : " + p.type',
-          '      +  " = "',
-          '      +  (p.type == "string" ? "\\"" : "")',
-          '      +  p.value',
-          '      +  (p.type == "string" ? "\\"" : "")',
-          '      +  "\\n";',
-          '  }',
+          '  tc = true;',
+          '  this.target = eval(dotsToBrackets(sObject, true));',
           '} catch (e) {',
-          '  s = e;',
+          '  try {',
+          '    this.target = eval(dotsToBrackets(sObject));',
+          '  } catch (e) {',
+          '    try {',
+          '      this.target = jsx.global["' + sObject + '"];',
+          '    } catch (e) {',
+          '      this.target = null;',
+          '    }',
+          '  }',
           '}').join("\n"));
-      clearErrorHandler();
-    
-      return s;
+      window.onerror = null;
+      if (! tc)
+      {
+        this.target = null;
+      }
+    }
+    else
+    {
+      this.target = sObject;
+    }
+
+    if (this.target)
+    {
+      this.type = typeof this.target;
+      var ti, t, i;
+
+      /* Retrieve enumerable properties */
+      for (i in this.target)
+      {
+        /* Fixes problem with document.config (Mozilla 1.5b) */
+        ti = "";
+        t = null;
+        setErrorHandler();
+        eval(new Array(
+            'try {',
+            '  ti = this.target[i];',
+            '  t = this.target;',
+            '} catch (e) {',
+            '  ti = null;',
+            '  t = null;',
+            '}').join("\n"));
+        clearErrorHandler();
+
+        /* avoid dupes */
+        this.properties.addProperty(
+          i,                      /* name */
+          ti,                     /* value */
+          this.properties.length, /* ID */
+          t,                      /* owner reference */
+          bCalledFromProperty);   /* avoid infinity recursion */
+      }
+
+      /* Retrieve non-enumerable properties by guessing them */
+      /** @property boolean */ this.hasNonEnumProperties = false;
+
+      for (i = this.aNonEnumProperties.length; i--; 0)
+      {
+        var j = this.aNonEnumProperties[i];
+        if (j.pattern.test(this.name)
+            || typeof this.target == j.type
+            || (typeof this.target.constructor != "undefined"
+                && this.target.constructor == j.fConstructor))
+        {
+          for (var k = j.names.length; k--; 0)
+          {
+            var p = undefined;
+            eval(new Array(
+              'try {',
+              '  if (typeof this.target[j.names[k]] != "undefined") {',
+              '    p = this.target[j.names[k]];',
+              '  }',
+              '} catch (e) {',
+              '}').join("\n"));
+
+            /* see object.js */
+            if (typeof this.target._hasOwnProperty == "function"
+                && this.target._hasOwnProperty(j.names[k]))
+            {
+              this.hasNonEnumProperties = true;
+
+              ti = "";
+              t = null;
+              setErrorHandler();
+              eval(new Array(
+                'try {',
+                '  ti = p;',
+                '  t = this.target;',
+                '} catch (e) {',
+                '  ti = null;',
+                '  t = null;',
+                '}').join("\n"));
+              clearErrorHandler();
+
+              /* avoid dupes */
+              this.properties.addProperty(
+                j.names[k],             /* name */
+                ti,                     /* value */
+                this.properties.length, /* ID */
+                t,                      /* owner reference */
+                true);                  /* is non-enumerable */
+            }
+          }
+        }
+      }
+      this.hasProperties = (this.properties.length > 0);
+
+      return this;
+    }
+    else
+    {
+      this.type = "undefined";
+      this.hasProperties = false;
+
+      return null;
     }
   },
-  ObjectInfo.prototype);
+
+  /**
+   * @param rxName : optional RegExp = .*
+   * @param rxType : optional string = //
+   * @param bInvert : optional boolean = false
+   * @param aValue : optional _ = undefined
+   * @return PropertyArray
+   *   An array with the data of all properties that
+   *   match the passed conditions as elements.
+   */
+  getProperties: function (rxName, rxType, bInvert, aValue) {
+    if (typeof rxType == "string")
+    {
+      rxType = new RegExp(rxType, "i");
+    }
+
+    if (typeof rxName != "object" || !rxName.test)
+    {
+      rxName = new RegExp(rxName);
+    }
+
+    if (!rxName.test)
+    {
+      rxName = null;
+    }
+
+    var a = new PropertyArray();
+
+    for (var i = 0, len = this.properties.length; i < len; i++)
+    {
+      var p = this.properties.items[i];
+
+      var b = ((rxName && rxName.test(p.name)) || !rxName)
+               && ((rxType && rxType.test(p.type.toLowerCase()))
+                   || !rxType)
+               && ((arguments.length >= 4 && aValue == p.value)
+                   || arguments.length < 4);
+
+      if (bInvert)
+      {
+        b = !b;
+      }
+
+      if (b)
+      {
+        a.addProperty(p.name, p.value, p.id, p.owner, !p.enumerable);
+      }
+    }
+
+    return a;
+  },
+
+  /**
+   * @return string
+   */
+  toString: function () {
+    var s = "";
+    setErrorHandler();
+    eval(new Array(
+        'try {',
+        '  for (var i = 0; i < this.properties.length; i++) {',
+        '    var p = this.properties[i];',
+        '    s += "[" + p.id + "] "',
+        '      +  p.name',
+        '      +  " : " + p.type',
+        '      +  " = "',
+        '      +  (p.type == "string" ? "\\"" : "")',
+        '      +  p.value',
+        '      +  (p.type == "string" ? "\\"" : "")',
+        '      +  "\\n";',
+        '  }',
+        '} catch (e) {',
+        '  s = e;',
+        '}').join("\n"));
+    clearErrorHandler();
+
+    return s;
+  }
+});
 
 var sDefaultInspectorPath = jsx.debug.path + "ObjectInspector/obj-insp.html";
 var sNoObj = "[Not an object]";
@@ -1957,7 +1956,7 @@ var CH_NBSP = unescape("%A0");
 function getObjInfo(sObject, aWhat, sStyle, sHeader, sFooter, sInspectorPath)
 {
   var o, tc;
-  
+
   // alert("1: " + sObject + "[" + typeof sObject + "]");
   if (sObject)
   {
@@ -2037,7 +2036,7 @@ function getObjInfo(sObject, aWhat, sStyle, sHeader, sFooter, sInspectorPath)
       {
         sHeader = "Composed Objects";
       }
-      
+
       if (bShowMethods)
       {
         if (bShowObjects || bShowProps)
@@ -2051,7 +2050,7 @@ function getObjInfo(sObject, aWhat, sStyle, sHeader, sFooter, sInspectorPath)
     {
       sHeader = "Attributes";
     }
-      
+
     sHeader += " of "
       + (bFormatAsHTML ? '<code>': '')
       + sObject
@@ -2089,7 +2088,7 @@ function getObjInfo(sObject, aWhat, sStyle, sHeader, sFooter, sInspectorPath)
   var bCondition = false;
   var aProperties = new Array();
   var t;
-  
+
   for (var property in o)
   {
     if ((aWhat.constructor == RegExp
@@ -2105,7 +2104,7 @@ function getObjInfo(sObject, aWhat, sStyle, sHeader, sFooter, sInspectorPath)
   {
     aProperties.sort();
   }
-  
+
   var isError;
   var propValue;
   var bMethod;
@@ -2149,7 +2148,7 @@ function getObjInfo(sObject, aWhat, sStyle, sHeader, sFooter, sInspectorPath)
       }
       bMethod = (String(propValue).toLowerCase().indexOf("function ") > -1);
     }
-    
+
     bProperty = !bMethod;
     propType = typeof propValue;
     var propConstructor =
@@ -2171,7 +2170,7 @@ function getObjInfo(sObject, aWhat, sStyle, sHeader, sFooter, sInspectorPath)
     {
       bCondition = true;
     }
-    
+
     if (bCondition)
     {
       s =
@@ -2307,7 +2306,7 @@ function getObjInfo(sObject, aWhat, sStyle, sHeader, sFooter, sInspectorPath)
   {
     sProp += '<\/table>';
   }
-  
+
   return sProp;
 }
 
@@ -2346,7 +2345,7 @@ function getMinimalVersions(s, implementations)
   /* TODO: Let this be generated by PHP */
   var features = {
     "RegExp": {javascript: 1.2, jscript: "3.0", es: 3},
-    
+
     /* anonymous function expression */
     "function\\s*\\(": {javascript: 1.3, jscript: "3.1.3510", es: 3},
 
