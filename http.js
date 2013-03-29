@@ -165,93 +165,91 @@ jsx.net.http = {
  * @namespace
  * @name jsx.net.http.Request
  */
-jsx.object.addProperties(
-  {
+jsx.object.setProperties(jsx.net.http.Request, {
+  /**
+   * @namespace
+   */
+  method: {
     /**
-     * @namespace
+     * Use the predefined properties to avoid problems
+     * caused by case mismatch and other typos.
      */
-    method: {
-      /**
-       * Use the predefined properties to avoid problems
-       * caused by case mismatch and other typos.
-       */
-      GET: "GET",
-      POST: "POST"
-    },
-
-    /**
-     * @namespace
-     */
-    readyState: {
-      UNINITIALIZED: 0,
-      LOADING: 1,
-      LOADED: 2,
-      INTERACTIVE: 3,
-      COMPLETED: 4
-    },
-
-    /**
-     * @namespace
-     */
-    status: {
-      /*
-       * NOTE: MSXML translates 204 to 1223, see
-       * https://prototype.lighthouseapp.com/projects/8886/tickets/129-ie-mangles-http-response-status-code-204-to-1223
-       */
-      OK_EXPR: /\b(0|2\d\d|1223)\b/,
-      LOCAL_NONE: 0,
-
-      CONTINUE: 100,
-      SWITCH_PROTOCOL: 101,
-
-      OK: 200,
-      CREATED: 201,
-      ACCEPTED: 202,
-      NONAUTHOR_INFO: 203,
-      NO_CONTENT: 204,
-      RESET_CONTENT: 205,
-      PARTIAL_CONTENT: 206,
-
-      MULTIPLE_CHOICES: 300,
-      MOVED_PERMANENTLY: 301,
-      FOUND: 302,
-      SEE_OTHER: 303,
-      NOT_MODIFIED: 304,
-      USE_PROXY: 305,
-      TEMP_REDIR: 307,
-
-      FAILED_EXPR: /\b[45]\d\d\b/,
-
-      CLIENT_ERROR_EXPR: /\b4\d\d\b/,
-      BAD_REQUEST: 400,
-      UNAUTHORIZED: 401,
-      PAYMENT_REQUIRED: 402,
-      FORBIDDEN: 403,
-      NOT_FOUND: 404,
-      METHOD_NOT_ALLOWED: 405,
-      NOT_ACCEPTABLE: 406,
-      PROXY_AUTH_REQUIRED: 407,
-      REQ_TIMEOUT: 408,
-      CONFLICT: 409,
-      GONE: 410,
-      LENGTH_REQUIRED: 411,
-      PRECOND_FAILED: 412,
-      REQ_ENTITY_TOO_LARGE: 413,
-      REQ_URI_TOO_LONG: 414,
-      UNSUPP_MEDIA_TYPE: 415,
-      REQ_RANGE_NOT_SUITABLE: 416,
-      EXPECT_FAILED: 417,
-
-      SERVER_ERROR_EXPR: /\b5\d\d\b/,
-      INT_SERVER_ERROR: 500,
-      NOT_IMPLEMENTED: 501,
-      BAD_GATEWAY: 502,
-      SVC_UNAVAIL: 503,
-      GATEWAY_TIMEOUT: 504,
-      HTTP_VER_NOT_SUPP: 505
-    }
+    GET: "GET",
+    POST: "POST"
   },
-  jsx.net.http.Request);
+
+  /**
+   * @namespace
+   */
+  readyState: {
+    UNINITIALIZED: 0,
+    LOADING: 1,
+    LOADED: 2,
+    INTERACTIVE: 3,
+    COMPLETED: 4
+  },
+
+  /**
+   * @namespace
+   */
+  status: {
+    /*
+     * NOTE: MSXML translates 204 to 1223, see
+     * https://prototype.lighthouseapp.com/projects/8886/tickets/129-ie-mangles-http-response-status-code-204-to-1223
+     */
+    OK_EXPR: /\b(0|2\d\d|1223)\b/,
+    LOCAL_NONE: 0,
+
+    CONTINUE: 100,
+    SWITCH_PROTOCOL: 101,
+
+    OK: 200,
+    CREATED: 201,
+    ACCEPTED: 202,
+    NONAUTHOR_INFO: 203,
+    NO_CONTENT: 204,
+    RESET_CONTENT: 205,
+    PARTIAL_CONTENT: 206,
+
+    MULTIPLE_CHOICES: 300,
+    MOVED_PERMANENTLY: 301,
+    FOUND: 302,
+    SEE_OTHER: 303,
+    NOT_MODIFIED: 304,
+    USE_PROXY: 305,
+    TEMP_REDIR: 307,
+
+    FAILED_EXPR: /\b[45]\d\d\b/,
+
+    CLIENT_ERROR_EXPR: /\b4\d\d\b/,
+    BAD_REQUEST: 400,
+    UNAUTHORIZED: 401,
+    PAYMENT_REQUIRED: 402,
+    FORBIDDEN: 403,
+    NOT_FOUND: 404,
+    METHOD_NOT_ALLOWED: 405,
+    NOT_ACCEPTABLE: 406,
+    PROXY_AUTH_REQUIRED: 407,
+    REQ_TIMEOUT: 408,
+    CONFLICT: 409,
+    GONE: 410,
+    LENGTH_REQUIRED: 411,
+    PRECOND_FAILED: 412,
+    REQ_ENTITY_TOO_LARGE: 413,
+    REQ_URI_TOO_LONG: 414,
+    UNSUPP_MEDIA_TYPE: 415,
+    REQ_RANGE_NOT_SUITABLE: 416,
+    EXPECT_FAILED: 417,
+
+    SERVER_ERROR_EXPR: /\b5\d\d\b/,
+    INT_SERVER_ERROR: 500,
+    NOT_IMPLEMENTED: 501,
+    BAD_GATEWAY: 502,
+    SVC_UNAVAIL: 503,
+    GATEWAY_TIMEOUT: 504,
+    HTTP_VER_NOT_SUPP: 505
+  }
+});
 
 jsx.net.http.Request.prototype = {
   constructor: jsx.net.http.Request,

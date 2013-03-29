@@ -966,37 +966,35 @@ jsx.array.getComparator = function (aKeys, options) {
 
 if (jsx.array.emulate)
 {
-  jsx.object.addProperties(
-    {
-      contains:      jsx.array.contains,
-      chunk:         jsx.array.chunk,
-      changeCase:    jsx.array.changeCase,
-      countValues:   jsx.array.countValues,
-      equals:        jsx.array.equals,
-      fill:          jsx.array.fill,
-      getComparator: jsx.array.getComparator,
-      pop:           jsx.array.pop,
-      push:          jsx.array.push,
-      reverse:       jsx.array.reverse,
-      search:        jsx.array.search,
-      splice:        jsx.array.splice,
-      toUpperCase:   jsx.array.toUpperCase,
+  jsx.object.setProperties(Array.prototype, {
+    contains:      jsx.array.contains,
+    chunk:         jsx.array.chunk,
+    changeCase:    jsx.array.changeCase,
+    countValues:   jsx.array.countValues,
+    equals:        jsx.array.equals,
+    fill:          jsx.array.fill,
+    getComparator: jsx.array.getComparator,
+    pop:           jsx.array.pop,
+    push:          jsx.array.push,
+    reverse:       jsx.array.reverse,
+    search:        jsx.array.search,
+    splice:        jsx.array.splice,
+    toUpperCase:   jsx.array.toUpperCase,
 
-      /* JavaScript 1.6 (1.5 in Gecko 1.8b2 and later) emulation */
-      every:       jsx.array.every,
+    /* JavaScript 1.6 (1.5 in Gecko 1.8b2 and later) emulation */
+    every:       jsx.array.every,
 
-      filter:      jsx.array.filter,
+    filter:      jsx.array.filter,
 
-      iterate: function() {
-        var a = new Array();
+    iterate: function () {
+      var a = new Array();
 
-        for (var i = 0, len = this.length; i < len; i++)
-        {
-          a.push(this[i]);
-        }
-
-        return a;
+      for (var i = 0, len = this.length; i < len; i++)
+      {
+        a.push(this[i]);
       }
-    },
-    Array.prototype);
+
+      return a;
+    }
+  });
 }

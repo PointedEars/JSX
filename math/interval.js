@@ -4,12 +4,12 @@
  * @requires types.js
  *
  * @section Copyright & Disclaimer
- * 
+ *
  * @author
  *   (C) 2000-2011  Thomas Lahn &lt;math.js@PointedEars.de&gt;
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
- * 
+ *
  * JSX is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -55,7 +55,7 @@ Math.Interval = function(aSections, bLeftOpen, bRightOpen) {
 
 /**
  * Returns the left border of the interval.
- * 
+ *
  * @return mixed
  *   The left border of the interval
  */
@@ -65,7 +65,7 @@ Math.Interval.prototype.getLeftBorder = function() {
 
 /**
  * Returns the right border of the interval.
- * 
+ *
  * @return mixed
  *   The right border of the interval
  */
@@ -95,14 +95,14 @@ Math.getSubIntervalIndex = function(n, o) {
       end = s.length,
       max = end,
       pivot = 0;
-        
+
     do
     {
       /* Use interpolation search [O(log(log n))] for many sections */
       if (max > 10000)
       {
         var nS = s[start];
-        
+
         pivot = start + Math.floor((end - start) * (n - nS) / (s[end] - nS));
       }
       else
@@ -110,7 +110,7 @@ Math.getSubIntervalIndex = function(n, o) {
         /* Use binary search [O(log n)] */
         pivot = (start + end) >> 1;
       }
-  
+
       if (start + 1 == end)
       {
         if (n - s[start] <= s[end] - n)
@@ -136,7 +136,7 @@ Math.getSubIntervalIndex = function(n, o) {
     }
     while (n >= s[start] && n <= s[end]);
   }
-    
+
   return result;
 };
 
@@ -157,7 +157,7 @@ Math.isInInterval = function(n, o) {
   if (o instanceof Math.Interval)
   {
     var lo, l, ro, r;
-    
+
     result =
       (((lo = o.leftOpen) && n > (l = o.getLeftBorder()))
        || (!lo && n >= l))
@@ -165,7 +165,7 @@ Math.isInInterval = function(n, o) {
       (((ro = o.rightOpen) && n < (r = o.getRightBorder()))
        || (!ro && n <= r));
   }
-  
+
   return result;
 };
 
@@ -174,7 +174,7 @@ Math.isInInterval = function(n, o) {
  */
 Math.getRightOpenIntervals = function() {
   var a = new Array();
-  
+
   var len = arguments.length;
   if (len == 0)
   {
@@ -193,7 +193,7 @@ Math.getRightOpenIntervals = function() {
       a.push(new Math.Interval(arguments[i], arguments[i+1], true));
     }
   }
- 
+
   return a;
 };
 
@@ -219,15 +219,12 @@ Math.getIntervalIndex = function(n, a) {
       }
     }
   }
-  
+
   return result;
 };
 
-addProperties(
-  {
-    'contains':              Math.isInInterval,
-    'getRightOpenIntervals': Math.getRightOpenIntervals,
-    'getIntervalIndex':      Math.getIntervalIndex
-  },
-  Math.Interval.prototype
-);
+jsx.object.setProperties(Math.Interval.prototype, {
+  'contains':              Math.isInInterval,
+  'getRightOpenIntervals': Math.getRightOpenIntervals,
+  'getIntervalIndex':      Math.getIntervalIndex
+});
