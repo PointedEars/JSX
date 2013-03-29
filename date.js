@@ -210,7 +210,7 @@ jsx.date.strftime = (function () {
   };
 }());
 
-jsx.object.addProperties(
+jsx.object.setProperties(jsx.date.strftime,
   {
     /**
      * @memberOf jsx.string.strftime
@@ -249,33 +249,29 @@ jsx.object.addProperties(
       "-660": ["Australian Eastern Daylight Time (AEDT)"]
     }
   },
-  jsx.object.ADD_OVERWRITE, jsx.date.strftime);
+  jsx.object.ADD_OVERWRITE);
 
 if (jsx.options.emulate)
 {
-  jsx.object.addProperties(
-    {
-      isValid: jsx.date.isValid
-    },
-    0, Date);
+  jsx.object.setProperties(Date, {
+    isValid: jsx.date.isValid
+  });
 
-  jsx.object.addProperties(
-    {
+  jsx.object.setProperties(Date.prototype, {
+    /**
+     * @memberOf Date#prototype
+     */
+    strftime: (function () {
+      var _strftime = jsx.date.strftime;
+
       /**
-       * @memberOf Date#prototype
-       * @function
+       * @param {String} format
+       * @see jsx.date#strftime(Date, String)
+       * @return {string}
        */
-      strftime: (function () {
-        var _strftime = jsx.date.strftime;
-
-        /**
-         * @param {String} format
-         * @see jsx.date#strftime(Date, String)
-         */
-        return function (format) {
-          return _strftime(this, format);
-        };
-      }())
-    },
-    0, Date.prototype);
+      return function (format) {
+        return _strftime(this, format);
+      };
+    }())
+  });
 }
