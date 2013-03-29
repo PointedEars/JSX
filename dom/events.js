@@ -405,7 +405,7 @@ jsx.dom.createEventListener = function(f) {
       e2[property] = e[property];
     }
 
-    /* FIXME: addProperties() does not work well with host objects */
+    /* FIXME: jsx.object.setProperties() does not work well with host objects */
     e2.getProperty = function(p) {
       return e[p];
     };
