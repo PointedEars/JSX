@@ -28,6 +28,28 @@ if (typeof jsx == "undefined")
   var jsx = {};
 }
 
+/* allows for de.pointedears.jsx.object */
+if (typeof de == "undefined")
+{
+  /**
+   * @namespace
+   */
+  var de = {};
+}
+
+if (typeof de.pointedears == "undefined")
+{
+  /**
+   * @namespace
+   */
+  de.pointedears = {};
+}
+
+/**
+ * @namespace
+ */
+de.pointedears.jsx = jsx;
+
 /**
  * Reference to the ECMAScript Global Object
  * @type Global
@@ -264,28 +286,6 @@ jsx.object.areMethods =
 
 // jsx.object.docURL = jsx.object.path + "object.htm";
 
-/* allows for de.pointedears.jsx.object */
-if (typeof de == "undefined")
-{
-  /**
-   * @namespace
-   */
-  var de = {};
-}
-
-if (typeof de.pointedears == "undefined")
-{
-  /**
-   * @namespace
-   */
-  de.pointedears = {};
-}
-
-/**
- * @namespace
- */
-de.pointedears.jsx = jsx;
-
 /**
  * Determines whether an object is, or several objects are,
  * likely to be a native method.
@@ -442,7 +442,8 @@ jsx.dmsg = (function () {
 /**
  * Issues an info message, if possible.
  *
- * @param {string} sMsg  Message
+ * @param {String} sMsg
+ *   Message
  * @see jsx#dmsg
  */
 jsx.info = function (sMsg) {
@@ -452,7 +453,8 @@ jsx.info = function (sMsg) {
 /**
  * Issues a warning, if possible.
  *
- * @param {string} sMsg  Message
+ * @param {String} sMsg
+ *   Message
  * @see jsx#dmsg
  */
 jsx.warn = function (sMsg) {
@@ -1053,7 +1055,7 @@ jsx.setErrorHandler = (function () {
  *   converted to string if not a string, and used as-is otherwise.
  *   For compatibility, the <code>undefined</code> value
  *   is evaluated like the empty string.
- * @return
+ * @return {any}
  *   The result of <code>statements</code>, or the result
  *   of <code>errorHandlers</code> if an error occurred.
  * @author
@@ -1066,9 +1068,9 @@ jsx.tryThis =
 //  (function () {
 //  /**
 //   * @param s Value to be stringified
-//   * @param sCall : string
+//   * @param {String} sCall
 //   *   CallStatement that should be used instead of the value
-//   * @return string Stringified version of <code>s</code>
+//   * @return {string} Stringified version of <code>s</code>
 //   */
 //  function stringify(s, sCall)
 //  {
@@ -1625,7 +1627,7 @@ jsx.object.isInstanceOf = //(function () {
 /**
  * Returns the name of a function
  *
- * @param {Function|string} aFunction
+ * @param {Function|String} aFunction
  * @return {string}
  *   The name of a function if it has one; the empty string otherwise.
  */
@@ -1639,7 +1641,7 @@ jsx.object.getFunctionName = function (aFunction) {
 /**
  * Returns minimum documentation for a function
  *
- * @param {Function|string} aFunction
+ * @param {Function|String} aFunction
  * @return {string}
  */
 jsx.object.getDoc = function (aFunction) {
@@ -1730,7 +1732,7 @@ jsx.getStackTrace = function () {
 /**
  * Returns the value of an object's internal <code>[[Class]]</code>
  * property.
- * <p>
+ * 
  * Calls the <code>Object.prototype.toString()</code> method on
  * the object and returns the result of matching against
  * the specified return value, which includes the value of
@@ -1741,16 +1743,17 @@ jsx.getStackTrace = function () {
  * For example, that makes it possible to recognize <code>Array</code>
  * instances independent of the global context in which they were
  * constructed.
- * </p>
+ * 
+ * @function
+ * @return {string|Undefined}
+ *   The value of an object's internal [[Class]] property, or
+ *   <code>undefined</code> if the property value cannot be determined.
  */
 jsx.object.getClass = (function () {
   var _toString = ({}).toString;
 
   /**
    * @param obj
-   * @return {string|Undefined}
-   *   The value of an object's internal [[Class]] property, or
-   *   <code>undefined</code> if the property value cannot be determined.
    */
   return function (obj) {
     return (_toString.call(obj)
@@ -1986,7 +1989,7 @@ jsx["import"] = jsx._import;
  * @requires jsx.net.http#Request
  * @return {boolean}
  *   <code>true</code> if the script could be successfully <em>loaded</em>
- *   (not: included), <code>false</code> otherwise.
+ *   (not: included).
  */
 jsx.importFrom = (function () {
   /* Imports */
@@ -2053,6 +2056,8 @@ jsx.importFrom = (function () {
  *
  * @function
  * @return {boolean}
+ *   <code>true</code> if the script specified by <var>uri</var>
+ *   has already been included; <code>false</code> otherwise.
  * @see jsx#importFrom
  */
 jsx.importOnce = (function () {
@@ -2077,9 +2082,6 @@ jsx.importOnce = (function () {
   {
     /**
      * @param {string} uri
-     * @return {boolean}
-     *   <code>true</code> if the script specified by <var>uri</var>
-     *   has already been included; <code>false</code> otherwise.
      */
     function scriptIncluded (uri)
     {
@@ -2127,7 +2129,7 @@ jsx.importOnce = (function () {
  * @function
  * @return {any}
  *   The return value of <var>callback</var>,
- *   <code>false</code> otherwise.
+ *   <code>undefined</code> otherwise.
  */
 jsx.require = (function () {
   var _importOnce = jsx.importOnce;
@@ -2139,6 +2141,9 @@ jsx.require = (function () {
    *   specifying the requirement(s)
    * @param {Function} callback
    *   Function to be executed
+   * @return {mixed}
+   *   The return value of <var>callback</var>,
+   *   <code>false</code> otherwise.
    */
   return function (uri, callback) {
     if (!_isArray(uri))
@@ -2160,8 +2165,6 @@ jsx.require = (function () {
     {
       return callback();
     }
-
-    return false;
   };
 }());
 
