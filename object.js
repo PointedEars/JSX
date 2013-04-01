@@ -506,6 +506,22 @@ jsx.object._hasOwnProperty = (function () {
 }());
 
 /**
+ * Determines if a value refers to an object.
+ *
+ * <p>Returns <code>true</code> if the value is a reference
+ * to an object; <code>false</code> otherwise.</p>
+ *
+ * <p>An value "is an object" if it is a function or
+ * <code>typeof "object"</code> but not <code>null</code>.
+ *
+ * @return {boolean}
+ */
+jsx.object.isObject = function (a) {
+  var t = typeof a;
+  return t == "function" || t == "object" && a !== null;
+};
+
+/**
  * Returns the own enumerable properties of an object
  *
  * @function
@@ -514,6 +530,7 @@ jsx.object.getKeys = (function () {
   var
     _jsx = jsx,
     _global = _jsx.global,
+    _isObject = _jsx.object.isObject,
     _isNativeMethod = _jsx.object.isNativeMethod,
     _hasOwnProperty = jsx.object._hasOwnProperty;
 
@@ -529,6 +546,12 @@ jsx.object.getKeys = (function () {
         && !Object.keys._emulated)
     {
       return Object.keys(obj);
+    }
+
+    if (!_isObject(obj))
+    {
+      return jsx.throwThis("TypeError",
+        "jsx.object.getKeys() called on non-object");
     }
 
     var a = new Array();
@@ -1732,7 +1755,7 @@ jsx.getStackTrace = function () {
 /**
  * Returns the value of an object's internal <code>[[Class]]</code>
  * property.
- * 
+ *
  * Calls the <code>Object.prototype.toString()</code> method on
  * the object and returns the result of matching against
  * the specified return value, which includes the value of
@@ -1743,7 +1766,7 @@ jsx.getStackTrace = function () {
  * For example, that makes it possible to recognize <code>Array</code>
  * instances independent of the global context in which they were
  * constructed.
- * 
+ *
  * @function
  * @return {string|Undefined}
  *   The value of an object's internal [[Class]] property, or
@@ -1786,22 +1809,6 @@ jsx.object.getProperty = function (obj, sProperty, aDefault) {
   }
 
   return aDefault;
-};
-
-/**
- * Determines if a value refers to an object.
- *
- * <p>Returns <code>true</code> if the value is a reference
- * to an object; <code>false</code> otherwise.</p>
- *
- * <p>An value "is an object" if it is a function or
- * <code>typeof "object"</code> but not <code>null</code>.
- *
- * @return {boolean}
- */
-jsx.object.isObject = function (a) {
-  var t = typeof a;
-  return t == "function" || t == "object" && a !== null;
 };
 
 /**
