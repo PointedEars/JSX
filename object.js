@@ -411,7 +411,7 @@ jsx.object.areMethods =
  * @function
  */
 jsx.object.isNativeMethod = jsx.object.areNativeMethods = (function () {
-  var areMethods = jsx.object.areMethods;
+  var _areMethods = jsx.object.areMethods;
 
   /**
    * @param {Object} obj
@@ -446,7 +446,7 @@ jsx.object.isNativeMethod = jsx.object.areNativeMethods = (function () {
    */
   return function jsx_object_areNativeMethods (obj, prop) {
     /* NOTE: Thread-safe, argument-safe code reuse -- `this' is our ID */
-    return areMethods.apply(jsx_object_areNativeMethods, arguments);
+    return _areMethods.apply(jsx_object_areNativeMethods, arguments);
   };
 }());
 
@@ -645,10 +645,8 @@ jsx.object.isObject = function (a) {
 jsx.object.getKeys = (function () {
   var
     _jsx = jsx,
-    _global = _jsx.global,
     _isObject = _jsx.object.isObject,
-    _isNativeMethod = _jsx.object.isNativeMethod,
-    _hasOwnProperty = jsx.object._hasOwnProperty;
+    _hasOwnProperty = _jsx.object._hasOwnProperty;
 
   /**
    * @param {Object} obj
@@ -658,8 +656,7 @@ jsx.object.getKeys = (function () {
    * @see Object#keys
    */
   return function (obj) {
-    if (_isNativeMethod(_global.Object, "keys")
-        && !Object.keys._emulated)
+    if (typeof Object.keys == "function" && !Object.keys._emulated)
     {
       return Object.keys(obj);
     }
@@ -694,15 +691,16 @@ jsx.object.clone = (function () {
     _jsx_object = jsx.object,
     _COPY_ENUM = _jsx_object.COPY_ENUM,
     _COPY_ENUM_DEEP = _jsx_object.COPY_ENUM_DEEP,
-    _COPY_INHERIT = _jsx_object.COPY_INHERIT,
-    createTypedObject = function (oOriginal) {
-      if (oOriginal.constructor)
-      {
-        return _jsx_object.inheritFrom(oOriginal.constructor.prototype);
-      }
+    _COPY_INHERIT = _jsx_object.COPY_INHERIT;
 
-      return new Object();
-    };
+  var createTypedObject = function (oOriginal) {
+    if (oOriginal.constructor)
+    {
+      return _jsx_object.inheritFrom(oOriginal.constructor.prototype);
+    }
+
+    return new Object();
+  };
 
   /**
    * @param {Object} oSource (optional)
@@ -914,8 +912,9 @@ jsx.object.defineProperties = (function () {
  * Determines if a (non-inherited) property of an object is enumerable
  */
 jsx.object._propertyIsEnumerable = (function () {
-  var _isMethod = jsx.object.isMethod;
-  var _hasOwnProperty = jsx.object._hasOwnProperty;
+  var _jsx_object = jsx.object;
+  var _isMethod = _jsx_object.isMethod;
+  var _hasOwnProperty = _jsx_object._hasOwnProperty;
 
   /**
    * @param {Object} obj (optional)
@@ -1290,7 +1289,6 @@ jsx.tryThis =
  */
 jsx.throwThis = (function () {
   var
-    jsx_global = jsx.global,
     jsx_object = jsx.object,
     _addslashes = function (e) {
       return (typeof e == "string")
@@ -1315,12 +1313,13 @@ jsx.throwThis = (function () {
     var sErrorType = errorType;
     var isError = false;
 
-    if (Error.prototype.isPrototypeOf(errorType))
+    if (typeof Error == "function"
+        && Error.prototype.isPrototypeOf(errorType))
     {
       isError = true;
       sErrorType = "errorType";
     }
-    else if (jsx_object.isMethod(errorType))
+    else if (typeof errorType == "function")
     {
       sErrorType = "new errorType";
     }
@@ -1330,7 +1329,7 @@ jsx.throwThis = (function () {
     }
 
     var sContext = "";
-    if (jsx_object.isMethod(jsx_global, "Error"))
+    if (typeof Error == "function")
     {
       var stack = (new Error()).stack;
       if (stack)
@@ -1384,11 +1383,7 @@ jsx.rethrowThis = function (exception) {
  * @function
  */
 jsx.object.inheritFrom = (function () {
-  var
-    _jsx = jsx,
-    _global = _jsx.global,
-    _isNativeMethod = _jsx.object.isNativeMethod,
-    Dummy = function () {};
+  var Dummy = function () {};
 
   /**
    * @param {Object} obj = Object.prototype
@@ -1400,8 +1395,7 @@ jsx.object.inheritFrom = (function () {
   return function (obj) {
     if (typeof obj == "object" && obj == null)
     {
-      if (_isNativeMethod(_global.Object, "create")
-          && !Object.create._emulated)
+      if (typeof Object.create == "function" && !Object.create._emulated)
       {
         return Object.create(null);
       }
@@ -1441,9 +1435,16 @@ jsx.object.getDataObject = (function () {
 if (jsx.options.augmentBuiltins)
 {
   jsx.object.setProperties(Object, {
+    /**
+     * @function
+     * @return {Array}
+     */
     getOwnPropertyNames: (function () {
       var _hasOwnProperty = jsx.object._hasOwnProperty;
 
+      /**
+       * @param {Object} o
+       */
       return function (o) {
         var names = [];
 
@@ -1466,6 +1467,7 @@ if (jsx.options.augmentBuiltins)
      * section 15.2.3.6.
      *
      * @function
+     * @return {Object} Reference to the object
      */
     defineProperty: (function () {
       var _hasOwnProperty = jsx.object._hasOwnProperty;
@@ -1605,7 +1607,6 @@ if (jsx.options.augmentBuiltins)
        *   the attributes of the property.  Supported properties of
        *   that defining object include <code>value</code> only
        *   at this time.
-       * @return {Object} Reference to the object
        */
       return function (o, propertyName, descriptor) {
         if (!/^(object|function)$/.test(typeof o) || !o)
@@ -1649,7 +1650,7 @@ if (jsx.options.augmentBuiltins)
     }
   });
 
-  if (!jsx.object.isNativeMethod(jsx.tryThis("Object"), "create"))
+  if (typeof Object.create != "function")
   {
     /**
      * Creates a new object and initializes its properties.
@@ -1681,7 +1682,7 @@ if (jsx.options.augmentBuiltins)
     Object.create._emulated = true;
   }
 
-  if (!jsx.object.isNativeMethod(jsx.tryThis("Object"), "keys"))
+  if (typeof Object.keys != "function")
   {
     /**
      * @param {Object} obj
@@ -1952,11 +1953,7 @@ jsx.object.getProperty = function (obj, sProperty, aDefault) {
  * @see ECMAScript Language Specification, Edition 5.1, section 15.4.3.2
  */
 jsx.object.isArray = (function () {
-  var _jsx = jsx;
-  var _global = _jsx.global;
-  var _jsx_object = jsx.object;
-  var _getClass = _jsx_object.getClass;
-  var _isNativeMethod = _jsx_object.isNativeMethod;
+  var _getClass = jsx.object.getClass;
 
   /**
    * @param a
@@ -1964,13 +1961,9 @@ jsx.object.isArray = (function () {
    * @return {boolean}
    */
   return function (a) {
-    if (_isNativeMethod(_global.Array, "isArray")
-        && !Array.isArray._emulated)
-    {
-      return Array.isArray(a);
-    }
-
-    return (_getClass(a) === "Array");
+    return (typeof Array.isArray == "function" && !Array.isArray._emulated)
+      ? Array.isArray(a)
+      : _getClass(a) === "Array";
   };
 }());
 
@@ -2130,7 +2123,7 @@ jsx["import"] = jsx._import;
 jsx.importFrom = (function () {
   /* Imports */
   var _import = jsx._import;
-  var Request;
+  var _Request;
 
   /**
    * @param {string} uri
@@ -2147,13 +2140,13 @@ jsx.importFrom = (function () {
    */
   return function jsx_importFrom (uri, obj, properties, objAlias, propertyAliases) {
     /* One-time import */
-    if (!Request)
+    if (!_Request)
     {
-      Request = jsx.net.http.Request;
+      _Request = jsx.net.http.Request;
     }
 
     jsx_importFrom.lastImport = uri;
-    var req = new Request(uri, "GET", false, function (response) {
+    var req = new _Request(uri, "GET", false, function (response) {
       /*
        * NOTE: Passing response.responseText to eval() is not ES5-compatible;
        *       conforming implementations create a new execution context with
@@ -2314,205 +2307,202 @@ if (jsx.options.augmentPrototypes)
 //    _hasOwnProperty: _hasOwnProperty
 //  });
 
-  if (jsx.object.isNativeMethod(this, "eval"))
-  {
-    /*
-     * KJS 3.5.1 does not support named FunctionExpressions within Object
-     * literals if the literal is an AssignmentExpression (right-hand side
-     * of an assignment or a passed function argument).
-     * fixed since <http://bugs.kde.org/show_bug.cgi?id=123529>
+  /*
+   * KJS 3.5.1 does not support named FunctionExpressions within Object
+   * literals if the literal is an AssignmentExpression (right-hand side
+   * of an assignment or a passed function argument).
+   * fixed since <http://bugs.kde.org/show_bug.cgi?id=123529>
+   */
+
+  jsx.object.setProperties(Function.prototype, {
+    /**
+     * Applies a method of another object in the context
+     * of a different object (the calling object).
+     *
+     * @memberOf Function#prototype
+     * @function
+     * @return {any}
      */
-
-    jsx.object.setProperties(Function.prototype, {
-      /**
-       * Applies a method of another object in the context
-       * of a different object (the calling object).
-       *
-       * @memberOf Function#prototype
-       * @function
-       * @return {any}
-       */
-      apply: (function () {
-        var
-          jsx_object = jsx.object,
-          jsx_global = jsx.global;
-
-        /**
-         * @param {Object} thisArg
-         *   Reference to the calling object
-         * @param {Array} argArray
-         *   Arguments for the object
-         */
-        return function (thisArg, argArray) {
-          if (!thisArg)
-          {
-            thisArg = jsx_global;
-          }
-
-          var
-            o = {},
-            p = jsx_object.findNewProperty(o);
-
-          if (p)
-          {
-            o[p] = thisArg || this;
-
-            var a = new Array();
-            for (var i = 0, len = argArray.length; i < len; i++)
-            {
-              a[i] = "argArray[" + i + "]";
-            }
-
-            eval("o[p](" + a + ")");
-
-            delete o[p];
-          }
-        };
-      }()),
+    apply: (function () {
+      var
+        jsx_object = jsx.object,
+        jsx_global = jsx.global;
 
       /**
-       * Calls (executes) a method of another object in the
-       * context of a different object (the calling object).
-       *
-       * @memberOf Function#prototype
        * @param {Object} thisArg
-       *   Reference to the calling object.  SHOULD NOT
-       *   be a host object, since augmentation is required.
-       * @params {_}
-       *   Arguments for the object.
+       *   Reference to the calling object
+       * @param {Array} argArray
+       *   Arguments for the object
        */
-      call: function (thisArg) {
-        var a = new Array();
-
-        for (var i = 1, len = arguments.length; i < len; i++)
-        {
-          a[i] = "arguments[" + i + "]";
-        }
-
+      return function (thisArg, argArray) {
         if (!thisArg)
         {
-          thisArg = jsx.global;
+          thisArg = jsx_global;
         }
 
         var
           o = {},
-          p = jsx.object.findNewProperty(o);
+          p = jsx_object.findNewProperty(o);
 
         if (p)
         {
-          o[p] = this;
+          o[p] = thisArg || this;
+
+          var a = new Array();
+          for (var i = 0, len = argArray.length; i < len; i++)
+          {
+            a[i] = "argArray[" + i + "]";
+          }
+
           eval("o[p](" + a + ")");
+
           delete o[p];
-          o = null;
         }
-      },
+      };
+    }()),
+
+    /**
+     * Calls (executes) a method of another object in the
+     * context of a different object (the calling object).
+     *
+     * @memberOf Function#prototype
+     * @param {Object} thisArg
+     *   Reference to the calling object.  SHOULD NOT
+     *   be a host object, since augmentation is required.
+     * @params {_}
+     *   Arguments for the object.
+     */
+    call: function (thisArg) {
+      var a = new Array();
+
+      for (var i = 1, len = arguments.length; i < len; i++)
+      {
+        a[i] = "arguments[" + i + "]";
+      }
+
+      if (!thisArg)
+      {
+        thisArg = jsx.global;
+      }
+
+      var
+        o = {},
+        p = jsx.object.findNewProperty(o);
+
+      if (p)
+      {
+        o[p] = this;
+        eval("o[p](" + a + ")");
+        delete o[p];
+        o = null;
+      }
+    },
+
+    /**
+     * Returns a <code>Function</code> that has a defined
+     * <code>this</code> value and calls the calling
+     * <code>Function</code> with default parameters.
+     *
+     * @function
+     * @return {Function}
+     * @see 15.3.4.5 Function.prototype.bind (thisArg [, arg1 [, arg2, ...]])
+     */
+    bind: (function () {
+      var _slice;
+      var _getClass = jsx.object.getClass;
 
       /**
-       * Returns a <code>Function</code> that has a defined
-       * <code>this</code> value and calls the calling
-       * <code>Function</code> with default parameters.
-       *
-       * @function
-       * @return {Function}
-       * @see 15.3.4.5 Function.prototype.bind (thisArg [, arg1 [, arg2, ...]])
+       * @param {Object} thisArg
+       *   <code>this</code> value of the returned
+       *   <code>Function</code>
+       * @params Default parameters
        */
-      bind: (function () {
-        var _slice;
-        var _getClass = jsx.object.getClass;
+      return function (thisArg) {
+        var target = this;
+        if (typeof target != "function")
+        {
+          return jsx.throwThis("TypeError");
+        }
 
-        /**
-         * @param {Object} thisArg
-         *   <code>this</code> value of the returned
-         *   <code>Function</code>
-         * @params Default parameters
-         */
-        return function (thisArg) {
-          var target = this;
-          if (typeof target != "function")
+        if (!_slice)
+        {
+          _slice = Array.prototype.slice;
+        }
+
+        var boundArgs = _slice.call(arguments, 1);
+        var f = function () {
+          return target.apply(thisArg, boundArgs.concat(_slice.call(arguments)));
+        };
+
+        if (_getClass(target) == "Function")
+        {
+          f.length = target.length + boundArgs.length;
+        }
+        else
+        {
+          if (typeof Object.defineProperty == "function")
           {
-            return jsx.throwThis("TypeError");
-          }
-
-          if (!_slice)
-          {
-            _slice = Array.prototype.slice;
-          }
-
-          var boundArgs = _slice.call(arguments, 1);
-          var f = function () {
-            return target.apply(thisArg, boundArgs.concat(_slice.call(arguments)));
-          };
-
-          if (_getClass(target) == "Function")
-          {
-            f.length = target.length + boundArgs.length;
+            /*
+             * [[Writable]]: false, [[Enumerable]]: false,
+             * [[Configurable]]: false
+             */
+            Object.defineProperty(f, "length");
           }
           else
           {
-            if (typeof Object.defineProperty == "function")
-            {
-              /*
-               * [[Writable]]: false, [[Enumerable]]: false,
-               * [[Configurable]]: false
-               */
-              Object.defineProperty(f, "length");
-            }
-            else
-            {
-              f.length = 0;
-            }
+            f.length = 0;
           }
+        }
 
-          return f;
-        };
-      }()),
+        return f;
+      };
+    }()),
+
+    /**
+     * Constructs a new object using the calling object as constructor
+     * and elements of the referred array as items of the arguments list.
+     * <p>
+     * Example:
+     * <pre><code>var d = Date.construct([2009, 8, 1]);</code></pre>
+     * is equivalent to
+     * <pre><code>var d = new Date(2009, 8, 1);</code></pre>
+     * but, by contrast, allows for passing an arbitrary number of
+     * arguments per the array's elements.
+     * </p>
+     * @memberOf Function#prototype
+     * @param {Array} argArray
+     * @return {Object} Reference to the new instance
+     */
+    construct: function (argArray) {
+      var a = new Array();
+      for (var i = 0, len = argArray.length; i < len; ++i)
+      {
+        a[i] = "argArray[" + i + "]";
+      }
+
+      return eval("new this(" + a + ")");
+    },
+
+    /**
+     * @author Courtesy of Asen Bozhilov, slightly adapted
+     * @function
+     * @memberOf Function#prototype
+     * @return {Object} Reference to the new instance
+     */
+    construct2: (function () {
+      function Dummy(constructor, argArray) {
+        constructor.apply(this, argArray);
+      }
 
       /**
-       * Constructs a new object using the calling object as constructor
-       * and elements of the referred array as items of the arguments list.
-       * <p>
-       * Example:
-       * <pre><code>var d = Date.construct([2009, 8, 1]);</code></pre>
-       * is equivalent to
-       * <pre><code>var d = new Date(2009, 8, 1);</code></pre>
-       * but, by contrast, allows for passing an arbitrary number of
-       * arguments per the array's elements.
-       * </p>
-       * @memberOf Function#prototype
        * @param {Array} argArray
-       * @return {Object} Reference to the new instance
        */
-      construct: function (argArray) {
-        var a = new Array();
-        for (var i = 0, len = argArray.length; i < len; ++i)
-        {
-          a[i] = "argArray[" + i + "]";
-        }
-
-        return eval("new this(" + a + ")");
-      },
-
-      /**
-       * @author Courtesy of Asen Bozhilov, slightly adapted
-       * @function
-       * @memberOf Function#prototype
-       * @return {Object} Reference to the new instance
-       */
-      construct2: (function () {
-        function Dummy(constructor, argArray) {
-          constructor.apply(this, argArray);
-        }
-
-        /**
-         * @param {Array} argArray
-         */
-        return function (argArray) {
-          Dummy.prototype = this.prototype;
-          return new Dummy(this, argArray);
-        };
-      }())
-    });
-  }
+      return function (argArray) {
+        Dummy.prototype = this.prototype;
+        return new Dummy(this, argArray);
+      };
+    }())
+  });
 }
 
 /**
@@ -2546,7 +2536,6 @@ if (jsx.options.augmentPrototypes)
  */
 Function.prototype.extend = (function () {
   var _jsx = jsx;
-  var _global = _jsx.global;
   var _jsx_object = _jsx.object;
 
   /**
@@ -2556,7 +2545,7 @@ Function.prototype.extend = (function () {
    */
   var _iterator = (function () {
     /* Optimize if ECMAScript 5 features were available */
-    if (_jsx_object.isNativeMethod(_global.Object, "defineProperties"))
+    if (typeof Object.defineProperties == "function")
     {
       return function () {
         return this;
@@ -2689,13 +2678,13 @@ Function.prototype.extend = (function () {
      * @deprecated
      * @return {Object}
      */
-    if (typeof this.prototype.iterator == "undefined")
+    if (typeof this.prototype.iterator != "function")
     {
       this.prototype.iterator = _iterator;
     }
 
     /* Optimize iteration if ECMAScript 5 features are available */
-    if (_jsx_object.isNativeMethod(_global.Object, "defineProperties"))
+    if (typeof Object.defineProperties == "function")
     {
       var
         userDefProtoProps = ["_super", "constructor", "iterator"],
@@ -2722,7 +2711,7 @@ Function.prototype.extend = (function () {
         });
     }
 
-    if (!jsx.object.isNativeMethod(this.prototype, "forEach"))
+    if (typeof this.prototype.forEach != "function")
     {
       /**
        * Calls a function for each real property of the object
@@ -2736,7 +2725,7 @@ Function.prototype.extend = (function () {
       this.prototype.forEach = _forEach;
 
       /* Optimize iteration if ECMAScript 5 features are available */
-      if (_jsx_object.isNativeMethod(_jsx.global.Object, "defineProperty"))
+      if (typeof Object.defineProperty == "function")
       {
         _jsx.tryThis(
           function () {
@@ -2761,6 +2750,8 @@ Function.prototype.extend = (function () {
 }());
 
 jsx.array = {
+  version: jsx.object.version,
+
   /**
    * Maps elements of an <code>Array</code>-like object
    * to named properties of another object.
