@@ -73,9 +73,119 @@ jsx.MSG_DEBUG = "debug";
 if (typeof jsx.options == "undefined")
 {
   /**
+   * Holds the runtime options for JSX.
+   *
+   * Due to the dynamic nature of ECMAScript, it is very flexible.
+   * Built-in objects can be augmented and built-in methods can be
+   * overwritten to allow for "syntactic sugar" that make programs
+   * easier to write and to read, should the implementation not
+   * already provide suitable features.  However, augmentation
+   * and replacement do have disadvantages if you are not aware
+   * of the fact.  Allowing for a maximum of flexibility, JSX
+   * uses options that govern to which degree JSX components may
+   * modify built-in objects.  Options include, with increasing
+   * degree of flexibility and side-effects by nesting level:
+   *
+   *
+   *                 mod. builtins   augment  augmentproto augmentobjectproto
+   * augmentBuiltins        +           +           -            -
+   * augmentPrototypes      +           +           +            -
+   * augmentObjectPrototype +           +           +            +
+   * replaceBuiltins        +           *           *            *
+   *
+   * <dl>
+   *   <dt>modifyBuiltins</dt>
+   *     <dd>Allow built-ins to be modified.  Set to
+   *         <code>false</code> if you are testing features
+   *         of ECMAScript implementations with JSX,
+   *         like with the ECMAScript Support Matrix.
+   *         The default is <code>true</code>.
+   *       <dl>
+   *         <dt>augmentBuiltins</dt>
+   *           <dd>Allow built-ins to be augmented with new
+   *               properties.  This allows new properties on
+   *               the built-in constructors, but not on
+   *               prototype objects of built-in objects.
+   *               See <code>augmentPrototypes</code>.
+   *               Since there usually is no harm in that,
+   *               the default is <code>true</code>.
+   *             <dl>
+   *               <dt>augmentPrototypes</dt>
+   *                 <dd>Allow prototype objects to be augmented,
+   *                     except <code>Object.prototype</code>.
+   *                     This allows for new, inherited methods for
+   *                     <code>String</code>s, for example.
+   *                     Since there usually is no harm in that, the
+   *                     default is <code>true</code>.
+   *                   <dl>
+   *                     <dt>augmentObjectPrototype</dt>
+   *                       <dd>Allow <code>Object.prototype</code>
+   *                           to be augmented.  <em>CAUTION:
+   *                           The new properties are inherited
+   *                           to all native objects, and
+   *                           host objects that have
+   *                           <code>Object.prototype</code>
+   *                           in their prototype chain.  The new
+   *                           properties will show up everywhere,
+   *                           including <code>for-in</code>
+   *                           iteration.  If you do not know
+   *                           what this is all about, leave it
+   *                           at the default <code>false</code>.</dd>
+   *             </dl>
+   *           </dd>
+   *       </dl>
+   *     </dd>
+   *   <dt>replaceBuiltins</dt>
+   *     <dd>Allow built-ins to be replaced with native user-defined
+   *         implementations.</dd>
+   * </dl>
    * @namespace
    */
   jsx.options = {};
+}
+
+if (typeof jsx.options.augmentBuiltins == "undefined")
+{
+  /**
+   * If <code>false</code> built-ins are not modified.
+   * The default is <code>true</code>.
+   * </p>
+   * @type boolean
+   */
+  jsx.options.augmentBuiltins = true;
+}
+
+if (typeof jsx.options.augmentPrototypes == "undefined")
+{
+  /**
+   * If <code>false</code> built-in prototypes are not modified.
+   * The default is <code>true</code>.
+   * </p>
+   * @type boolean
+   */
+  jsx.options.augmentPrototypes = true;
+}
+
+if (typeof jsx.options.augmentObjectPrototype == "undefined")
+{
+  /**
+   * If <code>false</code>, the Object prototype object is
+   * not modified.  The default is <code>false</code>.
+   * </p>
+   * @type boolean
+   */
+  jsx.options.augmentObjectPrototype = false;
+}
+
+if (typeof jsx.options.replaceBuiltins == "undefined")
+{
+  /**
+   * If <code>false</code> built-ins are not replaced.
+   * The default is <code>true</code>.
+   * </p>
+   * @type boolean
+   */
+  jsx.options.replaceBuiltins = true;
 }
 
 if (typeof jsx.options.emulate == "undefined")
@@ -90,6 +200,13 @@ if (typeof jsx.options.emulate == "undefined")
    * @type boolean
    */
   jsx.options.emulate = true;
+}
+
+if (jsx.options.emulate)
+{
+  jsx.options.augmentBuiltins = true;
+  jsx.options.augmentPrototypes = true;
+  jsx.options.replaceBuiltins = true;
 }
 
 /**
@@ -498,10 +615,9 @@ jsx.object._hasOwnProperty = (function () {
     return (_isMethod(obj, "hasOwnProperty")
       ? obj.hasOwnProperty(sProperty)
       : (typeof obj[sProperty] != "undefined"
-          && ((typeof obj.constructor != "undefined"
-                && (proto = obj.constructor.prototype)
-                && typeof proto[sProperty] == "undefined")
-              || (typeof obj.constructor == "undefined"))));
+          && (null == obj.constructor
+              || ((proto = obj.constructor.prototype)
+                   && typeof proto[sProperty] == "undefined"))));
   };
 }());
 
@@ -575,33 +691,36 @@ jsx.object.getKeys = (function () {
  */
 jsx.object.clone = (function () {
   var
-    jsx_object = jsx.object,
-    COPY_ENUM = jsx_object.COPY_ENUM,
-    COPY_ENUM_DEEP = jsx_object.COPY_ENUM_DEEP,
-    COPY_INHERIT = jsx_object.COPY_INHERIT,
+    _jsx_object = jsx.object,
+    _COPY_ENUM = _jsx_object.COPY_ENUM,
+    _COPY_ENUM_DEEP = _jsx_object.COPY_ENUM_DEEP,
+    _COPY_INHERIT = _jsx_object.COPY_INHERIT,
     createTypedObject = function (oOriginal) {
       if (oOriginal.constructor)
       {
-        return jsx_object.inheritFrom(oOriginal.constructor.prototype);
+        return _jsx_object.inheritFrom(oOriginal.constructor.prototype);
       }
 
       return new Object();
     };
 
   /**
+   * @param {Object} oSource (optional)
+   *   Object to be cloned.  If omitted or <code>null</code>,
+   *   the calling object is cloned.
    * @param {Number} iLevel (optional)
    *   Use the {@link Object#COPY_ENUM Object.COPY_*}
    *   properties to specify the level of cloning.
-   * @param {Object} oSource (optional)
-   *   Object to be cloned.  If omitted, the calling object is cloned.
+   *   The default is {@link Object#COPY_ENUM Object.COPY_ENUM}.
    * @return {Object}
    *   A reference to the clone.
    */
-  return function jsx_object_clone (iLevel, oSource) {
-    if (typeof iLevel == "object")
+  return function jsx_object_clone (oSource, iLevel) {
+    if (typeof oSource == "number")
     {
+      var tmp = oSource;
       oSource = iLevel;
-      iLevel = COPY_ENUM;
+      iLevel = tmp;
     }
 
     if (!oSource)
@@ -609,9 +728,14 @@ jsx.object.clone = (function () {
       oSource = this;
     }
 
+    if (typeof iLevel == "undefined")
+    {
+      iLevel = _COPY_ENUM;
+    }
+
     var me = jsx_object_clone;
 
-    if (!iLevel || (iLevel & COPY_ENUM_DEEP))
+    if (!iLevel || (iLevel & _COPY_ENUM_DEEP))
     {
       /*
        * NOTE: For objects, valueOf() only copies the object reference,
@@ -624,13 +748,13 @@ jsx.object.clone = (function () {
              : oSource.valueOf();
 
       /* just in case "var i in ..." does not copy the array elements */
-      if (typeof Array != "undefined" && o2.constructor == Array)
+      if (_jsx_object.isArray(o2))
       {
         for (i = oSource.length; i--;)
         {
-          if (iLevel && typeof oSource[i] == "object")
+          if (iLevel && typeof oSource[i] == "object" && null != oSource[i])
           {
-            jsx.tryThis(function () { o2[i] = me(iLevel, oSource[i]); });
+            jsx.tryThis(function () { o2[i] = me(oSource[i], iLevel); });
           }
           else
           {
@@ -641,9 +765,9 @@ jsx.object.clone = (function () {
 
       for (i in oSource)
       {
-        if (iLevel && typeof oSource[i] == "object")
+        if (iLevel && typeof oSource[i] == "object" && null != oSource[i])
         {
-          jsx.tryThis(function () { o2[i] = me(iLevel, oSource[i]); });
+          jsx.tryThis(function () { o2[i] = me(oSource[i], iLevel); });
         }
         else
         {
@@ -654,9 +778,9 @@ jsx.object.clone = (function () {
       return o2;
     }
 
-    if (iLevel & COPY_INHERIT)
+    if (iLevel & _COPY_INHERIT)
     {
-      return jsx_object.inheritFrom(oSource);
+      return _jsx_object.inheritFrom(oSource);
     }
 
     return null;
@@ -703,9 +827,8 @@ jsx.object.setProperties = (function () {
       if (typeof oTarget[p] == "undefined" || (iFlags & _ADD_OVERWRITE))
       {
         jsx.tryThis(function () {
-          oTarget[p] = _clone(
-            iFlags & (_COPY_ENUM_DEEP | _COPY_INHERIT),
-            oSource[p]);
+          oTarget[p] = _clone(oSource[p],
+            iFlags & (_COPY_ENUM_DEEP | _COPY_INHERIT));
           oTarget[p]._userDefined = true;
         });
       }
@@ -719,65 +842,73 @@ jsx.object.setProperties = (function () {
  * Uses {@link Object.prototype#__defineGetter__} and
  * {@link Object.prototype#__defineSetter__} (JavaScript only) as fallback.
  *
- * @param {Object} oTarget
- *   The object for which properties getters and setters should be defined.
- * @param {Object} oProperties
- *   Definition of the getters and setters for each property.  Must be of
- *   the form
- * <code><pre>{
- *   propertyName: {
- *     get: function () {…},
- *     set: function (newValue) {…}
- *   },
- *   …
- * }
- *   </pre></code> as specified in the ECMAScript Language Specification,
- *   Edition 5 Final, section 15.2.3.7.
- * @param {string} sContext (optional)
- *   The context in which the property definition was attempted.
- *   Included in the info message in case getters and setters could not be
- *   defined.
  * @todo Depending on ES Matrix results, replace with user-defined
  *   Object.defineProperties() if the implementation does not provide it.
  */
-jsx.object.defineProperties = function (oTarget, oProperties, sContext) {
-  jsx.tryThis(
-    function () {
-      Object.defineProperties(oTarget, oProperties);
-    },
-    function () {
-      jsx.tryThis(
-        function () {
-          for (var propertyName in oProperties)
-          {
-            var propertyDescriptor = oProperties[propertyName];
+jsx.object.defineProperties = (function () {
+  var _getKeys = jsx.object.getKeys;
 
-            if (typeof propertyDescriptor.value != "undefined")
+  /**
+   * @param {Object} oTarget
+   *   The object for which properties getters and setters should be defined.
+   * @param {Object} oProperties
+   *   Definition of the getters and setters for each property.  Must be of
+   *   the form
+   * <code><pre>{
+   *   propertyName: {
+   *     get: function () {…},
+   *     set: function (newValue) {…}
+   *   },
+   *   …
+   * }
+   *   </pre></code> as specified in the ECMAScript Language Specification,
+   *   Edition 5 Final, section 15.2.3.7.
+   * @param {string} sContext (optional)
+   *   The context in which the property definition was attempted.
+   *   Included in the info message in case getters and setters could not be
+   *   defined.
+   */
+  return function (oTarget, oProperties, sContext) {
+    jsx.tryThis(
+      function () {
+        Object.defineProperties(oTarget, oProperties);
+      },
+      function () {
+        jsx.tryThis(
+          function () {
+            for (var i = 0, keys = _getKeys(oProperties), len = keys.length;
+                  i < len; ++i)
             {
-              oTarget[propertyName] = propertyDescriptor.value;
-            }
+              var propertyName = keys[i];
+              var propertyDescriptor = oProperties[propertyName];
 
-            /* NOTE: Allow specified values to fail */
-            if (typeof propertyDescriptor.get != "undefined")
-            {
-              oTarget.__defineGetter__(propertyName, propertyDescriptor.get);
-            }
+              if (typeof propertyDescriptor.value != "undefined")
+              {
+                oTarget[propertyName] = propertyDescriptor.value;
+              }
 
-            if (typeof propertyDescriptor.set != "undefined")
-            {
-              oTarget.__defineSetter__(propertyName, propertyDescriptor.set);
+              /* NOTE: Allow specified values to fail */
+              if (typeof propertyDescriptor["get"] != "undefined")
+              {
+                oTarget.__defineGetter__(propertyName, propertyDescriptor["get"]);
+              }
+
+              if (typeof propertyDescriptor["set"] != "undefined")
+              {
+                oTarget.__defineSetter__(propertyName, propertyDescriptor["set"]);
+              }
             }
+          },
+          function () {
+            jsx.info((sContext ? sContext + ": " : "")
+              + "Could not define special properties."
+              + " Please use explicit getters and setters instead.");
           }
-        },
-        function () {
-          jsx.info((sContext ? sContext + ": " : "")
-            + "Could not define special properties."
-            + " Please use explicit getters and setters instead.");
-        }
-      );
-    }
-  );
-};
+        );
+      }
+    );
+  };
+}());
 
 /**
  * Determines if a (non-inherited) property of an object is enumerable
@@ -1307,223 +1438,219 @@ jsx.object.getDataObject = (function () {
   };
 }());
 
-if (jsx.options.emulate)
+if (jsx.options.augmentBuiltins)
 {
-  if (!jsx.object.isNativeMethod(jsx.tryThis("Object"), "create"))
-  {
-    if (!jsx.object.isNativeMethod(jsx.tryThis("Object"), "defineProperties"))
-    {
-      if (!jsx.object.isNativeMethod(jsx.tryThis("Object"), "getOwnPropertyNames"))
+  jsx.object.setProperties(Object, {
+    getOwnPropertyNames: (function () {
+      var _hasOwnProperty = jsx.object._hasOwnProperty;
+
+      return function (o) {
+        var names = [];
+
+        for (var p in o)
+        {
+          if (_hasOwnProperty(o, p))
+          {
+            names.push(p);
+          }
+        }
+
+        return names;
+      };
+    }()),
+
+    /**
+     * Defines a property of an object.
+     *
+     * Emulation of the Object.defineProperty() method from ES 5.1,
+     * section 15.2.3.6.
+     *
+     * @function
+     */
+    defineProperty: (function () {
+      var _hasOwnProperty = jsx.object._hasOwnProperty;
+
+      function _toPropertyDescriptor(obj)
       {
-        Object.getOwnPropertyNames = (function () {
-          var _hasOwnProperty = jsx.object._hasOwnProperty;
+        if (!/^(object|function)$/i.test(typeof obj) || !obj)
+        {
+          jsx.throwThis("TypeError", "Object expected");
+        }
 
-          return function (o) {
-            var names = [];
+        var desc = new Object();
 
-            for (var p in o)
-            {
-              if (_hasOwnProperty(o, p))
-              {
-                names.push(p);
-              }
-            }
+        if (_hasOwnProperty(obj, "enumerable"))
+        {
+          desc.enumerable = !!obj.enumerable;
+        }
 
-            return names;
-          };
-        }());
+        if (_hasOwnProperty(obj, "configurable"))
+        {
+          desc.configurable = !!obj.configurable;
+        }
+
+        var hasValue = obj.hasOwnProperty("value");
+        if (hasValue)
+        {
+          desc.value = obj.value;
+        }
+
+        var hasWritable = _hasOwnProperty(obj, "writable");
+        if (hasWritable)
+        {
+          desc.writable = !!obj.writable;
+        }
+
+        var hasGetter = _hasOwnProperty(obj, "get");
+        if (hasGetter)
+        {
+          if (typeof obj.get != "function")
+          {
+            return jsx.throwThis("TypeError", "Function expected for getter");
+          }
+
+          desc.get = obj.get;
+        }
+
+        var hasSetter = _hasOwnProperty(obj, "set");
+        if (hasSetter)
+        {
+          if (typeof obj.set != "function")
+          {
+            return jsx.throwThis("TypeError", "Function expected for setter");
+          }
+
+          desc.set = obj.set;
+        }
+
+        if ((hasGetter || hasSetter) && (hasValue || hasWritable))
+        {
+          return jsx.throwThis("TypeError", "Cannot define getter/setter and value/writable");
+        }
+
+        return desc;
+      }
+
+      function _defineOwnProperty (obj, propertyName, descriptor, _throw)
+      {
+        function _isAccessorDescriptor (desc)
+        {
+          if (typeof desc == "undefined")
+          {
+            return false;
+          }
+
+          return _hasOwnProperty(desc, "get") || _hasOwnProperty(desc, "set");
+        }
+
+        function _isDataDescriptor (desc)
+        {
+          if (typeof desc == "undefined")
+          {
+            return false;
+          }
+
+          return desc.hasOwnProperty("value") || _hasOwnProperty(desc, "writable");
+        }
+
+        function _isGenericDescriptor (desc)
+        {
+          if (typeof desc == "undefined")
+          {
+            return false;
+          }
+
+          return !_isAccessorDescriptor(desc) && !_isDataDescriptor(desc);
+        }
+
+//        var current = obj.hasOwnProperty(propertyName);
+//        var extensible = obj[propertyName].[[Extensible]]
+
+        if (_isGenericDescriptor(descriptor) || _isDataDescriptor(descriptor))
+        {
+          var value = descriptor.value;
+          obj[propertyName] = value;
+
+          if (!descriptor.writable)
+          {
+            /* NOTE: Need getter because __defineSetter__() undefines value */
+            obj.__defineGetter__(propertyName, function () {
+              return value;
+            });
+
+            obj.__defineSetter__(propertyName, function () {});
+          }
+        }
+        else
+        {
+          /* accessor property descriptor */
+          if (descriptor.get)
+          {
+            obj.__defineGetter__(propertyName, descriptor.get);
+          }
+
+          if (descriptor.set)
+          {
+            obj.__defineSetter__(propertyName, descriptor.set);
+          }
+        }
+
+        return false;
       }
 
       /**
-       * Defines a property of an object.
-       *
-       * Emulation of the Object.defineProperty() method from ES 5.1,
-       * section 15.2.3.6.
-       *
-       * @function
-       */
-      Object.defineProperty = (function () {
-        var _hasOwnProperty = jsx.object._hasOwnProperty;
-
-        function _toPropertyDescriptor(obj)
-        {
-          if (!/^(object|function)$/i.test(typeof obj) || !obj)
-          {
-            jsx.throwThis("TypeError", "Object expected");
-          }
-
-          var desc = new Object();
-
-          if (_hasOwnProperty(obj, "enumerable"))
-          {
-            desc.enumerable = !!obj.enumerable;
-          }
-
-          if (_hasOwnProperty(obj, "configurable"))
-          {
-            desc.configurable = !!obj.configurable;
-          }
-
-          var hasValue = obj.hasOwnProperty("value");
-          if (hasValue)
-          {
-            desc.value = obj.value;
-          }
-
-          var hasWritable = _hasOwnProperty(obj, "writable");
-          if (hasWritable)
-          {
-            desc.writable = !!obj.writable;
-          }
-
-          var hasGetter = _hasOwnProperty(obj, "get");
-          if (hasGetter)
-          {
-            if (typeof obj.get != "function")
-            {
-              return jsx.throwThis("TypeError", "Function expected for getter");
-            }
-
-            desc.get = obj.get;
-          }
-
-          var hasSetter = _hasOwnProperty(obj, "set");
-          if (hasSetter)
-          {
-            if (typeof obj.set != "function")
-            {
-              return jsx.throwThis("TypeError", "Function expected for setter");
-            }
-
-            desc.set = obj.set;
-          }
-
-          if ((hasGetter || hasSetter) && (hasValue || hasWritable))
-          {
-            return jsx.throwThis("TypeError", "Cannot define getter/setter and value/writable");
-          }
-
-          return desc;
-        }
-
-        function _defineOwnProperty (obj, propertyName, descriptor, _throw)
-        {
-          function _isAccessorDescriptor (desc)
-          {
-            if (typeof desc == "undefined")
-            {
-              return false;
-            }
-
-            return _hasOwnProperty(desc, "get") || _hasOwnProperty(desc, "set");
-          }
-
-          function _isDataDescriptor (desc)
-          {
-            if (typeof desc == "undefined")
-            {
-              return false;
-            }
-
-            return desc.hasOwnProperty("value") || _hasOwnProperty(desc, "writable");
-          }
-
-          function _isGenericDescriptor (desc)
-          {
-            if (typeof desc == "undefined")
-            {
-              return false;
-            }
-
-            return !_isAccessorDescriptor(desc) && !_isDataDescriptor(desc);
-          }
-
-  //        var current = obj.hasOwnProperty(propertyName);
-  //        var extensible = obj[propertyName].[[Extensible]]
-
-          if (_isGenericDescriptor(descriptor) || _isDataDescriptor(descriptor))
-          {
-            var value = descriptor.value;
-            obj[propertyName] = value;
-
-            if (!descriptor.writable)
-            {
-              /* NOTE: Need getter because __defineSetter__() undefines value */
-              obj.__defineGetter__(propertyName, function () {
-                return value;
-              });
-
-              obj.__defineSetter__(propertyName, function () {});
-            }
-          }
-          else
-          {
-            /* accessor property descriptor */
-            if (descriptor.get)
-            {
-              obj.__defineGetter__(propertyName, descriptor.get);
-            }
-
-            if (descriptor.set)
-            {
-              obj.__defineSetter__(propertyName, descriptor.set);
-            }
-          }
-
-          return false;
-        }
-
-        /**
-         * @param {Object} o
-         * @param {Object} descriptor (optional)
-         *   Property descriptor, a reference to an object that defines
-         *   the attributes of the property.  Supported properties of
-         *   that defining object include <code>value</code> only
-         *   at this time.
-         * @return {Object} Reference to the object
-         */
-        return function (o, propertyName, descriptor) {
-          if (!/^(object|function)$/.test(typeof o) || !o)
-          {
-            return jsx.throwThis("TypeError", "Object expected");
-          }
-
-          var name = String(propertyName);
-          var desc = _toPropertyDescriptor(descriptor);
-          _defineOwnProperty(o, name, desc, true);
-
-          return o;
-        };
-      }());
-
-      /**
-       * Defines the properties of an object.
-       *
-       * Emulation of the Object.defineProperties() method from ES 5.1,
-       * section 15.2.3.7.
-       *
        * @param {Object} o
        * @param {Object} descriptor (optional)
-       *   Properties descriptor, where each own property name
-       *   is a property name of the new object, and each corresponding
-       *   property value is a reference to an object that defines the
-       *   attributes of that property.  Supported properties of
+       *   Property descriptor, a reference to an object that defines
+       *   the attributes of the property.  Supported properties of
        *   that defining object include <code>value</code> only
        *   at this time.
        * @return {Object} Reference to the object
        */
-      Object.defineProperties = function (o, descriptor) {
-        var properties = Object.getOwnPropertyNames(descriptor);
-        for (var i = 0, len = properties.length; i < len; ++i)
+      return function (o, propertyName, descriptor) {
+        if (!/^(object|function)$/.test(typeof o) || !o)
         {
-          var propertyName = properties[i];
-          Object.defineProperty(o, propertyName, descriptor[propertyName]);
+          return jsx.throwThis("TypeError", "Object expected");
         }
+
+        var name = String(propertyName);
+        var desc = _toPropertyDescriptor(descriptor);
+        _defineOwnProperty(o, name, desc, true);
 
         return o;
       };
-    }
+    }()),
 
+    /**
+     * Defines the properties of an object.
+     *
+     * Emulation of the Object.defineProperties() method from ES 5.1,
+     * section 15.2.3.7.
+     *
+     * @param {Object} o
+     * @param {Object} descriptor (optional)
+     *   Properties descriptor, where each own property name
+     *   is a property name of the new object, and each corresponding
+     *   property value is a reference to an object that defines the
+     *   attributes of that property.  Supported properties of
+     *   that defining object include <code>value</code> only
+     *   at this time.
+     * @return {Object} Reference to the object
+     */
+    defineProperties: function (o, descriptor) {
+      var properties = Object.getOwnPropertyNames(descriptor);
+      for (var i = 0, len = properties.length; i < len; ++i)
+      {
+        var propertyName = properties[i];
+        Object.defineProperty(o, propertyName, descriptor[propertyName]);
+      }
+
+      return o;
+    }
+  });
+
+  if (!jsx.object.isNativeMethod(jsx.tryThis("Object"), "create"))
+  {
     /**
      * Creates a new object and initializes its properties.
      *
@@ -1550,6 +1677,7 @@ if (jsx.options.emulate)
 
       return o;
     };
+
     Object.create._emulated = true;
   }
 
@@ -1561,6 +1689,7 @@ if (jsx.options.emulate)
     Object.keys = function (obj) {
       return jsx.object.getKeys(obj);
     };
+
     Object.keys._emulated = true;
   }
 }
@@ -2175,7 +2304,7 @@ jsx.require = (function () {
   };
 }());
 
-if (jsx.options.emulate)
+if (jsx.options.augmentPrototypes)
 {
 /* Disabled until ECMAScript allows to hide properties from iteration */
 //jsx.object.setProperties(Object.prototype, {
@@ -2633,6 +2762,47 @@ Function.prototype.extend = (function () {
 
 jsx.array = {
   /**
+   * Maps elements of an <code>Array</code>-like object
+   * to named properties of another object.
+   *
+   * <p>NOTE: Equivalent to Array destructuring (JavaScript 1.7+):</p>
+   * <pre><code>var o = Array.destructure(["bar", "foo"], ["foo", "bar"]);</code></pre>
+   * is equivalent to
+   * <pre><code>var o = {};
+   * [o.foo, o.bar] = ["bar", "foo"];</code></pre>
+   *
+   * @param {Object} a
+   *   <code>Array</code>-like object whose elements should be mapped.
+   * @param {Array} properties
+   *   Names of the properties that array elements should be mapped to.
+   *   If an element of this <code>Array</code> is <code>undefined</code>
+   *   or <code>null</code> (the former can be facilitated with
+   *   simply omitting the element value in an <code>Array</code>
+   *   Initialiser when not the last element of this <code>Array</code>),
+   *   the corresponding element of <var>a</var> is not mapped.
+   * @param {Object} oTarget
+   *   Target object.  If a false-value, a new <code>Object</code>
+   *   instance is being created.
+   * @returns {Object}
+   *   <var>oTarget</var> or a new <code>Object</code> instance
+   *   augmented with the specified properties and values.
+   */
+  destructure: function (a, properties, oTarget) {
+    var o = oTarget || {};
+
+    for (var i = 0, len = properties.length; i < len; ++i)
+    {
+      var propertyName = properties[i];
+      if (propertyName != null)
+      {
+        o[propertyName] = a[i];
+      }
+    }
+
+    return o;
+  },
+
+  /**
    * Maps one array to another
    *
    * @function
@@ -2675,11 +2845,43 @@ jsx.array = {
   }())
 };
 
-if (jsx.options.emulate)
+/**
+ * Returns an <code>Array</code> created from mapping items
+ * of an Array-like object.
+ *
+ * @function
+ */
+jsx.array.from = (function () {
+  var _map = jsx.array.map;
+
+  /**
+   * @param {Function} builder
+   *   Mapping function whose return value specifies the
+   *   mapped value in the new <code>Array</code>
+   * @param {Object} iterable
+   *   <code>Array</code>-like object
+   * @param {Object} oThis
+   *   <code>this</code> value in the mapping function
+   * @return {Array}
+   * @see Array.prototype#map
+   */
+  return function (builder, iterable, oThis) {
+    return _map(iterable, builder, oThis);
+  };
+}());
+
+if (jsx.options.augmentBuiltins)
 {
   /* Defines Array.isArray() if not already defined */
-  jsx.object.setProperties(Array, {isArray: jsx.object.isArray});
+  jsx.object.setProperties(Array, {
+    destructure: jsx.array.destructure,
+    from: jsx.array.from,
+    isArray: jsx.object.isArray
+  });
+}
 
+if (jsx.options.augmentPrototypes)
+{
   /* Defines Array.prototype.indexOf and .map() if not already defined */
   jsx.object.setProperties(Array.prototype, {
     /**
@@ -2790,78 +2992,6 @@ if (jsx.options.emulate)
       return a;
     }
   });
-
-  if (typeof Array.from == "undefined")
-  {
-    /**
-     * Returns an <code>Array</code> created from mapping items
-     * of an Array-like object.
-     *
-     * @function
-     */
-    Array.from = (function () {
-      var _map = Array.prototype.map;
-
-      /**
-       * @param {Function} builder
-       *   Mapping function whose return value specifies the
-       *   mapped value in the new <code>Array</code>
-       * @param {Object} iterable
-       *   <code>Array</code>-like object
-       * @param {Object} oThis
-       *   <code>this</code> value in the mapping function
-       * @return {Array}
-       * @see Array.prototype#map
-       */
-      return function (builder, iterable, oThis) {
-        return _map.call(iterable, builder, oThis);
-      };
-    }());
-  }
-
-  if (typeof Array.destructure == "undefined")
-  {
-    /**
-     * Maps elements of an <code>Array</code>-like object
-     * to named properties of another object.
-     *
-     * <p>NOTE: Equivalent to Array destructuring (JavaScript 1.7+):</p>
-     * <pre><code>var o = Array.destructure(["bar", "foo"], ["foo", "bar"]);</code></pre>
-     * is equivalent to
-     * <pre><code>var o = {};
-     * [o.foo, o.bar] = ["bar", "foo"];</code></pre>
-     *
-     * @param {Object} a
-     *   <code>Array</code>-like object whose elements should be mapped.
-     * @param {Array} properties
-     *   Names of the properties that array elements should be mapped to.
-     *   If an element of this <code>Array</code> is <code>undefined</code>
-     *   or <code>null</code> (the former can be facilitated with
-     *   simply omitting the element value in an <code>Array</code>
-     *   Initialiser when not the last element of this <code>Array</code>),
-     *   the corresponding element of <var>a</var> is not mapped.
-     * @param {Object} oTarget
-     *   Target object.  If a false-value, a new <code>Object</code>
-     *   instance is being created.
-     * @returns {Object}
-     *   <var>oTarget</var> or a new <code>Object</code> instance
-     *   augmented with the specified properties and values.
-     */
-    Array.destructure = function (a, properties, oTarget) {
-      var o = oTarget || {};
-
-      for (var i = 0, len = properties.length; i < len; ++i)
-      {
-        var propertyName = properties[i];
-        if (propertyName != null)
-        {
-          o[propertyName] = a[i];
-        }
-      }
-
-      return o;
-    };
-  }
 }
 
 /**
