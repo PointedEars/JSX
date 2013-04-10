@@ -825,8 +825,9 @@ jsx.object.setProperties = (function () {
       if (typeof oTarget[p] == "undefined" || (iFlags & _ADD_OVERWRITE))
       {
         jsx.tryThis(function () {
-          oTarget[p] = _clone(oSource[p],
-            iFlags & (_COPY_ENUM_DEEP | _COPY_INHERIT));
+          oTarget[p] = (iFlags & (_COPY_ENUM_DEEP | _COPY_INHERIT))
+            ? _clone(oSource[p], iFlags & (_COPY_ENUM_DEEP | _COPY_INHERIT))
+            : oSource[p];
           oTarget[p]._userDefined = true;
         });
       }
