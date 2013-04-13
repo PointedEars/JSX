@@ -535,13 +535,13 @@ var parseFloat = jsx.string.parseFloat = (function () {
  */
 jsx.string._rxFormatSpec = new RegExp(
   /* flags */
-  "%(\\(([^)]*)\\))?([#0+' _-]*)"
+  /%(\(([^)]*)\))?([#0+' _-]*)/.source
 
   /* field width */
-  + "([1-9]*\\d+|(\\*((\\d+)\\$)?))?"
+  + /([1-9]*\d+|(\*((\d+)\$)?))?/.source
 
   /* precision */
-  + "(\\.([+-]?\\d+|(\\*((\\d+)\\$)?))?)?"
+  + /(\.([+-]?\d+|(\*((\d+)\$)?))?)?/.source
 
   /* member delimiter */
   + "(,)?"
@@ -566,22 +566,24 @@ jsx.string.sprintf = function (sFormat) {
     jsx_string = jsx.string,
     ignoredArgs = [];
 
-  return String(sFormat).replace(
-    rxFormatSpec,
+  return String(sFormat).replace(rxFormatSpec,
     function (m, p1, propertyName, flags,
               fieldWidth, argFieldWidth, p4, uFieldWidthArg, p6,
               precision, argPrecision, p9, uPrecisionArg,
               memberDelim, convSpecifier) {
+      /* Prevent argument change by parameter assignment */
+      "use strict";
+
       while (ignoredArgs[i])
       {
-        i++;
+        ++i;
       }
 
       if (argFieldWidth)
       {
         if (!uFieldWidthArg)
         {
-          uFieldWidthArg = i++;
+          uFieldWidthArg = i + 1;
         }
         else
         {
@@ -687,6 +689,7 @@ jsx.string.sprintf = function (sFormat) {
         case "G":
           v = (+v).toString();
 
+          /* TODO: Use Number.prototype.toExponential() if backwards-compatible */
           if (/e/i.test(convSpecifier))
           {
             var
@@ -738,12 +741,26 @@ jsx.string.sprintf = function (sFormat) {
             }
           }
 
+          if (precision)
+          {
+            var prec = +precision;
+            if (prec > 0)
+            {
+              v = (+v).toFixed(prec);
+            }
+            else if (prec < 0)
+            {
+              var power = Math.pow(10, -prec);
+              v = Math.round(v / power) * power;
+            }
+          }
+
           break;
       }
 
-      fieldWidth = +fieldWidth;
       if (fieldWidth)
       {
+        fieldWidth = +fieldWidth;
         if (flags.indexOf("0") > -1 && /[bdoxXiueEfFgG]/.test(convSpecifier))
         {
           v = String(v);
@@ -769,7 +786,7 @@ jsx.string.sprintf = function (sFormat) {
 
       if (!propertyName)
       {
-        i++;
+        ++i;
       }
 
       return v;
@@ -788,6 +805,9 @@ String.prototype.format = jsx.string.format = (function () {
     * @return {String}
     */
   return function (sFormat) {
+    /* Prevent argument change by parameter assignment */
+    "use strict";
+
     var start = 1;
 
     if (_getClass(this) === "String")
@@ -798,22 +818,22 @@ String.prototype.format = jsx.string.format = (function () {
 
     for (var i = start, len = arguments.length; i < len; ++i)
     {
-      var format = arguments[i];
+      var data = arguments[i];
 
-      if (_getClass(format) === "Object")
+      if (_getClass(data) === "Object")
       {
-        for (var property in format)
+        for (var propertyName in data)
         {
-          if (_hasOwnProperty(format, property))
+          if (_hasOwnProperty(data, propertyName))
           {
-            sFormat = sFormat.replace(new RegExp("\\{" + property + "\\}", "g"),
-                  format[property]);
+            sFormat = sFormat.replace(new RegExp("\\{" + propertyName + "\\}", "g"),
+                  data[propertyName]);
           }
         }
       }
       else
       {
-        sFormat = sFormat.replace(new RegExp("\\{" + (i - start) + "\\}", "g"), format);
+        sFormat = sFormat.replace(new RegExp("\\{" + (i - start) + "\\}", "g"), data);
       }
     }
 
