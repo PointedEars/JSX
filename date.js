@@ -44,6 +44,61 @@ jsx.date = {
   path:      "http://PointedEars.de/scripts/",
 
   /**
+   * Weekday names, where the elements are {@link Array}s of
+   * {@link Array}s of {@link String}.  The first element of the
+   * inner <code>Array</code> holds the abbreviated name,
+   * the second one the long name.
+   * @type {Array}
+   */
+  WEEKDAYS: [
+    ["Sun", "Sunday"], ["Mon", "Monday"], ["Tue", "Tuesday"],
+    ["Wed", "Wednesday"], ["Thu", "Thursday"], ["Fri", "Friday"],
+    ["Sat", "Saturday"]
+  ],
+
+  /**
+   * Month names, where the elements are {@link Array}s of
+   * {@link Array}s of {@link String}.  The first element of the
+   * inner <code>Array</code> holds the abbreviated name,
+   * the second one the long name.
+   */
+  MONTHS: [
+    ["Jan", "January"], ["Feb", "February"], ["Mar", "March"],
+    ["Apr", "April"], ["May", "May"], ["Jun", "June"],
+    ["Jul", "July"], ["Aug", "August"], ["Sep", "September"],
+    ["Oct", "October"], ["Nov", "November"], ["Dec", "December"]
+  ],
+
+  /**
+   * Daytimes for the 12-hour format
+   */
+  DAYTIMES: {am: "am", pm: "pm"},
+
+  /**
+   * Time zone names, where the keys are the offsets to UTC in
+   * minutes, and the values are {@link Array}s of {@link String}.
+   */
+  TIMEZONES: {
+     "540": ["Alaska Standard Time (AKST)"],
+     "480": ["Alaska Daylight Time (AKDT)"],
+     "240": ["Atlantic Standard Time (AST)"],
+     "180": ["Atlantic Daylight Time (ADT)",
+             "Argentina Time (ART)"],
+       "0": ["Greenwich Mean Time (GMT)"],
+     "-60": ["Central European Time (CET)"],
+    "-120": ["Central European Summer Time (CEST)"],
+    "-180": ["Arabia Standard Time (AST)"],
+    "-240": ["Armenia Time (AMT)"],
+    "-270": ["Afghanistan Time (AFT)"],
+    "-480": ["Australian Western Standard Time (AWST)",
+             "ASEAN Common Time (ACT)"],
+    "-570": ["Australian Central Standard Time (ACST)"],
+    "-600": ["Australian Eastern Standard Time (AEST)"],
+    "-630": ["Australian Central Daylight Time (ACDT)"],
+    "-660": ["Australian Eastern Daylight Time (AEDT)"]
+  },
+
+  /**
    * Returns the number of day within a year
    *
    * @param {Date} date
@@ -67,6 +122,43 @@ jsx.date = {
         return Math.floor(30.6 * (month + 1) - 91.4) + dayOfMonth
           + (jsx.date.isLeapYear(date.getFullYear()) ? 60 : 59);
     }
+  },
+
+  /**
+   * Determines if the arguments define a valid date-time.
+   *
+   * @param {Number} year
+   *   Year argument for the {@link Date} constructor.  Possible
+   *   implementation-dependent correction of two-digit years is
+   *   not supported.
+   * @param {Number} month
+   * @param {Number} date (optional)
+   *   Day of month
+   * @param {Number} minutes (optional)
+   * @param {Number} seconds (optional)
+   * @param {Number} ms (optional)
+   *   Milliseconds
+   * @return {boolean}
+   *   <code>true</code> if the arguments would produce a
+   *   corresponding time value when passed to the {@link Date}
+   *   constructor, <code>false</code> otherwise.
+   * @see Date
+   */
+  isValid: function (year, month, date, hours, minutes, seconds, ms) {
+    if (arguments.length < 3)
+    {
+      return jsx.throwThis(jsx.InvalidArgumentError,
+        ["Not enough arguments", [].slice.call(arguments),
+         "at least (year : int, month : int)"]);
+    }
+
+    var d = Date.construct(arguments);
+
+    return (d.getFullYear() == year
+      && (typeof month == "undefined"   || d.getMonth()   == month)
+      && (typeof hours == "undefined"   || d.getHours()   == hours)
+      && (typeof minutes == "undefined" || d.getMinutes() == minutes)
+      && (typeof seconds == "undefined" || d.getSeconds() == seconds));
   },
 
   /**
@@ -120,38 +212,149 @@ jsx.date = {
   },
 
   /**
-   * Determines if the arguments define a valid date-time.
+   * Returns the time zone offset of a {@link Date}
+   * in hours and minutes
    *
-   * @param {Number} year
-   *   Year argument for the {@link Date} constructor.  Possible
-   *   implementation-dependent correction of two-digit years is
-   *   not supported.
-   * @param {Number} month
-   * @param {Number} date (optional)
-   * @param {Number} minutes (optional)
-   * @param {Number} seconds (optional)
-   * @param {Number} ms (optional)
-   * @return {boolean}
-   *   <code>true</code> if the arguments would produce a
-   *   corresponding time value when passed to the {@link Date}
-   *   constructor, <code>false</code> otherwise.
-   * @see Date
+   * @param {Date} date
+   * @param {TimeOptions} options
+   *   <table>
+   *     <tr>
+   *       <th>delimiter</th>
+   *       <td>Delimiter between hours and minutes</td>
+   *     </tr>
+   *     <tr>
+   *       <th>leadingZero</th>
+   *       <td>If <code>true</code> hours always have two digits</td>
+   *     </tr>
+   *     <tr>
+   *       <th>zeroMinutes</th>
+   *       <td>If <code>true</code> minutes are not returned if they
+   *           are zero</td>
+   *     </tr>
+   *   </table>
+   * @return {Object|string}
    */
-  isValid: function (year, month, date, hours, minutes, seconds, ms) {
-    if (arguments.length < 3)
+  tzOffsetHours: function (date, options) {
+    var tzOffset = date.getTimezoneOffset();
+    var hours = Math.floor(Math.abs(tzOffset) / 60);
+    var minutes = Math.floor(Math.abs(tzOffset) - (hours * 60));
+
+    if (arguments.length < 2)
     {
-      return jsx.throwThis(jsx.InvalidArgumentError,
-        ["Not enough arguments", [].slice.call(arguments), "at least (year : int, month : int)"]);
+      return {hours: hours, minutes: minutes};
     }
 
-    var d = Date.construct(arguments);
-
-    return (d.getFullYear() == year
-      && (typeof month == "undefined"   || d.getMonth()   == month)
-      && (typeof hours == "undefined"   || d.getHours()   == hours)
-      && (typeof minutes == "undefined" || d.getMinutes() == minutes)
-      && (typeof seconds == "undefined" || d.getSeconds() == seconds));
+    return (tzOffset < 0 ? "+" : "-")
+      + (options && options.leadingZero ? _leadingZero(hours, 2) : hours)
+      + (+minutes || options && options.zeroMinutes
+          ? (options && options.delimiter || "") + _leadingZero(minutes, 2)
+          : "");
   },
+
+  /**
+   * Formats a date with letters as placeholders
+   */
+  format: (function () {
+    var _jsx_string, _leadingZero;
+    var _weekdays, _months, _daytimes, _timezones;
+    var _dayOfYear, _isoWeekday, _isoWeekNumber, _tzOffsetHours;
+
+    var _rxDateFormats = /\\([\S\s])|YY(YY)?|M{1,4}|D{1,4}|W{1,4}|ww?|HH?|hh?|mm?|s{1,4}|Z{1,3}/g;
+
+    function _formatter (m, literal)
+    {
+      switch (m)
+      {
+        case "W":    return _weekdays[this.getDay()][0].charAt(0);
+        case "WW":   return _weekdays[this.getDay()][0].substring(0, 2);
+        case "WWW":  return _weekdays[this.getDay()][0];
+        case "WWWW": return _weekdays[this.getDay()][1];
+        case "w":    return _isoWeekday(this);
+        case "ww":   return _leadingZero(_isoWeekNumber(this), 2);
+        case "YY":   return this.getFullYear() % 100;
+        case "YYYY": return this.getFullYear();
+        case "M":    return this.getMonth() + 1;
+        case "MM":   return _leadingZero(this.getMonth() + 1, 2);
+        case "MMM":  return _months[this.getMonth()][0];
+        case "MMMM": return _months[this.getMonth()][1];
+        case "D":    return this.getDate();
+        case "DD":   return _leadingZero(this.getDate(), 2);
+        case "DDD":  return _dayOfYear(this);
+        case "H":    return this.getHours();
+        case "HH":   return _leadingZero(this.getHours(), 2);
+        case "h":    return (this.getHours() % 12) || "12";
+        case "hh":   return _leadingZero((this.getHours() % 12) || "12", 2);
+        case "P":    return _daytimes[this.getHours() < 12 ? "am" : "pm"].toUpperCase();
+        case "p":    return _daytimes[this.getHours() < 12 ? "am" : "pm"];
+        case "m":    return this.getMinutes();
+        case "mm":   return _leadingZero(this.getMinutes(), 2);
+        case "s":    return this.getSeconds();
+        case "ss":   return _leadingZero(this.getSeconds(), 2);
+        case "sss":  return this.getMilliseconds();
+        case "ssss": return _leadingZero(this.getMilliseconds(), 3);
+        case "Z":    return _tzOffsetHours(this, null);
+        case "ZZ":
+          return _tzOffsetHours(this, {
+            delimiter: ":",
+            leadingZero: true,
+            zeroMinutes: true
+          });
+
+        case "ZZZ":
+          var tzNames = _timezones[this.getTimezoneOffset()];
+
+          /*
+           * If no time zone name is defined for the offset,
+           * return UTC(+|-)H(:MM)?
+           */
+          return (tzNames && tzNames.join("/")
+            || ("UTC" + _format(this, "Z")));
+
+        default:
+          if (m.charAt(0) != "\\")
+          {
+            jsx.warn("Unsupported format: " + m);
+            return m;
+          }
+
+          return literal;
+      }
+    }
+
+    /**
+     * @param {Date} date
+     * @param {String} format
+     */
+    function _format (date, format)
+    {
+      if (arguments.length < 2 || typeof format == "undefined")
+      {
+        return jsx.throwThis(jsx.InvalidArgumentError,
+          ["Not enough arguments", "", "(date : Date, format : String)"]);
+      }
+
+      if (typeof _jsx_string == "undefined")
+      {
+        /* one-time imports for _formatter() */
+        _jsx_string = jsx.string;
+        _leadingZero = _jsx_string.leadingZero;
+      }
+
+      var _date = jsx.date;
+      _weekdays = _date.WEEKDAYS;
+      _months = _date.MONTHS;
+      _daytimes = _date.DAYTIMES;
+      _timezones = _date.TIMEZONES;
+      _dayOfYear = _date.dayOfYear;
+      _isoWeekday = _date.isoWeekday;
+      _isoWeekNumber = _date.isoWeekNumber;
+      _tzOffsetHours = _date.tzOffsetHours;
+
+      return format.replace(_rxDateFormats, _formatter.bind(date));
+    }
+
+    return _format;
+  }()),
 
   /**
    * Returns a {@link Date} as a formatted string
@@ -164,7 +367,7 @@ jsx.date = {
    */
   strftime: (function () {
     var _jsx_string, _leadingZero, _pad;
-    var _isoWeekday, _isoWeekNumber;
+    var _dayOfYear, _isoWeekday, _isoWeekNumber, _tzOffsetHours;
     var _weekdays, _months, _daytimes, _timezones;
 
     var _rxDateFormats = /%([aAdejuwUVWbBhmCgGyYHkIlMpPrTSTXzZcDFsxnt%])/g;
@@ -179,12 +382,6 @@ jsx.date = {
      */
     function _formatter (placeholder, conversion)
     {
-      if (typeof _isoWeekday == "undefined")
-      {
-        _isoWeekday = jsx.date.isoWeekday;
-        _isoWeekNumber = jsx.date.isoWeekNumber;
-      }
-
       switch (conversion)
       {
         /* Day */
@@ -192,6 +389,7 @@ jsx.date = {
         case "A": return _weekdays[this.getDay()][1];
         case "d": return _leadingZero(this.getDate(), 2);
         case "e": return _pad(this.getDate(), 2);
+        case "j": return _leadingZero(_dayOfYear(this), 3);
 
         /* ISO 8601 weekday: Sunday (0) is 7 */
         case "u": return _isoWeekday(this);
@@ -199,6 +397,7 @@ jsx.date = {
         case "w": return this.getDay();
 
         /* Week */
+        /* TODO: %U, %W */
         case "V": return _leadingZero(_isoWeekNumber(this), 2);
 
         /* Month */
@@ -212,6 +411,7 @@ jsx.date = {
         case "C": return _leadingZero(Math.floor(this.getFullYear() / 100), 2);
         case "y": return _leadingZero(this.getFullYear() % 100, 2);
         case "Y": return _leadingZero(this.getFullYear(), 4);
+        /* TODO: %G, %g */
 
         /* Time */
         case "H": return _leadingZero(this.getHours(), 2);
@@ -222,41 +422,41 @@ jsx.date = {
         case "l": return _pad((this.getHours() % 12) || "12" , 2);
 
         case "M": return _leadingZero(this.getMinutes(), 2);
-        case "P": return _daytimes[this.getHours() < 12 ? "am" : "pm"].toUpperCase();
-        case "p": return _daytimes[this.getHours() < 12 ? "am" : "pm"];
+
+        /* Counter-intuitive, but according to strftime(3) */
+        case "p": return _daytimes[this.getHours() < 12 ? "am" : "pm"].toUpperCase();
+        case "P": return _daytimes[this.getHours() < 12 ? "am" : "pm"];
+
         case "R": return _strftime(this, "%H:%M");
+        /* TODO: %r */
         case "S": return _leadingZero(this.getSeconds(), 2);
         case "T": return _strftime(this, "%H:%M:%S");
         case "X": return this.toLocaleTimeString();
         case "z":
-          var tzOffset = this.getTimezoneOffset();
-          var hours = Math.floor(Math.abs(tzOffset) / 60);
-          var minutes = Math.floor(Math.abs(tzOffset) - (hours * 60));
-
-          /* NOTE: Negative offset means _ahead_ of UTC */
-          return (tzOffset < 0 ? "+" : "-")
-            + _leadingZero(hours, 2)
-            + _leadingZero(minutes, 2);
+          return _tzOffsetHours(this, {
+            leadingZero: true,
+            zeroMinutes: true
+          });
 
         case "Z":
           var tzNames = _timezones[this.getTimezoneOffset()];
 
           /*
            * If no time zone name is defined for the offset,
-           * return UTC(+|-)HH:MM
+           * return UTC(+|-)H(:MM)?
            */
-          tzOffset = _strftime(this, "%z");
-
           return (tzNames && tzNames.join("/")
-            || ("UTC" + tzOffset.substring(0, tzOffset.length - 1)
-                + ":" + tzOffset.substring(tzOffset.length - 1)));
+            || ("UTC" + _tzOffsetHours(this, {delimiter: ":"})));
 
         /* Time and Date Stamps */
         case "c": return this.toLocaleString();
         case "D": return _strftime(this, "%m/%d/%y");
         case "F": return _strftime(this, "%Y-%m-%d");
 
-        /* Unix timestamp */
+        /*
+         * Unix timestamp (the number of seconds since the Epoch,
+         * 1970-01-01 00:00:00 +0000 (UTC))
+         */
         case "s": return Math.floor(this.valueOf() / 1000);
 
         case "x": return this.toLocaleDateString();
@@ -292,11 +492,15 @@ jsx.date = {
         _pad = _jsx_string.pad;
       }
 
-      var me = _strftime;
-      _weekdays = me.WEEKDAYS;
-      _months = me.MONTHS;
-      _daytimes = me.DAYTIMES;
-      _timezones = me.TIMEZONES;
+      var _date = jsx.date;
+      _weekdays = _date.WEEKDAYS;
+      _months = _date.MONTHS;
+      _daytimes = _date.DAYTIMES;
+      _timezones = _date.TIMEZONES;
+      _dayOfYear = _date.dayOfYear;
+      _isoWeekday = _date.isoWeekday;
+      _isoWeekNumber = _date.isoWeekNumber;
+      _tzOffsetHours = _date.tzOffsetHours;
 
       return String(format).replace(_rxDateFormats, _formatter.bind(date));
     }
@@ -305,49 +509,7 @@ jsx.date = {
   }())
 };
 
-jsx.object.setProperties(jsx.date.strftime,
-  {
-    /**
-     * @type {Array}
-     * @memberOf jsx.date.strftime
-     */
-    WEEKDAYS: [
-      ["Sun", "Sunday"], ["Mon", "Monday"], ["Tue", "Tuesday"],
-      ["Wed", "Wednesday"], ["Thu", "Thursday"], ["Fri", "Friday"],
-      ["Sat", "Saturday"]
-    ],
-
-    MONTHS: [
-      ["Jan", "January"], ["Feb", "February"], ["Mar", "March"],
-      ["Apr", "April"], ["May", "May"], ["Jun", "June"],
-      ["Jul", "July"], ["Aug", "August"], ["Sep", "September"],
-      ["Oct", "October"], ["Nov", "November"], ["Dec", "December"]
-    ],
-
-    DAYTIMES: {am: "am", pm: "pm"},
-
-    TIMEZONES: {
-       "540": ["Alaska Standard Time (AKST)"],
-       "480": ["Alaska Daylight Time (AKDT)"],
-       "240": ["Atlantic Standard Time (AST)"],
-       "180": ["Atlantic Daylight Time (ADT)",
-               "Argentina Time (ART)"],
-         "0": ["Greenwich Mean Time (GMT)"],
-       "-60": ["Central European Time (CET)"],
-      "-180": ["Arabia Standard Time (AST)"],
-      "-240": ["Armenia Time (AMT)"],
-      "-270": ["Afghanistan Time (AFT)"],
-      "-480": ["Australian Western Standard Time (AWST)",
-               "ASEAN Common Time (ACT)"],
-      "-570": ["Australian Central Standard Time (ACST)"],
-      "-600": ["Australian Eastern Standard Time (AEST)"],
-      "-630": ["Australian Central Daylight Time (ACDT)"],
-      "-660": ["Australian Eastern Daylight Time (AEDT)"]
-    }
-  },
-  jsx.object.ADD_OVERWRITE);
-
-if (jsx.options.emulate)
+if (jsx.options.augmentBuiltins)
 {
   jsx.object.setProperties(Date, {
     /**
@@ -364,67 +526,86 @@ if (jsx.options.emulate)
     isValid: jsx.date.isValid
   });
 
-  jsx.object.setProperties(Date.prototype, {
-    /**
-     * Returns the ISO weekday number of this <code>Date</code>.
-     *
-     * @function
-     * @memberOf Date.prototype
-     * @see jsx.date.isoWeekNumber(Date)
-     * @return {number}
-     */
-    getISOWeekday: (function () {
-      var _isoWeekday = jsx.date.isoWeekday;
+  if (jsx.options.augmentPrototypes)
+  {
+    jsx.object.setProperties(Date.prototype, {
+      /**
+       * Returns the ISO weekday number of this <code>Date</code>.
+       *
+       * @function
+       * @memberOf Date.prototype
+       * @see jsx.date.isoWeekNumber(Date)
+       * @return {number}
+       */
+      getISOWeekday: (function () {
+        var _isoWeekday = jsx.date.isoWeekday;
 
-      return function () {
-        return _isoWeekday(this);
-      };
-    }()),
-
-    /**
-     * Returns the ISO week number of this <code>Date</code>.
-     *
-     * @function
-     * @see jsx.date.isoWeekNumber(Date)
-     * @return {number}
-     */
-    getISOWeekNumber: (function () {
-      var _isoWeekNumber = jsx.date.isoWeekNumber;
-
-      return function () {
-        return _isoWeekNumber(this);
-      };
-    }()),
-
-    /**
-     * Returns the number of day within a year
-     *
-     * @function
-     * @see jsx.date.dayOfYear(Date)
-     * @return {number}
-     */
-    getDayOfYear: (function () {
-      var _dayOfYear = jsx.date.dayOfYear;
-
-      return function () {
-        return _dayOfYear(this);
-      };
-    }()),
-
-    /**
-     * @function
-     * @see jsx.date#strftime(Date, String)
-     * @return {string}
-     */
-    strftime: (function () {
-      var _strftime = jsx.date.strftime;
+        return function () {
+          return _isoWeekday(this);
+        };
+      }()),
 
       /**
-       * @param {String} format
+       * Returns the ISO week number of this <code>Date</code>.
+       *
+       * @function
+       * @see jsx.date.isoWeekNumber(Date)
+       * @return {number}
        */
-      return function (format) {
-        return _strftime(this, format);
-      };
-    }())
-  });
+      getISOWeekNumber: (function () {
+        var _isoWeekNumber = jsx.date.isoWeekNumber;
+
+        return function () {
+          return _isoWeekNumber(this);
+        };
+      }()),
+
+      /**
+       * Returns the number of day within a year
+       *
+       * @function
+       * @see jsx.date.dayOfYear(Date)
+       * @return {number}
+       */
+      getDayOfYear: (function () {
+        var _dayOfYear = jsx.date.dayOfYear;
+
+        return function () {
+          return _dayOfYear(this);
+        };
+      }()),
+
+      /**
+       * @function
+       * @see jsx.date#format(Date, String)
+       * @return {string}
+       */
+      format: (function () {
+        var _format = jsx.date.format;
+
+        /**
+         * @param {String} format
+         */
+        return function (format) {
+          return _format(this, format);
+        };
+      }()),
+
+      /**
+       * @function
+       * @see jsx.date#strftime(Date, String)
+       * @return {string}
+       */
+      strftime: (function () {
+        var _strftime = jsx.date.strftime;
+
+        /**
+         * @param {String} format
+         */
+        return function (format) {
+          return _strftime(this, format);
+        };
+      }())
+    });
+  }
 }
