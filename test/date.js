@@ -223,6 +223,65 @@ function runTests ()
       },
 
       {
+        feature: 'jsx.date.tzOffsetHours(new Date(…))',
+        desc: "Return the correct value (works in CE[S]T only)",
+        code: function () {
+          var d = new Date(2013, 0, 1);
+          var d2 = new Date(2013, 3, 1);
+
+          var o = jsx.date.tzOffsetHours(d);
+          assertTrue(o.hours === 1 && o.minutes === 0);
+
+          var o = jsx.date.tzOffsetHours(d2);
+          assertTrue(o.hours === 2 && o.minutes === 0);
+        }
+      },
+
+      {
+        feature: 'jsx.date.tzOffsetHours(new Date(…), null)',
+        desc: "Return the correct value (works in CE[S]T only)",
+        code: function () {
+          var d = new Date(2013, 0, 1);
+          var d2 = new Date(2013, 3, 1);
+
+          var s = jsx.date.tzOffsetHours(d, null);
+          assertTrue(s === "+1");
+
+          var s = jsx.date.tzOffsetHours(d2, null);
+          assertTrue(s === "+2");
+        }
+      },
+
+      {
+        feature: 'jsx.date.tzOffsetHours(new Date(…), {…})',
+        desc: "Return the correct value (works in CE[S]T only)",
+        code: function () {
+          var d = new Date(2013, 0, 1);
+          var d2 = new Date(2013, 3, 1);
+
+          var options = {leadingZero: true};
+          assertTrue(jsx.date.tzOffsetHours(d, options) === "+01");
+          assertTrue(jsx.date.tzOffsetHours(d2, options) === "+02");
+
+          options = {zeroMinutes: true};
+          assertTrue(jsx.date.tzOffsetHours(d, options) === "+100");
+          assertTrue(jsx.date.tzOffsetHours(d2, options) === "+200");
+
+          options = {leadingZero: true, zeroMinutes: true};
+          assertTrue(jsx.date.tzOffsetHours(d, options) === "+0100");
+          assertTrue(jsx.date.tzOffsetHours(d2, options) === "+0200");
+
+          options = {zeroMinutes: true, delimiter: ":"};
+          assertTrue(jsx.date.tzOffsetHours(d, options) === "+1:00");
+          assertTrue(jsx.date.tzOffsetHours(d2, options) === "+2:00");
+
+          options = {leadingZero: true, zeroMinutes: true, delimiter: ":"};
+          assertTrue(jsx.date.tzOffsetHours(d, options) === "+01:00");
+          assertTrue(jsx.date.tzOffsetHours(d2, options) === "+02:00");
+        }
+      },
+
+      {
         feature: "new Date().format()",
         desc: "Missing <code><var>format</var></code>"
           + " throws <code>jsx.InvalidArgumentError</code>",
