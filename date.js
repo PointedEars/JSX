@@ -234,22 +234,26 @@ jsx.date = {
    *   </table>
    * @return {Object|string}
    */
-  tzOffsetHours: function (date, options) {
-    var tzOffset = date.getTimezoneOffset();
-    var hours = Math.floor(Math.abs(tzOffset) / 60);
-    var minutes = Math.floor(Math.abs(tzOffset) - (hours * 60));
+  tzOffsetHours: (function () {
+    var _leadingZero = jsx.string.leadingZero;
 
-    if (arguments.length < 2)
-    {
-      return {hours: hours, minutes: minutes};
+    return function (date, options) {
+      var tzOffset = date.getTimezoneOffset();
+      var hours = Math.floor(Math.abs(tzOffset) / 60);
+      var minutes = Math.floor(Math.abs(tzOffset) - (hours * 60));
+
+      if (arguments.length < 2)
+      {
+        return {hours: hours, minutes: minutes};
+      }
+
+      return (tzOffset < 0 ? "+" : "-")
+        + (options && options.leadingZero ? _leadingZero(hours, 2) : hours)
+        + (+minutes || options && options.zeroMinutes
+            ? (options && options.delimiter || "") + _leadingZero(minutes, 2)
+            : "");
     }
-
-    return (tzOffset < 0 ? "+" : "-")
-      + (options && options.leadingZero ? _leadingZero(hours, 2) : hours)
-      + (+minutes || options && options.zeroMinutes
-          ? (options && options.delimiter || "") + _leadingZero(minutes, 2)
-          : "");
-  },
+  })(),
 
   /**
    * Formats a date with letters as placeholders
