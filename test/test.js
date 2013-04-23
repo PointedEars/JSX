@@ -588,197 +588,190 @@ jsx.test = (function () {
       /**
        * Runs test cases
        *
-       * @function
+       * @param {Object} spec
+       *   Test specifaction.  Supported properties incude:
+       *   <table>
+       *    <thead>
+       *      <th>Property</th>
+       *      <th>Type</th>
+       *      <th>Meaning</th>
+       *    </thead>
+       *    <tbody>
+       *      <tr>
+       *        <th><code>file</code></th>
+       *        <td><code>String</code></td>
+       *        <td>Name of the file that contains the code
+       *            to be tested. The default is the empty string.
+       *            <em>NOTE: This is a purely descriptive value.
+       *            No resources will be accessed based on this
+       *            value.</em></td>
+       *      </tr>
+       *      <tr>
+       *        <th><code>feature</code></th>
+       *        <td><code>String</code></td>
+       *        <td>Code describing the feature that is tested.
+       *          The default is the empty string.</td>
+       *      </tr>
+       *      <tr>
+       *        <th><code>setUp</code></th>
+       *        <td><code>Function</code></td>
+       *        <td>Function that is called before each test case</td>
+       *      </tr>
+       *      <tr>
+       *        <th><code>tearDown</code></th>
+       *        <td><code>Function</code></td>
+       *        <td>Function that is called after each test case</td>
+       *      </tr>
+       *      <tr>
+       *        <th><code>tests</code></th>
+       *        <td><code>Array</code> of <code>Function</code>s or of
+       *            <code>Object</code>s with the following properties:
+       *            <table>
+       *              <thead>
+       *                <th>Property</th>
+       *                <th>Type</th>
+       *                <th>Meaning</th>
+       *              </thead>
+       *              <tbody>
+       *                <tr>
+       *                  <th><code>file</code></th>
+       *                  <td><code>String</code></td>
+       *                  <td>Name of the file that contains the code
+       *                      to be tested.  The default is the
+       *                      value of the specification's
+       *                      <code>file</code> property.
+       *                      <em>NOTE: This is a purely descriptive value.
+       *                      No resources will be accessed based on this
+       *                      value.</em></td></td>
+       *                </tr>
+       *                <tr>
+       *                  <th><code>feature</code></th>
+       *                  <td><code>String</code></td>
+       *                  <td>Code describing the feature that is tested.
+       *                    The default is the value of the specification's
+       *                    <code>feature</code> property.</td>
+       *                </tr>
+       *                <tr>
+       *                  <th><code>description</code> | <code>desc</code> | <code>name</code></th>
+       *                  <td><code>String</code></td>
+       *                  <td>Description/name of the test case.
+       *                      Use <code>description</code> or
+       *                      <code>desc</code> for newer
+       *                      test code.</td>
+       *                </tr>
+       *                <tr>
+       *                  <th><code>code</code></th>
+       *                  <td><code>Function</code></td>
+       *                  <td>Test case</td>
+       *                </tr>
+       *              </tbody>
+       *            </table></td>
+       *        <td>Test cases</td>
+       *      </tr>
+       *      <tr>
+       *        <th><code>updateDocument</code></th>
+       *        <td><code>boolean</code></td>
+       *        <td>If <code>false<code>, the (X)HTML document
+       *            containing or including the call is not updated, and
+       *            diagnostics are only written to the error console.
+       *            The default is <code>true</code>.  Set to
+       *            <code>false</code> automatically if there is
+       *            no <code>document.body</code> object.</td>
+       *      </tr>
+       *   </table>
        */
-      run: (function () {
-        var isNativeMethod = jsx.object.isNativeMethod;
+      run: function (spec) {
+        var hasSetUp = false;
+        var hasTearDown = false;
 
-        /**
-         * @param {Object} spec
-         *   Test specifaction.  Supported properties incude:
-         *   <table>
-         *    <thead>
-         *      <th>Property</th>
-         *      <th>Type</th>
-         *      <th>Meaning</th>
-         *    </thead>
-         *    <tbody>
-         *      <tr>
-         *        <th><code>file</code></th>
-         *        <td><code>String</code></td>
-         *        <td>Name of the file that contains the code
-         *            to be tested. The default is the empty string.
-         *            <em>NOTE: This is a purely descriptive value.
-         *            No resources will be accessed based on this
-         *            value.</em></td>
-         *      </tr>
-         *      <tr>
-         *        <th><code>feature</code></th>
-         *        <td><code>String</code></td>
-         *        <td>Code describing the feature that is tested.
-         *          The default is the empty string.</td>
-         *      </tr>
-         *      <tr>
-         *        <th><code>setUp</code></th>
-         *        <td><code>Function</code></td>
-         *        <td>Function that is called before each test case</td>
-         *      </tr>
-         *      <tr>
-         *        <th><code>tearDown</code></th>
-         *        <td><code>Function</code></td>
-         *        <td>Function that is called after each test case</td>
-         *      </tr>
-         *      <tr>
-         *        <th><code>tests</code></th>
-         *        <td><code>Array</code> of <code>Function</code>s or of
-         *            <code>Object</code>s with the following properties:
-         *            <table>
-         *              <thead>
-         *                <th>Property</th>
-         *                <th>Type</th>
-         *                <th>Meaning</th>
-         *              </thead>
-         *              <tbody>
-         *                <tr>
-         *                  <th><code>file</code></th>
-         *                  <td><code>String</code></td>
-         *                  <td>Name of the file that contains the code
-         *                      to be tested.  The default is the
-         *                      value of the specification's
-         *                      <code>file</code> property.
-         *                      <em>NOTE: This is a purely descriptive value.
-         *                      No resources will be accessed based on this
-         *                      value.</em></td></td>
-         *                </tr>
-         *                <tr>
-         *                  <th><code>feature</code></th>
-         *                  <td><code>String</code></td>
-         *                  <td>Code describing the feature that is tested.
-         *                    The default is the value of the specification's
-         *                    <code>feature</code> property.</td>
-         *                </tr>
-         *                <tr>
-         *                  <th><code>description</code> | <code>desc</code> | <code>name</code></th>
-         *                  <td><code>String</code></td>
-         *                  <td>Description/name of the test case.
-         *                      Use <code>description</code> or
-         *                      <code>desc</code> for newer
-         *                      test code.</td>
-         *                </tr>
-         *                <tr>
-         *                  <th><code>code</code></th>
-         *                  <td><code>Function</code></td>
-         *                  <td>Test case</td>
-         *                </tr>
-         *              </tbody>
-         *            </table></td>
-         *        <td>Test cases</td>
-         *      </tr>
-         *      <tr>
-         *        <th><code>updateDocument</code></th>
-         *        <td><code>boolean</code></td>
-         *        <td>If <code>false<code>, the (X)HTML document
-         *            containing or including the call is not updated, and
-         *            diagnostics are only written to the error console.
-         *            The default is <code>true</code>.  Set to
-         *            <code>false</code> automatically if there is
-         *            no <code>document.body</code> object.</td>
-         *      </tr>
-         *   </table>
-         */
-        return function (spec) {
-          var hasSetUp = false;
-          var hasTearDown = false;
+        if (spec)
+        {
+          this._file = jsx.object.getProperty(spec, 'file', "");
+          this._feature = jsx.object.getProperty(spec, 'feature', "");
 
-          if (spec)
+          hasSetUp = jsx.object.isNativeMethod(spec, 'setUp');
+          if (hasSetUp)
           {
-            this._file = jsx.object.getProperty(spec, 'file', "");
-            this._feature = jsx.object.getProperty(spec, 'feature', "");
-
-            hasSetUp = isNativeMethod(spec, 'setUp');
-            if (hasSetUp)
-            {
-              this._setUp = spec.setUp;
-            }
-
-            hasTearDown = isNativeMethod(spec, 'tearDown');
-            if (hasTearDown)
-            {
-              this._tearDown = spec.tearDown;
-            }
-
-            var tests = jsx.object.getProperty(spec, 'tests', null);
-            if (tests)
-            {
-              this.setTests(tests);
-            }
+            this._setUp = spec.setUp;
           }
 
-          if (this._tests.length == 0)
+          hasTearDown = jsx.object.isNativeMethod(spec, 'tearDown');
+          if (hasTearDown)
           {
-            return this._printMsg("No tests defined.", "info");
+            this._tearDown = spec.tearDown;
           }
 
-          var result = {
-            failed: 0,
-            passed: 0
-          };
-
-          this._appendTable();
-
-          for (var i = 0, len = this._tests.length; i < len; ++i)
+          var tests = jsx.object.getProperty(spec, 'tests', null);
+          if (tests)
           {
-            var test = this._tests[i];
-            var number = i + 1;
-            var file = this._file;
-            var feature = this._feature;
-            var description = "";
-
-            if (test && typeof test != "function")
-            {
-              if (test.file)
-              {
-                file = test.file;
-              }
-
-              if (test.feature)
-              {
-                feature = test.feature;
-              }
-
-              description = test.description || test.desc || test.name;
-              test = test.code;
-            }
-
-            if (hasSetUp)
-            {
-              this._setUp(i, test);
-            }
-
-            try
-            {
-              test(i);
-              ++result.passed;
-              this._printResult(number, file, feature, description,
-                  "passed", "info");
-            }
-            catch (e)
-            {
-              ++result.failed;
-              this._printResult(number, file, feature, description,
-                  "threw " + e + (e.stack ? "\n\n" + e.stack : ""),
-                  "error");
-            }
-
-            if (hasTearDown)
-            {
-              this._tearDown(i, test);
-            }
+            this.setTests(tests);
           }
+        }
 
-          this._printSummary(result);
+        if (this._tests.length == 0)
+        {
+          return this._printMsg("No tests defined.", "info");
+        }
+
+        var result = {
+          failed: 0,
+          passed: 0
         };
-      }()),
+
+        this._appendTable();
+
+        for (var i = 0, len = this._tests.length; i < len; ++i)
+        {
+          var test = this._tests[i];
+          var number = i + 1;
+          var file = this._file;
+          var feature = this._feature;
+          var description = "";
+
+          if (test && typeof test != "function")
+          {
+            if (test.file)
+            {
+              file = test.file;
+            }
+
+            if (test.feature)
+            {
+              feature = test.feature;
+            }
+
+            description = test.description || test.desc || test.name;
+            test = test.code;
+          }
+
+          if (hasSetUp)
+          {
+            this._setUp(i, test);
+          }
+
+          try
+          {
+            test(i);
+            ++result.passed;
+            this._printResult(number, file, feature, description,
+                "passed", "info");
+          }
+          catch (e)
+          {
+            ++result.failed;
+            this._printResult(number, file, feature, description,
+                "threw " + e + (e.stack ? "\n\n" + e.stack : ""),
+                "error");
+          }
+
+          if (hasTearDown)
+          {
+            this._tearDown(i, test);
+          }
+        }
+
+        this._printSummary(result);
+      },
 
       runAsync: function () {
         var args = arguments;
