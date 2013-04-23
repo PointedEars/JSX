@@ -686,22 +686,22 @@ jsx.test = (function () {
 
         if (spec)
         {
-          this._file = jsx.object.getProperty(spec, 'file', "");
-          this._feature = jsx.object.getProperty(spec, 'feature', "");
+          this._file = jsx.object.getProperty(spec, "file", "");
+          this._feature = jsx.object.getProperty(spec, "feature", "");
 
-          hasSetUp = jsx.object.isNativeMethod(spec, 'setUp');
+          hasSetUp = (typeof spec.setUp == "function");
           if (hasSetUp)
           {
             this._setUp = spec.setUp;
           }
 
-          hasTearDown = jsx.object.isNativeMethod(spec, 'tearDown');
+          hasTearDown = (typeof spec.tearDown == "function");
           if (hasTearDown)
           {
             this._tearDown = spec.tearDown;
           }
 
-          var tests = jsx.object.getProperty(spec, 'tests', null);
+          var tests = spec.tests || null;
           if (tests)
           {
             this.setTests(tests);
@@ -800,7 +800,7 @@ jsx.test = (function () {
       },
 
       setSetUp: function (f) {
-        if (!jsx.object.isNativeMethod(f))
+        if (typeof f != "function")
         {
           jsx.throwThis("jsx.InvalidArgumentError",
             ["", typeof f, "function"], "jsx.test.runner.setSetUp");
@@ -811,7 +811,7 @@ jsx.test = (function () {
       },
 
       setTearDown: function (f) {
-        if (!jsx.object.isNativeMethod(f))
+        if (typeof f != "function")
         {
           jsx.throwThis("jsx.InvalidArgumentError", ["", typeof f, "function"]);
         }
