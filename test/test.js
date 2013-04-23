@@ -379,21 +379,26 @@ jsx.test = (function () {
             style.type = "text/css";
             style.appendChild(
               document.createTextNode(
-                  context + " { border: 2px solid black; border-collapse: collapse; }"
+                  context + " { border: 2px solid black;"
+                            + " border-collapse: collapse; }"
                 + context + " thead { border-bottom: 1px solid black; }"
                 + context + " thead th { vertical-align: baseline; }"
                 + context + " tfoot { border-top: 1px solid black; }"
                 + context + " thead th { text-align: left; }"
                 + context + " thead th:first-child { text-align: right; }"
                 + context + " tbody th { text-align: right; }"
-                + context + " tbody td.info { background-color: green; color: white; }"
-                + context + " tbody td.error { background-color: red; color: white; font-family: monospace; }"
+                + context + " tbody td.info {"
+                            + " background-color: green; color: white; }"
+                + context + " tbody td.error {"
+                            + " background-color: red;"
+                            + " color: white; font-family: monospace; }"
                 + context + " thead th,"
                 + context + " tbody th,"
                 + context + " tbody td,"
-                + context + " tfoot td { padding: 0 0.5em;"
-                                     + " vertical-align: top;"
-                                     + " vertical-align: baseline; }"
+                + context + " tfoot td {"
+                            + " padding: 0 0.5em;"
+                            + " vertical-align: top;"
+                            + " vertical-align: baseline; }"
               ));
             document.getElementsByTagName("head")[0].appendChild(style);
 
@@ -586,98 +591,100 @@ jsx.test = (function () {
       },
 
       /**
-       * Runs test cases
+       * Runs test cases.
        *
        * @param {Object} spec
        *   Test specifaction.  Supported properties incude:
        *   <table>
-       *    <thead>
-       *      <th>Property</th>
-       *      <th>Type</th>
-       *      <th>Meaning</th>
-       *    </thead>
-       *    <tbody>
-       *      <tr>
-       *        <th><code>file</code></th>
-       *        <td><code>String</code></td>
-       *        <td>Name of the file that contains the code
-       *            to be tested. The default is the empty string.
-       *            <em>NOTE: This is a purely descriptive value.
-       *            No resources will be accessed based on this
-       *            value.</em></td>
-       *      </tr>
-       *      <tr>
-       *        <th><code>feature</code></th>
-       *        <td><code>String</code></td>
-       *        <td>Code describing the feature that is tested.
-       *          The default is the empty string.</td>
-       *      </tr>
-       *      <tr>
-       *        <th><code>setUp</code></th>
-       *        <td><code>Function</code></td>
-       *        <td>Function that is called before each test case</td>
-       *      </tr>
-       *      <tr>
-       *        <th><code>tearDown</code></th>
-       *        <td><code>Function</code></td>
-       *        <td>Function that is called after each test case</td>
-       *      </tr>
-       *      <tr>
-       *        <th><code>tests</code></th>
-       *        <td><code>Array</code> of <code>Function</code>s or of
-       *            <code>Object</code>s with the following properties:
-       *            <table>
-       *              <thead>
-       *                <th>Property</th>
-       *                <th>Type</th>
-       *                <th>Meaning</th>
-       *              </thead>
-       *              <tbody>
-       *                <tr>
-       *                  <th><code>file</code></th>
-       *                  <td><code>String</code></td>
-       *                  <td>Name of the file that contains the code
-       *                      to be tested.  The default is the
-       *                      value of the specification's
-       *                      <code>file</code> property.
-       *                      <em>NOTE: This is a purely descriptive value.
-       *                      No resources will be accessed based on this
+       *     <thead>
+       *       <th>Property</th>
+       *       <th>Type</th>
+       *       <th>Meaning</th>
+       *     </thead>
+       *     <tbody>
+       *       <tr>
+       *         <th><code>file</code></th>
+       *         <td><code>String</code></td>
+       *         <td>Name of the file that contains the code
+       *             to be tested. The default is the empty string.
+       *             <em>NOTE: This is a purely descriptive value.
+       *             No resources will be accessed based on this
+       *             value.</em></td>
+       *       </tr>
+       *       <tr>
+       *         <th><code>feature</code></th>
+       *         <td><code>String</code></td>
+       *         <td>Code describing the feature that is tested.
+       *           The default is the empty string.</td>
+       *       </tr>
+       *       <tr>
+       *         <th><code>setUp</code></th>
+       *         <td><code>Function</code></td>
+       *         <td>Function that is called before each test case</td>
+       *       </tr>
+       *       <tr>
+       *         <th><code>tearDown</code></th>
+       *         <td><code>Function</code></td>
+       *         <td>Function that is called after each test case</td>
+       *       </tr>
+       *       <tr>
+       *         <th><code>tests</code></th>
+       *         <td><code>Array</code> of <code>Function</code>s or of
+       *             <code>Object</code>s with the following properties:
+       *             <table>
+       *               <thead>
+       *                 <th>Property</th>
+       *                 <th>Type</th>
+       *                 <th>Meaning</th>
+       *               </thead>
+       *               <tbody>
+       *                 <tr>
+       *                   <th><code>file</code></th>
+       *                   <td><code>String</code></td>
+       *                   <td>Name of the file that contains the code
+       *                       to be tested.  The default is the
+       *                       value of the specification's
+       *                       <code>file</code> property.
+       *                       <em>NOTE: This is a purely descriptive value.
+       *                       No resources will be accessed based on this
        *                      value.</em></td></td>
-       *                </tr>
-       *                <tr>
-       *                  <th><code>feature</code></th>
-       *                  <td><code>String</code></td>
-       *                  <td>Code describing the feature that is tested.
-       *                    The default is the value of the specification's
-       *                    <code>feature</code> property.</td>
-       *                </tr>
-       *                <tr>
-       *                  <th><code>description</code> | <code>desc</code> | <code>name</code></th>
-       *                  <td><code>String</code></td>
-       *                  <td>Description/name of the test case.
-       *                      Use <code>description</code> or
-       *                      <code>desc</code> for newer
-       *                      test code.</td>
-       *                </tr>
-       *                <tr>
-       *                  <th><code>code</code></th>
-       *                  <td><code>Function</code></td>
-       *                  <td>Test case</td>
-       *                </tr>
-       *              </tbody>
-       *            </table></td>
-       *        <td>Test cases</td>
-       *      </tr>
-       *      <tr>
-       *        <th><code>updateDocument</code></th>
-       *        <td><code>boolean</code></td>
-       *        <td>If <code>false<code>, the (X)HTML document
-       *            containing or including the call is not updated, and
-       *            diagnostics are only written to the error console.
-       *            The default is <code>true</code>.  Set to
-       *            <code>false</code> automatically if there is
-       *            no <code>document.body</code> object.</td>
-       *      </tr>
+       *                 </tr>
+       *                 <tr>
+       *                   <th><code>feature</code></th>
+       *                   <td><code>String</code></td>
+       *                   <td>Code describing the feature that is tested.
+       *                     The default is the value of the specification's
+       *                     <code>feature</code> property.</td>
+       *                 </tr>
+       *                 <tr>
+       *                   <th><code>description</code> | <code>desc</code>
+       *                       | <code>name</code></th>
+       *                   <td><code>String</code></td>
+       *                   <td>Description/name of the test case.
+       *                       Use <code>description</code> or
+       *                       <code>desc</code> for newer
+       *                       test code.</td>
+       *                 </tr>
+       *                 <tr>
+       *                   <th><code>code</code></th>
+       *                   <td><code>Function</code></td>
+       *                   <td>Test case</td>
+       *                 </tr>
+       *               </tbody>
+       *             </table></td>
+       *         <td>Test cases</td>
+       *       </tr>
+       *       <tr>
+       *         <th><code>updateDocument</code></th>
+       *         <td><code>boolean</code></td>
+       *         <td>If <code>false</code>, the (X)HTML document
+       *             containing or including the call is not updated, and
+       *             diagnostics are only written to the error console.
+       *             The default is <code>true</code>.  Set to
+       *             <code>false</code> automatically if there is
+       *             no <code>document.body</code> object.</td>
+       *       </tr>
+       *     </tbody>
        *   </table>
        */
       run: function (spec) {
