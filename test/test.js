@@ -30,16 +30,51 @@ if (typeof jsx == "undefined")
 
 if (typeof jsx.test == "undefined")
 {
+  /**
+   * @namespace
+   */
   jsx.test = {};
 }
 
-jsx.test.version = "$Revision$";
+jsx.test = (function () {
+  /**
+   * @Number of assertions made
+   * @private
+   */
+  var _assertCount = 0;
+
+  return {
+    /**
+     * @version
+     * @memberOf jsx.test
+     */
+    version: "$Revision$",
+
+    /**
+     * Increases the assertion count
+     *
+     * @return {Number} The new assertion count
+     */
+    increaseAssertCount: function () {
+      return ++_assertCount;
+    },
+
+    /**
+     * Resets the assertion count
+     *
+     * @return {Number} <code>0</code>
+     */
+    resetAssertCount: function () {
+      return (_assertCount = 0);
+    }
+  };
+}());
 
 /**
  * @param {string} s
  */
-jsx.test.AssertionError = function (s) {
-  var _super = arguments.callee._super;
+jsx.test.AssertionError = function jsx_test_AssertionError (s) {
+  var _super = jsx_test_AssertionError._super;
   if (_super)
   {
     _super.call(this);
@@ -48,7 +83,7 @@ jsx.test.AssertionError = function (s) {
   this.message = "Assertion failed: " + s;
 };
 
-jsx.test.AssertionError.extend((typeof Error != "undefined") ? Error : null, {
+jsx.test.AssertionError.extend(jsx.Error, {
   name: "jsx.test.AssertionError"
 });
 
@@ -72,6 +107,8 @@ jsx.test.AssertionError.extend((typeof Error != "undefined") ? Error : null, {
  * @see Global#eval(String)
  */
 jsx.test.assert = function (x) {
+  jsx.test.increaseAssertCount();
+
   var origX = x;
   if (typeof x == "string")
   {
@@ -111,6 +148,8 @@ jsx.test.assert = function (x) {
  * @see Global#eval(String)
  */
 jsx.test.assertTrue = function (x) {
+  jsx.test.increaseAssertCount();
+
   var origX = x;
   if (typeof x == "string")
   {
@@ -157,6 +196,8 @@ jsx.test.assertTrue = function (x) {
  * @see Global#eval(String)
  */
 jsx.test.assertFalse = function (x, bThrow, sContext) {
+  jsx.test.increaseAssertCount();
+
   var origX = x;
   if (typeof x == "string")
   {
@@ -211,6 +252,8 @@ jsx.test.assertFalse = function (x, bThrow, sContext) {
  * @see Global#eval(String)
  */
 jsx.test.assertUndefined = function (x, bThrow, sContext) {
+  jsx.test.increaseAssertCount();
+
   var origX = x;
   if (typeof x == "string")
   {
@@ -262,6 +305,8 @@ jsx.test.assertUndefined = function (x, bThrow, sContext) {
  * @see Global#eval()
  */
 jsx.test.assertArrayEquals = function (expecteds, actuals) {
+  jsx.test.increaseAssertCount();
+
   if (typeof expecteds == "string")
   {
     expecteds = eval(expecteds);
