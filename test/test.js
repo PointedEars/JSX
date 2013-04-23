@@ -701,7 +701,7 @@ jsx.test = (function () {
             this._tearDown = spec.tearDown;
           }
 
-          var tests = spec.tests || null;
+          var tests = spec.tests;
           if (tests)
           {
             this.setTests(tests);
