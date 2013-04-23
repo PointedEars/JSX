@@ -44,6 +44,11 @@ jsx.test = (function () {
    */
   var _assertCount = 0;
 
+  function _increaseAssertCount ()
+  {
+    return ++_assertCount;
+  }
+
   return {
     /**
      * @version
@@ -56,9 +61,7 @@ jsx.test = (function () {
      *
      * @return {Number} The new assertion count
      */
-    increaseAssertCount: function () {
-      return ++_assertCount;
-    },
+    increaseAssertCount: _increaseAssertCount,
 
     /**
      * Resets the assertion count
@@ -108,7 +111,7 @@ jsx.test = (function () {
      * @see Global#eval(String)
      */
     assert: function (x) {
-      jsx.test.increaseAssertCount();
+      _increaseAssertCount();
 
       var origX = x;
       if (typeof x == "string")
@@ -149,7 +152,7 @@ jsx.test = (function () {
      * @see Global#eval(String)
      */
     assertTrue: function (x) {
-      jsx.test.increaseAssertCount();
+      _increaseAssertCount();
 
       var origX = x;
       if (typeof x == "string")
@@ -197,7 +200,7 @@ jsx.test = (function () {
      * @see Global#eval(String)
      */
     assertFalse: function (x, bThrow, sContext) {
-      jsx.test.increaseAssertCount();
+      _increaseAssertCount();
 
       var origX = x;
       if (typeof x == "string")
@@ -253,7 +256,7 @@ jsx.test = (function () {
      * @see Global#eval(String)
      */
     assertUndefined: function (x, bThrow, sContext) {
-      jsx.test.increaseAssertCount();
+      _increaseAssertCount();
 
       var origX = x;
       if (typeof x == "string")
@@ -306,7 +309,7 @@ jsx.test = (function () {
      * @see Global#eval()
      */
     assertArrayEquals: function (expecteds, actuals) {
-      jsx.test.increaseAssertCount();
+      _increaseAssertCount();
 
       if (typeof expecteds == "string")
       {
