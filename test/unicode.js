@@ -156,17 +156,20 @@ function runTests()
         feature: 'new jsx.string.unicode.WideString("…").indexOf(…)',
         description: 'Return the correct value',
         code: function () {
-          assert(new WideString("x\uD834\uDD1E").indexOf(
+          assert(new WideString("x\uD834\uDD1Ez").indexOf(
             new WideString("\uDD1E")) === -1);
-          assert(new WideString("x\uD834\uDD1E\uD834\uDD1E").indexOf(
-            new WideString("\uD834\uDD1E")) === 1);
+          assert(new WideString("x\uD834\uDD1Ez").indexOf(
+            new WideString("\uD834\uDD1Ey")) === -1);
+          assert(new WideString("x\uD834\uDD1Ey\uD834\uDD1E").indexOf(
+            new WideString("\uD834\uDD1Ey")) === 1);
           assert(new WideString("\uD834\uDD1EA\uD834\uDD1EA").indexOf(
             new WideString("A")) === 1);
           assert(new WideString("\uD834\uDD1EA\uD834\uDD1EA").indexOf(
             new WideString("A"), 2) === 3);
 
-          assert(new WideString("x\uD834\uDD1E").indexOf("\uDD1E") === -1);
-          assert(new WideString("x\uD834\uDD1Ex\uD834\uDD1E").indexOf("\uD834\uDD1E") === 1);
+          assert(new WideString("x\uD834\uDD1Ez").indexOf("\uDD1E") === -1);
+          assert(new WideString("x\uD834\uDD1Ez").indexOf("\uD834\uDD1Ey") === -1);
+          assert(new WideString("x\uD834\uDD1Ey\uD834\uDD1Ey").indexOf("\uD834\uDD1Ey") === 1);
           assert(new WideString("\uD834\uDD1EA\uD834\uDD1EA").indexOf("A") === 1);
           assert(new WideString("\uD834\uDD1EA\uD834\uDD1EA").indexOf("A", 2) === 3);
         }
