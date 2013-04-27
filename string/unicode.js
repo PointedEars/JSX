@@ -271,11 +271,13 @@ jsx.string.unicode = (/** @constructor */ function () {
         ? needle.getChars()
         : _toCharArray(needle);
       var needleLen = needleChars.length;
-      var needleString = String(needleChars);
+      var needleString = needleChars.join("");
       var chars = this.getChars();
-      for (var i = position || 0, len = chars.length - needleLen + 1; i < len; ++i)
+      for (var i = position || 0,
+                len = chars.length - needleLen + 1;
+           i < len; ++i)
       {
-        if (chars.slice(i, i + needleLen).join("") === needleString)
+        if (chars.slice(i, i + needleLen).join("") == needleString)
         {
           return i;
         }
@@ -297,14 +299,14 @@ jsx.string.unicode = (/** @constructor */ function () {
      */
     lastIndexOf: function (needle, position) {
       var needleChars = needle instanceof this.constructor
-      ? needle.getChars()
+        ? needle.getChars()
         : _toCharArray(needle);
       var needleLen = needleChars.length;
-      var needleString = String(needleChars);
+      var needleString = needleChars.join("");
       var chars = this.getChars();
       for (var i = (position || (chars.length - needleLen)) + 1; i--;)
       {
-        if (chars.slice(i, i + needleLen).join("") === needleString)
+        if (chars.slice(i, i + needleLen).join("") == needleString)
         {
           return i;
         }
