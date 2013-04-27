@@ -213,9 +213,11 @@ if (jsx.options.emulate)
 jsx.object = {};
 
 /**
+ * @type jsx.object
+ * @memberOf __jsx.object
  * @namespace
  */
-jsx.object = (function () {
+jsx.object = (/** @constructor */ function () {
   var
     rxUnknown = /^\s*unknown\s*$/i,
     rxNativeMethod = /^\s*function\s*$/i,
@@ -579,18 +581,21 @@ jsx.object = (function () {
     isMethod: _isMethod,
 
     /**
+     * @function
      * @see #isMethod()
      * @return {boolean}
      */
     areMethods: _isMethod,
 
     /**
+     * @function
      * @see #isMethod()
      * @return {boolean}
      */
     isHostMethod: _isMethod,
 
     /**
+     * @function
      * @see #isMethod()
      * @return {boolean}
      */
@@ -634,6 +639,7 @@ jsx.object = (function () {
     isNativeMethod: _isNativeMethod,
 
     /**
+     * @function
      * @see #isNativeMethod()
      * @return {boolean}
      */
@@ -671,6 +677,8 @@ jsx.object = (function () {
 
     /**
      * Determines if an object has a (non-inherited) property
+     *
+     * @function
      * @param {Object} obj (optional)
      *   Object which property should be checked for existence.
      * @param {string} sProperty
@@ -690,6 +698,7 @@ jsx.object = (function () {
      * <p>An value "is an object" if it is a function or
      * <code>typeof "object"</code> but not <code>null</code>.
      *
+     * @function
      * @return {boolean}
      */
     isObject: _isObject,
@@ -697,6 +706,7 @@ jsx.object = (function () {
     /**
      * Returns the own enumerable properties of an object
      *
+     * @function
      * @param {Object} obj
      *   Object from which to get the keys
      * @return {Array}
@@ -750,6 +760,7 @@ jsx.object = (function () {
     getClass: _getClass,
 
     /**
+     * @function
      * @param a
      *   Potential <code>Array</code>
      * @return {boolean}
@@ -764,9 +775,9 @@ jsx.object = (function () {
      *   Object to be cloned.  If omitted or <code>null</code>,
      *   the calling object is cloned.
      * @param {Number} iLevel (optional)
-     *   Use the {@link Object#COPY_ENUM Object.COPY_*}
+     *   Use the {@link #COPY_ENUM jsx.object.COPY_*}
      *   properties to specify the level of cloning.
-     *   The default is {@link Object#COPY_ENUM Object.COPY_ENUM}.
+     *   The default is {@link #COPY_ENUM}.
      * @return {Object}
      *   A reference to the clone.
      */
@@ -783,8 +794,8 @@ jsx.object = (function () {
      *   property of the target object, its value as the value
      *   of that property.
      * @param {Number} iFlags = 0
-     *   Flags for the modification, see {@link Object#ADD_OVERWRITE
-     *   ADD_*} and {@link Object#COPY_ENUM COPY_*}.
+     *   Flags for the modification, see {@link #ADD_OVERWRITE
+     *   jsx.object.ADD_*} and {@link #COPY_ENUM jsx.object.COPY_*}.
      */
     setProperties: function (oTarget, oSource, iFlags) {
       if (typeof iFlags == "undefined")
@@ -809,7 +820,208 @@ jsx.object = (function () {
           });
         }
       }
-    }
+    },
+
+    /**
+     * Defines a property of an object.
+     *
+     * Emulation of the Object.defineProperty() method from ES 5.1,
+     * section 15.2.3.6.
+     *
+     * Uses {@link Object.prototype#__defineGetter__} and
+     * {@link Object.prototype#__defineSetter__} (JavaScript only) as fallback.
+     *
+     * @function
+     * @return {Object} Reference to the object
+     */
+    defineProperty: (function () {
+      function _toPropertyDescriptor (obj)
+      {
+        if (!_isObject(obj))
+        {
+          jsx.throwThis("TypeError", "Object expected");
+        }
+
+        var desc = {};
+
+        if (_hasOwnProperty(obj, "enumerable"))
+        {
+          desc.enumerable = !!obj.enumerable;
+        }
+
+        if (_hasOwnProperty(obj, "configurable"))
+        {
+          desc.configurable = !!obj.configurable;
+        }
+
+        var hasValue = obj.hasOwnProperty("value");
+        if (hasValue)
+        {
+          desc.value = obj.value;
+        }
+
+        var hasWritable = _hasOwnProperty(obj, "writable");
+        if (hasWritable)
+        {
+          desc.writable = !!obj.writable;
+        }
+
+        var hasGetter = _hasOwnProperty(obj, "get");
+        if (hasGetter)
+        {
+          if (typeof obj.get != "function")
+          {
+            return jsx.throwThis("TypeError", "Function expected for getter");
+          }
+
+          desc.get = obj.get;
+        }
+
+        var hasSetter = _hasOwnProperty(obj, "set");
+        if (hasSetter)
+        {
+          if (typeof obj.set != "function")
+          {
+            return jsx.throwThis("TypeError", "Function expected for setter");
+          }
+
+          desc.set = obj.set;
+        }
+
+        if ((hasGetter || hasSetter) && (hasValue || hasWritable))
+        {
+          return jsx.throwThis("TypeError", "Cannot define getter/setter and value/writable");
+        }
+
+        return desc;
+      }
+
+      function _defineOwnProperty (obj, propertyName, descriptor, _throw, context)
+      {
+        function _isAccessorDescriptor (desc)
+        {
+          if (typeof desc == "undefined")
+          {
+            return false;
+          }
+
+          return _hasOwnProperty(desc, "get") || _hasOwnProperty(desc, "set");
+        }
+
+        function _isDataDescriptor (desc)
+        {
+          if (typeof desc == "undefined")
+          {
+            return false;
+          }
+
+          return desc.hasOwnProperty("value") || _hasOwnProperty(desc, "writable");
+        }
+
+        function _isGenericDescriptor (desc)
+        {
+          if (typeof desc == "undefined")
+          {
+            return false;
+          }
+
+          return !_isAccessorDescriptor(desc) && !_isDataDescriptor(desc);
+        }
+
+//        var current = obj.hasOwnProperty(propertyName);
+//        var extensible = obj[propertyName].[[Extensible]]
+
+        if (_isGenericDescriptor(descriptor) || _isDataDescriptor(descriptor))
+        {
+          var value = descriptor.value;
+          obj[propertyName] = value;
+
+          if (!descriptor.writable)
+          {
+            jsx.tryThis(
+              function () {
+                /* NOTE: Need getter because __defineSetter__() undefines value */
+                obj.__defineGetter__(propertyName, function () {
+                  return value;
+                });
+
+                obj.__defineSetter__(propertyName, function () {});
+              },
+              function () {
+                obj[propertyName] = value;
+
+                jsx.warn((sContext ? sContext + ": " : "")
+                  + "Could not define property `" + propertyName
+                  + "' as read-only");
+              });
+          }
+        }
+        else
+        {
+          /* accessor property descriptor */
+          jsx.tryThis(
+            function () {
+              if (descriptor["get"])
+              {
+                obj.__defineGetter__(propertyName, descriptor["get"]);
+              }
+
+              if (descriptor["set"])
+              {
+                obj.__defineSetter__(propertyName, descriptor["set"]);
+              }
+            },
+            function () {
+              jsx.warn((sContext ? sContext + ": " : "")
+                + "Could not define special property `" + propertyName + "'."
+                + " Please use explicit getters and setters instead.");
+            });
+        }
+
+        return false;
+      }
+
+      /**
+       * @param {Object} o
+       * @param {Object} descriptor (optional)
+       *   Property descriptor, a reference to an object that defines
+       *   the attributes of the property.   Must be of the form
+       * <code><pre>{
+       *   propertyName: {
+       *     configurable: …,
+       *     enumerable: …,
+       *     value: …,
+       *     writable: …,
+       *     get: function () {…},
+       *     set: function (newValue) {…}
+       *   },
+       *   …
+       * }
+       *   </pre></code> as specified in the ECMAScript Language Specification,
+       *   Edition 5 Final, section 15.2.3.7.  Note that the
+       *   <code>[[Configurable]]</code> and <code>[[Enumerable]]</code>
+       *   attributes cannot be emulated.  The [[Writable]] attribute,
+       *   and getter and setter can only be emulated if the
+       *   <code>__defineGetter__()</code> and <code>__defineSetter__()</code>
+       *   methods are available, respectively.
+       * @param {string} sContext (optional)
+       *   The context in which the property definition was attempted.
+       *   Included in the info message in case getters and setters
+       *   could not be defined.
+       */
+      return function (o, propertyName, descriptor, sContext) {
+        if (!/^(object|function)$/.test(typeof o) || !o)
+        {
+          return jsx.throwThis("TypeError", "Object expected");
+        }
+
+        var name = String(propertyName);
+        var desc = _toPropertyDescriptor(descriptor);
+        _defineOwnProperty(o, name, desc, true, sContext);
+
+        return o;
+      };
+    }())
   };
 }());
 
@@ -920,210 +1132,6 @@ jsx.warn = function (sMsg) {
 jsx.error = function (sMsg) {
   return jsx.dmsg(sMsg, jsx.MSG_ERROR);
 };
-
-/**
- * Defines a property of an object.
- *
- * Emulation of the Object.defineProperty() method from ES 5.1,
- * section 15.2.3.6.
- *
- * Uses {@link Object.prototype#__defineGetter__} and
- * {@link Object.prototype#__defineSetter__} (JavaScript only) as fallback.
- *
- * @function
- * @return {Object} Reference to the object
- */
-jsx.object.defineProperty = (function () {
-  var _hasOwnProperty = jsx.object._hasOwnProperty;
-  var _isObject = jsx.object.isObject;
-
-  function _toPropertyDescriptor (obj)
-  {
-    if (!_isObject(obj))
-    {
-      jsx.throwThis("TypeError", "Object expected");
-    }
-
-    var desc = new Object();
-
-    if (_hasOwnProperty(obj, "enumerable"))
-    {
-      desc.enumerable = !!obj.enumerable;
-    }
-
-    if (_hasOwnProperty(obj, "configurable"))
-    {
-      desc.configurable = !!obj.configurable;
-    }
-
-    var hasValue = obj.hasOwnProperty("value");
-    if (hasValue)
-    {
-      desc.value = obj.value;
-    }
-
-    var hasWritable = _hasOwnProperty(obj, "writable");
-    if (hasWritable)
-    {
-      desc.writable = !!obj.writable;
-    }
-
-    var hasGetter = _hasOwnProperty(obj, "get");
-    if (hasGetter)
-    {
-      if (typeof obj.get != "function")
-      {
-        return jsx.throwThis("TypeError", "Function expected for getter");
-      }
-
-      desc.get = obj.get;
-    }
-
-    var hasSetter = _hasOwnProperty(obj, "set");
-    if (hasSetter)
-    {
-      if (typeof obj.set != "function")
-      {
-        return jsx.throwThis("TypeError", "Function expected for setter");
-      }
-
-      desc.set = obj.set;
-    }
-
-    if ((hasGetter || hasSetter) && (hasValue || hasWritable))
-    {
-      return jsx.throwThis("TypeError", "Cannot define getter/setter and value/writable");
-    }
-
-    return desc;
-  }
-
-  function _defineOwnProperty (obj, propertyName, descriptor, _throw, context)
-  {
-    function _isAccessorDescriptor (desc)
-    {
-      if (typeof desc == "undefined")
-      {
-        return false;
-      }
-
-      return _hasOwnProperty(desc, "get") || _hasOwnProperty(desc, "set");
-    }
-
-    function _isDataDescriptor (desc)
-    {
-      if (typeof desc == "undefined")
-      {
-        return false;
-      }
-
-      return desc.hasOwnProperty("value") || _hasOwnProperty(desc, "writable");
-    }
-
-    function _isGenericDescriptor (desc)
-    {
-      if (typeof desc == "undefined")
-      {
-        return false;
-      }
-
-      return !_isAccessorDescriptor(desc) && !_isDataDescriptor(desc);
-    }
-
-//    var current = obj.hasOwnProperty(propertyName);
-//    var extensible = obj[propertyName].[[Extensible]]
-
-    if (_isGenericDescriptor(descriptor) || _isDataDescriptor(descriptor))
-    {
-      var value = descriptor.value;
-      obj[propertyName] = value;
-
-      if (!descriptor.writable)
-      {
-        jsx.tryThis(
-          function () {
-            /* NOTE: Need getter because __defineSetter__() undefines value */
-            obj.__defineGetter__(propertyName, function () {
-              return value;
-            });
-
-            obj.__defineSetter__(propertyName, function () {});
-          },
-          function () {
-            obj[propertyName] = value;
-
-            jsx.warn((sContext ? sContext + ": " : "")
-              + "Could not define property `" + propertyName
-              + "' as read-only");
-          });
-      }
-    }
-    else
-    {
-      /* accessor property descriptor */
-      jsx.tryThis(
-        function () {
-          if (descriptor["get"])
-          {
-            obj.__defineGetter__(propertyName, descriptor["get"]);
-          }
-
-          if (descriptor["set"])
-          {
-            obj.__defineSetter__(propertyName, descriptor["set"]);
-          }
-        },
-        function () {
-          jsx.info((sContext ? sContext + ": " : "")
-            + "Could not define special property `" + propertyName + "'."
-            + " Please use explicit getters and setters instead.");
-        });
-    }
-
-    return false;
-  }
-
-  /**
-   * @param {Object} o
-   * @param {Object} descriptor (optional)
-   *   Property descriptor, a reference to an object that defines
-   *   the attributes of the property.   Must be of the form
-   * <code><pre>{
-   *   propertyName: {
-   *     configurable: …,
-   *     enumerable: …,
-   *     value: …,
-   *     writable: …,
-   *     get: function () {…},
-   *     set: function (newValue) {…}
-   *   },
-   *   …
-   * }
-   *   </pre></code> as specified in the ECMAScript Language Specification,
-   *   Edition 5 Final, section 15.2.3.7.  Note that the
-   *   <code>[[Configurable]]</code> and <code>[[Enumerable]]</code>
-   *   attributes cannot be emulated.  The [[Writable]] attribute,
-   *   and getter and setter can only be emulated if the
-   *   <code>__defineGetter__()</code> and <code>__defineSetter__()</code>
-   *   methods are available, respectively.
-   * @param {string} sContext (optional)
-   *   The context in which the property definition was attempted.
-   *   Included in the info message in case getters and setters
-   *   could not be defined.
-   */
-  return function (o, propertyName, descriptor, sContext) {
-    if (!/^(object|function)$/.test(typeof o) || !o)
-    {
-      return jsx.throwThis("TypeError", "Object expected");
-    }
-
-    var name = String(propertyName);
-    var desc = _toPropertyDescriptor(descriptor);
-    _defineOwnProperty(o, name, desc, true, sContext);
-
-    return o;
-  };
-}());
 
 /**
  * Defines properties of an object, if possible.
