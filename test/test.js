@@ -40,6 +40,9 @@ if (typeof jsx.test == "undefined")
  * @namespace
  */
 jsx.test = (/** @constructor */ function () {
+  var _isArray = jsx.object.isArray;
+  var _throwThis = jsx.throwThis;
+
   /**
    * @Number of assertions made
    * @private
@@ -50,6 +53,21 @@ jsx.test = (/** @constructor */ function () {
   {
     return ++_assertCount;
   }
+
+  var _AssertionError = (function jsx_test_AssertionError (s) {
+    var _super = jsx_test_AssertionError._super;
+    if (_super)
+    {
+      _super.call(this);
+    }
+
+    this.message = "Assertion failed: " + s;
+  }).extend(jsx.Error, {
+    /**
+     * @memberOf jsx.test.AssertionError#prototype
+     */
+    name: "jsx.test.AssertionError"
+  });
 
   return {
     /**
@@ -78,20 +96,7 @@ jsx.test = (/** @constructor */ function () {
      * @param {string} s
      * @function
      */
-    AssertionError: (function jsx_test_AssertionError (s) {
-      var _super = jsx_test_AssertionError._super;
-      if (_super)
-      {
-        _super.call(this);
-      }
-
-      this.message = "Assertion failed: " + s;
-    }).extend(jsx.Error, {
-      /**
-       * @memberOf jsx.test.AssertionError#prototype
-       */
-      name: "jsx.test.AssertionError"
-    }),
+    AssertionError: _AssertionError,
 
     /**
      * Asserts that a condition converts to true.  If it does not, it throws
@@ -123,12 +128,8 @@ jsx.test = (/** @constructor */ function () {
 
       if (!x)
       {
-        (
-          function () {
-            jsx.throwThis(jsx.test.AssertionError,
-              '"assert("' + (typeof origX == "string" ? origX : "...") + '");"');
-          }
-        )();
+        return _throwThis(jsx.test.AssertionError,
+          '"assert("' + (typeof origX == "string" ? origX : "...") + '");"');
       }
 
       return !!x;
@@ -164,12 +165,8 @@ jsx.test = (/** @constructor */ function () {
 
       if (typeof x != "boolean" || !x)
       {
-        (
-          function () {
-            eval('throw new jsx.test.AssertionError('
-                 + '"assertTrue(" + (typeof origX == "string" ? origX : "...") + ");");');
-          }
-        )();
+        return _throwThis(_AssertionError,
+          "assertTrue(" + (typeof origX == "string" ? origX : "...") + ");");
       }
 
       return !!x;
@@ -214,18 +211,12 @@ jsx.test = (/** @constructor */ function () {
       {
         if (typeof bThrow == "undefined" || bThrow)
         {
-          (
-            function () {
-              eval('throw new jsx.test.AssertionError('
-                   + '"assertFalse(" + (typeof origX == "string" ? origX : "...") + ");");');
-            }
-          )();
+          return _throwThis(_AssertionError,
+              "assertFalse(" + (typeof origX == "string" ? origX : "...") + ");");
         }
-        else
-        {
-          jsx.dmsg((sContext ? sContext + ": " : "") + "Assertion failed: "
-            + (typeof origX == "string" ? origX : "Value") + " must be false.", "warn");
-        }
+
+        jsx.dmsg((sContext ? sContext + ": " : "") + "Assertion failed: "
+          + (typeof origX == "string" ? origX : "Value") + " must be false.", "warn");
       }
 
       return !!x;
@@ -270,18 +261,12 @@ jsx.test = (/** @constructor */ function () {
       {
         if (typeof bThrow == "undefined" || bThrow)
         {
-          (
-            function () {
-              eval('throw new jsx.test.AssertionError('
-                   + '"assertUndefined(" + (typeof origX == "string" ? origX : "...") + ");");');
-            }
-          )();
+          return _throwThis(_AssertionError,
+            "assertUndefined(" + (typeof origX == "string" ? origX : "...") + ");");
         }
-        else
-        {
-          jsx.warn((sContext ? sContext + ": " : "") + "Assertion failed: "
-            + (typeof origX == "string" ? origX : "Value") + " must be undefined.");
-        }
+
+        jsx.warn((sContext ? sContext + ": " : "") + "Assertion failed: "
+          + (typeof origX == "string" ? origX : "Value") + " must be undefined.");
       }
 
       return !!x;
@@ -293,10 +278,7 @@ jsx.test = (/** @constructor */ function () {
      * Two arrays are considered equal only if their elements are
      * strictly equal (shallow strict comparison).
      *
-     * @param {string|Array} expecteds
-     *   Expected value; if a string, it is evaluated as a <i>Program</i>.
-     * @param {string|Array} actuals
-     *   Actual value; if a string, it is evaluated as a <i>Program</i>.
+     * @function
      * @throws
      *   {@link ArrayComparisonFailure}
      *   if either of the given values is not a reference to an
@@ -304,63 +286,68 @@ jsx.test = (/** @constructor */ function () {
      * @throws
      *   {@link #AssertionError}
      *   if the assertion fails and either exception can be thrown.
-     * @return {boolean}
-     *   <code>false</code>, if comparison is not possible
-     *   or the assertion fails, and no exception can be thrown;
-     *   <code>true</code>, if the assertion is met.
      * @see Global#eval()
      */
-    assertArrayEquals: function (expecteds, actuals) {
-      _increaseAssertCount();
-
-      if (typeof expecteds == "string")
+    assertArrayEquals: (function () {
+      function _thrower (expecteds, actuals)
       {
-        expecteds = eval(expecteds);
+        return _throwThis(_AssertionError,
+          "assertArrayEquals([" + expecteds + "], [" + actuals + "])");
       }
 
-      if (typeof actuals == "string")
-      {
-        actuals = eval(actuals);
-      }
+      /**
+       * @param {string|Array} expecteds
+       *   Expected value; if a string, it is evaluated as a <i>Program</i>.
+       * @param {string|Array} actuals
+       *   Actual value; if a string, it is evaluated as a <i>Program</i>.
+       * @return {boolean}
+       *   <code>false</code>, if comparison is not possible
+       *   or the assertion fails, and no exception can be thrown;
+       *   <code>true</code>, if the assertion is met.
+       */
+      return function (expecteds, actuals) {
+        _increaseAssertCount();
 
-      if (expecteds == null && actuals == null)
-      {
+        if (typeof expecteds == "string")
+        {
+          expecteds = eval(expecteds);
+        }
+
+        if (typeof actuals == "string")
+        {
+          actuals = eval(actuals);
+        }
+
+        if (typeof expecteds == typeof actuals
+            && expecteds == null && actuals == null)
+        {
+          return true;
+        }
+
+        if (!_isArray(expecteds) || !_isArray(actuals))
+        {
+          return _throwThis("ArrayComparisonFailure");
+        }
+
+        var len = expecteds.length;
+        var len2 = actuals.length;
+
+        if (len != len2)
+        {
+          return _thrower(expecteds, actuals);
+        }
+
+        for (var i = len; i--;)
+        {
+          if (expecteds[i] !== actuals[i])
+          {
+            return _thrower(expecteds, actuals);
+          }
+        }
+
         return true;
-      }
-
-      if (!jsx.object.isArray(expecteds) || !jsx.object.isArray(actuals))
-      {
-        if (typeof ArrayComparisonFailure == "function")
-        {
-          eval('throw new ArrayComparisonFailure();');
-        }
-
-        return false;
-      }
-
-      for (var i = actuals.length, len2 = expecteds.length; i--;)
-      {
-        if (len2 < i || expecteds[i] !== actuals[i])
-        {
-          (function () {
-            var stack = (new Error()).stack || "";
-            if (stack)
-            {
-              stack = stack.split(/\r?\n|\r/);
-              stack.shift();
-              stack.shift();
-              stack = stack.join("\n");
-            }
-
-            eval('throw new AssertionError('
-              + '"assertArrayEquals([" + expecteds + "], [" + actuals + "]);'
-              + ' in " + stack);');
-          })();
-        }
-      }
-
-      return true;
-    },
+      };
+    }()),
 
     runner: {
       tests: [],
@@ -814,7 +801,7 @@ jsx.test = (/** @constructor */ function () {
       setSetUp: function (f) {
         if (typeof f != "function")
         {
-          jsx.throwThis("jsx.InvalidArgumentError",
+          _throwThis("jsx.InvalidArgumentError",
             ["", typeof f, "function"], "jsx.test.runner.setSetUp");
         }
 
@@ -825,7 +812,7 @@ jsx.test = (/** @constructor */ function () {
       setTearDown: function (f) {
         if (typeof f != "function")
         {
-          jsx.throwThis("jsx.InvalidArgumentError", ["", typeof f, "function"]);
+          _throwThis("jsx.InvalidArgumentError", ["", typeof f, "function"]);
         }
 
         this._tearDown = f;
@@ -836,7 +823,7 @@ jsx.test = (/** @constructor */ function () {
         var _class = jsx.object.getClass(tests);
         if (_class != "Array")
         {
-          jsx.throwThis("jsx.InvalidArgumentError", ["", _class, "Array"]);
+          _throwThis("jsx.InvalidArgumentError", ["", _class, "Array"]);
         }
 
         this._tests = tests;
