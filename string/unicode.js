@@ -109,51 +109,84 @@ jsx.string.unicode = (/** @constructor */ function () {
     return (s ? (String(s).match(_rxString) || []) : []);
   }
 
-  var _WideString = (function jsx_string_unicode_WideString (s) {
-    /* Factory support */
-    if (!(this instanceof jsx_string_unicode_WideString))
-    {
-      return new jsx_string_unicode_WideString(s);
+  /**
+   * Converts a {@link String} value to a wide string.
+   * <p>
+   * A <code>WideString</code> supports all operations and methods
+   * supported on <code>String</code> values also for Unicode
+   * characters outside the Basic Multilingual Plane (BMP:
+   * U+10000 to U+10FFFF).  Because strings of characters are
+   * stored as an {@link Array} of <code>String</code>s,
+   * operations where such characters are more common are faster
+   * than with the <code>String</code> prototype augmentation.
+   * In other cases you should use the augmentation instead.
+   * </p><p>
+   * You may call a <code>WideString</code>'s
+   * {@link WideString#prototype.toString toString()} method
+   * (implicitly called in string context, like concatenation)
+   * to convert it back to a <code>String</code> value.
+   * </p><p>
+   * <em>NOTE: Due to <code>Array</code> limitations, a
+   * <code>WideString</code> may not contain more than
+   * 2³²−1 Unicode characters.  Also note that normalization
+   * is <strong>not</strong> performed at the moment.</em>
+   * </p>
+   * @type jsx.string.unicode.WideString
+   * @extends String
+   * @constructor
+   */
+  var _WideString = (
+    /**
+     * @param {String} s
+     * @return {jsx.string.unicode.WideString}
+     */
+    function jsx_string_unicode_WideString (s) {
+      /* Factory support */
+      if (!(this instanceof jsx_string_unicode_WideString))
+      {
+        return new jsx_string_unicode_WideString(s);
+      }
+
+      /**
+       * @private
+       * @type Array
+       */
+      var _chars =
+        _isArray(s)
+        ? s
+        : (s instanceof jsx_string_unicode_WideString
+            ? s.getChars()
+            : _toCharArray(s));
+
+      /**
+       * Returns the characters in this object as an {@link Array}
+       * of {@link String}s.
+       *
+       * @protected
+       * @return {Array}
+       */
+      this.getChars = function () {
+        return _chars;
+      },
+
+      /**
+       * @name chars
+       * @memberOf jsx.string.unicode.WideString
+       * @field
+       * @type Array
+       */
+      jsx.object.defineProperty(this, "chars", {"get": this.getChars});
     }
-
+  ).extend(String, {
     /**
-     * @private
-     * @type Array
-     */
-    var _chars =
-      _isArray(s)
-      ? s
-      : (s instanceof jsx_string_unicode_WideString
-          ? s.getChars()
-          : _toCharArray(s));
-
-    /**
-     * Returns the characters in this object as an {@link Array}
-     * of {@link String}s.
-     *
-     * @protected
-     * @return {Array}
-     */
-    this.getChars = function () {
-      return _chars;
-    },
-
-    /**
-     * @name chars
-     * @memberOf jsx.string.unicode.WideString
-     * @field
-     * @type Array
-     */
-    jsx.object.defineProperty(this, "chars", {"get": this.getChars});
-  }).extend(String, {
-    /**
-     * Returns the character in this object at the specified position.
+     * Returns the character at the specified position.
      *
      * <em>NOTE: A single Unicode character may be composed out of
-     * several other characters.  No normalization is performed yet.</em>
+     * several other characters.  Normalization is not performed.</em>
      *
      * @memberOf jsx.string.unicode.WideString#prototype
      * @param {int} position
+     *   If not an integer, replaced with the closest integer.
      * @return {string}
      *   If <code><var>position</var></code> is greater than or
      *   equal to zero, the character at that position, counted
@@ -163,15 +196,16 @@ jsx.string.unicode = (/** @constructor */ function () {
      *   + <code><var>position</var></code>; that is,
      *   <code><var>position</var> === -1</code>
      *   returns the last character.
-     *   If <code><var>position</var></code> is an integer value
-     *   out of this range, <code>undefined</code> is returned.
+     *   If <code><var>position</var></code> is replaceable with
+     *   an integer out of this range, <code>undefined</code>
+     *   is returned.
      *   By contrast, if <code><var>position</var></code> is
-     *   a non-integer value, the return value is
+     *   not a <code>Number</code>, the return value is
      *   <strong>not defined</strong>.
      */
     charAt: function (position) {
       var chars = this.getChars();
-      position = +position;
+      position = (position < 0 ? Math.ceil(position) : Math.floor(position));
       return (position < 0
         ? chars[chars.length + position]
         : chars[position]);
@@ -182,15 +216,17 @@ jsx.string.unicode = (/** @constructor */ function () {
      * in this object at the specified position.
      *
      * <em>NOTE: A single Unicode character may be composed out of
-     * several other characters.  No normalization is performed yet.</em>
+     * several other characters.  Normalization is not performed.</em>
      *
      * @memberOf jsx.string.unicode.WideString#prototype
+     * @see #charAt()
      */
     charCodeAt: (function () {
       var String_prototype_charCodeAt = "".charCodeAt;
 
       /**
        * @param {Number} position
+       *   If not an integer, replaced with the closest integer.
        * @return {number}
        *   If <code><var>position</var></code> is greater than or
        *   equal to zero, the code point value of the character
@@ -200,10 +236,11 @@ jsx.string.unicode = (/** @constructor */ function () {
        *   + <code><var>position</var></code>; that is,
        *   <code><var>position</var> === -1</code>
        *   returns the code point value of the last character.
-       *   If <code><var>position</var></code> is an integer value
-       *   out of this range, <code>NaN</code> is returned.
+       *   If <code><var>position</var></code> is replacable with
+       *   an integer value out of this range, <code>NaN</code>
+       *   is returned.
        *   By contrast, if <code><var>position</var></code> is
-       *   a non-integer value, the return value is
+       *   not a <code>Number</code>, the return value is
        *   <strong>not defined</strong>.
        */
       function _charCodeAt (position)
@@ -233,9 +270,12 @@ jsx.string.unicode = (/** @constructor */ function () {
     }()),
 
     /**
+     * Concatenates this string with other strings
+     * and returns the result.
+     *
      * Returns the <code>WideString</code> resulting from
-     * concatenating the characters in this object with
-     * the arguments' characters.
+     * concatenating the list of characters in this object with
+     * the list of the arguments' characters.
      *
      * @function
      */
@@ -259,21 +299,23 @@ jsx.string.unicode = (/** @constructor */ function () {
      * Returns the index of the first position of a substring
      * in this string.
      *
-     * @param {jsx.string.unicode.WideString|String} needle
+     * @param {jsx.string.unicode.WideString|String} searchString
      *   Substring to look for.
      * @param {int} position
      *   Position from where to start searching. The default is
      *   <code>0</code>.
      * @return {number}
      */
-    indexOf: function (needle, position) {
-      var needleChars = needle instanceof this.constructor
-        ? needle.getChars()
-        : _toCharArray(needle);
+    indexOf: function (searchString, position) {
+      var needleChars = searchString instanceof this.constructor
+        ? searchString.getChars()
+        : _toCharArray(searchString);
       var needleLen = needleChars.length;
       var needleString = needleChars.join("");
       var chars = this.getChars();
-      for (var i = position || 0,
+      for (var i = (typeof position == "undefined"
+                      ? 0
+                      : (position < 0 ? 0 : Math.floor(position))),
                 len = chars.length - needleLen + 1;
            i < len; ++i)
       {
@@ -290,21 +332,25 @@ jsx.string.unicode = (/** @constructor */ function () {
      * Returns the index of the last position of a substring
      * in this string.
      *
-     * @param {jsx.string.unicode.WideString|String} needle
+     * @param {jsx.string.unicode.WideString|String} searchString
      *   Substring to look for.
      * @param {int} position
      *   Position from where to start searching backwards.
-     *   The default is the last position.
+     *   The default is the position of the last character.
      * @return {number}
      */
-    lastIndexOf: function (needle, position) {
-      var needleChars = needle instanceof this.constructor
-        ? needle.getChars()
-        : _toCharArray(needle);
+    lastIndexOf: function (searchString, position) {
+      var needleChars = searchString instanceof this.constructor
+        ? searchString.getChars()
+        : _toCharArray(searchString);
       var needleLen = needleChars.length;
       var needleString = needleChars.join("");
       var chars = this.getChars();
-      for (var i = (position || (chars.length - needleLen)) + 1; i--;)
+      for (var i = (typeof position == "undefined"
+                      ? chars.length - needleLen
+                      : (position < 0 ? 0 : Math.floor(position)))
+                    + 1;
+           i--;)
       {
         if (chars.slice(i, i + needleLen).join("") == needleString)
         {
@@ -332,12 +378,13 @@ jsx.string.unicode = (/** @constructor */ function () {
     },
 
     /**
-     * Returns a substring of this string
+     * Returns a substring of this string.
      *
      * @param {int} start
      *   Position of the Unicode character from where to start slicing.
      * @param {int} length
      *   Number of Unicode characters in the substring.
+     * @return {jsx.string.unicode.WideString}
      * @see #slice()
      * @see String.prototype#substr()
      */
@@ -442,32 +489,7 @@ jsx.string.unicode = (/** @constructor */ function () {
 
   return {
     /**
-     * Converts a {@link String} value to a wide string.
-     * <p>
-     * A <code>WideString</code> supports all operations and methods
-     * supported on <code>String</code> values also for Unicode
-     * characters outside the Basic Multilingual Plane (BMP:
-     * U+10000 to U+10FFFF).  Because strings of characters are
-     * stored as an {@link Array} of <code>String</code>s,
-     * operations where such characters are more common are faster
-     * than with the <code>String</code> prototype augmentation.
-     * In other cases you should use the augmentation instead.
-     * </p><p>
-     * You may call a <code>WideString</code>'s
-     * {@link WideString#prototype.toString toString()} method
-     * (implicitly called in string context, like concatenation)
-     * to convert it back to a <code>String</code> value.
-     * </p><p>
-     * <em>NOTE: Due to <code>Array</code> limitations, a
-     * <code>WideString</code> may not contain more than
-     * 2³²−1 Unicode characters.  Also note that normalization
-     * is <strong>not</strong> performed at the moment.</em>
-     * </p>
-     * @constructor
-     * @extends String
      * @memberOf jsx.string.unicode
-     * @param {String} s
-     * @return {jsx.string.unicode.WideString}
      */
     WideString: _WideString
   };
