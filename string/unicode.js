@@ -384,12 +384,18 @@ jsx.string.unicode = (/** @constructor */ function () {
      *   Position of the Unicode character from where to start slicing.
      * @param {int} length
      *   Number of Unicode characters in the substring.
+     *   If omitted or <code>undefined</code>, the substring
+     *   contains all characters from <code>start</code>
+     *   to the end of this string.
      * @return {jsx.string.unicode.WideString}
      * @see #slice()
      * @see String.prototype#substr()
      */
     substr: function (start, length) {
-      return this.slice(start, start + length + 1);
+      return this.slice(start,
+        typeof length == "undefined"
+          ? length
+          : start + length);
     },
 
     /**

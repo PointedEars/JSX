@@ -193,6 +193,90 @@ function runTests()
           assert(new WideString("A\uD834\uDD1EA").lastIndexOf("A") === 2);
           assert(new WideString("A\uD834\uDD1EA").lastIndexOf("A", 1) === 0);
         }
+      },
+
+      {
+        feature: 'new jsx.string.unicode.WideString("…").slice(…)',
+        description: 'Return the correct value',
+        code: function () {
+          var s = new WideString("x\uD834\uDD1Ey").slice(1);
+          assertArrayEquals(["\uD834\uDD1E", "y"], s.getChars());
+
+          s = new WideString("x\uD834\uDD1Ey").slice(0, 1);
+          assertArrayEquals(["x"], s.getChars());
+
+          s = new WideString("x\uD834\uDD1Ey").slice(0, 2);
+          assertArrayEquals(["x", "\uD834\uDD1E"], s.getChars());
+
+          s = new WideString("x\uD834\uDD1Ey").slice(1, 1);
+          assertArrayEquals([], s.getChars());
+
+          s = new WideString("x\uD834\uDD1Ey").slice(1, 3);
+          assertArrayEquals(["\uD834\uDD1E", "y"], s.getChars());
+        }
+      },
+
+      {
+        feature: 'new jsx.string.unicode.WideString("…").substr(…)',
+        description: 'Return the correct value',
+        code: function () {
+          var s = new WideString("x\uD834\uDD1Ey").substr(1);
+          assertArrayEquals(["\uD834\uDD1E", "y"], s.getChars());
+
+          s = new WideString("x\uD834\uDD1Ey").substr(0, 1);
+          assertArrayEquals(["x"], s.getChars());
+
+          s = new WideString("x\uD834\uDD1Ey").substr(0, 2);
+          assertArrayEquals(["x", "\uD834\uDD1E"], s.getChars());
+
+          s = new WideString("x\uD834\uDD1Ey").substr(1, 1);
+          assertArrayEquals(["\uD834\uDD1E"], s.getChars());
+
+          s = new WideString("x\uD834\uDD1Ey").substr(1, 3);
+          assertArrayEquals(["\uD834\uDD1E", "y"], s.getChars());
+        }
+      },
+
+      {
+        feature: 'new jsx.string.unicode.WideString("…").substring(…)',
+        description: 'Return the correct value',
+        code: function () {
+          var s = new WideString("x\uD834\uDD1Ey").substring(1);
+          assertArrayEquals(["\uD834\uDD1E", "y"], s.getChars());
+
+          s = new WideString("x\uD834\uDD1Ey").substring(0, 1);
+          assertArrayEquals(["x"], s.getChars());
+
+          s = new WideString("x\uD834\uDD1Ey").substring(0, 2);
+          assertArrayEquals(["x", "\uD834\uDD1E"], s.getChars());
+
+          s = new WideString("x\uD834\uDD1Ey").substring(1, 1);
+          assertArrayEquals([], s.getChars());
+
+          s = new WideString("x\uD834\uDD1Ey").substring(1, 3);
+          assertArrayEquals(["\uD834\uDD1E", "y"], s.getChars());
+
+          s = new WideString("x\uD834\uDD1Ey").substring(3, 1);
+          assertArrayEquals(["\uD834\uDD1E", "y"], s.getChars());
+        }
+      },
+
+      {
+        feature: 'new jsx.string.unicode.WideString("…").toString(…)',
+        description: 'Return the correct value',
+        code: function () {
+          var s = new WideString("x\uD834\uDD1Ey").toString();
+          assert(s === "x\uD834\uDD1Ey");
+        }
+      },
+
+      {
+        feature: 'new jsx.string.unicode.WideString("…").valueOf(…)',
+        description: 'Return the correct value',
+        code: function () {
+          var s = new WideString("x\uD834\uDD1Ey").valueOf();
+          assert(s === "x\uD834\uDD1Ey");
+        }
       }
     ]
   });
