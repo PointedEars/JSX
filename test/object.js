@@ -355,13 +355,14 @@ function runTests ()
             && clone2.foo == o2 && clone2.foo.bar === "baz");
         }
       },
+
       {
         feature: 'jsx.object.setProperties()',
         desc: "Throws <code>TypeError</code>",
         code: function () {
           var success = jsx.tryThis(
             function () {
-              jsx.object.setProperties({});
+              jsx.object.setProperties();
               return true;
             },
             function (e) {
@@ -440,6 +441,190 @@ function runTests ()
           jsx.object.setProperties(o, {foo: o2}, jsx.object.ADD_OVERWRITE | jsx.object.COPY_ENUM_DEEP);
 
           assertTrue(o.foo && o.foo != o2 && o.foo.bar === "baz");
+        }
+      },
+
+      {
+        feature: 'jsx.object.defineProperty()',
+        desc: "Throws <code>TypeError</code>",
+        code: function () {
+          var success = jsx.tryThis(
+            function () {
+              jsx.object.defineProperty();
+              return true;
+            },
+            function (e) {
+              jsx.error(e);
+              return !(e instanceof TypeError);
+            });
+
+          assertFalse(success);
+        }
+      },
+      {
+        feature: 'jsx.object.defineProperty(42)',
+        desc: "Throws <code>TypeError</code>",
+        code: function () {
+          var success = jsx.tryThis(
+            function () {
+              jsx.object.defineProperty(42);
+              return true;
+            },
+            function (e) {
+              jsx.error(e);
+              return !(e instanceof TypeError);
+            });
+
+          assertFalse(success);
+        }
+      },
+      {
+        feature: 'jsx.object.defineProperty(null)',
+        desc: "Throws <code>TypeError</code>",
+        code: function () {
+          var success = jsx.tryThis(
+            function () {
+              jsx.object.defineProperty(null);
+              return true;
+            },
+            function (e) {
+              jsx.error(e);
+              return !(e instanceof TypeError);
+            });
+
+          assertFalse(success);
+        }
+      },
+      {
+        feature: 'jsx.object.defineProperty({})',
+        desc: "Missing descriptor throws <code>TypeError</code>",
+        code: function () {
+          var success = jsx.tryThis(
+            function () {
+              jsx.object.defineProperty({});
+              return true;
+            },
+            function (e) {
+              jsx.error(e);
+              return !(e instanceof TypeError);
+            });
+
+          assertFalse(success);
+        }
+      },
+      {
+        feature: 'jsx.object.defineProperty({}, "foo")',
+        desc: "Missing descriptor throws <code>TypeError</code>",
+        code: function () {
+          var success = jsx.tryThis(
+            function () {
+              jsx.object.defineProperty({}, "foo");
+              return true;
+            },
+            function (e) {
+              jsx.error(e);
+              return !(e instanceof TypeError);
+            });
+
+          assertFalse(success);
+        }
+      },
+      {
+        feature: 'jsx.object.defineProperty({}, "foo", 42)',
+        desc: "Invalid descriptor throws <code>TypeError</code>",
+        code: function () {
+          var success = jsx.tryThis(
+            function () {
+              jsx.object.defineProperty({}, "foo", 42);
+              return true;
+            },
+            function (e) {
+              jsx.error(e);
+              return !(e instanceof TypeError);
+            });
+
+          assertFalse(success);
+        }
+      },
+      {
+        feature: 'jsx.object.defineProperty({}, "foo", {})',
+        desc: 'Defines read-only <code>foo</code> property'
+            + ' with value <code>undefined</code>'
+            + ' and returns correct value',
+        code: function () {
+          var o = {};
+          var result = jsx.object.defineProperty(o, "foo", {});
+
+          assertTrue("foo" in o);
+          o.foo = 42;
+          assertTrue(typeof o.foo == "undefined");
+          assertTrue(result === o);
+        }
+      },
+      {
+        feature: 'jsx.object.defineProperty({}, "foo", {value: 42})',
+        desc: 'Defines read-only <code>foo</code> property'
+            + ' with value <code>42</code>'
+            + ' and returns correct value',
+        code: function () {
+          var o = {};
+          var result = jsx.object.defineProperty(o, "foo", {
+            value: 42
+          });
+
+          o.foo = "23";
+          assertTrue(o.foo === 42);
+          assertTrue(result === o);
+        }
+      },
+      {
+        feature: 'jsx.object.defineProperty({}, "foo", {value: 42, writable: true})',
+        desc: 'Defines writable <code>foo</code> property'
+            + ' with initial value <code>42</code>'
+            + ' and returns correct value',
+        code: function () {
+          var o = {};
+          var result = jsx.object.defineProperty(o, "foo", {
+            value: 42,
+            writable: true
+          });
+
+          assertTrue(o.foo === 42);
+          o.foo = "23";
+          assertTrue(o.foo === "23");
+          assertTrue(result === o);
+        }
+      },
+      {
+        feature: 'jsx.object.defineProperty({}, "foo", {"get": …})',
+        desc: 'Defines read-only <code>foo</code> property with getter'
+            + ' and returns correct value',
+        code: function () {
+          var o = {};
+          var result = jsx.object.defineProperty(o, "foo", {
+            "get": function () { return 42; }
+          });
+
+          assertTrue(o.foo === 42);
+          o.foo = "23";
+          assertTrue(o.foo === 42);
+          assertTrue(result === o);
+        }
+      },
+      {
+        feature: 'jsx.object.defineProperty({}, "foo", {"set": …})',
+        desc: 'Defines <code>foo</code> property with setter'
+            + ' and returns correct value',
+        code: function () {
+          var o = {};
+          var _x = "23";
+          var result = jsx.object.defineProperty(o, "foo", {
+            "set": function (value) { _x = value; }
+          });
+
+          o.foo = 42;
+          assertTrue(_x === 42);
+          assertTrue(result === o);
         }
       }
     ]
