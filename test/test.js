@@ -35,9 +35,11 @@ if (typeof jsx.test == "undefined")
 }
 
 /**
+ * @type jsx.test
+ * @memberOf __jsx.test
  * @namespace
  */
-jsx.test = (function () {
+jsx.test = (/** @constructor */ function () {
   /**
    * @Number of assertions made
    * @private
@@ -369,83 +371,84 @@ jsx.test = (function () {
        * @protected
        */
       _appendTable: function () {
-        if (typeof document == "object" && document)
+        if (typeof document != "object" || !document)
         {
-          if (document.body)
-          {
-            var id = "test-results" + new Date().getTime();
-            var context = "table#" + id;
-            var style = document.createElement("style");
-            style.type = "text/css";
-            style.appendChild(
-              document.createTextNode(
-                  context + " { border: 2px solid black;"
-                            + " border-collapse: collapse; }"
-                + context + " thead { border-bottom: 1px solid black; }"
-                + context + " thead th { vertical-align: baseline; }"
-                + context + " tfoot { border-top: 1px solid black; }"
-                + context + " thead th { text-align: left; }"
-                + context + " thead th:first-child { text-align: right; }"
-                + context + " tbody th { text-align: right; }"
-                + context + " tbody td.info {"
-                            + " background-color: green; color: white; }"
-                + context + " tbody td.error {"
-                            + " background-color: red;"
-                            + " color: white; font-family: monospace; }"
-                + context + " thead th,"
-                + context + " tbody th,"
-                + context + " tbody td,"
-                + context + " tfoot td {"
-                            + " padding: 0 0.5em;"
-                            + " vertical-align: top;"
-                            + " vertical-align: baseline; }"
-              ));
-            document.getElementsByTagName("head")[0].appendChild(style);
-
-            var table = document.createElement("table");
-            table.id = id;
-
-            var thead = document.createElement("thead");
-            var tr = document.createElement("tr");
-
-            var th = document.createElement("th");
-            th.appendChild(document.createTextNode("#"));
-            tr.appendChild(th);
-
-            th = document.createElement("th");
-            th.appendChild(document.createTextNode("Source File"));
-            tr.appendChild(th);
-
-            th = document.createElement("th");
-            th.appendChild(document.createTextNode("Feature"));
-            tr.appendChild(th);
-
-            th = document.createElement("th");
-            th.appendChild(document.createTextNode("Testcase Description"));
-            tr.appendChild(th);
-
-            th = document.createElement("th");
-            th.appendChild(document.createTextNode("Result"));
-            tr.appendChild(th);
-
-            thead.appendChild(tr);
-            table.insertBefore(thead, table.firstChild);
-
-            var tbody = document.createElement("tbody");
-            table.appendChild(tbody);
-
-            document.body.appendChild(table);
-            this._table = table;
-          }
-          else
-          {
-            this._printMsg(
-              "No document.body found (at this point)."
-              + " Use {updateDocument: false} if not in HTML context,"
-              + " or wait until document.body exists (`load' event).",
-              "warn");
-          }
+          return;
         }
+
+        if (!document.body)
+        {
+          this._printMsg(
+            "No document.body found (at this point)."
+            + " Use {updateDocument: false} if not in HTML context,"
+            + " or wait until document.body exists (`load' event).",
+            "warn");
+          return;
+        }
+
+        var id = "test-results" + new Date().getTime();
+        var context = "table#" + id;
+        var style = document.createElement("style");
+        style.type = "text/css";
+        style.appendChild(
+          document.createTextNode(
+              context + " { border: 2px solid black;"
+                        + " border-collapse: collapse; }"
+            + context + " thead { border-bottom: 1px solid black; }"
+            + context + " thead th { vertical-align: baseline; }"
+            + context + " tfoot { border-top: 1px solid black; }"
+            + context + " thead th { text-align: left; }"
+            + context + " thead th:first-child { text-align: right; }"
+            + context + " tbody th { text-align: right; }"
+            + context + " tbody td.info {"
+                        + " background-color: green; color: white; }"
+            + context + " tbody td.error {"
+                        + " background-color: red;"
+                        + " color: white; font-family: monospace; }"
+            + context + " thead th,"
+            + context + " tbody th,"
+            + context + " tbody td,"
+            + context + " tfoot td {"
+                        + " padding: 0 0.5em;"
+                        + " vertical-align: top;"
+                        + " vertical-align: baseline; }"
+          ));
+        document.getElementsByTagName("head")[0].appendChild(style);
+
+        var table = document.createElement("table");
+        table.id = id;
+
+        var thead = document.createElement("thead");
+        var tr = document.createElement("tr");
+
+        var th = document.createElement("th");
+        th.appendChild(document.createTextNode("#"));
+        tr.appendChild(th);
+
+        th = document.createElement("th");
+        th.appendChild(document.createTextNode("Source File"));
+        tr.appendChild(th);
+
+        th = document.createElement("th");
+        th.appendChild(document.createTextNode("Feature"));
+        tr.appendChild(th);
+
+        th = document.createElement("th");
+        th.appendChild(document.createTextNode("Testcase Description"));
+        tr.appendChild(th);
+
+        th = document.createElement("th");
+        th.appendChild(document.createTextNode("Result"));
+        tr.appendChild(th);
+
+        thead.appendChild(tr);
+        table.insertBefore(thead, table.firstChild);
+
+        var tbody = document.createElement("tbody");
+        table.appendChild(tbody);
+
+        document.body.appendChild(table);
+        this._table = table;
       },
 
       /**
@@ -461,52 +464,54 @@ jsx.test = (function () {
        * @protected
        */
       _appendEntry: function (num, file, feature, desc, result, msgType) {
-        if (this._table)
+        if (!this._table)
         {
-          var tbody = this._table.tBodies[0];
-
-          var tr = document.createElement("tr");
-          tr.className = msgType;
-
-          var th = document.createElement("th");
-          th.appendChild(document.createTextNode(num));
-          tr.appendChild(th);
-
-          var td = document.createElement("td");
-          if (file)
-          {
-            var tt = document.createElement("tt");
-            tt.appendChild(document.createTextNode(this._htmlEscape(file)));
-            td.appendChild(tt);
-          }
-          tr.appendChild(td);
-
-          td = document.createElement("td");
-          if (feature)
-          {
-            var code = document.createElement("code");
-            code.appendChild(document.createTextNode(this._htmlEscape(feature)));
-            td.appendChild(code);
-          }
-          tr.appendChild(td);
-
-          td = document.createElement("td");
-          if (desc)
-          {
-            td.innerHTML = desc;
-          }
-          tr.appendChild(td);
-
-          td = document.createElement("td");
-
-          /* FIXME: Use standards-compliant methods instead */
-          td.innerHTML = this._htmlEscape(result).replace(/\r?\n|\r/g, "<br>");
-
-          td.className = msgType;
-          tr.appendChild(td);
-
-          tbody.appendChild(tr);
+          return;
         }
+
+        var tbody = this._table.tBodies[0];
+
+        var tr = document.createElement("tr");
+        tr.className = msgType;
+
+        var th = document.createElement("th");
+        th.appendChild(document.createTextNode(num));
+        tr.appendChild(th);
+
+        var td = document.createElement("td");
+        if (file)
+        {
+          var tt = document.createElement("tt");
+          tt.appendChild(document.createTextNode(this._htmlEscape(file)));
+          td.appendChild(tt);
+        }
+        tr.appendChild(td);
+
+        td = document.createElement("td");
+        if (feature)
+        {
+          var code = document.createElement("code");
+          code.appendChild(document.createTextNode(this._htmlEscape(feature)));
+          td.appendChild(code);
+        }
+        tr.appendChild(td);
+
+        td = document.createElement("td");
+        if (desc)
+        {
+          td.innerHTML = desc;
+        }
+        tr.appendChild(td);
+
+        td = document.createElement("td");
+
+        /* FIXME: Use standards-compliant methods instead */
+        td.innerHTML = this._htmlEscape(result).replace(/\r?\n|\r/g, "<br>");
+
+        td.className = msgType;
+        tr.appendChild(td);
+
+        tbody.appendChild(tr);
       },
 
       /**
