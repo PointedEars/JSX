@@ -288,7 +288,7 @@ jsx.string.unicode = (/** @constructor */ function () {
        */
       function _concat ()
       {
-        return new this.constructor(this.getChars().join("")
+        return new this.constructor(this.toString()
           + _slice.call(arguments).join(""));
       }
 
