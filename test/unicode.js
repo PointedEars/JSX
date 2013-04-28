@@ -196,6 +196,41 @@ function runTests()
       },
 
       {
+        feature: 'new jsx.string.unicode.WideString("…").localeCompare("…")',
+        description: 'Return the correct value (inherited generic method)',
+        code: function () {
+          assert(new WideString("x").localeCompare("y") === "x".localeCompare("y"));
+        }
+      },
+
+      {
+        feature: 'new jsx.string.unicode.WideString("…").match("…")',
+        description: 'Return the correct value (inherited generic method)',
+        code: function () {
+          assertArrayEquals("x".match("x"), new WideString("x").match("x"));
+          assert(new WideString("x").match("y") === "x".match("y"));
+        }
+      },
+
+      {
+        feature: 'new jsx.string.unicode.WideString("…").replace("…")',
+        description: 'Return the correct value (inherited generic method)',
+        code: function () {
+          assert(new WideString("x").replace("x", "y").toString() === "x".replace("x", "y"));
+          assert(new WideString("xx").replace(/x/g, "y").toString() === "xx".replace(/x/g, "y"));
+        }
+      },
+
+      {
+        feature: 'new jsx.string.unicode.WideString("…").search("…")',
+        description: 'Return the correct value (inherited generic method)',
+        code: function () {
+          assert(new WideString("x").search(/y/) === "x".search(/y/));
+          assert(new WideString("x").search(/x/) === "x".search(/x/));
+        }
+      },
+
+      {
         feature: 'new jsx.string.unicode.WideString("…").slice(…)',
         description: 'Return the correct value',
         code: function () {
