@@ -214,30 +214,32 @@ jsx.date = {
   /**
    * Returns the time zone offset of a {@link Date}
    * in hours and minutes
-   *
-   * @param {Date} date
-   * @param {TimeOptions} options
-   *   <table>
-   *     <tr>
-   *       <th>delimiter</th>
-   *       <td>Delimiter between hours and minutes</td>
-   *     </tr>
-   *     <tr>
-   *       <th>leadingZero</th>
-   *       <td>If <code>true</code> hours always have two digits</td>
-   *     </tr>
-   *     <tr>
-   *       <th>zeroMinutes</th>
-   *       <td>If <code>true</code> minutes are not returned if they
-   *           are zero</td>
-   *     </tr>
-   *   </table>
-   * @return {Object|string}
    */
   tzOffsetHours: (function () {
     var _leadingZero = jsx.string.leadingZero;
 
-    return function (date, options) {
+    /**
+     * @param {Date} date
+     * @param {TimeOptions} options
+     *   <table>
+     *     <tr>
+     *       <th>delimiter</th>
+     *       <td>Delimiter between hours and minutes</td>
+     *     </tr>
+     *     <tr>
+     *       <th>leadingZero</th>
+     *       <td>If <code>true</code>, hours always have two digits.</td>
+     *     </tr>
+     *     <tr>
+     *       <th>zeroMinutes</th>
+     *       <td>If <code>true</code> minutes are returned even
+     *         if they are zero.</td>
+     *     </tr>
+     *   </table>
+     * @return {Object|string}
+     */
+    function _tzOffsetHours (date, options)
+    {
       var tzOffset = date.getTimezoneOffset();
       var hours = Math.floor(Math.abs(tzOffset) / 60);
       var minutes = Math.floor(Math.abs(tzOffset) - (hours * 60));
@@ -253,6 +255,8 @@ jsx.date = {
             ? (options && options.delimiter || "") + _leadingZero(minutes, 2)
             : "");
     }
+
+    return _tzOffsetHours;
   })(),
 
   /**
