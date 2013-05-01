@@ -25,7 +25,7 @@ function runTests()
         }
       },
       {
-        feature: 'new jsx.string.unicode.WideString(WideString)',
+        feature: 'new WideString(wideString)',
         description: 'Clone instance',
         code: function () {
           var chars = new WideString(new WideString(("x"))).getChars();
@@ -33,21 +33,21 @@ function runTests()
         }
       },
       {
-        feature: 'new jsx.string.unicode.WideString("")',
+        feature: 'new WideString("")',
         description: 'Return new empty instance',
         code: function () {
           assertArrayEquals([], new WideString("").getChars());
         }
       },
       {
-        feature: 'new jsx.string.unicode.WideString("x")',
+        feature: 'new WideString("x")',
         description: 'Convert to <code>WideString("x")</code>',
         code: function () {
           assertArrayEquals(["x"], new WideString("x").getChars());
         }
       },
       {
-        feature: 'new jsx.string.unicode.WideString(42)',
+        feature: 'new WideString(42)',
         description: 'Convert to <code>WideString("42")</code>',
         code: function () {
           assertArrayEquals(["4", "2"], new WideString(42).getChars());
@@ -55,7 +55,7 @@ function runTests()
       },
 
       {
-        feature: 'new jsx.string.unicode.WideString(string).getChars()',
+        feature: 'wideString.getChars()',
         description: 'Return the correct value',
         code: function () {
           assertArrayEquals([], new WideString().getChars());
@@ -66,7 +66,7 @@ function runTests()
         }
       },
       {
-        feature: 'new jsx.string.unicode.WideString(string).chars',
+        feature: 'wideString.chars',
         description: 'Getter works',
         code: function () {
           assertArrayEquals(["x"], new WideString("x").chars);
@@ -74,7 +74,7 @@ function runTests()
       },
 
       {
-        feature: 'new jsx.string.unicode.WideString(string).getLength()',
+        feature: 'wideString.getLength()',
         description: 'Return the correct value',
         code: function () {
           assert(new WideString().getLength() === 0);
@@ -85,7 +85,7 @@ function runTests()
         }
       },
       {
-        feature: 'new jsx.string.unicode.WideString(string).length',
+        feature: 'wideString.length',
         description: 'Inherited getter works',
         code: function () {
           assert(new WideString("x").length === 1);
@@ -93,7 +93,7 @@ function runTests()
       },
 
       {
-        feature: 'jsx.string.unicode.WideString.fromCharCode(0x110000)',
+        feature: 'WideString.fromCharCode(0x110000)',
         description: 'throw <code>jsx.InvalidArgumentError</code>',
         code: function () {
           var error = false;
@@ -114,16 +114,16 @@ function runTests()
         }
       },
       {
-        feature: 'jsx.string.unicode.WideString.fromCharCode(0x1D11E)',
-        description: 'Return <code>"\\uD834\\uDD1E"</code>',
+        feature: 'WideString.fromCharCode(0x1D11E)',
+        description: 'Return <code>WideString("\\uD834\\uDD1E")</code>',
         code: function () {
           var chars = WideString.fromCharCode(0x1D11E).getChars();
           assertArrayEquals(["\uD834\uDD1E"], chars);
         }
       },
       {
-        feature: 'jsx.string.unicode.WideString.fromCharCode(0x20AC)',
-        description: 'Return <code>"\\u20AC"</code>',
+        feature: 'WideString.fromCharCode(0x20AC)',
+        description: 'Return <code>WideString("\\u20AC")</code>',
         code: function () {
           var chars = WideString.fromCharCode(0x20AC).getChars();
           assertArrayEquals(["\u20AC"], chars);
@@ -131,7 +131,7 @@ function runTests()
       },
 
       {
-        feature: 'new jsx.string.unicode.WideString("…").charAt(…)',
+        feature: 'wideString.charAt(…)',
         description: 'Return the correct value',
         code: function () {
           assert(new WideString("x\uD834\uDD1E").charAt(1) === "\uD834\uDD1E");
@@ -145,7 +145,7 @@ function runTests()
       },
 
       {
-        feature: 'new jsx.string.unicode.WideString("…").charCodeAt(…)',
+        feature: 'wideString.charCodeAt(…)',
         description: 'Return the correct value',
         code: function () {
           assert(new WideString("x\uD834\uDD1E").charCodeAt(1) === 0x1D11E);
@@ -163,7 +163,7 @@ function runTests()
       },
 
       {
-        feature: 'new jsx.string.unicode.WideString("…").concat(…)',
+        feature: 'wideString.concat(…)',
         description: 'Return the correct value',
         code: function () {
           var s = new WideString("x").concat(new WideString("\uD834\uDD1E"));
@@ -193,7 +193,7 @@ function runTests()
       },
 
       {
-        feature: 'new jsx.string.unicode.WideString("…").indexOf(…)',
+        feature: 'wideString.indexOf(…)',
         description: 'Return the correct value',
         code: function () {
           assert(new WideString("x\uD834\uDD1Ez").indexOf(
@@ -216,7 +216,7 @@ function runTests()
       },
 
       {
-        feature: 'new jsx.string.unicode.WideString("…").lastIndexOf(…)',
+        feature: 'wideString.lastIndexOf(…)',
         description: 'Return the correct value',
         code: function () {
           assert(new WideString("x\uD834\uDD1E").lastIndexOf(
@@ -236,7 +236,7 @@ function runTests()
       },
 
       {
-        feature: 'new jsx.string.unicode.WideString("…").localeCompare("…")',
+        feature: 'wideString.localeCompare("…")',
         description: 'Return the correct value (inherited generic method)',
         code: function () {
           assert(new WideString("x").localeCompare("y") === "x".localeCompare("y"));
@@ -244,7 +244,7 @@ function runTests()
       },
 
       {
-        feature: 'new jsx.string.unicode.WideString("…").match("…")',
+        feature: 'wideString.match("…")',
         description: 'Return the correct value (inherited generic method)',
         code: function () {
           assertArrayEquals("x".match("x"), new WideString("x").match("x"));
@@ -253,7 +253,7 @@ function runTests()
       },
 
       {
-        feature: 'new jsx.string.unicode.WideString("…").replace("…")',
+        feature: 'wideString.replace("…")',
         description: 'Return the correct value (inherited generic method)',
         code: function () {
           assert(new WideString("x").replace("x", "y").toString() === "x".replace("x", "y"));
@@ -262,7 +262,7 @@ function runTests()
       },
 
       {
-        feature: 'new jsx.string.unicode.WideString("…").search("…")',
+        feature: 'wideString.search("…")',
         description: 'Return the correct value (inherited generic method)',
         code: function () {
           assert(new WideString("x").search(/y/) === "x".search(/y/));
@@ -271,7 +271,7 @@ function runTests()
       },
 
       {
-        feature: 'new jsx.string.unicode.WideString("…").slice(…)',
+        feature: 'wideString.slice(…)',
         description: 'Return the correct value',
         code: function () {
           var s = new WideString("x\uD834\uDD1Ey").slice(1);
@@ -292,7 +292,7 @@ function runTests()
       },
 
       {
-        feature: 'new jsx.string.unicode.WideString("…").substr(…)',
+        feature: 'wideString("…").substr(…)',
         description: 'Return the correct value',
         code: function () {
           var s = new WideString("x\uD834\uDD1Ey").substr(1);
@@ -313,7 +313,7 @@ function runTests()
       },
 
       {
-        feature: 'new jsx.string.unicode.WideString("…").substring(…)',
+        feature: 'wideString.substring(…)',
         description: 'Return the correct value',
         code: function () {
           var s = new WideString("x\uD834\uDD1Ey").substring(1);
@@ -337,7 +337,7 @@ function runTests()
       },
 
       {
-        feature: 'new jsx.string.unicode.WideString("…").toString(…)',
+        feature: 'wideString.toString(…)',
         description: 'Return the correct value',
         code: function () {
           var s = new WideString("x\uD834\uDD1Ey").toString();
@@ -346,11 +346,27 @@ function runTests()
       },
 
       {
-        feature: 'new jsx.string.unicode.WideString("…").valueOf(…)',
+        feature: 'wideString.valueOf(…)',
         description: 'Return the correct value',
         code: function () {
           var s = new WideString("x\uD834\uDD1Ey").valueOf();
           assert(s === "x\uD834\uDD1Ey");
+        }
+      },
+
+      {
+        feature: 'String.fromCharCode(0x1D11E)',
+        description: 'Return <code>"\\uD834\\uDD1E"</code>',
+        code: function () {
+          assert(String.fromCharCode(0x1D11E) === "\uD834\uDD1E");
+        }
+      },
+
+      {
+        feature: 'string.getLength()',
+        description: 'Return the correct value (augmented prototype)',
+        code: function () {
+          assert("x\uD834\uDD1Ey".getLength() === 3);
         }
       }
     ]
