@@ -44,16 +44,18 @@
  * Unicode characters from both inside and beyond the BMP, from
  * code points U+0000 to U+10FFFF inclusive.
  *
- * A future revision might also allow to replace the values of
- * certain built-in properties of the <code>String</code>
- * constructor and <code>String</code> prototype object such
- * as the ones mentioned above, and to add others to the prototype
- * object, so as to support non-BMP characters in implementations
- * of those ECMAScript Editions as well almost seamlessly.
- * However, non-callable built-in own and inherited properties
- * of <code>String</code> values, like <code>length</code>,
- * could <em>not</em> be modified.  (In case of <code>length</code>,
- * you would need to use <code>getLength()</code> instead.)
+ * It also replaces by default the values of certain built-in
+ * properties of the <code>String</code> constructor and
+ * <code>String</code> prototype object such as the ones mentioned
+ * above, and add others to the prototype object, so as to
+ * support non-BMP characters as well in implementations of those
+ * ECMAScript Editions almost seamlessly.  However, non-callable
+ * built-in own and inherited properties of <code>String</code>
+ * values, like <code>length</code>, <em>cannot</em> be modified.
+ * (In case of <code>length</code>, you would need to use
+ * <code>getLength()</code> instead.)  Whether and to what extent
+ * built-in objects are modified, can be controlled with
+ * {@link jsx#options}.  (See {@link "object.js"} for details.)
  *
  * Your feedback is appreciated.
  *
@@ -123,12 +125,13 @@ jsx.string.unicode = (/** @constructor */ function () {
    * <p>
    * A <code>WideString</code> supports all operations and methods
    * supported on <code>String</code> values also for Unicode
-   * characters outside the Basic Multilingual Plane (BMP:
-   * U+10000 to U+10FFFF).  Because strings of characters are
-   * stored as an {@link Array} of <code>String</code>s,
-   * operations where such characters are more common are faster
-   * than with the <code>String</code> prototype augmentation.
-   * In other cases you should use the augmentation instead.
+   * characters outside the Basic Multilingual Plane (BMP), that
+   * is, code points from U+0000 to U+10FFFF inclusive.  Because
+   * strings of characters are stored as an {@link Array} of
+   * <code>String</code>s, operations where such characters are
+   * more common are faster than with the <code>String</code>
+   * prototype augmentation.  In other cases you should use
+   * the augmentation instead.
    * </p><p>
    * You may call a <code>WideString</code>'s
    * {@link WideString#prototype.toString toString()} method
@@ -523,6 +526,47 @@ jsx.string.unicode = (/** @constructor */ function () {
 
     return _fromCharCode;
   }());
+
+  if (jsx.options.augmentBuiltins)
+  {
+    if (jsx.options.augmentPrototypes)
+    {
+      jsx.object.setProperties(String.prototype, {
+        /**
+         * Returns the number of Unicode characters in this string.
+         *
+         * Differs from the built-in {@link string#length length}
+         * property in that it considers characters with code points
+         * beyond U+FFFF that require several UTF-16 code units.
+         *
+         * @memberOf String.prototype
+         * @return {number}
+         */
+        getLength: function () {
+          return (new _WideString(this)).getLength();
+        }
+      });
+    }
+  }
+
+  if (jsx.options.replaceBuiltins)
+  {
+    jsx.object.setProperties(String, {
+      /**
+       * Returns a {@link String} containing the Unicode characters
+       * specified by the code point arguments.
+       *
+       * @memberOf String
+       * @params {Number}
+       *   Code points of the characters from <code>0</code> to
+       *   <code>0x10FFFF</code> inclusive.
+       * @return {string}
+       */
+      fromCharCode: function () {
+        return _WideString.fromCharCode.apply(this, arguments).toString();
+      }
+    }, jsx.object.ADD_OVERWRITE);
+  }
 
   return {
     /**
