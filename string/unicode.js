@@ -39,9 +39,10 @@
  *
  * This library provides a new object type, <code>WideString</code>,
  * whose prototype object inherits from the <code>String</code>
- * prototype object, and can be used as a drop-in replacement for
- * strings that contain Unicode characters from both inside and
- * beyond the BMP, from code points U+0000 to U+10FFFF inclusive.
+ * prototype object, that is intended to be used as a drop-in
+ * replacement for <code>String</code> values that may contain
+ * Unicode characters from both inside and beyond the BMP, from
+ * code points U+0000 to U+10FFFF inclusive.
  *
  * A future revision might also allow to replace the values of
  * certain built-in properties of the <code>String</code>
