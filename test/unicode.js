@@ -17,9 +17,11 @@ function runTests()
       },
       {
         feature: 'new jsx.string.unicode.WideString()',
-        description: 'Return new instance',
+        description: 'Return new empty instance',
         code: function () {
-          assert(new WideString() instanceof WideString);
+          var s = new WideString();
+          assert(s instanceof WideString);
+          assertArrayEquals([], s.getChars());
         }
       },
       {
@@ -28,6 +30,13 @@ function runTests()
         code: function () {
           var chars = new WideString(new WideString(("x"))).getChars();
           assertArrayEquals(["x"], chars);
+        }
+      },
+      {
+        feature: 'new jsx.string.unicode.WideString("")',
+        description: 'Return new empty instance',
+        code: function () {
+          assertArrayEquals([], new WideString("").getChars());
         }
       },
       {
@@ -44,11 +53,42 @@ function runTests()
           assertArrayEquals(["4", "2"], new WideString(42).getChars());
         }
       },
+
+      {
+        feature: 'new jsx.string.unicode.WideString(string).getChars()',
+        description: 'Return the correct value',
+        code: function () {
+          assertArrayEquals([], new WideString().getChars());
+          assertArrayEquals([], new WideString("").getChars());
+          assertArrayEquals(["x"], new WideString("x").getChars());
+          assertArrayEquals(["x", "\uD834\uDD1E"], new WideString("x\uD834\uDD1E").getChars());
+          assertArrayEquals(["x", "\uD834\uDD1E", "y"], new WideString("x\uD834\uDD1Ey").getChars());
+        }
+      },
       {
         feature: 'new jsx.string.unicode.WideString(string).chars',
         description: 'Getter works',
         code: function () {
           assertArrayEquals(["x"], new WideString("x").chars);
+        }
+      },
+
+      {
+        feature: 'new jsx.string.unicode.WideString(string).getLength()',
+        description: 'Return the correct value',
+        code: function () {
+          assert(new WideString().getLength() === 0);
+          assert(new WideString("").getLength() === 0);
+          assert(new WideString("x").getLength() === 1);
+          assert(new WideString("x\uD834\uDD1E").getLength() === 2);
+          assert(new WideString("x\uD834\uDD1Ey").getLength() === 3);
+        }
+      },
+      {
+        feature: 'new jsx.string.unicode.WideString(string).length',
+        description: 'Inherited getter works',
+        code: function () {
+          assert(new WideString("x").length === 1);
         }
       },
 
@@ -75,7 +115,7 @@ function runTests()
       },
       {
         feature: 'jsx.string.unicode.WideString.fromCharCode(0x1D11E)',
-        description: 'return <code>"\\uD834\\uDD1E"</code>',
+        description: 'Return <code>"\\uD834\\uDD1E"</code>',
         code: function () {
           var chars = WideString.fromCharCode(0x1D11E).getChars();
           assertArrayEquals(["\uD834\uDD1E"], chars);
