@@ -87,52 +87,83 @@ if (typeof jsx.options == "undefined")
    * degree of flexibility and side-effects by nesting level:
    *
    *
-   *                 mod. builtins   augment  augmentproto augmentobjectproto
-   * augmentBuiltins        +           +           -            -
-   * augmentPrototypes      +           +           +            -
-   * augmentObjectPrototype +           +           +            +
-   * replaceBuiltins        +           *           *            *
+   * <table>
+   *   <thead>
+   *     <tr>
+   *       <td></td>
+   *       <th>mod. builtins</th>
+   *       <th>augment</th>
+   *       <th>augmentproto</th>
+   *       <th>augmentobjectproto</th>
+   *     </tr>
+   *   </thead>
+   *   <tbody>
+   *     <tr>
+   *       <th>augmentBuiltins</th>
+   *       <td>yes</td>
+   *       <td>yes</td>
+   *       <td>no</td>
+   *       <td>no</td>
+   *     </tr>
+   *     <tr>
+   *       <th>augmentPrototypes</th>
+   *       <td>yes</td>
+   *       <td>yes</td>
+   *       <td>yes</td>
+   *       <td>no</td>
+   *     </tr>
+   *     <tr>
+   *       <th>augmentObjectPrototype</th>
+   *       <td>yes</td>
+   *       <td>yes</td>
+   *       <td>yes</td>
+   *       <td>yes</td>
+   *     </tr>
+   *     <tr>
+   *       <th>replaceBuiltins</th>
+   *       <td>yes</td>
+   *       <td>depends</td>
+   *       <td>depends</td>
+   *       <td>depends</td>
+   *     </tr>
+   *   </tbody>
+   * </table>
    *
    * <dl>
-   *   <dt>modifyBuiltins</dt>
-   *     <dd>Allow built-ins to be modified.  Set to
-   *         <code>false</code> if you are testing features
+   *   <dt>augmentBuiltins</dt>
+   *     <dd>Allow built-ins to be augmented with new
+   *         properties.  This allows new properties on
+   *         the built-in constructors, but not on
+   *         prototype objects of built-in objects.
+   *         See <code>augmentPrototypes</code>.
+   *         Since there usually is no harm in that,
+   *         the default is <code>true</code>.
+   *         Set to <code>false</code> if you are testing features
    *         of ECMAScript implementations with JSX,
    *         like with the ECMAScript Support Matrix.
    *         The default is <code>true</code>.
    *       <dl>
-   *         <dt>augmentBuiltins</dt>
-   *           <dd>Allow built-ins to be augmented with new
-   *               properties.  This allows new properties on
-   *               the built-in constructors, but not on
-   *               prototype objects of built-in objects.
-   *               See <code>augmentPrototypes</code>.
-   *               Since there usually is no harm in that,
-   *               the default is <code>true</code>.
-   *             <dl>
-   *               <dt>augmentPrototypes</dt>
-   *                 <dd>Allow prototype objects to be augmented,
-   *                     except <code>Object.prototype</code>.
-   *                     This allows for new, inherited methods for
-   *                     <code>String</code>s, for example.
-   *                     Since there usually is no harm in that, the
-   *                     default is <code>true</code>.
-   *                   <dl>
-   *                     <dt>augmentObjectPrototype</dt>
-   *                       <dd>Allow <code>Object.prototype</code>
-   *                           to be augmented.  <em>CAUTION:
-   *                           The new properties are inherited
-   *                           to all native objects, and
-   *                           host objects that have
-   *                           <code>Object.prototype</code>
-   *                           in their prototype chain.  The new
-   *                           properties will show up everywhere,
-   *                           including <code>for-in</code>
-   *                           iteration.  If you do not know
-   *                           what this is all about, leave it
-   *                           at the default <code>false</code>.</dd>
-   *             </dl>
-   *           </dd>
+   *         <dt>augmentPrototypes</dt>
+   *           <dd>Allow prototype objects to be augmented,
+   *               except <code>Object.prototype</code>.
+   *               This allows for new, inherited methods for
+   *                <code>String</code>s, for example.
+   *                Since there usually is no harm in that, the
+   *                default is <code>true</code>.
+   *              <dl>
+   *                <dt>augmentObjectPrototype</dt>
+   *                  <dd>Allow <code>Object.prototype</code>
+   *                      to be augmented.  <em>CAUTION:
+   *                      The new properties are inherited
+   *                      to all native objects, and
+   *                      host objects that have
+   *                      <code>Object.prototype</code>
+   *                      in their prototype chain.  The new
+   *                      properties will show up everywhere,
+   *                      including <code>for-in</code>
+   *                      iteration.  If you do not know
+   *                      what this is all about, leave it
+   *                      at the default <code>false</code>.</dd>
    *       </dl>
    *     </dd>
    *   <dt>replaceBuiltins</dt>
