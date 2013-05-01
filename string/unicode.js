@@ -37,16 +37,24 @@
  * values beyond the BMP (e.g., <code>String.fromCharCode(0x1DD1E)
  * === "\uDD1E"</code>).
  *
- * This library replaces the values of certain built-in properties
- * of the <code>String</code> constructor and <code>String</code>
- * prototype object such as the ones mentioned above, and adds
- * others to the prototype object, so as to support non-BMP
- * characters in implementations of those ECMAScript Editions
- * as well almost seamlessly.  However, non-callable built-in
- * own and inherited properties of <code>String</code> values,
- * like <code>length</code>, are <em>not</em> modified.
- * (In case of <code>length</code>, use <code>getLength()</code>
- * instead.)
+ * This library provides a new object type, <code>WideString</code>,
+ * whose prototype object inherits from the <code>String</code>
+ * prototype object, and can be used as a drop-in replacement for
+ * strings that contain Unicode characters from both inside and
+ * beyond the BMP, from code points U+0000 to U+10FFFF inclusive.
+ *
+ * A future revision might also allow to replace the values of
+ * certain built-in properties of the <code>String</code>
+ * constructor and <code>String</code> prototype object such
+ * as the ones mentioned above, and to add others to the prototype
+ * object, so as to support non-BMP characters in implementations
+ * of those ECMAScript Editions as well almost seamlessly.
+ * However, non-callable built-in own and inherited properties
+ * of <code>String</code> values, like <code>length</code>,
+ * could <em>not</em> be modified.  (In case of <code>length</code>,
+ * you would need to use <code>getLength()</code> instead.)
+ *
+ * Your feedback is appreciated.
  *
  * <em>NOTE: Due to {@link Array} limitations, the maximum
  * supported string length is 2³²−1 characters.</em>
