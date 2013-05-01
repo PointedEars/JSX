@@ -296,6 +296,16 @@ jsx.string.unicode = (/** @constructor */ function () {
     }()),
 
     /**
+     * Returns the number of characters in this string
+     *
+     * @return {int}
+     * @see #length
+     */
+    getLength: function () {
+      return this.getChars().length;
+    },
+
+    /**
      * Returns the index of the first position of a substring
      * in this string.
      *
@@ -437,6 +447,18 @@ jsx.string.unicode = (/** @constructor */ function () {
      */
     valueOf: function () {
       return this.toString();
+    }
+  });
+
+  /**
+   * @name length
+   * @type int
+   * @memberOf jsx.string.unicode.WideString#prototype
+   * @see #getLength()
+   */
+  jsx.object.defineProperty(_WideString.prototype, "length", {
+    "get": function () {
+      return this.getLength();
     }
   });
 
