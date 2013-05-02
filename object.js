@@ -1642,13 +1642,14 @@ jsx.throwThis = (function () {
     }
 
     var sContext = "";
-    if (typeof Error == "function")
+
+    var stack = jsx.getStackTrace(
+      typeof Error == "function"
+        ? new Error()
+        : null);
+    if (stack)
     {
-      var stack = jsx.getStackTrace(new Error());
-      if (stack)
-      {
-        sContext = "\n\n" + stack;
-      }
+      sContext = "\n\n" + stack;
     }
 
     /* DEBUG: set breakpoint here */
