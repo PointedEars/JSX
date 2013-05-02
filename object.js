@@ -981,7 +981,7 @@ jsx.object = (/** @constructor */ function () {
               function () {
                 obj[propertyName] = value;
 
-                jsx.warn((sContext ? sContext + ": " : "")
+                jsx.warn((context ? context + ": " : "")
                   + "Could not define property `" + propertyName
                   + "' as read-only");
               });
@@ -1003,7 +1003,7 @@ jsx.object = (/** @constructor */ function () {
               }
             },
             function () {
-              jsx.warn((sContext ? sContext + ": " : "")
+              jsx.warn((context ? context + ": " : "")
                 + "Could not define special property `" + propertyName + "'."
                 + " Please use explicit getters and setters instead.");
             });
