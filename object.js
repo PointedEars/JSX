@@ -1643,10 +1643,7 @@ jsx.throwThis = (function () {
 
     var sContext = "";
 
-    var stack = jsx.getStackTrace(
-      typeof Error == "function"
-        ? new Error()
-        : null);
+    var stack = jsx.getStackTrace();
     if (stack)
     {
       sContext = "\n\n" + stack;
