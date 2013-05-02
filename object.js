@@ -1644,7 +1644,7 @@ jsx.throwThis = (function () {
     var sContext = "";
     if (typeof Error == "function")
     {
-      var stack = (new Error()).stack;
+      var stack = jsx.getStackTrace(new Error());
       if (stack)
       {
         sContext = "\n\n" + stack;
@@ -1887,7 +1887,7 @@ jsx.object.getDoc = function (aFunction) {
 jsx.getStackTrace = function () {
   /**
    * @private
-   * @param excp
+   * @param {Error} excp
    */
   function parseErrorStack(excp)
   {
