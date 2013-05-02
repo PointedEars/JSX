@@ -377,30 +377,38 @@ jsx.test = (/** @constructor */ function () {
         var context = "table#" + id;
         var style = document.createElement("style");
         style.type = "text/css";
-        style.appendChild(
-          document.createTextNode(
-              context + " { border: 2px solid black;"
-                        + " border-collapse: collapse; }"
-            + context + " thead { border-bottom: 1px solid black; }"
-            + context + " thead th { vertical-align: baseline; }"
-            + context + " tfoot { border-top: 1px solid black; }"
-            + context + " thead th { text-align: left; }"
-            + context + " thead th:first-child { text-align: right; }"
-            + context + " tbody th { text-align: right; }"
-            + context + " tbody td.info {"
-                        + " background-color: green; color: white; }"
-            + context + " tbody td.error {"
-                        + " background-color: red;"
-                        + " color: white; font-family: monospace; }"
-            + context + " thead th,"
-            + context + " tbody th,"
-            + context + " tbody td,"
-            + context + " tfoot td {"
-                        + " padding: 0 0.5em;"
-                        + " vertical-align: top;"
-                        + " vertical-align: baseline; }"
-          ));
-        document.getElementsByTagName("head")[0].appendChild(style);
+        var styleText =
+            context + " { border: 2px solid black;"
+                    + " border-collapse: collapse; }"
+          + context + " thead { border-bottom: 1px solid black; }"
+          + context + " thead th { vertical-align: baseline; }"
+          + context + " tfoot { border-top: 1px solid black; }"
+          + context + " thead th { text-align: left; }"
+          + context + " thead th:first-child { text-align: right; }"
+          + context + " tbody th { text-align: right; }"
+          + context + " tbody td.info {"
+                      + " background-color: green; color: white; }"
+          + context + " tbody td.error {"
+                      + " background-color: red;"
+                      + " color: white; font-family: monospace; }"
+          + context + " thead th,"
+          + context + " tbody th,"
+          + context + " tbody td,"
+          + context + " tfoot td {"
+                      + " padding: 0 0.5em;"
+                      + " vertical-align: top;"
+                      + " vertical-align: baseline; }";
+        if (typeof style.styleSheet != "undefined")
+        {
+          /* Older MSHTML */
+          style.styleSheet.cssText = styleText;
+        }
+        else
+        {
+          style.appendChild(document.createTextNode(styleText));
+        }
+
+        (document.head || document.getElementsByTagName("head")[0]).appendChild(style);
 
         var table = document.createElement("table");
         table.id = id;
