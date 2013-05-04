@@ -864,127 +864,231 @@ jsx.array.equals = (function () {
  * Returns a comparator that can be used for sorting an array.
  *
  * @author (C) 2013 Thomas 'PointedEars' Lahn &lt;js@PointedEars.de&gt;
- * @param {Array} aKeys
- *   Array of keys that should be sorted by, in order.
- *   A key may be a {@link string} value or a native object.
- *   If it is a <code>string</code>, it specifies the property name
- *   of the sort key.  If it is another native object, the following
- *   of its properties are used as options.  See the <var>options</var>
- *   parameter for the default values of these options.
- *   <table>
- *     <tr>
- *       <th><code>key</code></th>
- *       <td>The name of the property of the element whose value
- *           should be sorted by.  If this option is not present
- *           or a false-value, the element value is used as key.</td>
- *     </tr>
- *     <tr>
- *       <th><code>descending</code></th>
- *       <td>If a true-value, the sort order for this key
- *           is descending.</td>
- *     </tr>
- *     <tr>
- *       <th><code>numeric</code></th>
- *       <td>If a true-value, the values for this key are sorted
- *           as if they were <code>Number</code> values.</td>
- *     </tr>
- *     <tr>
- *       <th><code>strict</code></th>
- *       <td>If a true-value, the values are sorted
- *           using the <code>===</code> operator.</td>
- *     </tr>
- *   </table>
- * @param {Object} options (optional)
- *   Default key options.  The following properties are used:
- *   <table>
- *     <tr>
- *       <th><code>descending</code></th>
- *       <td>If a true-value, the default sort order is
- *           descending.  The factory default is ascending order.</td>
- *     </tr>
- *     <tr>
- *       <th><code>numeric</code></th>
- *       <td>If a true-value, by default the values are sorted as
- *           if they were <code>Number</code> values.  The factory
- *           default is a generic sort order that uses the operators
- *           <code>==</code> (non-strict) or <code>===</code>
- *           (strict), and <code>&lt;</code>, and <code>></code>.</td>
- *     </tr>
- *     <tr>
- *       <th><code>strict</code></th>
- *       <td>If a true-value, by default use strict comparison.
- *           The factory default is non-strict comparison.</td>
- *     </tr>
- *   </table>
- * @return Function
  */
-jsx.array.getComparator = function (aKeys, options) {
-  return function (el1, el2) {
-    for (var i = 0, len = aKeys.length; i < len; ++i)
-    {
-      var key = aKeys[i];
-      var propertyName = (typeof key.valueOf() == "string") ? key : key && key.key;
+jsx.array.createComparator = (function () {
+  var _hasOwnProperty = jsx.object._hasOwnProperty;
 
-      var el1Value = (propertyName != null ? el1[propertyName] : el1);
-      var el2Value = (propertyName != null ? el2[propertyName] : el2);
-
-      var equals = (
-        (typeof key.strict != "undefined" && key.strict)
-        || (options && typeof options.strict != "undefined" && options.strict)
-          ? (el1Value === el2Value)
-          : (el1Value == el2Value)
-      );
-
-      if (equals)
+  /**
+   * @param {Array} aKeys
+   *   Array of keys that should be sorted by, in order.
+   *   A key may be a {@link string} value or a native object.
+   *   If it is a <code>string</code>, it specifies the property name
+   *   of the sort key.  If it is another native object, the following
+   *   of its properties are used as options.  See the <var>options</var>
+   *   parameter for the default values of these options.
+   *   <table>
+   *     <tr>
+   *       <th><code>key</code></th>
+   *       <td>The name of the property of the elements whose values
+   *           should be sorted by (sort values).  If this option is
+   *           not present or a false-value, the element values are
+   *           used as sort values.</td>
+   *     </tr>
+   *     <tr>
+   *       <th><code>callback</code></th>
+   *       <td>A reference to the <code>Function</code> whose
+   *           return value, when passed the current sort value,
+   *           defines the new sort value.</td>
+   *     </tr>
+   *     <tr>
+   *       <th><code>constructor</code></th>
+   *       <td>A reference to the <code>Function</code> whose
+   *           return value when passed the current sort value
+   *           and called as a constructor, defines the new
+   *           sort value.  This is useful if data can be converted
+   *           to an object whose <code>toString</code> or
+   *           <code>valueOf</code> methods can return a
+   *           valid sort value.  If both <code>callback</code>
+   *           and <code>constructor</code> are specified, the
+   *           return value of the callback is passed to
+   *           the constructor.</td>
+   *     </tr>
+   *     <tr>
+   *       <th><code>comparator</code></th>
+   *       <td>A reference to the <code>Function</code> that
+   *           should be passed the first and second current
+   *           sort values and whose return value defines
+   *           the relation between the first and second sort
+   *           value.  If the return value is not (loosely) equal
+   *           to 0 or if the key is the last key, its return
+   *           value is returned.  Otherwise the subsequent
+   *           sort values are compared.</td>
+   *     </tr>
+   *     <tr>
+   *       <th><code>descending</code></th>
+   *       <td>If a true-value, the sort order for this key
+   *           is descending.</td>
+   *     </tr>
+   *     <tr>
+   *       <th><code>numeric</code></th>
+   *       <td>If a true-value, the sort values are compared as if
+   *           both of them were <code>Number</code> values.</td>
+   *     </tr>
+   *     <tr>
+   *       <th><code>strict</code></th>
+   *       <td>If a true-value, the sort values are sorted
+   *           using the <code>===</code> operator.</td>
+   *     </tr>
+   *   </table>
+   * @param {Object} options (optional)
+   *   Default sort options.  The following properties are used:
+   *   <table>
+   *     <tr>
+   *       <th><code>callback</code></th>
+   *       <td>A reference to the <code>Function</code> whose
+   *           return value, when passed the current sort value,
+   *           defines the new sort value.  The factory default
+   *           is not to use a callback.</td>
+   *     </tr>
+   *     <tr>
+   *       <th><code>constructor</code></th>
+   *       <td>A reference to the <code>Function</code> whose
+   *           return value when passed the current sort value
+   *           and called as a constructor, defines the new
+   *           sort value.  The factory default is not to use
+   *           a constructor.</td>
+   *     </tr>
+   *     <tr>
+   *       <th><code>comparator</code></th>
+   *       <td>A reference to the <code>Function</code> that
+   *           should be passed the first and second current
+   *           sort values and whose return value defines
+   *           the relation between the first and second sort
+   *           value.  The factory default is not to use a
+   *           special sort value comparator.</td>
+   *     </tr>
+   *     <tr>
+   *       <th><code>descending</code></th>
+   *       <td>If a true-value, the default sort order is
+   *           descending.  The factory default is ascending.</td>
+   *     </tr>
+   *     <tr>
+   *       <th><code>numeric</code></th>
+   *       <td>If a true-value, by default the sort values are compared
+   *           as if they were <code>Number</code> values.  The factory
+   *           default is a generic comparison that uses the operators
+   *           <code>==</code> (non-strict) or <code>===</code>
+   *           (strict), and <code>&lt;</code>, and <code>></code>.</td>
+   *     </tr>
+   *     <tr>
+   *       <th><code>strict</code></th>
+   *       <td>If a true-value, use strict comparison by default.
+   *           The factory default is non-strict comparison.</td>
+   *     </tr>
+   *   </table>
+   * @return Function
+   */
+  function _createComparator (aKeys, options)
+  {
+    return function (el1, el2) {
+      for (var i = 0, len = aKeys.length; i < len; ++i)
       {
-        if (i == len - 1)
+        var key = aKeys[i];
+        var propertyName = (typeof key.valueOf() == "string") ? key : key && key.key;
+
+        var el1Value = (propertyName != null ? el1[propertyName] : el1);
+        var el2Value = (propertyName != null ? el2[propertyName] : el2);
+
+        if (typeof key.callback == "function")
         {
-          /* last key, same value */
-          return 0;
+          el1Value = key.callback(el1Value);
+          el2Value = key.callback(el2Value);
+        }
+        else if (options && typeof options.callback == "function")
+        {
+          el1Value = options.callback(el1Value);
+          el2Value = options.callback(el2Value);
+        }
+
+        if (_hasOwnProperty(key, "constructor"))
+        {
+          el1Value = new key.constructor(el1Value);
+          el2Value = new key.constructor(el2Value);
+        }
+        else if (options && _hasOwnProperty(options, "constructor"))
+        {
+          el1Value = new options.constructor(el1Value);
+          el2Value = new options.constructor(el2Value);
+        }
+
+        var isLastKey = (i == len - 1);
+        var hasKeySpecificComparator = (typeof key.comparator == "function");
+        if (hasKeySpecificComparator
+            || (options && typeof options.comparator == "function"))
+        {
+          var comparatorResult =
+            hasKeySpecificComparator
+              ? key.comparator(el1Value, el2Value)
+              : options.comparator(el1Value, el2Value);
+
+          if (isLastKey || comparatorResult != 0)
+          {
+            return comparatorResult;
+          }
+
+          continue;
+        }
+
+        equals = (
+          (typeof key.strict != "undefined" && key.strict)
+          || (options && typeof options.strict != "undefined" && options.strict)
+            ? (el1Value === el2Value)
+            : (el1Value == el2Value)
+        );
+
+        if (equals)
+        {
+          if (isLastKey)
+          {
+            /* last key, same value */
+            return 0;
+          }
+        }
+        else
+        {
+          var descending =
+            (typeof key.descending != "undefined" && key.descending)
+            || (options && typeof options.descending != "undefined" && options.descending);
+
+          return (
+            (typeof key.numeric != "undefined" && key.numeric)
+            || (options && typeof options.numeric != "undefined" && options.numeric)
+              ? (descending
+                  ? el2Value - el1Value
+                  : el1Value - el2Value)
+              : (descending
+                  ? (el1Value > el2Value ? -1 : 1)
+                  : (el1Value < el2Value ? -1 : 1))
+          );
         }
       }
-      else
-      {
-        var descending =
-          (typeof key.descending != "undefined" && key.descending)
-          || (options && typeof options.descending != "undefined" && options.descending);
+    };
+  }
 
-        return (
-          (typeof key.numeric != "undefined" && key.numeric)
-          || (options && typeof options.numeric != "undefined" && options.numeric)
-            ? (descending
-                ? el1Value - el2Value
-                : el2Value - el1Value)
-            : (descending
-                ? (el1Value < el2Value ? -1 : 1)
-                : (el1Value > el2Value ? -1 : 1))
-        );
-      }
-    }
-  };
-};
+  return _createComparator;
+}());
 
 if (jsx.array.emulate)
 {
   jsx.object.setProperties(Array.prototype, {
-    contains:      jsx.array.contains,
-    chunk:         jsx.array.chunk,
-    changeCase:    jsx.array.changeCase,
-    countValues:   jsx.array.countValues,
-    equals:        jsx.array.equals,
-    fill:          jsx.array.fill,
-    getComparator: jsx.array.getComparator,
-    pop:           jsx.array.pop,
-    push:          jsx.array.push,
-    reverse:       jsx.array.reverse,
-    search:        jsx.array.search,
-    splice:        jsx.array.splice,
-    toUpperCase:   jsx.array.toUpperCase,
+    contains:         jsx.array.contains,
+    chunk:            jsx.array.chunk,
+    changeCase:       jsx.array.changeCase,
+    countValues:      jsx.array.countValues,
+    equals:           jsx.array.equals,
+    fill:             jsx.array.fill,
+    createComparator: jsx.array.createComparator,
+    pop:              jsx.array.pop,
+    push:             jsx.array.push,
+    reverse:          jsx.array.reverse,
+    search:           jsx.array.search,
+    splice:           jsx.array.splice,
+    toUpperCase:      jsx.array.toUpperCase,
 
     /* JavaScript 1.6 (1.5 in Gecko 1.8b2 and later) emulation */
-    every:       jsx.array.every,
+    every:            jsx.array.every,
 
-    filter:      jsx.array.filter,
+    filter:           jsx.array.filter,
 
     iterate: function () {
       var a = new Array();
