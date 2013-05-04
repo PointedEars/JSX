@@ -292,7 +292,7 @@ function runTests()
       },
 
       {
-        feature: 'wideString("…").substr(…)',
+        feature: 'wideString.substr(…)',
         description: 'Return the correct value',
         code: function () {
           var s = new WideString("x\uD834\uDD1Ey").substr(1);
@@ -363,10 +363,98 @@ function runTests()
       },
 
       {
+        feature: 'string.charAt(…)',
+        description: 'Return the correct value',
+        code: function () {
+          assert("x\uD834\uDD1E".charAt(1) === "\uD834\uDD1E");
+          assert("\uD834\uDD1Ex".charAt(1) === "x");
+          assert(typeof "\uD834\uDD1Ex".charAt(2) == "undefined");
+
+          assert("xy\uD834\uDD1E".charAt(-1) === "\uD834\uDD1E");
+          assert("x\uD834\uDD1Ey".charAt(-1) === "y");
+          assert(typeof "x\uD834\uDD1Ey".charAt(-4) == "undefined");
+        }
+      },
+
+      {
+        feature: 'string.charCodeAt(…)',
+        description: 'Return the correct value',
+        code: function () {
+          assert("x\uD834\uDD1E".charCodeAt(1) === 0x1D11E);
+          assert("\uD834\uDD1EA".charCodeAt(1) === 65);
+
+          var result = "\uD834\uDD1EA".charCodeAt(2);
+          assert(typeof result == "number" && isNaN(result));
+
+          assert("xy\uD834\uDD1E".charCodeAt(-1) === 0x1D11E);
+          assert("A\uD834\uDD1EB".charCodeAt(-1) === 66);
+
+          result = "A\uD834\uDD1EB".charCodeAt(-4);
+          assert(typeof result == "number" && isNaN(result));
+        }
+      },
+
+      {
         feature: 'string.getLength()',
         description: 'Return the correct value (augmented prototype)',
         code: function () {
           assert("x\uD834\uDD1Ey".getLength() === 3);
+        }
+      },
+
+      {
+        feature: 'string.slice(…)',
+        description: 'Return the correct value',
+        code: function () {
+          assert("xyz".slice(1) === "yz");
+          assert("xyz".slice(0, 1) === "x");
+          assert("xyz".slice(0, 2) === "xy");
+          assert("xyz".slice(1, 1) === "");
+          assert("xyz".slice(1, 3) === "yz");
+
+          assert("x\uD834\uDD1Ey".slice(1) === "\uD834\uDD1Ey");
+          assert("x\uD834\uDD1Ey".slice(0, 1) === "x");
+          assert("x\uD834\uDD1Ey".slice(0, 2) === "x\uD834\uDD1E");
+          assert("x\uD834\uDD1Ey".slice(1, 1) === "");
+          assert("x\uD834\uDD1Ey".slice(1, 3) === "\uD834\uDD1Ey");
+        }
+      },
+
+      {
+        feature: 'string.substr(…)',
+        description: 'Return the correct value',
+        code: function () {
+          assert("xyz".substr(1) === "yz");
+          assert("xyz".substr(0, 1) === "x");
+          assert("xyz".substr(0, 2) === "xy");
+          assert("xyz".substr(1, 1) === "y");
+          assert("xyz".substr(1, 3) === "yz");
+
+          assert("x\uD834\uDD1Ey".substr(1) === "\uD834\uDD1Ey");
+          assert("x\uD834\uDD1Ey".substr(0, 1) === "x");
+          assert("x\uD834\uDD1Ey".substr(0, 2) === "x\uD834\uDD1E");
+          assert("x\uD834\uDD1Ey".substr(1, 1) === "\uD834\uDD1E");
+          assert("x\uD834\uDD1Ey".substr(1, 3) === "\uD834\uDD1Ey");
+        }
+      },
+
+      {
+        feature: 'string.substring(…)',
+        description: 'Return the correct value',
+        code: function () {
+          assert("xyz".substring(1) === "yz");
+          assert("xyz".substring(0, 1) === "x");
+          assert("xyz".substring(0, 2) === "xy");
+          assert("xyz".substring(1, 1) === "");
+          assert("xyz".substring(1, 3) === "yz");
+          assert("xyz".substring(3, 1) === "yz");
+
+          assert("x\uD834\uDD1Ey".substring(1) === "\uD834\uDD1Ey");
+          assert("x\uD834\uDD1Ey".substring(0, 1) === "x");
+          assert("x\uD834\uDD1Ey".substring(0, 2) === "x\uD834\uDD1E");
+          assert("x\uD834\uDD1Ey".substring(1, 1) === "");
+          assert("x\uD834\uDD1Ey".substring(1, 3) === "\uD834\uDD1Ey");
+          assert("x\uD834\uDD1Ey".substring(3, 1) === "\uD834\uDD1Ey");
         }
       }
     ]
