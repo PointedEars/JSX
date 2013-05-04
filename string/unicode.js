@@ -104,9 +104,12 @@ if (typeof jsx.string == "undefined")
  * @namespace
  */
 jsx.string.unicode = (/** @constructor */ function () {
+  var String_prototype_charCodeAt = "".charCodeAt;
+
   var _isArray = jsx.object.isArray;
 
   /* Handles characters in UTF-16 encoding from U+0000 to U+10FFFF */
+  var _rxWideString = /[\uD800-\uDBFF][\uDC00-\uDFFF]/;
   var _rxString = /[\uD800-\uDBFF][\uDC00-\uDFFF]|[\S\s]/g;
 
   /**
@@ -152,11 +155,11 @@ jsx.string.unicode = (/** @constructor */ function () {
      * @param {String} s
      * @return {jsx.string.unicode.WideString}
      */
-    function jsx_string_unicode_WideString (s) {
+    function _jsx_string_unicode_WideString (s) {
       /* Factory support */
-      if (!(this instanceof jsx_string_unicode_WideString))
+      if (!(this instanceof _jsx_string_unicode_WideString))
       {
-        return new jsx_string_unicode_WideString(s);
+        return new _jsx_string_unicode_WideString(s);
       }
 
       /**
@@ -166,7 +169,7 @@ jsx.string.unicode = (/** @constructor */ function () {
       var _chars =
         _isArray(s)
         ? s
-        : (s instanceof jsx_string_unicode_WideString
+        : (s instanceof _jsx_string_unicode_WideString
             ? s.getChars()
             : _toCharArray(s));
 
@@ -182,10 +185,11 @@ jsx.string.unicode = (/** @constructor */ function () {
       },
 
       /**
-       * @name chars
-       * @memberOf jsx.string.unicode.WideString
        * @field
+       * @name chars
        * @type Array
+       * @memberOf jsx.string.unicode.WideString
+       * @see #getChars()
        */
       jsx.object.defineProperty(this, "chars", {"get": this.getChars});
     }
@@ -231,55 +235,46 @@ jsx.string.unicode = (/** @constructor */ function () {
      * several other characters.  Normalization is not performed.</em>
      *
      * @memberOf jsx.string.unicode.WideString#prototype
+     * @param {Number} position
+     *   If not an integer, replaced with the closest integer.
+     * @return {number}
+     *   If <code><var>position</var></code> is greater than or
+     *   equal to zero, the code point value of the character
+     *   at that position, counted from zero.
+     *   If <code><var>position</var></code> is less than zero,
+     *   it is treated as the number of characters in this object
+     *   + <code><var>position</var></code>; that is,
+     *   <code><var>position</var> === -1</code>
+     *   returns the code point value of the last character.
+     *   If <code><var>position</var></code> is replacable with
+     *   an integer value out of this range, <code>NaN</code>
+     *   is returned.
+     *   By contrast, if <code><var>position</var></code> is
+     *   not a <code>Number</code>, the return value is
+     *   <strong>not defined</strong>.
      * @see #charAt()
      */
-    charCodeAt: (function () {
-      var String_prototype_charCodeAt = "".charCodeAt;
-
-      /**
-       * @param {Number} position
-       *   If not an integer, replaced with the closest integer.
-       * @return {number}
-       *   If <code><var>position</var></code> is greater than or
-       *   equal to zero, the code point value of the character
-       *   at that position, counted from zero.
-       *   If <code><var>position</var></code> is less than zero,
-       *   it is treated as the number of characters in this object
-       *   + <code><var>position</var></code>; that is,
-       *   <code><var>position</var> === -1</code>
-       *   returns the code point value of the last character.
-       *   If <code><var>position</var></code> is replacable with
-       *   an integer value out of this range, <code>NaN</code>
-       *   is returned.
-       *   By contrast, if <code><var>position</var></code> is
-       *   not a <code>Number</code>, the return value is
-       *   <strong>not defined</strong>.
-       */
-      function _charCodeAt (position)
+    charCodeAt: function (position) {
+      var ch = this.charAt(position);
+      if (typeof ch == "undefined")
       {
-        var ch = this.charAt(position);
-        if (typeof ch == "undefined")
-        {
-          return NaN;
-        }
-
-        if (/^[\uD800-\uDBFF]/.test(ch))
-        {
-          var leadSurrogate = String_prototype_charCodeAt.call(ch, 0);
-          var trailSurrogate = String_prototype_charCodeAt.call(ch, 1);
-
-          var leadBits = (leadSurrogate - 0xD800) << 10;
-          var trailBits = trailSurrogate - 0xDC00;
-          var bmpOffset = 0x10000;
-
-          return leadBits + trailBits + bmpOffset;
-        }
-
-        return String_prototype_charCodeAt.call(ch, 0);
+        return NaN;
       }
 
-      return _charCodeAt;
-    }()),
+      if (/^[\uD800-\uDBFF]/.test(ch))
+      {
+        var leadSurrogate = String_prototype_charCodeAt.call(ch, 0);
+        var trailSurrogate = String_prototype_charCodeAt.call(ch, 1);
+
+        var leadBits = (leadSurrogate - 0xD800) << 10;
+        var trailBits = trailSurrogate - 0xDC00;
+        var bmpOffset = 0x10000;
+
+        return leadBits + trailBits + bmpOffset;
+      }
+
+      return String_prototype_charCodeAt.call(ch, 0);
+    },
 
     /**
      * Concatenates this string with other strings
@@ -421,7 +416,7 @@ jsx.string.unicode = (/** @constructor */ function () {
     },
 
     /**
-     * Returns a slice (substring) of this string.
+     * Returns a substring of this string.
      *
      * @param {int} start
      *   Position of the Unicode character from where to start slicing.
@@ -531,21 +526,212 @@ jsx.string.unicode = (/** @constructor */ function () {
   {
     if (jsx.options.augmentPrototypes)
     {
-      jsx.object.setProperties(String.prototype, {
+      jsx.object.setProperties(String.prototype, (function () {
         /**
-         * Returns the number of Unicode characters in this string.
-         *
-         * Differs from the built-in {@link string#length length}
-         * property in that it considers characters with code points
-         * beyond U+FFFF that require several UTF-16 code units.
-         *
-         * @memberOf String.prototype
-         * @return {number}
+         * @type jsx.string.unicode.WideString
          */
-        getLength: function () {
-          return (new _WideString(this)).getLength();
+        var _prevWideString = null;
+
+        /**
+         * Returns the {@link jsx.string.unicode.WideString WideString}
+         * created from this <code>String</code>.
+         * <p>
+         * NOTE: The previously created <code>WideString</code> is
+         * retained in <code><var>prevWideString</var></code>, which
+         * increases runtime efficiency with subsequent method calls
+         * on the same string.  Caching <em>all</em> previous values
+         * would also increase runtime efficiency, but decrease memory
+         * efficiency at the same time, as unused <code>WideString</code>s
+         * could not be garbage-collected.<br>
+         * Calling <code>toString</code> is required so that primitive
+         * values, not object references, are compared (the latter
+         * would always be <code>false</code> with internal wrapper
+         * <code>String</code> objects created from primitive
+         * string values).
+         * </p>
+         * @param {String} s
+         * @return {jsx.string.unicode.WideString}
+         */
+        function _createWideString (s)
+        {
+          return (_prevWideString && _prevWideString.toString() == s
+            ? _prevWideString
+            : (_prevWideString = new _WideString(s)));
         }
-      });
+
+        return {
+          /**
+           * Returns the character in this string
+           * at the specified position.
+           * <p>
+           * Differs from the built-in {@link String.prototype#charAt}
+           * method in that it considers characters with code points
+           * beyond U+FFFF that require several UTF-16 code units,
+           * and that the position may be negative, counting from
+           * the end of the string.
+           * </p>
+           * @memberOf String.prototype
+           * @param {Number} position
+           * @return {string}
+           * @see String.prototype#charAt()
+           * @see jsx.string.unicode.WideString.prototype#charAt()
+           */
+          charAt: function (position) {
+            return _createWideString(this).charAt(position);
+          },
+
+          /**
+           * Returns the Unicode code point value of the character
+           * in this string at the specified position.
+           * <p>
+           * Differs from the built-in {@link String.prototype#charCodeAt}
+           * method in that it considers characters with code points
+           * beyond U+FFFF that require several UTF-16 code units,
+           * and that the position may be negative, counting from
+           * the end of the string.
+           * </p>
+           * @param {Number} position
+           * @return {number}
+           * @see String.prototype#charCodeAt()
+           * @see jsx.string.unicode.WideString.prototype#charCodeAt()
+           */
+          charCodeAt: function (position) {
+            return _createWideString(this).charCodeAt(position);
+          },
+
+          /**
+           * Returns the number of Unicode characters in this string.
+           * <p>
+           * Differs from the built-in {@link string#length length}
+           * property in that it considers characters with code points
+           * beyond U+FFFF that require several UTF-16 code units.
+           * </p>
+           * @return {number}
+           * @see string#length
+           */
+          getLength: function () {
+            return _createWideString(this).getLength();
+          },
+
+          /**
+           * Returns the index of the first position of a substring
+           * in this string.
+           * <p>
+           * Differs from the built-in {@link String.prototype#indexOf}
+           * method in that it considers characters with code points
+           * beyond U+FFFF that require several UTF-16 code units.
+           * </p>
+           * @param {jsx.string.unicode.WideString|String} searchString
+           *   Substring to look for.
+           * @param {int} position
+           *   Position from where to start searching. The default is
+           *   <code>0</code>.
+           * @return {number}
+           * @see String.prototype#indexOf()
+           */
+          indexOf: function (searchString, position) {
+            return _createWideString(this).indexOf(searchString, position);
+          },
+
+          /**
+           * Returns the index of the last position of a substring
+           * in this string.
+           * <p>
+           * Differs from the built-in {@link String.prototype#lastIndexOf}
+           * method in that it considers characters with code points
+           * beyond U+FFFF that require several UTF-16 code units.
+           * </p>
+           * @param {jsx.string.unicode.WideString|String} searchString
+           *   Substring to look for.
+           * @param {int} position
+           *   Position from where to start searching backwards.
+           *   The default is the position of the last character.
+           * @return {number}
+           * @see String.prototype#lastIndexOf()
+           */
+          lastIndexOf: function (searchString, position) {
+            return _createWideString(this).lastIndexOf(searchString, position);
+          },
+
+          /**
+           * Returns a slice (substring) of this string.
+           * <p>
+           * Differs from the built-in {@link String.prototype#slice}
+           * method in that it considers characters with code points
+           * beyond U+FFFF that require several UTF-16 code units.
+           * </p>
+           * @see String.prototype#slice()
+           */
+          slice: (function () {
+            var String_prototype_slice = "".slice;
+
+            /**
+             * @param {int} start
+             *   Position of the Unicode character from where to start slicing.
+             * @param {int} end
+             *   Position of the first Unicode character that should not be
+             *   included in the slice.
+             * @return {string}
+             */
+            return function (start, end) {
+              return _rxWideString.test(this)
+                ? _createWideString(this).slice(start, end).toString()
+                : String_prototype_slice.apply(this, arguments);
+            };
+          }()),
+
+          /**
+           * Returns a substring of this string.
+           * <p>
+           * Differs from the built-in (non-standard)
+           * {@link String.prototype#substr} method in that it
+           * considers characters with code points beyond U+FFFF
+           * that require several UTF-16 code units.
+           * </p>
+           * @param {int} start
+           *   Position of the Unicode character from where to start slicing.
+           * @param {int} length
+           *   Number of Unicode characters in the substring.
+           *   If omitted or <code>undefined</code>, the substring
+           *   contains all characters from <code>start</code>
+           *   to the end of this string.
+           * @return {string}
+           * @see String.prototype#substr()
+           * @see jsx.string.unicode.WideString.prototype#substr()
+           */
+          substr: function (start, length) {
+            return _createWideString(this).substr(start, length).toString();
+          },
+
+          /**
+           * Returns a substring of this string.
+           * <p>
+           * Differs from the built-in {@link String.prototype#substring}
+           * method in that it considers characters with code points
+           * beyond U+FFFF that require several UTF-16 code units.
+           * </p>
+           * @see String.prototype#substring()
+           */
+          substring: (function () {
+            var String_prototype_substring = "".substring;
+
+            /**
+             * @param {int} start
+             *   Position of the Unicode character from where to start slicing.
+             * @param {int} end (optional)
+             *   Position of the first Unicode character that should not be
+             *   included in the slice.  If <code><var>start</var></code>
+             *   is larger than <code><var>end</var></code>, they are swapped.
+             * @return {string}
+             */
+            return function (start, end) {
+              return _rxWideString.test(this)
+                ? _createWideString(this).substring(start, end).toString()
+                : String_prototype_substring.apply(this, arguments);
+            };
+          }())
+        };
+      }()), jsx.object.ADD_OVERWRITE);
     }
   }
 
@@ -555,7 +741,11 @@ jsx.string.unicode = (/** @constructor */ function () {
       /**
        * Returns a {@link String} containing the Unicode characters
        * specified by the code point arguments.
-       *
+       * <p>
+       * Differs from the built-in {@link String#fromCharCode}
+       * method in that it considers characters with code points
+       * beyond U+FFFF that require several UTF-16 code units.
+       * </p>
        * @memberOf String
        * @params {Number}
        *   Code points of the characters from <code>0</code> to
