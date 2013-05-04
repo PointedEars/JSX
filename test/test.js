@@ -412,6 +412,7 @@ jsx.test = (/** @constructor */ function () {
 
         var table = document.createElement("table");
         table.id = id;
+        this._table = table;
 
         var thead = document.createElement("thead");
         var tr = document.createElement("tr");
@@ -442,8 +443,35 @@ jsx.test = (/** @constructor */ function () {
         var tbody = document.createElement("tbody");
         table.appendChild(tbody);
 
+        var tests = this._tests;
+        for (var i = 0, len = tests.length; i < len; ++i)
+        {
+          var test = tests[i];
+          var number = i + 1;
+          var file = this._file;
+          var feature = this._feature;
+          var description = "";
+
+          if (test && typeof test != "function")
+          {
+            if (test.file)
+            {
+              file = test.file;
+            }
+
+            if (test.feature)
+            {
+              feature = test.feature;
+            }
+
+            description = test.description || test.desc || test.name;
+            test = test.code;
+          }
+
+          this._appendRow(number, file, feature, description);
+        }
+
         document.body.appendChild(table);
-        this._table = table;
       },
 
       /**
@@ -457,17 +485,21 @@ jsx.test = (/** @constructor */ function () {
 
       /**
        * @protected
+       * @param {int} num
+       * @param {string} file
+       * @param {string} feature
+       * @param {string} desc
        */
-      _appendEntry: function (num, file, feature, desc, result, msgType) {
-        if (!this._table)
+      _appendRow: function (num, file, feature, desc) {
+        var table = this._table;
+        if (!table)
         {
           return;
         }
 
-        var tbody = this._table.tBodies[0];
+        var tbody = table.tBodies[0];
 
         var tr = document.createElement("tr");
-        tr.className = msgType;
 
         var th = document.createElement("th");
         th.appendChild(document.createTextNode(num));
@@ -499,14 +531,32 @@ jsx.test = (/** @constructor */ function () {
         tr.appendChild(td);
 
         td = document.createElement("td");
+        td.id = table.id + "-" + num;
+        td.innerHTML = "testing…";
 
-        /* FIXME: Use standards-compliant methods instead */
-        td.innerHTML = this._htmlEscape(result).replace(/\r?\n|\r/g, "<br>");
-
-        td.className = msgType;
         tr.appendChild(td);
 
         tbody.appendChild(tr);
+      },
+
+      /**
+       * Updates a result cell
+       *
+       * @protected
+       * @param {int} rowNum
+       *   Row number
+       * @param {string} result
+       * @param {string} msgType
+       */
+      _updateResult: function (rowNum, result, msgType) {
+        var td = document.getElementById(this._table.id + "-" + rowNum);
+        if (td)
+        {
+          /* FIXME: Use standards-compliant methods instead */
+          td.innerHTML = this._htmlEscape(result).replace(/\r?\n|\r/g, "<br>");
+
+          td.className = msgType;
+        }
       },
 
       /**
@@ -564,7 +614,7 @@ jsx.test = (/** @constructor */ function () {
        * @param msgType
        */
       _printResult: function (num, file, feature, desc, result, msgType) {
-        this._appendEntry(num, file, feature, desc, result, msgType);
+        this._updateResult(num, result, msgType);
         this._printMsg("Test " + num
           + (file || feature ? ", " : "")
           + file
@@ -715,85 +765,101 @@ jsx.test = (/** @constructor */ function () {
           }
         }
 
-        if (this._tests.length == 0)
+        var tests = this._tests;
+        if (tests.length == 0)
         {
           return this._printMsg("No tests defined.", "info");
         }
 
-        var result = {
+        this._appendTable();
+
+        tests.result = {
           failed: 0,
           passed: 0
         };
 
-        this._appendTable();
-
-        for (var i = 0, len = this._tests.length; i < len; ++i)
+        var hasSetTimeout = jsx.object.isMethod(jsx.global, "window", "setTimeout");
+        var hasClearTimeout = jsx.object.isMethod(jsx.global, "window", "clearTimeout");
+        var me = this;
+        for (var i = 0, len = tests.length; i < len; ++i)
         {
-          var test = this._tests[i];
-          var number = i + 1;
-          var file = this._file;
-          var feature = this._feature;
-          var description = "";
-
-          if (test && typeof test != "function")
+          if (hasSetTimeout)
           {
-            if (test.file)
-            {
-              file = test.file;
-            }
+            /* Asynchronous testing allows GUI thread to paint table */
+            (function (i) {
+              var timeout = window.setTimeout(function () {
+                me._runTest(i, hasSetUp, hasTearDown);
 
-            if (test.feature)
-            {
-              feature = test.feature;
-            }
-
-            description = test.description || test.desc || test.name;
-            test = test.code;
+                if (hasClearTimeout)
+                {
+                  window.clearTimeout(timeout);
+                }
+              }, 50);
+            }(i));
           }
-
-          if (hasSetUp)
+          else
           {
-            this._setUp(i, test);
-          }
-
-          try
-          {
-            test(i);
-            ++result.passed;
-            this._printResult(number, file, feature, description,
-                "passed", "info");
-          }
-          catch (e)
-          {
-            ++result.failed;
-            this._printResult(number, file, feature, description,
-                "threw " + e + (e.stack ? "\n\n" + e.stack : ""),
-                "error");
-          }
-
-          if (hasTearDown)
-          {
-            this._tearDown(i, test);
+            this._runTest(i, hasSetUp, hasTearDown);
           }
         }
-
-        this._printSummary(result);
       },
 
-      runAsync: function () {
-        var args = arguments;
-        var _run = this.run;
-        var jsx_dom_timeout = jsx.object.getFeature(jsx, "dom", "timeout");
-        if (jsx_dom_timeout)
+      /**
+       * @protected
+       */
+      _runTest: function (i, hasSetUp, hasTearDown) {
+        var tests = this._tests;
+        var test = tests[i];
+        var number = i + 1;
+        var file = this._file;
+        var feature = this._feature;
+        var description = "";
+
+        if (test && typeof test != "function")
         {
-          var me = this;
-          return jsx_dom_timeout.runAsync(
-            function () {
-              _run.apply(me, args);
-            });
+          if (test.file)
+          {
+            file = test.file;
+          }
+
+          if (test.feature)
+          {
+            feature = test.feature;
+          }
+
+          description = test.description || test.desc || test.name;
+          test = test.code;
         }
 
-        return _run.apply(this, args);
+        if (hasSetUp)
+        {
+          this._setUp(i, test);
+        }
+
+        try
+        {
+          test(i);
+          ++tests.result.passed;
+          this._printResult(number, file, feature, description,
+              "passed", "info");
+        }
+        catch (e)
+        {
+          ++tests.result.failed;
+          this._printResult(number, file, feature, description,
+              "threw " + e + (e.stack ? "\n\n" + e.stack : ""),
+              "error");
+        }
+
+        if (hasTearDown)
+        {
+          this._tearDown(i, test);
+        }
+
+        if (i == tests.length - 1)
+        {
+          this._printSummary(tests.result);
+        }
       },
 
       setFile: function (file) {
