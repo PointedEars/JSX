@@ -7,6 +7,38 @@ function runTests ()
     file: "object.js",
     tests: [
       {
+        feature: 'jsx.dmsg(…)',
+        desc: "Callable, generates messages",
+        code: function () {
+          jsx.dmsg("log message");
+          jsx.dmsg("info message", "info");
+          jsx.dmsg("warning", "warn");
+          jsx.dmsg("error message", "error");
+        }
+      },
+      {
+        feature: 'jsx.info(…)',
+        desc: "Callable, generates info message",
+        code: function () {
+          jsx.info("info message");
+        }
+      },
+      {
+        feature: 'jsx.warn(…)',
+        desc: "Callable, generates warning",
+        code: function () {
+          jsx.warn("warning");
+        }
+      },
+      {
+        feature: 'jsx.error(…)',
+        desc: "Callable, generates error message",
+        code: function () {
+          jsx.error("error message");
+        }
+      },
+
+      {
         feature: "jsx.object.isMethod()",
         desc: "Missing argument throws exception",
         code: function () {
@@ -111,37 +143,6 @@ function runTests ()
         desc: "Returns <code>true</code>",
         code: function () {
           assertTrue(jsx.object.isMethodType(typeof function () {}));
-        }
-      },
-      {
-        feature: 'jsx.dmsg(…)',
-        desc: "Callable, generates messages",
-        code: function () {
-          jsx.dmsg("log message");
-          jsx.dmsg("info message", "info");
-          jsx.dmsg("warning", "warn");
-          jsx.dmsg("error message", "error");
-        }
-      },
-      {
-        feature: 'jsx.info(…)',
-        desc: "Callable, generates info message",
-        code: function () {
-          jsx.info("info message");
-        }
-      },
-      {
-        feature: 'jsx.warn(…)',
-        desc: "Callable, generates warning",
-        code: function () {
-          jsx.warn("warning");
-        }
-      },
-      {
-        feature: 'jsx.error(…)',
-        desc: "Callable, generates error message",
-        code: function () {
-          jsx.error("error message");
         }
       },
       {
@@ -625,6 +626,265 @@ function runTests ()
           o.foo = 42;
           assertTrue(_x === 42);
           assertTrue(result === o);
+        }
+      },
+
+      {
+        feature: 'jsx.object.defineProperties()',
+        desc: "Throws <code>TypeError</code>",
+        code: function () {
+          var success = jsx.tryThis(
+            function () {
+              jsx.object.defineProperties();
+              return true;
+            },
+            function (e) {
+              jsx.error(e);
+              return !(e instanceof TypeError);
+            });
+
+          assertFalse(success);
+        }
+      },
+      {
+        feature: 'jsx.object.defineProperties(42)',
+        desc: "Throws <code>TypeError</code>",
+        code: function () {
+          var success = jsx.tryThis(
+            function () {
+              jsx.object.defineProperties(42);
+              return true;
+            },
+            function (e) {
+              jsx.error(e);
+              return !(e instanceof TypeError);
+            });
+
+          assertFalse(success);
+        }
+      },
+      {
+        feature: 'jsx.object.defineProperties(null)',
+        desc: "Throws <code>TypeError</code>",
+        code: function () {
+          var success = jsx.tryThis(
+            function () {
+              jsx.object.defineProperties(null);
+              return true;
+            },
+            function (e) {
+              jsx.error(e);
+              return !(e instanceof TypeError);
+            });
+
+          assertFalse(success);
+        }
+      },
+      {
+        feature: 'jsx.object.defineProperties({})',
+        desc: "Missing descriptor throws <code>TypeError</code>",
+        code: function () {
+          var success = jsx.tryThis(
+            function () {
+              jsx.object.defineProperties({});
+              return true;
+            },
+            function (e) {
+              jsx.error(e);
+              return !(e instanceof TypeError);
+            });
+
+          assertFalse(success);
+        }
+      },
+      {
+        feature: 'jsx.object.defineProperties({}, {foo: 42})',
+        desc: "Invalid descriptor throws <code>TypeError</code>",
+        code: function () {
+          var success = jsx.tryThis(
+            function () {
+              jsx.object.defineProperties({}, {foo: 42});
+              return true;
+            },
+            function (e) {
+              jsx.error(e);
+              return !(e instanceof TypeError);
+            });
+
+          assertFalse(success);
+        }
+      },
+      {
+        feature: 'jsx.object.defineProperties({}, {foo: {}})',
+        desc: 'Defines read-only <code>foo</code> property'
+          + ' with value <code>undefined</code>'
+          + ' and returns correct value',
+          code: function () {
+            var o = {};
+            var result = jsx.object.defineProperties(o, {foo: {}});
+
+            assertTrue("foo" in o);
+            o.foo = 42;
+            assertTrue(typeof o.foo == "undefined");
+            assertTrue(result === o);
+          }
+      },
+      {
+        feature: 'jsx.object.defineProperties({}, {foo: {value: 42}})',
+        desc: 'Defines read-only <code>foo</code> property'
+          + ' with value <code>42</code>'
+          + ' and returns correct value',
+          code: function () {
+            var o = {};
+            var result = jsx.object.defineProperties(o, {
+              foo: {
+                value: 42
+              }
+            });
+
+            o.foo = "23";
+            assertTrue(o.foo === 42);
+            assertTrue(result === o);
+          }
+      },
+      {
+        feature: 'jsx.object.defineProperties({}, {foo: {value: 42, writable: true}})',
+        desc: 'Defines writable <code>foo</code> property'
+          + ' with initial value <code>42</code>'
+          + ' and returns correct value',
+          code: function () {
+            var o = {};
+            var result = jsx.object.defineProperties(o, {
+              foo: {
+                value: 42,
+                writable: true
+              }
+            });
+
+            assertTrue(o.foo === 42);
+            o.foo = "23";
+            assertTrue(o.foo === "23");
+            assertTrue(result === o);
+          }
+      },
+      {
+        feature: 'jsx.object.defineProperties({}, {foo: {"get": …}})',
+        desc: 'Defines read-only <code>foo</code> property with getter'
+          + ' and returns correct value',
+          code: function () {
+            var o = {};
+            var result = jsx.object.defineProperties(o, {
+              foo: {
+                "get": function () { return 42; }
+              }
+            });
+
+            assertTrue(o.foo === 42);
+            o.foo = "23";
+            assertTrue(o.foo === 42);
+            assertTrue(result === o);
+          }
+      },
+      {
+        feature: 'jsx.object.defineProperties({}, {foo: {"set": …}})',
+        desc: 'Defines <code>foo</code> property with setter'
+          + ' and returns correct value',
+          code: function () {
+            var o = {};
+            var _x = "23";
+            var result = jsx.object.defineProperties(o, {
+              "foo": {
+                "set": function (value) { _x = value; }
+              }
+            });
+
+            o.foo = 42;
+            assertTrue(_x === 42);
+            assertTrue(result === o);
+          },
+      },
+
+      {
+        feature: 'jsx.object._propertyIsEnumerable()',
+        desc: 'Returns <code>false</code>',
+        code: function () {
+          assertFalse(jsx.object._propertyIsEnumerable());
+        }
+      },
+      {
+        feature: 'jsx.object._propertyIsEnumerable("_propertyIsEnumerable")',
+        desc: 'Returns <code>true</code>',
+        code: function () {
+          assertTrue(jsx.object._propertyIsEnumerable("_propertyIsEnumerable"));
+        }
+      },
+      {
+        feature: 'jsx.object._propertyIsEnumerable(object, "…")',
+        desc: 'Returns correct value',
+        code: function () {
+          function MyType () {}
+          MyType.prototype.answer = 42;
+
+          var o = new MyType();
+          o.x = 42;
+
+          assertFalse(jsx.object._propertyIsEnumerable(o, "prototype"));
+          assertFalse(jsx.object._propertyIsEnumerable(o, "answer"));
+          assertTrue(jsx.object._propertyIsEnumerable(o, "x"));
+        }
+      },
+
+      {
+        feature: 'jsx.object.hasPropertyValue()',
+        desc: 'Missing object returns <code>false</code>'
+            + ' or throws <code>TypeError</code>',
+        code: function () {
+          var success = jsx.tryThis(
+            function () {
+              return jsx.object.hasPropertyValue();
+            },
+            function (e) {
+              jsx.error(e);
+              return !(e instanceof TypeError);
+            });
+
+          assertFalse(success);
+        }
+      },
+      {
+        feature: 'jsx.object.hasPropertyValue({x: void 0})',
+        desc: 'Missing needle searches for <code>undefined</code>',
+        code: function () {
+          assertTrue(jsx.object.hasPropertyValue({x: void 0}));
+        }
+      },
+      {
+        feature: 'jsx.object.hasPropertyValue({x: …}, 42)',
+        desc: 'Returns correct value',
+        code: function () {
+          assertFalse(jsx.object.hasPropertyValue({x: 23}, 42));
+          assertTrue(jsx.object.hasPropertyValue({x: 42}, 42));
+        }
+      },
+      {
+        feature: 'jsx.object.hasPropertyValue({x: 42}, 42, {exclude: ["x"]})',
+        desc: 'Returns <code>false</code>',
+        code: function () {
+          assertFalse(jsx.object.hasPropertyValue({x: 42}, 42, {exclude: ["x"]}));
+        }
+      },
+      {
+        feature: 'jsx.object.hasPropertyValue({x: {y: 42}}, 42, {recursive: true}))',
+        desc: 'Returns <code>true</code>',
+        code: function () {
+          assertTrue(jsx.object.hasPropertyValue({x: {y: 42}}, 42, {recursive: true}));
+        }
+      },
+      {
+        feature: 'jsx.object.hasPropertyValue({x: 42}, "42", {strict: true}))',
+        desc: 'Returns <code>false</code>',
+        code: function () {
+          assertFalse(jsx.object.hasPropertyValue({x: 42}, "42", {strict: true}));
         }
       }
     ]
