@@ -1214,7 +1214,56 @@ jsx.object = (/** @constructor */ function () {
         }
 
         return false;
+      },
+
+    /**
+     * Returns the name of an unused property for an object.
+     *
+     * @param {Object} obj
+     * @param {Number} iLength
+     *   Maximum property name length up to which an unused name
+     *   is searched.  The default is 256.
+     * @return {string}
+     *   The name of a non-existing property of <code>o</code> if
+     *   {@link Object#prototype.hasOwnProperty()} is supported, or
+     *   the name of a property with value <code>undefined</code>
+     *   if it is not supported; the empty string
+     *   if there is no such property.
+     */
+    findNewProperty: function (obj, iLength) {
+      if (!obj)
+      {
+        obj = jsx_object;
       }
+
+      if (arguments.length < 2)
+      {
+        iLength = 256;
+      }
+      else
+      {
+        iLength = parseInt(iLength, 10);
+      }
+
+      var prefix = "";
+
+      while (prefix.length < iLength)
+      {
+        for (var i = "a".charCodeAt(0), max = "z".charCodeAt(0); i <= max; ++i)
+        {
+          var ch = String.fromCharCode(i);
+          var newName = prefix + ch + "_";
+          if (!_hasOwnProperty(obj, newName))
+          {
+            return newName;
+          }
+        }
+
+        prefix += "a";
+      }
+
+      return "";
+    }
   };
 
   return jsx_object;
@@ -1327,61 +1376,6 @@ jsx.warn = function (sMsg) {
 jsx.error = function (sMsg) {
   return jsx.dmsg(sMsg, jsx.MSG_ERROR);
 };
-
-/**
- * Returns the name of an unused property for an object.
- *
- * @function
- */
-jsx.object.findNewProperty = (function () {
-  var _hasOwnProperty = jsx.object._hasOwnProperty;
-
-  /**
-   * @param {Object} obj
-   * @param {Number} iLength
-   *   Maximum property name length up to which an unused name
-   *   is searched.  The default is 256.
-   * @return {string}
-   *   The name of a non-existing property of <code>o</code> if
-   *   {@link Object#prototype.hasOwnProperty()} is supported, or
-   *   the name of a property with value <code>undefined</code>
-   *   if it is not supported; the empty string
-   *   if there is no such property.
-   */
-  return function (obj, iLength) {
-    if (!obj)
-    {
-      obj = this;
-    }
-
-    if (arguments.length < 2)
-    {
-      iLength = 256;
-    }
-    else
-    {
-      iLength = parseInt(iLength, 10);
-    }
-
-    var newName = "";
-
-    while (newName.length < iLength)
-    {
-      for (var i = "a".charCodeAt(0), max = "z".charCodeAt(0); i <= max; ++i)
-      {
-        var ch = String.fromCharCode(i);
-        if (!_hasOwnProperty(obj, newName + ch + "_"))
-        {
-          return newName + ch + "_";
-        }
-      }
-
-      newName += "a";
-    }
-
-    return "";
-  };
-}());
 
 /**
  * Clears the handler for the proprietary <code>error</code> event.
