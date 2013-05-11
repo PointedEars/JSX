@@ -1,5 +1,6 @@
 function runTests ()
 {
+  var assert = jsx.test.assert;
   var assertFalse = jsx.test.assertFalse;
   var assertTrue = jsx.test.assertTrue;
 
@@ -885,6 +886,17 @@ function runTests ()
         desc: 'Returns <code>false</code>',
         code: function () {
           assertFalse(jsx.object.hasPropertyValue({x: 42}, "42", {strict: true}));
+        }
+      },
+
+      {
+        feature: 'jsx.object.findNewProperty(…)',
+        desc: 'Returns the correct value',
+        code: function () {
+          assert(jsx.object.findNewProperty() === "a_");
+          assert(jsx.object.findNewProperty({}) === "a_");
+          assert(jsx.object.findNewProperty({"a_": true}) === "b_");
+          assert(jsx.object.findNewProperty({"a_": true, "b_": true}) === "c_");
         }
       }
     ]
