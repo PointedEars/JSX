@@ -359,12 +359,12 @@ function runTests ()
       },
 
       {
-        feature: 'jsx.object.setProperties()',
+        feature: 'jsx.object.extend()',
         desc: "Throws <code>TypeError</code>",
         code: function () {
           var success = jsx.tryThis(
             function () {
-              jsx.object.setProperties();
+              jsx.object.extend();
               return true;
             },
             function (e) {
@@ -376,12 +376,12 @@ function runTests ()
         }
       },
       {
-        feature: 'jsx.object.setProperties({})',
+        feature: 'jsx.object.extend({})',
         desc: "Throws <code>TypeError</code>",
         code: function () {
           var success = jsx.tryThis(
             function () {
-              jsx.object.setProperties({});
+              jsx.object.extend({});
               return true;
             },
             function (e) {
@@ -393,54 +393,54 @@ function runTests ()
         }
       },
       {
-        feature: 'jsx.object.setProperties({}, {foo: "bar"})',
+        feature: 'jsx.object.extend({}, {foo: "bar"})',
         desc: "Sets property, no cloning",
         code: function () {
           var o = {};
           var o2 = {bar: "baz"};
-          jsx.object.setProperties(o, {foo: o2});
+          jsx.object.extend(o, {foo: o2});
 
           assertTrue(o.foo && o.foo == o2 && o.foo.bar === "baz");
         }
       },
       {
-        feature: 'jsx.object.setProperties({foo: "bar"}, {foo: "baz"})',
+        feature: 'jsx.object.extend({foo: "bar"}, {foo: "baz"})',
         desc: "Does not modify existing property",
         code: function () {
           var o = {foo: "bar"};
-          jsx.object.setProperties(o, {foo: "baz"});
+          jsx.object.extend(o, {foo: "baz"});
 
           assertTrue(o.foo === "bar");
         }
       },
       {
-        feature: 'jsx.object.setProperties({foo: "bar"}, {foo: "baz"}, jsx.object.ADD_OVERWRITE)',
+        feature: 'jsx.object.extend({foo: "bar"}, {foo: "baz"}, jsx.object.ADD_OVERWRITE)',
         desc: "Modifies existing property",
         code: function () {
           var o = {foo: "bar"};
-          jsx.object.setProperties(o, {foo: "baz"}, jsx.object.ADD_OVERWRITE);
+          jsx.object.extend(o, {foo: "baz"}, jsx.object.ADD_OVERWRITE);
 
           assertTrue(o.foo === "baz");
         }
       },
       {
-        feature: 'jsx.object.setProperties({foo: "bar"}, {foo: "baz"}, jsx.object.COPY_ENUM_DEEP)',
+        feature: 'jsx.object.extend({foo: "bar"}, {foo: "baz"}, jsx.object.COPY_ENUM_DEEP)',
         desc: "Sets property, with cloning",
         code: function () {
           var o = {};
           var o2 = {bar: "baz"};
-          jsx.object.setProperties(o, {foo: o2}, jsx.object.COPY_ENUM_DEEP);
+          jsx.object.extend(o, {foo: o2}, jsx.object.COPY_ENUM_DEEP);
 
           assertTrue(o.foo && o.foo != o2 && o.foo.bar === "baz");
         }
       },
       {
-        feature: 'jsx.object.setProperties({foo: "bar"}, {foo: "baz"}, jsx.object.ADD_OVERWRITE | jsx.object.COPY_ENUM_DEEP)',
+        feature: 'jsx.object.extend({foo: "bar"}, {foo: "baz"}, jsx.object.ADD_OVERWRITE | jsx.object.COPY_ENUM_DEEP)',
         desc: "Modifies existing property, with cloning",
         code: function () {
           var o = {foo: "bar"};
           var o2 = {bar: "baz"};
-          jsx.object.setProperties(o, {foo: o2}, jsx.object.ADD_OVERWRITE | jsx.object.COPY_ENUM_DEEP);
+          jsx.object.extend(o, {foo: o2}, jsx.object.ADD_OVERWRITE | jsx.object.COPY_ENUM_DEEP);
 
           assertTrue(o.foo && o.foo != o2 && o.foo.bar === "baz");
         }
@@ -897,6 +897,13 @@ function runTests ()
           assert(jsx.object.findNewProperty({}) === "a_");
           assert(jsx.object.findNewProperty({"a_": true}) === "b_");
           assert(jsx.object.findNewProperty({"a_": true, "b_": true}) === "c_");
+
+          var o = {};
+          for (var i = "a".charCodeAt(0), max = "z".charCodeAt(0); i <= max; ++i)
+          {
+            o[String.fromCharCode(i) + "_"] = true;
+          }
+          assert(jsx.object.findNewProperty(o, 1) === "");
         }
       }
     ]
