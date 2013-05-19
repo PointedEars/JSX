@@ -148,7 +148,14 @@ jsx.array.countValues = (function () {
 
     for (var i = 0; i < a.length; i++)
     {
-      if (typeof o[a[i]] != "undefined"){o[a[i]]++;} else {o[a[i]] = 1;}
+      if (typeof o[a[i]] != "undefined")
+      {
+        o[a[i]]++;
+      }
+      else
+      {
+        o[a[i]] = 1;
+      }
     }
 
     return o;
@@ -866,6 +873,8 @@ jsx.array.equals = (function () {
  * @author (C) 2013 Thomas 'PointedEars' Lahn &lt;js@PointedEars.de&gt;
  */
 jsx.array.createComparator = (function () {
+  var _isObject = jsx.object.isObject;
+  var _isArray = jsx.object.isArray;
   var _hasOwnProperty = jsx.object._hasOwnProperty;
 
   /**
@@ -980,32 +989,44 @@ jsx.array.createComparator = (function () {
    */
   function _createComparator (aKeys, options)
   {
+    if (aKeys == null || !_isArray(aKeys))
+    {
+      aKeys = [aKeys];
+    }
+
+    if (options == null || !_isObject(options))
+    {
+      options = {};
+    }
+
     return function (el1, el2) {
       for (var i = 0, len = aKeys.length; i < len; ++i)
       {
         var key = aKeys[i];
-        var propertyName = (typeof key.valueOf() == "string") ? key : key && key.key;
+        var propertyName = ((key == null || typeof key.valueOf() == "string")
+          ? key
+          : key.key);
 
         var el1Value = (propertyName != null ? el1[propertyName] : el1);
         var el2Value = (propertyName != null ? el2[propertyName] : el2);
 
-        if (typeof key.callback == "function")
+        if (key && typeof key.callback == "function")
         {
           el1Value = key.callback(el1Value);
           el2Value = key.callback(el2Value);
         }
-        else if (options && typeof options.callback == "function")
+        else if (typeof options.callback == "function")
         {
           el1Value = options.callback(el1Value);
           el2Value = options.callback(el2Value);
         }
 
-        if (_hasOwnProperty(key, "constructor"))
+        if (key && _hasOwnProperty(key, "constructor"))
         {
           el1Value = new key.constructor(el1Value);
           el2Value = new key.constructor(el2Value);
         }
-        else if (options && _hasOwnProperty(options, "constructor"))
+        else if (_hasOwnProperty(options, "constructor"))
         {
           el1Value = new options.constructor(el1Value);
           el2Value = new options.constructor(el2Value);
@@ -1014,12 +1035,11 @@ jsx.array.createComparator = (function () {
         var isLastKey = (i == len - 1);
         var hasKeySpecificComparator = (typeof key.comparator == "function");
         if (hasKeySpecificComparator
-            || (options && typeof options.comparator == "function"))
+            || (typeof options.comparator == "function"))
         {
-          var comparatorResult =
-            hasKeySpecificComparator
-              ? key.comparator(el1Value, el2Value)
-              : options.comparator(el1Value, el2Value);
+          var comparatorResult = (hasKeySpecificComparator
+            ? key.comparator(el1Value, el2Value)
+            : options.comparator(el1Value, el2Value));
 
           if (isLastKey || comparatorResult != 0)
           {
@@ -1029,12 +1049,9 @@ jsx.array.createComparator = (function () {
           continue;
         }
 
-        equals = (
-          (typeof key.strict != "undefined" && key.strict)
-          || (options && typeof options.strict != "undefined" && options.strict)
-            ? (el1Value === el2Value)
-            : (el1Value == el2Value)
-        );
+        equals = ((key && key.strict) || (options.strict)
+          ? (el1Value === el2Value)
+          : (el1Value == el2Value));
 
         if (equals)
         {
@@ -1046,20 +1063,15 @@ jsx.array.createComparator = (function () {
         }
         else
         {
-          var descending =
-            (typeof key.descending != "undefined" && key.descending)
-            || (options && typeof options.descending != "undefined" && options.descending);
+          var descending = ((key && key.descending) || options.descending;
 
-          return (
-            (typeof key.numeric != "undefined" && key.numeric)
-            || (options && typeof options.numeric != "undefined" && options.numeric)
-              ? (descending
-                  ? el2Value - el1Value
-                  : el1Value - el2Value)
-              : (descending
-                  ? (el1Value > el2Value ? -1 : 1)
-                  : (el1Value < el2Value ? -1 : 1))
-          );
+          return ((key && key.numeric) || options.numeric
+            ? (descending
+                ? el2Value - el1Value
+                : el1Value - el2Value)
+            : (descending
+                ? (el1Value > el2Value ? -1 : 1)
+                : (el1Value < el2Value ? -1 : 1)));
         }
       }
     };
@@ -1070,7 +1082,7 @@ jsx.array.createComparator = (function () {
 
 if (jsx.array.emulate)
 {
-  jsx.object.setProperties(Array.prototype, {
+  jsx.object.extend(Array.prototype, {
     contains:         jsx.array.contains,
     chunk:            jsx.array.chunk,
     changeCase:       jsx.array.changeCase,
