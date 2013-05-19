@@ -8,7 +8,7 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2001‒2012  Thomas Lahn &lt;js@PointedEars.de&gt;
+ *   (C) 2001‒2013  Thomas Lahn &lt;js@PointedEars.de&gt;
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -27,8 +27,9 @@
  */
 
 jsx.debug = {
-  version:   /** @version */ "0.99.$Revision$",
-  copyright: "Copyright \xA9 1999-2012",
+  /** @version */
+  version:   "0.99.$Revision$",
+  copyright: "Copyright \xA9 1999-2013",
   author:    "Thomas Lahn",
   email:     "js@PointedEars.de",
   path:      "http://pointedears.de/scripts/test/",
@@ -801,15 +802,20 @@ var synhl = (function () {
  * @see jsx.object#isMethod()
  */
 var unsynhl = (function () {
-  var _isMethod = jsx.object.isMethod;
+  var _jsx = jsx;
+  var _tryThis = _jsx.tryThis;
+  var _jsx_object = _jsx.object;
+  var _isMethod = _jsx_object.isMethod;
+  var _getFeature = _jsx_object.getFeature;
+  var _jsx_debug = _jsx.debug;
 
-  var synhlClasses = jsx.array.map(
-    jsx.debug.synhlMatches, function (e) { return e[1]; });
+  var synhlClasses = _jsx.array.map(
+    _jsx_debug.synhlMatches, function (e) { return e[1]; });
   var rxSynhlClasses = new RegExp(
     '<span class="(' + synhlClasses.join("|") + ')">([^<]+)</span>', 'g');
 
   return function (context) {
-    if (jsx_debug.enabled && _isMethod("console", "profile"))
+    if (_jsx_debug.enabled && _isMethod("console", "profile"))
     {
       console.profile("unsynhl()");
     }
@@ -829,8 +835,8 @@ var unsynhl = (function () {
       context = document;
     }
 
-    var jsx_xpath = _getFeature(jsx, "dom", "xpath");
-    if (jsx.object.isNativeMethod(jsx_xpath, "evaluate"))
+    var jsx_xpath = _getFeature(_jsx, "dom", "xpath");
+    if (_jsx_object.isNativeMethod(jsx_xpath, "evaluate"))
     {
       var collCode = jsx_xpath.evaluate(
         '//code[not(contains(concat(" ", @class, " "), " donthl "))]',
@@ -853,7 +859,7 @@ var unsynhl = (function () {
           if (typeof o.innerHTML != "undefined")
           {
             var s = o.innerHTML;
-            jsx.tryThis(
+            _tryThis(
               function () {
                 sNew = s.replace(rxSynhlClasses, "$2");
               },
@@ -869,7 +875,7 @@ var unsynhl = (function () {
       }
     }
 
-    if (jsx_debug.enabled && _isMethod("console", "profileEnd"))
+    if (_jsx_debug.enabled && _isMethod("console", "profileEnd"))
     {
       console.profileEnd();
     }
@@ -1340,49 +1346,49 @@ PropertyArray.prototype.sortByValue = function (iDir) {
   this.sortDir = iDir ? iDir : this.sdAscending;
 };
 
-/**
- * `properties' also defines a general method for sorting
- * the array, sortBy(...), which calls the other specific
- * sort methods.  This method takes up to two optional
- * arguments, the first defining the sort criteria, the
- * second the sort direction.  You are recommended to use
- * the sort order and direction constants for arguments:
- *
- *   var p = bar.properties;
- *   p.sortBy(p.soByName, p.sdDescending);
- *
- * If the second argument is not provided, `sdAscending' is
- * assumed.  Leaving the first argument out or providing an
- * invalid value causes no error, but the array not to be
- * re-sorted.
- *
- * @param iSortOrder : optional number
- *   Sort order.
- * @param iSortDir : optional number
- *   Sort direction.
- */
-PropertyArray.prototype.sortBy =
-function (iSortOrder, iSortDir)
-{
-  switch (iSortOrder)
-  {
-    case this.soNone:
-    case this.soByID:
-      this.sortById(iSortDir);
-      break;
-
-    case this.soByName:
-      this.sortByName(iSortDir);
-      break;
-
-    case this.soByType:
-      this.sortByType(iSortDir);
-      break;
-
-    case this.soByValue:
-      this.sortByValue(iSortDir);
-  }
-};
+///**
+// * `properties' also defines a general method for sorting
+// * the array, sortBy(...), which calls the other specific
+// * sort methods.  This method takes up to two optional
+// * arguments, the first defining the sort criteria, the
+// * second the sort direction.  You are recommended to use
+// * the sort order and direction constants for arguments:
+// *
+// *   var p = bar.properties;
+// *   p.sortBy(p.soByName, p.sdDescending);
+// *
+// * If the second argument is not provided, `sdAscending' is
+// * assumed.  Leaving the first argument out or providing an
+// * invalid value causes no error, but the array not to be
+// * re-sorted.
+// *
+// * @param iSortOrder : optional number
+// *   Sort order.
+// * @param iSortDir : optional number
+// *   Sort direction.
+// */
+//PropertyArray.prototype.sortBy =
+//function (iSortOrder, iSortDir)
+//{
+//  switch (iSortOrder)
+//  {
+//    case this.soNone:
+//    case this.soByID:
+//      this.sortById(iSortDir);
+//      break;
+//
+//    case this.soByName:
+//      this.sortByName(iSortDir);
+//      break;
+//
+//    case this.soByType:
+//      this.sortByType(iSortDir);
+//      break;
+//
+//    case this.soByValue:
+//      this.sortByValue(iSortDir);
+//  }
+//};
 
 /**
  * @param sName : string
@@ -1397,7 +1403,7 @@ function (
   sName, sValue, iID, oOwner, bNonEnum, bCalledFromProperty)
 {
   /* avoid dupes */
-  if ((isMethodType(typeof this.items.hasOwnProperty)
+  if ((typeof this.items.hasOwnProperty == "function"
       /* IE does not allow reference shortcut here! */
       && this.items.hasOwnProperty != null
       && !this.items.hasOwnProperty(sName))
@@ -1414,7 +1420,7 @@ function (
         bCalledFromProperty); /* avoid infinite recursion */
 
     /* BUGFIX: Don't overwrite numeric properties */
-    var bMethod = isMethodType(typeof this.items.hasOwnProperty);
+    var bMethod = (typeof this.items.hasOwnProperty == "function");
     if ((bMethod && !this.items.hasOwnProperty(sName))
         || (!bMethod && typeof this.items[sName] == "undefined"))
     {
@@ -1562,7 +1568,7 @@ ObjectInfo.prototype.aStringProperties = [
   "toLocaleLowerCase", "toUpperCase", "toLocaleUpperCase"
 ];
 
-jsx.object.setProperties(ObjectInfo.prototype, {
+jsx.object.extend(ObjectInfo.prototype, {
   aNonEnumProperties: [
     new NonEnumProperties(
       new RegExp("^\\w"), /* any object */
