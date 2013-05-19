@@ -17,7 +17,7 @@ var addProperties = jsx.object.addProperties = (function () {
       oOwner = jsx.global;
     }
 
-    return jsx.object.setProperties(oOwner, oSource, iFlags);
+    return jsx.object.extend(oOwner, oSource, iFlags);
   };
 }());
 

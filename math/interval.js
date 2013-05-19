@@ -223,7 +223,7 @@ Math.getIntervalIndex = function(n, a) {
   return result;
 };
 
-jsx.object.setProperties(Math.Interval.prototype, {
+jsx.object.extend(Math.Interval.prototype, {
   'contains':              Math.isInInterval,
   'getRightOpenIntervals': Math.getRightOpenIntervals,
   'getIntervalIndex':      Math.getIntervalIndex

@@ -519,7 +519,7 @@ jsx.date = {
 
 if (jsx.options.augmentBuiltins)
 {
-  jsx.object.setProperties(Date, {
+  jsx.object.extend(Date, {
     /**
      * @memberOf Date
      * @function
@@ -536,7 +536,7 @@ if (jsx.options.augmentBuiltins)
 
   if (jsx.options.augmentPrototypes)
   {
-    jsx.object.setProperties(Date.prototype, {
+    jsx.object.extend(Date.prototype, {
       /**
        * Returns the ISO weekday number of this <code>Date</code>.
        *
