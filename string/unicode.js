@@ -526,7 +526,7 @@ jsx.string.unicode = (/** @constructor */ function () {
   {
     if (jsx.options.augmentPrototypes)
     {
-      jsx.object.setProperties(String.prototype, (function () {
+      jsx.object.extend(String.prototype, (function () {
         /**
          * @type jsx.string.unicode.WideString
          */
@@ -737,7 +737,7 @@ jsx.string.unicode = (/** @constructor */ function () {
 
   if (jsx.options.replaceBuiltins)
   {
-    jsx.object.setProperties(String, {
+    jsx.object.extend(String, {
       /**
        * Returns a {@link String} containing the Unicode characters
        * specified by the code point arguments.
