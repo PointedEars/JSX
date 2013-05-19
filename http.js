@@ -165,7 +165,7 @@ jsx.net.http = {
  * @namespace
  * @name jsx.net.http.Request
  */
-jsx.object.setProperties(jsx.net.http.Request, {
+jsx.object.extend(jsx.net.http.Request, {
   /**
    * @namespace
    */
