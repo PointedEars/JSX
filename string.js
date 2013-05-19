@@ -190,7 +190,7 @@ var unesc = (function () {
 }());
 
 /*
- * Had to abandon setProperties since Konqueror's engine does not support
+ * Had to abandon extend since Konqueror's engine does not support
  * Object literals
  */
 
@@ -2131,7 +2131,7 @@ function pyUTF8toString (s)
  * If possible, add methods to the String prototype;
  * disabled until ECMAScript allows to hide properties from iteration.
  */
-//jsx.object.setProperties(String.prototype, {
+//jsx.object.extend(String.prototype, {
 //   'leadingCaps': leadingCaps,
 //   'leadingZero': leadingZero,
 //   'repeat'     : strRepeat,

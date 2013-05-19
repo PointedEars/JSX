@@ -58,7 +58,7 @@ de.pointedears.jsx = jsx;
 jsx.global = this;
 
 /*
- * NOTE: Cannot use jsx.object.setProperties() for the following
+ * NOTE: Cannot use jsx.object.extend() for the following
  * because values have not been defined yet!
  *
  * TODO: Should syntactic sugar be provided to work around
@@ -727,6 +727,32 @@ jsx.object = (/** @constructor */ function () {
     };
   }());
 
+  function _extend (oTarget, oSource, iFlags)
+  {
+    if (typeof iFlags == "undefined")
+    {
+      iFlags = 0;
+    }
+
+    var cloneLevel = (iFlags & (_COPY_ENUM_DEEP | _COPY_INHERIT));
+
+    for (var i = 0, keys = _getKeys(oSource), len = keys.length;
+         i < len; ++i)
+    {
+      var p = keys[i];
+
+      if (typeof oTarget[p] == "undefined" || (iFlags & _ADD_OVERWRITE))
+      {
+        jsx.tryThis(function () {
+          oTarget[p] = cloneLevel
+            ? _clone(oSource[p], cloneLevel)
+            : oSource[p];
+          oTarget[p]._userDefined = true;
+        });
+      }
+    }
+  }
+
   var jsx_object = {
     /**
      * @memberOf jsx.object
@@ -741,15 +767,15 @@ jsx.object = (/** @constructor */ function () {
 //    docURL: jsx.object.path + "object.htm",
 
     /**
-     * Used by {@link #setProperties()} to overwrite existing
-     * properties.
+     * Used by {@link #extend()} and {@link #setProperties()}
+     * to overwrite existing properties.
      *
      * @type number
      */
     ADD_OVERWRITE: _ADD_OVERWRITE,
 
     /**
-     * Used by {@link #setProperties()} and {@link #clone()}
+     * Used by {@link #extend()} and {@link #clone()}
      * to make a shallow copy of all enumerable properties (default).
      *
      * @type number
@@ -757,7 +783,7 @@ jsx.object = (/** @constructor */ function () {
     COPY_ENUM: _COPY_ENUM,
 
     /**
-     * Used by {@link #setProperties()} and {@link #clone()}
+     * Used by {@link #extend()} and {@link #clone()}
      * to make a deep copy of all enumerable properties.
      *
      * @type number
@@ -765,7 +791,7 @@ jsx.object = (/** @constructor */ function () {
     COPY_ENUM_DEEP: _COPY_ENUM_DEEP,
 
     /**
-     * Used by {@link #setProperties()} and {@link #clone()}
+     * Used by {@link #extend()} and {@link #clone()}
      * to copy a property by inheritance.
      *
      * @type number
@@ -1015,6 +1041,16 @@ jsx.object = (/** @constructor */ function () {
     /**
      * Adds/replaces properties of an object
      *
+     * @function
+     * @see #extend()
+     * @deprecated in favor of {@link #extend}
+     */
+    setProperties: _extend,
+
+    /**
+     * Adds/replaces properties of an object
+     *
+     * @function
      * @param {Object} oTarget
      *   Target object whose properties should be set.
      * @param {Object} oSource
@@ -1023,33 +1059,10 @@ jsx.object = (/** @constructor */ function () {
      *   property of the target object, its value as the value
      *   of that property.
      * @param {Number} iFlags = 0
-     *   Flags for the modification, see {@link #ADD_OVERWRITE
-     *   jsx.object.ADD_*} and {@link #COPY_ENUM jsx.object.COPY_*}.
+     *   Flags for the modification, see {@link #ADD_OVERWRITE}
+     *   and {@link #COPY_ENUM jsx.object.COPY_*}.
      */
-    setProperties: function (oTarget, oSource, iFlags) {
-      if (typeof iFlags == "undefined")
-      {
-        iFlags = 0;
-      }
-
-      var cloneLevel = (iFlags & (_COPY_ENUM_DEEP | _COPY_INHERIT));
-
-      for (var i = 0, keys = _getKeys(oSource), len = keys.length;
-           i < len; ++i)
-      {
-        var p = keys[i];
-
-        if (typeof oTarget[p] == "undefined" || (iFlags & _ADD_OVERWRITE))
-        {
-          jsx.tryThis(function () {
-            oTarget[p] = cloneLevel
-              ? _clone(oSource[p], cloneLevel)
-              : oSource[p];
-            oTarget[p]._userDefined = true;
-          });
-        }
-      }
-    },
+    extend: _extend,
 
     /**
      * Defines a property of an object.
@@ -1703,7 +1716,7 @@ jsx.object.getDataObject = (function () {
 
 if (jsx.options.augmentBuiltins)
 {
-  jsx.object.setProperties(Object, {
+  jsx.object.extend(Object, {
     /**
      * @see jsx.object.defineProperty
      */
@@ -2306,8 +2319,8 @@ jsx.require = (function () {
 if (jsx.options.augmentPrototypes)
 {
 /* Disabled until ECMAScript allows to hide properties from iteration */
-//jsx.object.setProperties(Object.prototype, {
-//    setProperties  : setProperties,
+//jsx.object.extend(Object.prototype, {
+//    extend  : extend,
 //    clone          : clone,
 //    findNewProperty: findNewProperty,
 //    _hasOwnProperty: _hasOwnProperty
@@ -2320,7 +2333,7 @@ if (jsx.options.augmentPrototypes)
    * fixed since <http://bugs.kde.org/show_bug.cgi?id=123529>
    */
 
-  jsx.object.setProperties(Function.prototype, {
+  jsx.object.extend(Function.prototype, {
     /**
      * Applies a method of another object in the context
      * of a different object (the calling object).
@@ -2870,7 +2883,7 @@ jsx.array.from = (function () {
 if (jsx.options.augmentBuiltins)
 {
   /* Defines Array.isArray() if not already defined */
-  jsx.object.setProperties(Array, {
+  jsx.object.extend(Array, {
     destructure: jsx.array.destructure,
     from: jsx.array.from,
     isArray: jsx.object.isArray
@@ -2880,7 +2893,7 @@ if (jsx.options.augmentBuiltins)
 if (jsx.options.augmentPrototypes)
 {
   /* Defines Array.prototype.indexOf and .map() if not already defined */
-  jsx.object.setProperties(Array.prototype, {
+  jsx.object.extend(Array.prototype, {
     /**
      * Returns the first index at which a given element can be found in
      * the array, or -1 if it is not present.
