@@ -494,15 +494,14 @@ jsx.object = (/** @constructor */ function () {
        *       so we are creating an instance that inherits from the
        *       original's prototype, if possible.
        */
-      var i,
-          o2 = (typeof oSource == "object" && oSource)
+      var o2 = (typeof oSource == "object" && oSource)
              ? _createTypedObject(oSource)
              : oSource.valueOf();
 
-      /* just in case "var i in ..." does not copy the array elements */
+      /* if "var p in ..." does not copy the array elements */
       if (_isArray(o2))
       {
-        for (i = oSource.length; i--;)
+        for (var i = e.length; i--;)
         {
           if (iLevel && typeof oSource[i] == "object" && null != oSource[i])
           {
@@ -515,15 +514,15 @@ jsx.object = (/** @constructor */ function () {
         }
       }
 
-      for (i in oSource)
+      for (var p in oSource)
       {
-        if (iLevel && typeof oSource[i] == "object" && null != oSource[i])
+        if (iLevel && typeof oSource[p] == "object" && null != oSource[p])
         {
-          jsx.tryThis(function () { o2[i] = me(oSource[i], iLevel); });
+          jsx.tryThis(function () { o2[p] = me(oSource[p], iLevel); });
         }
         else
         {
-          jsx.tryThis(function () { o2[i] = oSource[i]; });
+          jsx.tryThis(function () { o2[p] = oSource[p]; });
         }
       }
 
@@ -751,6 +750,8 @@ jsx.object = (/** @constructor */ function () {
         });
       }
     }
+
+    return oTarget;
   }
 
   var jsx_object = {
@@ -1061,6 +1062,8 @@ jsx.object = (/** @constructor */ function () {
      * @param {Number} iFlags = 0
      *   Flags for the modification, see {@link #ADD_OVERWRITE}
      *   and {@link #COPY_ENUM jsx.object.COPY_*}.
+     * @return {Object}
+     *   The extended object
      */
     extend: _extend,
 
