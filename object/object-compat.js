@@ -58,7 +58,7 @@ de.pointedears.jsx = jsx;
 jsx.global = this;
 
 /*
- * NOTE: Cannot use jsx.object.setProperties() for the following
+ * NOTE: Cannot use jsx.object.extend() for the following
  * because values have not been defined yet!
  *
  * TODO: Should syntactic sugar be provided to work around
@@ -108,28 +108,28 @@ jsx.object.path = "http://PointedEars.de/scripts/";
 
 /**
  * @type number
- *   Used by {@link jsx.object#setProperties()} to overwrite existing
+ *   Used by {@link jsx.object#extend()} to overwrite existing
  *   properties.
  */
 jsx.object.ADD_OVERWRITE = 1;
 
 /**
  * @type number
- *   Used by {@link jsx.object#setProperties()} and {@link jsx.object#clone()}
+ *   Used by {@link jsx.object#extend()} and {@link jsx.object#clone()}
  *   to make a shallow copy of all enumerable properties (default).
  */
 jsx.object.COPY_ENUM = 0;
 
 /**
  * @type number
- *   Used by {@link jsx.object#setProperties()} and {@link jsx.object#clone()}
+ *   Used by {@link jsx.object#extend()} and {@link jsx.object#clone()}
  *   to make a deep copy of all enumerable properties.
  */
 jsx.object.COPY_ENUM_DEEP = 2;
 
 /**
  * @type number
- *   Used by {@link jsx.object#setProperties()} and {@link jsx.object#clone()}
+ *   Used by {@link jsx.object#extend()} and {@link jsx.object#clone()}
  *   to copy a property by inheritance.
  */
 jsx.object.COPY_INHERIT = 4;
@@ -525,91 +525,118 @@ jsx.object.getKeys = jsx_object_getKeys;
 /**
  * Creates a duplicate (clone) of an object
  *
- * @param {number} iLevel (optional)
- *   Use the {@link Object#COPY_ENUM Object.COPY_*}
- *   properties to specify the level of cloning.
  * @param {Object} oSource (optional)
- *   Object to be cloned.  If omitted, the calling object is cloned.
+ *   Object to be cloned.  If omitted or <code>null</code>,
+ *   the calling object is cloned.
+ * @param {Number} iLevel (optional)
+ *   Use the {@link #COPY_ENUM jsx.object.COPY_*}
+ *   properties to specify the level of cloning.
+ *   The default is {@link #COPY_ENUM}.
  * @return {Object}
  *   A reference to the clone.
  */
-function jsx_object_clone (iLevel, oSource)
+function jsx_object_clone (oSource, iLevel)
 {
   var
-    jsx_object = jsx.object,
-    COPY_ENUM = jsx_object.COPY_ENUM,
-    COPY_ENUM_DEEP = jsx_object.COPY_ENUM_DEEP,
-    COPY_INHERIT = jsx_object.COPY_INHERIT;
+    _jsx_object = jsx.object,
+    _COPY_ENUM = _jsx_object.COPY_ENUM,
+    _COPY_ENUM_DEEP = _jsx_object.COPY_ENUM_DEEP,
+    _COPY_INHERIT = _jsx_object.COPY_INHERIT;
 
   function createTypedObject (oOriginal)
   {
     if (oOriginal.constructor)
     {
-      return jsx_object.inheritFrom(oOriginal.constructor.prototype);
+      return jsx_object_inheritFrom(oOriginal.constructor.prototype);
     }
 
     return new Object();
   }
 
-  if (typeof iLevel == "object")
+  function createRecursiveCloner (o2, i, oSource, iLevel)
   {
+    function f ()
+    {
+      o2[i] = me(oSource[i], iLevel);
+    }
+
+    return f;
+  }
+
+  function createCopier (o2, p, oSource)
+  {
+    function f ()
+    {
+      o2[p] = oSource[p];
+    }
+
+    return f;
+  }
+
+  if (typeof oSource == "number")
+  {
+    var tmp = oSource;
     oSource = iLevel;
-    iLevel = COPY_ENUM;
+    iLevel = tmp;
   }
 
   if (!oSource)
   {
-    oSource = this;
+    oSource = _jsx_object;
+  }
+
+  if (typeof iLevel == "undefined")
+  {
+    iLevel = _COPY_ENUM;
   }
 
   var me = jsx_object_clone;
 
-  if (!iLevel || (iLevel & COPY_ENUM_DEEP))
+  if (!iLevel || (iLevel & _COPY_ENUM_DEEP))
   {
     /*
      * NOTE: For objects, valueOf() only copies the object reference,
      *       so we are creating an instance that inherits from the
      *       original's prototype, if possible.
      */
-    var i,
-      o2 = (typeof oSource == "object" && oSource)
-         ? createTypedObject(oSource)
-         : oSource.valueOf();
+    var o2 = (typeof oSource == "object" && oSource)
+           ? createTypedObject(oSource)
+           : oSource.valueOf();
 
-    /* just in case "var i in ..." does not copy the array elements */
-    if (typeof Array != "undefined" && o2.constructor == Array)
+    /* if "var p in ..." does not copy the array elements */
+    if (_jsx_object.isArray(o2))
     {
-      for (i = oSource.length; i--;)
+      for (var i = oSource.length; i--;)
       {
-        if (iLevel && typeof oSource[i] == "object")
+        if (iLevel && typeof oSource[i] == "object" && null != oSource[i])
         {
-          jsx.tryThis(function () { o2[i] = me(iLevel, oSource[i]); });
+          jsx.tryThis(createRecursiveCloner(o2, i, oSource, iLevel));
         }
         else
         {
-          jsx.tryThis(function () { o2[i] = oSource[i]; });
+          jsx.tryThis(createCopier(o2, i, oSource));
         }
       }
     }
 
-    for (i in oSource)
+    for (var p in oSource)
     {
-      if (iLevel && typeof oSource[i] == "object")
+      if (iLevel && typeof oSource[p] == "object" && null != oSource[p])
       {
-        jsx.tryThis(function () { o2[i] = me(iLevel, oSource[i]); });
+        jsx.tryThis(createRecursiveCloner(o2, p, oSource, iLevel));
       }
       else
       {
-        jsx.tryThis(function () { o2[i] = oSource[i]; });
+        jsx.tryThis(createCopier(o2, p, oSource));
       }
     }
 
     return o2;
   }
 
-  if (iLevel & COPY_INHERIT)
+  if (iLevel & _COPY_INHERIT)
   {
-    return jsx_object.inheritFrom(oSource);
+    return jsx_object_inheritFrom(oSource);
   }
 
   return null;
@@ -627,10 +654,12 @@ jsx.object.clone = jsx_object_clone;
  *   property of the target object, its value as the value
  *   of that property.
  * @param {Number} iFlags = 0
- *   Flags for the modification, see {@link Object#ADD_OVERWRITE
- *   ADD_*} and {@link Object#COPY_ENUM COPY_*}.
+ *   Flags for the modification, see {@link #ADD_OVERWRITE}
+ *   and {@link #COPY_ENUM jsx.object.COPY_*}.
+ * @return {Object}
+ *   The extended object
  */
-function jsx_object_setProperties (oTarget, oSource, iFlags)
+function jsx_object_extend (oTarget, oSource, iFlags)
 {
   var
     _jsx_object = jsx.object,
@@ -645,6 +674,8 @@ function jsx_object_setProperties (oTarget, oSource, iFlags)
     iFlags = 0;
   }
 
+  var cloneLevel = (iFlags & (_COPY_ENUM_DEEP | _COPY_INHERIT));
+
   for (var i = 0, keys = _getKeys(oSource), len = keys.length;
        i < len; ++i)
   {
@@ -653,15 +684,18 @@ function jsx_object_setProperties (oTarget, oSource, iFlags)
     if (typeof oTarget[p] == "undefined" || (iFlags & _ADD_OVERWRITE))
     {
       jsx.tryThis(function () {
-        oTarget[p] = _clone(
-          iFlags & (_COPY_ENUM_DEEP | _COPY_INHERIT),
-          oSource[p]);
+        oTarget[p] = cloneLevel
+          ? _clone(oSource[p], cloneLevel)
+          : oSource[p];
         oTarget[p]._userDefined = true;
       });
     }
   }
+
+  return oTarget;
 }
-jsx.object.setProperties = jsx_object_setProperties;
+jsx.object.setProperties = jsx_object_extend;
+jsx.object.extend = jsx_object_extend;
 
 /**
  * Defines getters and setters for the properties of an object, if possible.
@@ -1714,7 +1748,7 @@ jsx.getStackTrace = function () {
 /**
  * Returns the value of an object's internal <code>[[Class]]</code>
  * property.
- * 
+ *
  * Calls the <code>Object.prototype.toString()</code> method on
  * the object and returns the result of matching against
  * the specified return value, which includes the value of
@@ -1725,7 +1759,7 @@ jsx.getStackTrace = function () {
  * For example, that makes it possible to recognize <code>Array</code>
  * instances independent of the global context in which they were
  * constructed.
- * 
+ *
  * @function
  * @return {string|Undefined}
  *   The value of an object's internal [[Class]] property, or
@@ -2191,7 +2225,7 @@ if (jsx.options.emulate)
 {
 /* Disabled until ECMAScript allows to hide properties from iteration */
 //jsx.object.setdProperties(Object.prototype, {
-//    setProperties  : setProperties,
+//    extend  : extend,
 //    clone          : clone,
 //    findNewProperty: findNewProperty,
 //    _hasOwnProperty: _hasOwnProperty
@@ -2206,7 +2240,7 @@ if (jsx.options.emulate)
      * fixed since <http://bugs.kde.org/show_bug.cgi?id=123529>
      */
 
-    jsx.object.setProperties(Function.prototype, {
+    jsx.object.extend(Function.prototype, {
       /**
        * Applies a method of another object in the context
        * of a different object (the calling object).
@@ -2649,10 +2683,10 @@ jsx.array.map = jsx_array_map;
 if (jsx.options.emulate)
 {
   /* Defines Array.isArray() if not already defined */
-  jsx.object.setProperties(Array, {isArray: jsx.object.isArray});
+  jsx.object.extend(Array, {isArray: jsx.object.isArray});
 
   /* Defines Array.prototype.indexOf and .map() if not already defined */
-  jsx.object.setProperties(Array.prototype, {
+  jsx.object.extend(Array.prototype, {
     /**
      * Returns the first index at which a given element can be found in
      * the array, or -1 if it is not present.
