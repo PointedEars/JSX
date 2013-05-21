@@ -1063,7 +1063,7 @@ jsx.array.createComparator = (function () {
         }
         else
         {
-          var descending = ((key && key.descending) || options.descending;
+          var descending = ((key && key.descending) || options.descending);
 
           return ((key && key.numeric) || options.numeric
             ? (descending
