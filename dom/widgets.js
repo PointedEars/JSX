@@ -1178,6 +1178,40 @@ jsx.dom.widgets.Table =
 jsx.dom.widgets.Table.extend(jsx.dom.widgets.Widget, {
   filterColumns: [],
 
+  init: function () {
+    if (this.addTitles)
+    {
+      var id2title = {};
+
+      for (var rows = this._target.tBodies[0].rows, i = rows.length; i--;)
+      {
+        var row = rows[i];
+        for (var cells = row.cells, j = cells.length; j--;)
+        {
+          var cell = cells[j];
+          var headerId = cell.headers;
+          if (headerId)
+          {
+            var titlePrefix = id2title[headerId];
+            if (!titlePrefix)
+            {
+              var header = document.getElementById(headerId);
+              if (header)
+              {
+                titlePrefix = id2title[headerId] =
+                  header.getAttribute("data-title")
+                  || header.title
+                  || header.textContent;
+              }
+            }
+
+            cell.title = (cell.title ? titlePrefix + ": " + cell.title : titlePrefix);
+          }
+        }
+      }
+    }
+  },
+
   /**
    * Filters the rows of the table's first tbody, searching a filter
    * string in the filter columns.
