@@ -100,6 +100,7 @@ jsx.regexp = (/** @constructor */ function () {
       var
         _UCDfields = ["codePoint",, "propertyClass"],
         _destructure = jsx.array.destructure,
+        propertyClasses,
 
         _parseUCDText = function () {
           (new jsx.net.http.Request(
@@ -120,7 +121,7 @@ jsx.regexp = (/** @constructor */ function () {
                         ? 0 : 1);
               });
 
-              var propertyClasses = _RegExp2.propertyClasses = {};
+              propertyClasses = _RegExp2.propertyClasses = {};
 
               for (var i = 0, len = lines.length; i < len; ++i)
               {
@@ -128,42 +129,40 @@ jsx.regexp = (/** @constructor */ function () {
                   line = lines[i],
                   propertyClass = line.propertyClass,
                   prevClass,
-                  codePoint = line.codePoint,
-                  prevCodePoint,
-                  num = parseInt(codePoint, 16),
-                  prevNum;
+                  codePoint = parseInt(line.codePoint, 16),
+                  prevCodePoint;
 
-                if (codePoint == "" || num > 0xFFFF)
+                if (isNaN(codePoint) || codePoint > 0xFFFF)
                 {
                   continue;
                 }
 
                 if (propertyClass != prevClass)
                 {
-                  if (num != prevNum + 1)
+                  if (codePoint != prevCodePoint + 1)
                   {
                     if (startRange)
                     {
-                      propertyClasses[prevClass] += "-\\u" + prevCodePoint;
+                      propertyClasses[prevClass] += "-" + String.fromCharCode(prevCodePoint);
                     }
                   }
 
-                  propertyClasses[propertyClass] = "\\u" + codePoint;
+                  propertyClasses[propertyClass] = String.fromCharCode(codePoint);
 
                   var startRange = false;
                 }
                 else
                 {
-                  if (num != prevNum + 1)
+                  if (codePoint != prevCodePoint + 1)
                   {
                     if (startRange)
                     {
-                      propertyClasses[prevClass] += "-\\u" + prevCodePoint;
+                      propertyClasses[prevClass] += "-" + String.fromCharCode(prevCodePoint);
 
                       startRange = false;
                     }
 
-                    propertyClasses[propertyClass] += "\\u" + codePoint;
+                    propertyClasses[propertyClass] += String.fromCharCode(codePoint);
                   }
                   else
                   {
@@ -172,13 +171,12 @@ jsx.regexp = (/** @constructor */ function () {
                 }
 
                 prevClass = propertyClass,
-                prevCodePoint = codePoint,
-                prevNum = num;
+                prevCodePoint = codePoint;
               }
 
               if (startRange)
               {
-                propertyClasses[prevClass] += "-\\u" + prevCodePoint;
+                propertyClasses[prevClass] += "-" + String.fromCharCode(prevCodePoint);
               }
             }
           )).send();
@@ -251,15 +249,19 @@ jsx.regexp = (/** @constructor */ function () {
 
         fEscapeMapper = function (match, classRanges, p2, p3, p4, p5, p6, p7,
                                    standalonePropSpec, standaloneClass) {
-          var propertyClasses = _RegExp2.propertyClasses;
+          propertyClasses = _RegExp2.propertyClasses;
 
           /* If the Unicode Character Database (UCD) is not statically loaded */
           if (!propertyClasses)
           {
             /* load it dynamically, ignore exceptions */
-            jsx.tryThis(function () { jsx.importFrom(_RegExp2.ucdScriptPath); });
+            var ucdScriptPath = _RegExp2.ucdScriptPath;
+            if (ucdScriptPath)
+            {
+              jsx.tryThis(function () { jsx.importFrom(ucdScriptPath); });
 
-            propertyClasses = _RegExp2.propertyClasses;
+              propertyClasses = _RegExp2.propertyClasses;
+            }
 
             /* if this failed */
             if (!propertyClasses)
@@ -275,6 +277,20 @@ jsx.regexp = (/** @constructor */ function () {
               /* parse the text version of the UCD */
               _parseUCDText();
             }
+
+            /*
+             * Define property classes required for Unicode mode
+             * if not already defined (not available from text version
+             * of UCD)
+             */
+            _jsx_object.extend(propertyClasses, {
+              L:  "\\p{Ll}\\p{Lm}\\p{Lo}\\p{Lt}\\p{Lu}",
+              M:  "\\p{Mc}\\p{Me}\\p{Mn}",
+              N:  "\\p{Nd}\\p{Nl}\\p{No}",
+              Digit: "\\p{Nd}",
+              Space: "\u0009\u000a\u000c\u000d\u0020\u0085\u00a0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000",
+              Word: "\\p{L}\\p{M}\\p{N}\\p{Pc}"
+            });
           }
 
           var _rangesStack = [];
