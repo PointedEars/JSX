@@ -900,8 +900,10 @@ jsx.regexp = (/** @constructor */ function () {
       }()),
 
       definePropertyClasses: function (o) {
-        for (var p in o)
+        for (var keys = _jsx_object.getKeys(o), i = 0, len = keys.length;
+             i < len; ++i)
         {
+          var p = keys[i];
           this.propertyClasses[p] = o[p];
         }
       },
