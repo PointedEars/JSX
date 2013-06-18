@@ -46,9 +46,9 @@ if (typeof jsx.regexp == "undefined")
  * @namespace
  */
 jsx.regexp = (/** @constructor */ function () {
-  var _getClass = jsx.object.getClass;
-  var jsx_object = jsx.object;
-  var _getDataObject = jsx_object.getDataObject;
+  var _jsx_object = jsx.object;
+  var _getClass = _jsx_object.getClass;
+  var _getDataObject = _jsx_object.getDataObject;
 
   /**
    * @type jsx.regexp.RegExp
@@ -98,15 +98,97 @@ jsx.regexp = (/** @constructor */ function () {
   var _RegExp2 = jsx.object.extend(
     (/** @constructor */function () {
       var
-        sPropertyEscapes = "\\\\(p)\\{([^\\}]+)\\}",
-        rxPropertyEscapes = new RegExp(sPropertyEscapes, "gi"),
-        sNonPropEscInRange = "([^\\]\\\\]|\\\\[^p])*",
-        sEscapes =
-          "\\[(\\^?(" + sNonPropEscInRange + "(" + sPropertyEscapes
-          + ")+" + sNonPropEscInRange + ")+)\\]"
-          + "|" + sPropertyEscapes + "",
-        rxEscapes = new RegExp(sEscapes, "gi"),
+        _UCDfields = ["codePoint",, "propertyClass"],
+        _destructure = jsx.array.destructure,
 
+        _parseUCDText = function () {
+          (new jsx.net.http.Request(
+            _RegExp2.ucdTextPath, "GET", false,
+            function (xhr) {
+              var lines = xhr.responseText.split(/\r?\n|\r/).map(
+                function (e) {
+                  return _destructure(e.split(";"), _UCDfields);
+                });
+
+              lines.sort(function (a, b) {
+                return (a.propertyClass < b.propertyClass
+                         || (a.propertyClass === b.propertyClass
+                             && a.codePoint < b.codePoint))
+                  ? -1
+                  : ((a.propertyClass === b.propertyClass
+                      && a.codePoint === b.codePoint)
+                        ? 0 : 1);
+              });
+
+              var propertyClasses = _RegExp2.propertyClasses = {};
+
+              for (var i = 0, len = lines.length; i < len; ++i)
+              {
+                var
+                  line = lines[i],
+                  propertyClass = line.propertyClass,
+                  prevClass,
+                  codePoint = line.codePoint,
+                  prevCodePoint,
+                  num = parseInt(codePoint, 16),
+                  prevNum;
+
+                if (codePoint == "" || num > 0xFFFF)
+                {
+                  continue;
+                }
+
+                if (propertyClass != prevClass)
+                {
+                  if (num != prevNum + 1)
+                  {
+                    if (startRange)
+                    {
+                      propertyClasses[prevClass] += "-\\u" + prevCodePoint;
+                    }
+                  }
+
+                  propertyClasses[propertyClass] = "\\u" + codePoint;
+
+                  var startRange = false;
+                }
+                else
+                {
+                  if (num != prevNum + 1)
+                  {
+                    if (startRange)
+                    {
+                      propertyClasses[prevClass] += "-\\u" + prevCodePoint;
+
+                      startRange = false;
+                    }
+
+                    propertyClasses[propertyClass] += "\\u" + codePoint;
+                  }
+                  else
+                  {
+                    startRange = true;
+                  }
+                }
+
+                prevClass = propertyClass,
+                prevCodePoint = codePoint,
+                prevNum = num;
+              }
+
+              if (startRange)
+              {
+                propertyClasses[prevClass] += "-\\u" + prevCodePoint;
+              }
+            }
+          )).send();
+        },
+
+        /**
+         * @param {String} charClassContent
+         * @param {boolean} bUnicodeMode
+         * @return {string}
+         */
         _normalizeCharClass = function (charClassContent, bUnicodeMode) {
           var negEscapes = [];
 
@@ -158,6 +240,15 @@ jsx.regexp = (/** @constructor */ function () {
           return "[" + reduced + "]";
         },
 
+        sPropertyEscapes = "\\\\(p)\\{([^\\}]+)\\}",
+        rxPropertyEscapes = new RegExp(sPropertyEscapes, "gi"),
+        sNonPropEscInRange = "([^\\]\\\\]|\\\\[^p])*",
+        sEscapes =
+          "\\[(\\^?(" + sNonPropEscInRange + "(" + sPropertyEscapes
+          + ")+" + sNonPropEscInRange + ")+)\\]"
+          + "|" + sPropertyEscapes + "",
+        rxEscapes = new RegExp(sEscapes, "gi"),
+
         fEscapeMapper = function (match, classRanges, p2, p3, p4, p5, p6, p7,
                                    standalonePropSpec, standaloneClass) {
           var propertyClasses = _RegExp2.propertyClasses;
@@ -182,87 +273,7 @@ jsx.regexp = (/** @constructor */ function () {
               }
 
               /* parse the text version of the UCD */
-              var req = new jsx.net.http.Request(_RegExp2.ucdTextPath, "GET", false,
-                function (xhr) {
-                  var lines = xhr.responseText.split(/\r?\n|\r/).map(
-                    function (e) {
-                      return e.split(";");
-                    });
-
-                  lines.sort(function (a, b) {
-                    var
-                      a2 = a[2],
-                      b2 = b[2],
-                      a0 = a[0],
-                      b0 = b[0];
-
-                    return (a2 < b2 || (a2 === b2 && a0 < b0))
-                      ? -1
-                      : (a2 === b2 && a0 === b0 ? 0 : 1);
-                  });
-
-                  propertyClasses = _RegExp2.propertyClasses = {};
-
-                  for (var i = 0, len = lines.length; i < len; ++i)
-                  {
-                    var
-                      fields = lines[i],
-                      propertyClass = fields[2],
-                      prevClass,
-                      codePoint = fields[0],
-                      prevCodePoint,
-                      num = parseInt(codePoint, 16),
-                      prevNum;
-
-                    if (codePoint == "" || num > 0xFFFF)
-                    {
-                      continue;
-                    }
-
-                    if (propertyClass != prevClass)
-                    {
-                      if (num != prevNum + 1)
-                      {
-                        if (startRange)
-                        {
-                          propertyClasses[prevClass] += "-\\u" + prevCodePoint;
-                        }
-                      }
-
-                      propertyClasses[propertyClass] = "\\u" + codePoint;
-
-                      var startRange = false;
-                    }
-                    else
-                    {
-                      if (num != prevNum + 1)
-                      {
-                        if (startRange)
-                        {
-                          propertyClasses[prevClass] += "-\\u" + prevCodePoint;
-
-                          startRange = false;
-                        }
-
-                        propertyClasses[propertyClass] += "\\u" + codePoint;
-                      }
-                      else
-                      {
-                        startRange = true;
-                      }
-                    }
-
-                    prevClass = propertyClass,
-                    prevCodePoint = codePoint,
-                    prevNum = num;
-                  }
-
-                  if (startRange)
-                  {
-                    propertyClasses[prevClass] += "-\\u" + prevCodePoint;
-                  }
-                });
-              req.send();
+              _parseUCDText();
             }
           }
 
@@ -308,7 +319,7 @@ jsx.regexp = (/** @constructor */ function () {
 
                   _rangesStack.push(propertyClass);
 
-                  var escapedRange = jsx_object.getProperty(propertyClasses, propertyClass);
+                  var escapedRange = _jsx_object.getProperty(propertyClasses, propertyClass);
 
                   /*
                    * Resolve property class references in property class values,
