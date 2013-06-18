@@ -566,11 +566,13 @@ function runTests ()
         {
           name: 'Use statically loaded'
               + ' <acronym title="Unicode Character Database"'
-              + '>UCD</acronym>',
+              + '>UCD</acronym> (script)',
           code: function () {
             assert(typeof RegExp2.propertyClasses != "undefined");
+
             var rx = new RegExp2("\\p{Zp}");
             assert(rx.source == "[\u2029]");
+
             if (!jsx.info(rx))
             {
               out.push(rx);
@@ -579,16 +581,42 @@ function runTests ()
         },
         {
           name: 'Load UCD dynamically with'
-              + ' <acronym title="XMLHttpRequest">XHR</acronym>',
+              + ' <acronym title="XMLHttpRequest">XHR</acronym> (script)',
           code: function () {
             delete RegExp2.propertyClasses;
+            assert(typeof RegExp2.propertyClasses == "undefined");
+
             var rx = new RegExp2("\\p{Zp}");
             assert(rx.source == "[\u2029]");
+
             if (!jsx.info(rx))
             {
               out.push(rx);
             }
           }
+        },
+        {
+          name: 'Load UCD dynamically with'
+            + ' <acronym title="XMLHttpRequest">XHR</acronym> (text)',
+            code: function () {
+              delete RegExp2.propertyClasses;
+              assert(typeof RegExp2.propertyClasses == "undefined");
+
+              var ucdScriptPath = RegExp2.ucdScriptPath;
+              delete RegExp2.ucdScriptPath;
+              assert(typeof RegExp2.ucdScriptPath == "undefined");
+              assert(typeof RegExp2.ucdTextPath == "string");
+
+              var rx = new RegExp2("\\p{Zp}");
+
+              RegExp2.ucdScriptPath = ucdScriptPath;
+              assert(rx.source == "[\u2029]");
+
+              if (!jsx.info(rx))
+              {
+                out.push(rx);
+              }
+            }
         },
         {
           name: "Throw exception on undefined property class",
