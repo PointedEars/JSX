@@ -789,7 +789,6 @@ jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
   setMaxValue: function (value) {
     return this._setBoundary("max", value);
   }
-
 });
 
 /**
@@ -1182,6 +1181,7 @@ jsx.dom.widgets.Table.extend(jsx.dom.widgets.Widget, {
     if (this.addTitles)
     {
       var id2title = {};
+      var rxSpace = /[ \t\n\x0C\r]+/;
 
       for (var rows = this._target.tBodies[0].rows, i = rows.length; i--;)
       {
@@ -1189,23 +1189,38 @@ jsx.dom.widgets.Table.extend(jsx.dom.widgets.Widget, {
         for (var cells = row.cells, j = cells.length; j--;)
         {
           var cell = cells[j];
-          var headerId = cell.headers;
-          if (headerId)
+          var headerIds = cell.headers;
+          if (headerIds)
           {
-            var titlePrefix = id2title[headerId];
-            if (!titlePrefix)
+            headerIds = headerIds.split(rxSpace);
+            var titlePrefixes = [];
+
+            for (var k = 0, len3 = headerIds.length; k < len3; ++k)
             {
-              var header = document.getElementById(headerId);
-              if (header)
+              var headerId = headerIds[k];
+              var titlePrefix = id2title[headerId];
+              if (!titlePrefix)
               {
-                titlePrefix = id2title[headerId] =
-                  header.getAttribute("data-title")
-                  || header.title
-                  || header.textContent;
+                var header = document.getElementById(headerId);
+                if (header)
+                {
+                  titlePrefix = id2title[headerId] =
+                    header.getAttribute("data-title")
+                    || header.title
+                    || header.textContent;
+                }
+              }
+
+              if (titlePrefix)
+              {
+                titlePrefixes.push(titlePrefix);
               }
             }
 
-            cell.title = (cell.title ? titlePrefix + ": " + cell.title : titlePrefix);
+            titlePrefixes = titlePrefixes.join("/");
+            cell.title = (cell.title
+              ? titlePrefixes + ": " + cell.title
+              : titlePrefixes);
           }
         }
       }
@@ -1230,7 +1245,8 @@ jsx.dom.widgets.Table.extend(jsx.dom.widgets.Widget, {
      *   <code>false</code> otherwise.  Note that <code>true</code> means only
      *   that the filter could be applied, not that any rows are filtered out.
      */
-    return function (filterString) {
+    function _applyFilter (filterString)
+    {
       /* Imports */
       var _escape = jsx.regexp.escape;
 
@@ -1281,7 +1297,9 @@ jsx.dom.widgets.Table.extend(jsx.dom.widgets.Widget, {
       }
 
       return true;
-    };
+    }
+
+    return _applyFilter;
   }())
 });
 
