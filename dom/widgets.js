@@ -55,16 +55,16 @@ jsx.dom.widgets = {
  * and this constructor should be called only from the constructors of
  * prototypes of specialized widgets.
  *
- * @param oTarget : Element
+ * @param {Element} oTarget
  *   Reference to the DOM object that represents the
  *   element that provides the client area for the widget. Pass a
  *   false-value to create a new element.
- * @param oParent : jsx.dom.widgets.Container
+ * @param {jsx.dom.widgets.Container} oParent
  *   Reference to the <code>Container</code> that should contain
  *   this widget. Pass <code>null</code> so that the widget will
  *   not be automatically appended.  You can call its
  *   {@link #appendTo()} method later to append it.
- * @param oProperties : Object
+ * @param {Object} oProperties
  */
 jsx.dom.widgets.Widget =
   function jsx_dom_widgets_Widget (oTarget, oParent, oProperties) {
@@ -110,7 +110,8 @@ jsx.dom.widgets.Widget.extend(null, {
   /**
    * Widgets are `div' elements by default. Inheriting classes should
    * override this when appropriate (e. g., a menu should be a `ul').
-   * @memberOf jsx.dom.widgets.Widget#prototype
+   *
+   * @memberOf jsx.dom.widgets.Widget.prototype
    */
   elementType: "div",
 
@@ -155,7 +156,7 @@ jsx.dom.widgets.Widget.extend(null, {
    * Causes the widget to be rendered, and attached to the document tree
    * if not already attached.
    *
-   * @param parent : optional Element
+   * @param {Element} parent (optional)
    *   Reference to the object representing the parent element to
    *   which the widget should be appended as child. The default is
    *   document.body.
@@ -168,8 +169,8 @@ jsx.dom.widgets.Widget.extend(null, {
   },
 
   /**
-   * Causes the widget not to be rendered, without removing it from the
-   * document tree.
+   * Causes the widget not to be rendered, without removing it
+   * from the document tree.
    */
   unrender: function () {
     this._target.style.display = "none";
@@ -195,8 +196,10 @@ jsx.dom.widgets.Widget.extend(null, {
   /**
    * Appends the widget as a child element
    *
-   * @param parent
-   * @returns
+   * @param {jsx.dom.widgets.Container} parent (optional)
+   *   The widget that this widget should be appended to.
+   *   The default is the current parent widget.
+   * @see jsx.dom.widgets.Container.prototype.appendChild()
    */
   appendTo: function (parent) {
     if (typeof parent == "undefined")
@@ -209,6 +212,8 @@ jsx.dom.widgets.Widget.extend(null, {
 
   /**
    * Removes the widget from the document
+   *
+   * @see jsx.dom.widgets.Container.prototype.removeChild()
    */
   remove: function () {
     for (var i = 0, len = this.children.length; i < len; ++i)
@@ -221,9 +226,6 @@ jsx.dom.widgets.Widget.extend(null, {
     return this._parent.removeChild(this);
   },
 
-  /**
-   * @memberOf jsx.dom.widgets.Widget#prototype
-   */
   _getSetterFor: function (propertyName) {
     var setterName =
       "set" + propertyName.charAt(0).toUpperCase() + propertyName.substring(1);
@@ -245,12 +247,9 @@ jsx.dom.widgets.Container.extend(jsx.dom.widgets.Widget, {
   innerHTML: null,
   text: null,
 
-  /*
-   * (non JSdoc)
-   * @see Widget.prototype#update
-   */
   /**
-   * @memberOf jsx.dom.widgets.Container#prototype
+   * (non-JSdoc)
+   * @see jsx.dom.widget.Widget.prototype.update
    */
   update: (function () {
     var _isArray = jsx.object.isArray;
@@ -314,6 +313,12 @@ jsx.dom.widgets.Container.extend(jsx.dom.widgets.Widget, {
     return this;
   },
 
+  /**
+   * @memberOf jsx.dom.widgets.Container.prototype
+   * @param {jsx.dom.widgets.Widget} child
+   * @return {jsx.dom.widgets.Widget}
+   *   The appended widget.
+   */
   appendChild: function (child) {
     var result = null;
     var childTarget = child._target;
@@ -411,6 +416,10 @@ jsx.dom.widgets.CheckBox.extend(jsx.dom.widgets.Widget, {
    */
   _uid: -1,
 
+  /**
+   * (non-JSdoc)
+   * @see jsx.dom.widgets.Widget.prototype.init()
+   */
   init: function () {
     this._target.type = "checkbox";
     this._target.id = "checkbox" + (++this._uid);
@@ -428,7 +437,8 @@ jsx.dom.widgets.CheckBox.extend(jsx.dom.widgets.Widget, {
   },
 
   /**
-   * @override
+   * (non-JSdoc)
+   * @see jsx.dom.widgets.Widget.prototype.render()
    */
   render: function () {
     jsx.dom.widgets.CheckBox._super.prototype.render.call(this);
@@ -442,7 +452,8 @@ jsx.dom.widgets.CheckBox.extend(jsx.dom.widgets.Widget, {
   },
 
   /**
-   * @override
+   * (non-JSdoc)
+   * @see jsx.dom.widgets.Widget.prototype.unrender()
    */
   unrender: function () {
     jsx.dom.widgets.CheckBox._super.prototype.unrender.call(this);
@@ -454,7 +465,8 @@ jsx.dom.widgets.CheckBox.extend(jsx.dom.widgets.Widget, {
   },
 
   /**
-   * @override
+   * (non-JSdoc)
+   * @see jsx.dom.widgets.Widget.prototype.show()
    */
   show: function () {
     jsx.dom.widgets.CheckBox._super.protoype.show.call(this);
@@ -466,7 +478,8 @@ jsx.dom.widgets.CheckBox.extend(jsx.dom.widgets.Widget, {
   },
 
   /**
-   * @override
+   * (non-JSdoc)
+   * @see jsx.dom.widgets.Widget.prototype.hide()
    */
   hide: function () {
     jsx.dom.widgets.CheckBox._super.prototype.hide.call(this);
@@ -480,9 +493,9 @@ jsx.dom.widgets.CheckBox.extend(jsx.dom.widgets.Widget, {
   /**
    * Appends the widget as a child element
    *
-   * @override
    * @param parent
-   * @return Array
+   * @return {Array}
+   * @see jsx.dom.widgets.Widget.prototype.appendTo()
    */
   appendTo: function (parent) {
     if (typeof parent == "undefined")
@@ -514,9 +527,8 @@ jsx.dom.widgets.CheckBox.extend(jsx.dom.widgets.Widget, {
   },
 
   /**
-   * Removes the widget from the document
-   *
-   * @override
+   * (non-JSdoc)
+   * @see jsx.dom.widgets.Widget.prototype.remove()
    */
   remove: function () {
     var checkboxTarget = jsx.dom.widgets.CheckBox._super.prototype.remove.call(this);
@@ -530,18 +542,17 @@ jsx.dom.widgets.CheckBox.extend(jsx.dom.widgets.Widget, {
  * <code>INPUT</code> element text box with a restriction to the
  * characters that may be typed into it.
  *
- * @param oTarget :
- *        Element Reference to the DOM object that represents the
- *        element that provides the client area for the widget. Pass a
- *        false-value to create a new element.
- * @param oParent :
- *        Element Reference to the DOM object that represents the parent
- *        element for this widget. Pass <code>null</code> so that the
- *        widget will not be automatically attached to the document
- *        tree. You can call its {@link #appendTo()} method later to
- *        attach it.
- * @param oProperties :
- *        Object
+ * @param {Element} oTarget
+ *   Reference to the DOM object that represents the
+ *   element that provides the client area for the widget. Pass a
+ *   false-value to create a new element.
+ * @param {Element} oParent
+ *   Reference to the DOM object that represents the parent
+ *   element for this widget. Pass <code>null</code> so that the
+ *   widget will not be automatically attached to the document
+ *   tree. You can call its {@link #appendTo()} method later to
+ *   attach it.
+ * @param {Object} oProperties
  * @see Widget
  */
 jsx.dom.widgets.Input =
@@ -579,6 +590,10 @@ jsx.dom.widgets.Input.extend(jsx.dom.widgets.Widget, {
 
   elementType: "input",
 
+  /**
+   * (non-JSdoc)
+   * @see jsx.dom.widgets.Widget.prototype.update()
+   */
   update: (function () {
     var update = jsx.dom.widgets.Widget.prototype.update;
 
@@ -611,6 +626,10 @@ jsx.dom.widgets.Button.extend(jsx.dom.widgets.Container, {
    */
   elementType: "button",
 
+  /**
+   * (non-JSdoc)
+   * @see jsx.dom.widgets.Widget.prototype.init()
+   */
   init: function jsx_dom_widgets_Button_prototype_init () {
     var me = this;
 
@@ -630,18 +649,18 @@ jsx.dom.widgets.Button.extend(jsx.dom.widgets.Container, {
 
 /**
  * A <code>NumberInput</code> widget restricts the characters to be
- * typed into it to decimal digits and the decimal point (`.') by default.
+ * typed into it to decimal digits and the decimal point (".") by default.
  *
- * @param oTarget : Element
+ * @param {Element} oTarget
  *   Reference to the DOM object that represents the element that
  *   provides the client area for the widget. Pass a false-value
  *   to create a new element.
- * @param oParent : Element
+ * @param {Element} oParent
  *   Reference to the DOM object that represents the parent element
  *   for this widget. Pass <code>null</code> so that the widget will
  *   not be automatically attached to the document tree. You can call
  *   its {@link #appendTo()} method later to attach it.
- * @param oProperties : Object
+ * @param {Object} oProperties
  * @see jsx.dom.widgets#Input
  */
 jsx.dom.widgets.NumberInput =
@@ -687,6 +706,10 @@ jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
    */
   maxValue: Infinity,
 
+  /**
+   * (non-JSdoc)
+   * @see jsx.dom.widgets.Widget.prototype.init()
+   */
   init: function () {
     var target = this._target;
 
@@ -710,10 +733,9 @@ jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
     }
   },
 
-  /*
-   * (non JSdoc)
-   *
-   * @see Widget.prototype#update
+  /**
+   * (non-JSdoc)
+   * @see jsx.dom.widgets.Input.prototype.update()
    */
   update: (function () {
     var update = jsx.dom.widgets.Input.prototype.update;
@@ -759,7 +781,7 @@ jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
    * @protected
    * @param valueType
    * @param value
-   * @returns
+   * @return {Number}
    */
   _setBoundary: function (valueType, value) {
     value = parseFloat(value);
@@ -806,16 +828,16 @@ jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
  * <code>buttonUp</code> and <code>buttonDown</code> properties
  * of the widget, respectively.</p>
  *
- * @param oTarget : Element
+ * @param {Element} oTarget
  *   Reference to the DOM object that represents the element that
  *   provides the client area for the widget. Pass a false-value
  *   to create a new element.
- * @param oParent : Element
+ * @param {Element} oParent
  *   Reference to the DOM object that represents the parent element
  *   for this widget. Pass <code>null</code> so that the widget
  *   will not be automatically attached to the document tree.
  *   You can call its {@link #appendTo()} method later to attach it.
- * @param oProperties : Object
+ * @param {Object} oProperties
  * @see jsx.dom.widgets#NumberInput
  */
 jsx.dom.widgets.SpinnerInput =
@@ -987,10 +1009,9 @@ jsx.dom.widgets.SpinnerInput.extend(jsx.dom.widgets.NumberInput, {
     }
   },
 
-  /*
-   * (non JSdoc)
-   *
-   * @see Widget.prototype#update
+  /**
+   * (non-JSdoc)
+   * @see jsx.dom.widgets.NumberInput.prototype.update()
    */
   update: (function () {
     var update = jsx.dom.widgets.NumberInput.prototype.update;
@@ -1026,7 +1047,7 @@ jsx.dom.widgets.List =
 jsx.dom.widgets.List.extend(jsx.dom.widgets.Widget, {
   /**
    * @memberOf jsx.dom.widgets.List#prototype
-   * @param listItem : jsx.dom.widgets.ListItem
+   * @param {jsx.dom.widgets.ListItem} listItem
    */
   addItem: function (listItem) {
     if (!this.items)
@@ -1038,7 +1059,7 @@ jsx.dom.widgets.List.extend(jsx.dom.widgets.Widget, {
   },
 
   /**
-   * @param listItem : jsx.dom.widgets.ListItem
+   * @param {jsx.dom.widgets.ListItem} listItem
    */
   removeItem: function (listItem) {
     var items = this.items;
@@ -1052,6 +1073,10 @@ jsx.dom.widgets.List.extend(jsx.dom.widgets.Widget, {
     }
   },
 
+  /**
+   * (non-JSdoc)
+   * @see jsx.dom.widgets.Widget.prototype.init()
+   */
   init: function () {
     var items = this.items;
     if (items && items.length === 0)
@@ -1065,6 +1090,10 @@ jsx.dom.widgets.List.extend(jsx.dom.widgets.Widget, {
     }
   },
 
+  /**
+   * (non-JSdoc)
+   * @see jsx.dom.widgets.Widget.prototype.update()
+   */
   update: (function () {
     var jsx_dom = jsx.dom;
     var _gEBTN = jsx_dom.getElemByTagName;
@@ -1145,6 +1174,10 @@ jsx.dom.widgets.Tree.extend(jsx.dom.widgets.Widget, {
    */
   _list: null,
 
+  /**
+   * (non-JSdoc)
+   * @see jsx.dom.widgets.Widget.prototype.init()
+   */
   init: function () {
     if (!this._list)
     {
@@ -1153,6 +1186,10 @@ jsx.dom.widgets.Tree.extend(jsx.dom.widgets.Widget, {
     }
   },
 
+  /**
+   * (non-JSdoc)
+   * @see jsx.dom.widgets.Widget.prototype.update()
+   */
   update: (function () {
     var update = jsx.dom.widgets.Tree._super.prototype.update;
 
@@ -1167,7 +1204,6 @@ jsx.dom.widgets.Tree.extend(jsx.dom.widgets.Widget, {
 /**
  * A <code>Table</code> widget provides a default <code>TABLE</code>
  * element object with additional features, such as filtering rows.
- *
  */
 jsx.dom.widgets.Table =
   function jsx_dom_widgets_Table (oTarget, oParent, oProperties) {
@@ -1177,6 +1213,11 @@ jsx.dom.widgets.Table =
 jsx.dom.widgets.Table.extend(jsx.dom.widgets.Widget, {
   filterColumns: [],
 
+  /**
+   * (non-JSdoc)
+   * @memberOf jsx.dom.widgets.Table#prototype
+   * @see jsx.dom.widgets.Widget.prototype.init()
+   */
   init: function () {
     if (this.addTitles)
     {
@@ -1205,7 +1246,7 @@ jsx.dom.widgets.Table.extend(jsx.dom.widgets.Widget, {
                 if (header)
                 {
                   titlePrefix = id2title[headerId] =
-                    header.getAttribute("data-title")
+                    header.abbr
                     || header.title
                     || header.textContent;
                 }
@@ -1232,15 +1273,14 @@ jsx.dom.widgets.Table.extend(jsx.dom.widgets.Widget, {
    * string in the filter columns.
    *
    * @function
-   * @memberOf jsx.dom.widgets.Table#prototype
    */
   applyFilter: (function () {
     var _getContent = jsx.dom.getContent;
 
     /**
-     * @param filterString : String
+     * @param {String} filterString
      *   The string by which rows should be filtered
-     * @return boolean
+     * @return {boolean}
      *   <code>true</code> if the filter could be applied,
      *   <code>false</code> otherwise.  Note that <code>true</code> means only
      *   that the filter could be applied, not that any rows are filtered out.
@@ -1307,18 +1347,17 @@ jsx.dom.widgets.Table.extend(jsx.dom.widgets.Widget, {
  * A <code>Timer</code> widget uses several <code>NumberInput</code>
  * widgets to implement a digital timer.
  *
- * @param oTarget :
- *        Element Reference to the DOM object that represents the
- *        element that provides the client area for the widget. Pass a
- *        false-value to create a new element.
- * @param oParent :
- *        Element Reference to the DOM object that represents the parent
- *        element for this widget. Pass <code>null</code> so that the
- *        widget will not be automatically attached to the document
- *        tree. You can call its {@link #appendTo()} method later to
- *        attach it.
- * @param oProperties :
- *        Object
+ * @param {Element} oTarget
+ *   Reference to the DOM object that represents the
+ *   element that provides the client area for the widget. Pass a
+ *   false-value to create a new element.
+ * @param {Element} oParent
+ *   Reference to the DOM object that represents the parent
+ *   element for this widget. Pass <code>null</code> so that the
+ *   widget will not be automatically attached to the document
+ *   tree. You can call its {@link #appendTo()} method later to
+ *   attach it.
+ * @param {Object} oProperties
  * @base jsx.dom.Widget
  * @see NumberWidget
  */
@@ -1335,6 +1374,9 @@ jsx.dom.widgets.InitError =
   };
 
 jsx.dom.widgets.InitError.extend(jsx.Error, {
+  /**
+   * @memberOf jsx.dom.widgets.InitError#prototype
+   */
   name: "jsx.dom.widgets.InitError"
 });
 
