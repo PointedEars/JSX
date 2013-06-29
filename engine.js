@@ -108,7 +108,12 @@ function _EngineInfo ()
     /**
      * @type string
      */
-    var _name = "Microsoft " + ScriptEngine();
+    var _vendor = "Microsoft";
+
+    /**
+     * @type string
+     */
+    var _name = ScriptEngine();
 
     /**
      * @type string
@@ -157,11 +162,13 @@ function _EngineInfo ()
       if (typeof window != "undefined"
           && jsx.object.getFeature(window, "opera"))
       {
-        _name = "Opera ECMAScript";
+        _vendor = "Opera";
+        _name = "ECMAScript";
       }
       else if (ua.indexOf("Konqueror") > -1)
       {
-        _name = "KDE JavaScript";
+        _vendor = "KDE";
+        _name = "JavaScript";
       }
       else if (ua.indexOf("WebKit") > -1)
       {
@@ -173,7 +180,8 @@ function _EngineInfo ()
           {
             m = ua.match(/\bChrome\/(\d+\.\d+(\.\d+)?)\b/);
 
-            _name = "Google V8";
+            _vendor = "Google";
+            _name = "V8";
 
             if (m)
             {
@@ -219,7 +227,8 @@ function _EngineInfo ()
           }
           else
           {
-            _name = "Apple JavaScriptCore";
+            _vendor = "Apple";
+            _name = "JavaScriptCore";
 
             m = ua.match(/\bAppleWebKit\/(\d+\.\d+(\.\d+)*)\b/);
 
@@ -239,7 +248,8 @@ function _EngineInfo ()
           m = ua.match(/\brv:((\d+)\.\d+(\.\d+)*)\b/);
         }
 
-        _name = "Netscape/Mozilla JavaScript";
+        _vendor = "Netscape/Mozilla";
+        _name = "JavaScript";
 
         if (m)
         {
@@ -272,11 +282,24 @@ function _EngineInfo ()
     }
   }
 
+  function _getVendor ()
+  {
+    return _vendor;
+  }
+  this.getVendor = _getVendor;
+
   function _getName ()
   {
     return _name;
   }
   this.getName = _getName;
+
+  function _getFullName ()
+  {
+    var vendor = _getVendor();
+    return (vendor ? vendor + "" : "") + _getName();
+  }
+  this.getFullName = _getFullName;
 
   function _getMajorVersion ()
   {
