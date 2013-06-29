@@ -297,7 +297,7 @@ function _EngineInfo ()
   function _getFullName ()
   {
     var vendor = _getVendor();
-    return (vendor ? vendor + "" : "") + _getName();
+    return (vendor ? vendor + " " : "") + _getName();
   }
   this.getFullName = _getFullName;
 
