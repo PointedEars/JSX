@@ -108,7 +108,7 @@ function _EngineInfo ()
     /**
      * @type string
      */
-    var _name = ScriptEngine();
+    var _name = "Microsoft " + ScriptEngine();
 
     /**
      * @type string
@@ -161,7 +161,7 @@ function _EngineInfo ()
       }
       else if (ua.indexOf("Konqueror") > -1)
       {
-        _name = "KJS (Konqueror JavaScript)";
+        _name = "KDE JavaScript";
       }
       else if (ua.indexOf("WebKit") > -1)
       {
@@ -239,7 +239,7 @@ function _EngineInfo ()
           m = ua.match(/\brv:((\d+)\.\d+(\.\d+)*)\b/);
         }
 
-        _name = "Netscape/Mozilla JavaScript&#8482";
+        _name = "Netscape/Mozilla JavaScript";
 
         if (m)
         {
