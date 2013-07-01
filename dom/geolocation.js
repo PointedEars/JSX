@@ -83,12 +83,13 @@ jsx.dom.geolocation = {
       : this.TEXT_NOT_AVAILABLE);
   },
 
-  getAltAccuracyString: function (pposition) {
+  getAltAccuracyString: function (position) {
     if (!position)
     {
       position = this.getPosition();
     }
 
+    var altitudeAccuracy = position.coords.altitudeAccuracy;
     return (altitudeAccuracy != null
       ? altitudeAccuracy + "\xA0m"
       : this.TEXT_NOT_AVAILABLE);
