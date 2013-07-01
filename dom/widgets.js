@@ -66,45 +66,44 @@ jsx.dom.widgets = {
  *   {@link #appendTo()} method later to append it.
  * @param {Object} oProperties
  */
-jsx.dom.widgets.Widget =
-  function jsx_dom_widgets_Widget (oTarget, oParent, oProperties) {
-    this._target = oTarget || document.createElement(this.elementType);
+jsx.dom.widgets.Widget = function (oTarget, oParent, oProperties) {
+  this._target = oTarget || document.createElement(this.elementType);
 
-    if (oParent && !(oParent instanceof jsx_dom_widgets_Widget))
+  if (oParent && !(oParent instanceof jsx.dom.widgets.Container))
+  {
+    return jsx.throwThis(jsx.InvalidArgumentError, [null, "jsx.dom.widgets.Container", oParent]);
+  }
+
+  this._parent = oParent || null;
+
+  /**
+   * @type Array[Widget]
+   */
+  this.children = [];
+
+  for (var propertyName in oProperties)
+  {
+    /* Do not overwrite methods */
+    if (typeof this[propertyName] != "function")
     {
-      return jsx.throwThis(jsx.InvalidArgumentError, [null, "Widget", oParent]);
-    }
-
-    this._parent = oParent || null;
-
-    /**
-     * @type Array[Widget]
-     */
-    this.children = [];
-
-    for (var propertyName in oProperties)
-    {
-      /* Do not overwrite methods */
-      if (typeof this[propertyName] != "function")
+      var setter = this._getSetterFor(propertyName);
+      if (setter)
       {
-        var setter = this._getSetterFor(propertyName);
-        if (setter)
-        {
-          setter.call(this, oProperties[propertyName]);
-        }
-        else
-        {
-          this[propertyName] = oProperties[propertyName];
-        }
+        setter.call(this, oProperties[propertyName]);
+      }
+      else
+      {
+        this[propertyName] = oProperties[propertyName];
       }
     }
+  }
 
-    if (this._target)
-    {
-      this.init();
-      this.update();
-    }
-  };
+  if (this._target)
+  {
+    this.init();
+    this.update();
+  }
+};
 
 jsx.dom.widgets.Widget.extend(null, {
   /**
@@ -121,11 +120,82 @@ jsx.dom.widgets.Widget.extend(null, {
   _target: null,
 
   /**
-   * Defines actions to be performed when the widget is initialized;
-   * overridden by inheriting types.
+   * Defines actions to be performed when the widget is initialized.
+   * Can be overridden by inheriting types.  If it is overridden,
+   * it must also be called.
    */
   init: function () {
-    /* stub */
+    if (this._parent)
+    {
+      /*
+       * Automagically append widget to parent
+       * (without necessarily rendering it)
+       */
+      /* FIXME */
+//      this.appendTo();
+    }
+  },
+
+  /**
+   * Sets a style property of this widget
+   *
+   * @function
+   */
+  setStyleProperty: (function () {
+    var jsx_dom_setStyleProperty = jsx.dom.setStyleProperty;
+
+    /**
+     * @param {String} name
+     * @param value
+     * @return {boolean}
+     * @see jsx.dom.setStyleProperty()
+     */
+    function Widget_setStyleProperty (name, value)
+    {
+      return jsx_dom_setStyleProperty(this._target, name, value);
+    }
+
+    return Widget_setStyleProperty;
+  }()),
+
+  /**
+   * Resets a style property of this widget to its inherited value
+   *
+   * @function
+   */
+  resetStyleProperty: (function (name) {
+    var jsx_dom_css_resetStyleProperty = jsx.dom.css.resetStyleProperty;
+
+    /**
+     * @param name
+     * @returns {Function}
+     */
+    function Widget_resetStyleProperty (name)
+    {
+      jsx_dom_css_resetStyleProperty(this._target, name);
+    }
+
+    return Widget_resetStyleProperty;
+  }()),
+
+  /**
+   * Sets several style properties of this widget at once
+   *
+   * @param {Object} style
+   */
+  setStyle: function (style) {
+    var result = true;
+
+    for (var propertyName in style)
+    {
+      var resultPart = this.setStyleProperty(propertyName, style[propertyName]);
+      if (result && !resultPart)
+      {
+        result = false;
+      }
+    }
+
+    return result;
   },
 
   /**
@@ -133,24 +203,16 @@ jsx.dom.widgets.Widget.extend(null, {
    * updated to reflect its current status; should be overridden
    * and called by inheriting types.
    */
-  update: (function () {
-    var _setStyleProperty = jsx.dom.setStyleProperty;
+  update: function () {
+    this.setStyle(this.style);
 
-    return function () {
-      var style = this.style;
-      for (var styleProperty in style)
-      {
-        _setStyleProperty(this._target, styleProperty, style[styleProperty]);
-      }
+    for (var i = 0, len = this.children.length; i < len; ++i)
+    {
+      this.children[i].update();
+    }
 
-      for (var i = 0, len = this.children.length; i < len; ++i)
-      {
-        this.children[i].update();
-      }
-
-      return this;
-    };
-  }()),
+    return this;
+  },
 
   /**
    * Causes the widget to be rendered, and attached to the document tree
