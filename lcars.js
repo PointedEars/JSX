@@ -359,7 +359,7 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
             {
               s += "<th>" + item2.title + ":</th>"
                 + "<td>"
-                + item2.value.replace(/\xA0/g, "&nbsp;").replace(/\//g, "∕")
+                + item2.value.replace(/\xA0/g, "&nbsp;")
                 + "</td>";
             }
             s += "</tr>";
