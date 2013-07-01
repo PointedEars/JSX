@@ -302,6 +302,9 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
       MultiDisplay: (function lcars_MultiDisplay () {
         lcars_MultiDisplay._super.apply(this, arguments);
       }).extend(jsx.dom.widgets.Container, {
+        TEXT_ACCURACY: "accuracy",
+        TEXT_NOT_AVAILABLE: "N/A",
+
         /**
          * @memberOf lcars.MultiDisplay
          * @type jsx.dom.widgets.Container
@@ -317,7 +320,20 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
 
         init: function () {
           this._title = new jsx.dom.widgets.Container(document.getElementById("title"));
+          this._analysis = new jsx.dom.widgets.Container(document.getElementById("analysis"));
           this._content = new lcars.Content();
+        },
+
+        setTexts: function (texts) {
+          var keys = jsx.object.getKeys(texts);
+          for (var i = 0, len = keys.length; i < len; ++i)
+          {
+            var key = keys[i];
+            if (typeof this[key] == "string")
+            {
+              this[key] = texts[key];
+            }
+          }
         },
 
         /**
@@ -331,12 +347,70 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
           this._title.update();
         },
 
+        setAnalysis: function (table) {
+          var s = "<table>";
+          for (var i = 0, len = table.length; i < 3; ++i)
+          {
+            var item = table[i];
+            s += "<tr><th>" + item.title + ":</th>"
+              + "<td>" + item.value.replace(/\xA0/g, "&nbsp;") + "</td>";
+            var item2;
+            if (len > 3 && (item2 = table[i + 3]))
+            {
+              s += "<th>" + item2.title + ":</th>"
+                + "<td>"
+                + item2.value.replace(/\xA0/g, "&nbsp;").replace(/\//g, "∕")
+                + "</td>";
+            }
+            s += "</tr>";
+          }
+          s += "</table>";
+
+          this._analysis.setInnerHTML(s);
+          this._analysis.update();
+        },
+
         geolocate: function (title, language) {
           this.setTitle(title);
 
           var me = this;
           navigator.geolocation.getCurrentPosition(function (position) {
             lcars.setPosition(position);
+            var coords = position.coords;
+            var altitudeAccuracy = coords.altitudeAccuracy;
+            var _geolocation = jsx.dom.geolocation;
+            _geolocation.setPosition(position);
+            me.setAnalysis([
+              {
+                title: "Latitude",
+                value: _geolocation.getLatitudeString()
+              },
+              {
+                title: "Longitude",
+                value: _geolocation.getLongitudeString()
+              },
+              {
+                title: "Lat/Lng Accuracy",
+                value: _geolocation.getLatLngAccuracyString()
+              },
+              {
+                title: "Altitude",
+                value: _geolocation.getAltitudeString()
+                  + (altitudeAccuracy != null
+                      ? " (" + _geolocation.getAltAccuracyString()
+                        + " " + this.TEXT_ACCURACY + ")"
+                      : "")
+              },
+              {
+                title: "Speed",
+                value: _geolocation.getSpeedString()
+              },
+              {
+                title: "Heading",
+                value: _geolocation.getHeadingString()
+              }
+            ]);
+
             me._content.showMap(language);
             me = null;
           });
@@ -349,8 +423,8 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
           //var title = document.getElementById("title");
           //title.firstChild.textContent = [coords.latitude.toFixed(), "° ", coords.longitude, "° (", coords.accuracy, "\xA0m)"].join("");
           var center = new google.maps.LatLng(coords.latitude, coords.longitude);
-          var zoom = 9;
 
+          var zoom = 9;
           var zoomAccuracy = [
             1e7, 5e6, 2e6, 2e6, 1e6, 5e5, 2e5, 1e5, 5e4,
             2e4, 1e4, 5e3, 2000, 2000, 1000, 500, 200,
@@ -440,14 +514,14 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
       _position: null,
 
      /**
-       * @return {Geoposition}
+       * @return {Position}
        */
       getPosition: function () {
         return this._position;
       },
 
       /**
-       * @param {Geoposition} position
+       * @param {Position} position
        */
       setPosition: function (position) {
         this._position = position;
