@@ -15,6 +15,7 @@ if (typeof jsx.dom == "undefined")
 }
 
 jsx.dom.geolocation = {
+  TEXT_THIN_SPACE: "\u2009",
   TEXT_LATITUDE: "Latitude",
   TEXT_NORTH_ABBR: "N",
   TEXT_SOUTH_ABBR: "S",
@@ -34,6 +35,18 @@ jsx.dom.geolocation = {
 
   setPosition: function (value) {
     this._position = value;
+  },
+
+  setTexts: function (texts) {
+    var keys = jsx.object.getKeys(texts);
+    for (var i = 0, len = keys.length; i < len; ++i)
+    {
+      var key = keys[i];
+      if (typeof this[key] == "string")
+      {
+        this[key] = texts[key];
+      }
+    }
   },
 
   getLatitudeString: function (position) {
@@ -68,7 +81,7 @@ jsx.dom.geolocation = {
       position = this.getPosition();
     }
 
-    return position.coords.accuracy + "\xA0m";
+    return position.coords.accuracy + this.TEXT_THIN_SPACE + "m";
   },
 
   getAltitudeString: function (position) {
@@ -79,7 +92,7 @@ jsx.dom.geolocation = {
 
     var altitude = position.coords.altitude;
     return (altitude != null
-      ? altitude + "\xA0m"
+      ? altitude + this.TEXT_THIN_SPACE + "m"
       : this.TEXT_NOT_AVAILABLE);
   },
 
@@ -91,7 +104,7 @@ jsx.dom.geolocation = {
 
     var altitudeAccuracy = position.coords.altitudeAccuracy;
     return (altitudeAccuracy != null
-      ? altitudeAccuracy + "\xA0m"
+      ? altitudeAccuracy + this.TEXT_THIN_SPACE + "m"
       : this.TEXT_NOT_AVAILABLE);
   },
 
