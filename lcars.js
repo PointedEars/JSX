@@ -258,7 +258,6 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
          * @param {String} language
          */
         showMap: function (language) {
-          //document.getElementById("content").innerHTML = "<\?php echo tr('Your current coordinates on Terra'); ?>\n\n" + this.getText(position);
           var content = document.getElementById("content");
 
           var map = lcars._gmaps_map;
@@ -303,6 +302,7 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
         lcars_MultiDisplay._super.apply(this, arguments);
       }).extend(jsx.dom.widgets.Container, {
         TEXT_ACCURACY: "accuracy",
+        TEXT_CURRENT_COORDS: "Your current coordinates on Terra",
         TEXT_NOT_AVAILABLE: "N/A",
 
         /**
@@ -347,26 +347,47 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
           this._title.update();
         },
 
-        setAnalysis: function (table) {
-          var s = "<table>";
-          for (var i = 0, len = table.length; i < 3; ++i)
+        setAnalysis: function (data) {
+          var rows = [];
+          for (var i = 0, len = data.length; i < 3; ++i)
           {
-            var item = table[i];
-            s += "<tr><th>" + item.title + ":</th>"
-              + "<td>" + item.value.replace(/\xA0/g, "&nbsp;") + "</td>";
-            var item2;
-            if (len > 3 && (item2 = table[i + 3]))
-            {
-              s += "<th>" + item2.title + ":</th>"
-                + "<td>"
-                + item2.value.replace(/\xA0/g, "&nbsp;")
-                + "</td>";
-            }
-            s += "</tr>";
-          }
-          s += "</table>";
+            var item = data[i];
+            var cells = [
+              {
+                elementType: "th",
+                childNodes: [item.title + ":"]
+              },
+              {
+                elementType: "td",
+                childNodes: [item.value]
+              }
+            ];
 
-          this._analysis.setInnerHTML(s);
+            var item2;
+            if (len > 3 && (item2 = data[i + 3]))
+            {
+              cells.push({
+                elementType: "th",
+                childNodes: [item2.title + ":"]
+              });
+
+              cells.push({
+                elementType: "td",
+                childNodes: [item2.value]
+              });
+            }
+
+            rows.push({
+              elementType: "tr",
+              childNodes: cells
+            });
+          }
+
+          this._analysis.setInnerHTML([{
+            elementType: "table",
+            childNodes: rows
+          }]);
+
           this._analysis.update();
         },
 
@@ -382,19 +403,19 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
             _geolocation.setPosition(position);
             me.setAnalysis([
               {
-                title: "Latitude",
+                title: _geolocation.TEXT_LATITUDE,
                 value: _geolocation.getLatitudeString()
               },
               {
-                title: "Longitude",
+                title: _geolocation.TEXT_LONGITUDE,
                 value: _geolocation.getLongitudeString()
               },
               {
-                title: "Lat/Lng Accuracy",
+                title: _geolocation.TEXT_LAT_LNG_ACCURACY,
                 value: _geolocation.getLatLngAccuracyString()
               },
               {
-                title: "Altitude",
+                title: _geolocation.TEXT_ALTITUDE,
                 value: _geolocation.getAltitudeString()
                   + (altitudeAccuracy != null
                       ? " (" + _geolocation.getAltAccuracyString()
@@ -402,11 +423,11 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
                       : "")
               },
               {
-                title: "Speed",
+                title: _geolocation.TEXT_SPEED,
                 value: _geolocation.getSpeedString()
               },
               {
-                title: "Heading",
+                title: _geolocation.TEXT_HEADING,
                 value: _geolocation.getHeadingString()
               }
             ]);
@@ -420,8 +441,6 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
 
         initGMap: function () {
           var coords = lcars.getPosition().coords;
-          //var title = document.getElementById("title");
-          //title.firstChild.textContent = [coords.latitude.toFixed(), "° ", coords.longitude, "° (", coords.accuracy, "\xA0m)"].join("");
           var center = new google.maps.LatLng(coords.latitude, coords.longitude);
 
           var zoom = 9;
@@ -480,10 +499,10 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
                 strokeOpacity: 0.5
               });
 
+              var me = this;
               circle.addListener("click", function () {
                 // TODO
-//                window.alert("<\?php echo tr('Your current coordinates on Terra'); ?>\n\n"
-                window.alert("Your current coordinates on Terra\n\n"
+                window.alert(me.TEXT_CURRENT_COORDS + "\n\n"
                   + jsx.dom.geolocation.getText(lcars.getPosition()));
               });
 
@@ -504,7 +523,7 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
           }
 
           /* Restore transition */
-          document.getElementById("content").style.transition = "";
+          this._content.resetStyleProperty("transition");
         }
       }),
 
