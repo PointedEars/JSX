@@ -525,6 +525,18 @@ jsx.dom.setStyleProperty = (function () {
 }());
 
 /**
+ * Resets a style property to its inherited value
+ *
+ * @param {Element} oElement
+ * @param {String} sPropertyName
+ * @return {boolean}
+ * @see jsx.dom.setStyleProperty()
+ */
+jsx.dom.css.resetStyleProperty = function (oElement, sPropertyName) {
+  return jsx.dom.setStyleProperty(oElement, sPropertyName, "");
+};
+
+/**
  * Retrieves the rendering state or (dis)allows rendering of a DOM object.
  *
  * @author
