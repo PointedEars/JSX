@@ -48,206 +48,221 @@ if (typeof jsx.dom == "undefined")
   }
 }
 
+/* for JSDT only */
 /**
  * @namespace
  */
-jsx.dom.css = {
-  version: "0.1.$Revision$",
-
-  /**
-   * Supported CSS data types.  Properties include:
-   *        <dl>
-   *          <dt><code>NUMBER</code></dt>
-   *            <dd></dd>
-   *
-   *          <dt><code>LENGTH</code></dt>
-   *            <dd></dd>
-   *
-   *          <dt><code>PERCENTAGE</code></dt>
-   *            <dd></dd>
-   *
-   *          <dt><code>URI</code></dt>
-   *            <dd>Uniform Resource Identifier or URI-reference (see RFC 3986),
-   *                enclosed in <code>url(…)</code></dd>
-   *
-   *          <dt><code>COUNTER</code></dt>
-   *            <dd>CSS counter</dd>
-   *
-   *          <dt><code>COLOR</code></dt>
-   *            <dd>Color in RGB(A) or HSV format</dd>
-   *
-   *          <dt><code>STRING</code></dt>
-   *            <dd>Unicode string</dd>
-   *        </dl>
-   *
-   * @namespace
-   */
-  types: {
-    /**
-     * Numeric scalar value
-     */
-    NUMBER:     0,
-
-    /**
-     * Length given relative in <code>em</code> (width of the
-     * M&nbsp;square) or <code>ex</code> (height of the x square),
-     * or absolute in <code>in</code> (inches), <code>cm</code>
-     * (centimeters), <code>mm</code> (millimeters), <code>pt</code>
-     * (points), <code>pc</code> (picas), or <code>px</code>
-     * (pixels).
-     */
-    LENGTH:     1,
-
-    /**
-     * Length given in percentage of the parent
-     */
-    PERCENTAGE: 2,
-
-    /**
-     * Uniform Resource Identifier or URI-reference (see RFC 3986),
-     * enclosed in <code>url(…)</code>.
-     */
-    URI:        3,
-
-    /**
-     * CSS counter
-     */
-    COUNTER:    4,
-
-    /**
-     * Color given in RGB(A) or HSV format
-     */
-    COLOR:      5,
-
-    /**
-     * String of Unicode characters
-     */
-    STRING:     6,
-
-    /**
-     * List of transformations
-     */
-    TRANSFORM:  7
-  }
-};
+jsx.dom.css = {};
 
 /**
- * Provides information about the type of a CSS property and its relation
- * to other CSS properties
- *
+ * @type jsx.dom.css
+ * @memberOf __jsx.dom.css
  * @namespace
  */
-jsx.dom.css.propertyInfo = {
-  left:   {type: jsx.dom.css.types.LENGTH, correspondsTo: "top"},
-  top:    {type: jsx.dom.css.types.LENGTH, correspondsTo: "left"},
-  right:  {type: jsx.dom.css.types.LENGTH, correspondsTo: "bottom"},
-  bottom: {type: jsx.dom.css.types.LENGTH, correspondsTo: "right"},
-  width:  {type: jsx.dom.css.types.LENGTH, correspondsTo: "height"},
-  height: {type: jsx.dom.css.types.LENGTH, correspondsTo: "width"},
-  color:  {type: jsx.dom.css.types.COLOR},
-  backgroundColor:    {type: jsx.dom.css.types.COLOR},
-  "background-color": {type: jsx.dom.css.types.COLOR},
-  transform: {type: jsx.dom.css.types.TRANSFORM}
-};
-
-/**
- * @function
- */
-jsx.dom.css.camelize = (function () {
+jsx.dom.css = (/** @constructor */ function () {
   var _jsx_object = jsx.object;
 
-  if (typeof jsx.map != "undefined" && typeof jsx.map.Map == "function")
-  {
-    var cache = new jsx.map.Map();
-  }
-  else
-  {
-    var prefix = " ", suffix = "";
+  var _LENGTH = 1;
+  var _COLOR = 5;
+  var _TRANSFORM = 7;
 
-    cache = _jsx_object.getDataObject();
-    cache.get = function (s) {
-      return _jsx_object.getProperty(this, prefix + s + suffix, false);
-    };
+  return {
+    /**
+     * @memberOf jsx.dom.css
+     */
+    version: "0.1.$Revision$",
 
-    cache.put = function (s, v) {
-      this[prefix + s + suffix] = v;
-    };
-  }
+    /**
+     * Supported CSS data types.  Properties include:
+     *        <dl>
+     *          <dt><code>NUMBER</code></dt>
+     *            <dd></dd>
+     *
+     *          <dt><code>LENGTH</code></dt>
+     *            <dd></dd>
+     *
+     *          <dt><code>PERCENTAGE</code></dt>
+     *            <dd></dd>
+     *
+     *          <dt><code>URI</code></dt>
+     *            <dd>Uniform Resource Identifier or URI-reference (see RFC 3986),
+     *                enclosed in <code>url(…)</code></dd>
+     *
+     *          <dt><code>COUNTER</code></dt>
+     *            <dd>CSS counter</dd>
+     *
+     *          <dt><code>COLOR</code></dt>
+     *            <dd>Color in RGB(A) or HSV format</dd>
+     *
+     *          <dt><code>STRING</code></dt>
+     *            <dd>Unicode string</dd>
+     *        </dl>
+     *
+     * @namespace
+     */
+    types: {
+      /**
+       * Numeric scalar value
+       */
+      NUMBER:     0,
 
-  function f (match, p1)
-  {
-    return p1.toUpperCase();
-  }
+      /**
+       * Length given relative in <code>em</code> (width of the
+       * M&nbsp;square) or <code>ex</code> (height of the x square),
+       * or absolute in <code>in</code> (inches), <code>cm</code>
+       * (centimeters), <code>mm</code> (millimeters), <code>pt</code>
+       * (points), <code>pc</code> (picas), or <code>px</code>
+       * (pixels).
+       */
+      LENGTH:     _LENGTH,
 
-  var rxHyphenated = /-([a-z])/gi;
+      /**
+       * Length given in percentage of the parent
+       */
+      PERCENTAGE: 2,
 
-  /**
-   * @param {String} sProperty
-   * @return {string}
-   *   <var>sProperty</var> with all hyphen-minuses followed by an
-   *   ASCII letter replaced by the letter's uppercase counterpart
-   */
-  return function (sProperty) {
-    var p;
-    if ((p = cache.get(sProperty, false)))
-    {
-      return p;
-    }
+      /**
+       * Uniform Resource Identifier or URI-reference (see RFC 3986),
+       * enclosed in <code>url(…)</code>.
+       */
+      URI:        3,
 
-    var s2 = sProperty.replace(rxHyphenated, f);
-    cache.put(sProperty, s2);
-    return s2;
-  };
-})();
+      /**
+       * CSS counter
+       */
+      COUNTER:    4,
 
-/**
- * @function
- */
-jsx.dom.css.uncamelize = (function () {
-  var _jsx_object = jsx.object;
+      /**
+       * Color given in RGB(A) or HSV format
+       */
+      COLOR:      _COLOR,
 
-  if (typeof jsx.map != "undefined" && typeof jsx.map.Map == "function")
-  {
-    var cache = new jsx.map.Map();
-  }
-  else
-  {
-    var prefix = " ", suffix = "";
+      /**
+       * String of Unicode characters
+       */
+      STRING:     6,
 
-    cache = _jsx_object.getDataObject();
-    cache.get = function (s) {
-      return _jsx_object.getProperty(this, prefix + s + suffix, false);
-    };
+      /**
+       * List of transformations
+       */
+      TRANSFORM:  _TRANSFORM
+    },
 
-    cache.put = function (s, v) {
-      this[prefix + s + suffix] = v;
-    };
-  }
+    /**
+     * Provides information about the type of a CSS property and its relation
+     * to other CSS properties
+     *
+     * @namespace
+     */
+    propertyInfo: {
+      left:   {type: _LENGTH, correspondsTo: "top"},
+      top:    {type: _LENGTH, correspondsTo: "left"},
+      right:  {type: _LENGTH, correspondsTo: "bottom"},
+      bottom: {type: _LENGTH, correspondsTo: "right"},
+      width:  {type: _LENGTH, correspondsTo: "height"},
+      height: {type: _LENGTH, correspondsTo: "width"},
+      color:  {type: __COLOR},
+      backgroundColor:    {type: _COLOR},
+      "background-color": {type: _COLOR},
+      transform: {type: _TRANSFORM}
+    },
 
-  function f (match)
-  {
-    return "-" + match.toLowerCase();
-  }
+    /**
+     * @function
+     */
+    camelize: (function () {
+      if (typeof jsx.map != "undefined" && typeof jsx.map.Map == "function")
+      {
+        var cache = new jsx.map.Map();
+      }
+      else
+      {
+        var prefix = " ", suffix = "";
 
-  var rxUppercase = /[A-Z]/g;
+        cache = _jsx_object.getDataObject();
+        cache.get = function (s) {
+          return _jsx_object.getProperty(this, prefix + s + suffix, false);
+        };
 
-  /**
-   * @param {String} sProperty
-   * @return {string}
-   *   <var>sProperty</var> with all capital ASCII letters replaced
-   *   by the letter's lowercase counterpart, and preceded by a
-   *   hyphen-minus.
-   */
-  return function (sProperty) {
-    var p;
-    if ((p = cache.get(sProperty, false)))
-    {
-      return p;
-    }
+        cache.put = function (s, v) {
+          this[prefix + s + suffix] = v;
+        };
+      }
 
-    var s2 = sProperty.replace(rxUppercase, f);
-    cache.put(sProperty, s2);
-    return s2;
+      function f (match, p1)
+      {
+        return p1.toUpperCase();
+      }
+
+      var rxHyphenated = /-([a-z])/gi;
+
+      /**
+       * @param {String} sProperty
+       * @return {string}
+       *   <var>sProperty</var> with all hyphen-minuses followed by an
+       *   ASCII letter replaced by the letter's uppercase counterpart
+       */
+      return function (sProperty) {
+        var p;
+        if ((p = cache.get(sProperty, false)))
+        {
+          return p;
+        }
+
+        var s2 = sProperty.replace(rxHyphenated, f);
+        cache.put(sProperty, s2);
+        return s2;
+      };
+    })(),
+
+    /**
+     * @function
+     */
+    uncamelize: (function () {
+      if (typeof jsx.map != "undefined" && typeof jsx.map.Map == "function")
+      {
+        var cache = new jsx.map.Map();
+      }
+      else
+      {
+        var prefix = " ", suffix = "";
+
+        cache = _jsx_object.getDataObject();
+        cache.get = function (s) {
+          return _jsx_object.getProperty(this, prefix + s + suffix, false);
+        };
+
+        cache.put = function (s, v) {
+          this[prefix + s + suffix] = v;
+        };
+      }
+
+      function f (match)
+      {
+        return "-" + match.toLowerCase();
+      }
+
+      var rxUppercase = /[A-Z]/g;
+
+      /**
+       * @param {String} sProperty
+       * @return {string}
+       *   <var>sProperty</var> with all capital ASCII letters replaced
+       *   by the letter's lowercase counterpart, and preceded by a
+       *   hyphen-minus.
+       */
+      return function (sProperty) {
+        var p;
+        if ((p = cache.get(sProperty, false)))
+        {
+          return p;
+        }
+
+        var s2 = sProperty.replace(rxUppercase, f);
+        cache.put(sProperty, s2);
+        return s2;
+      };
+    })()
   };
 })();
 
@@ -279,7 +294,8 @@ jsx.dom.getComputedStyle = (function () {
    *   or empty, the entire computed style is returned.
    * @return {CSSStyleDeclaration|currentStyle|string}
    */
-  return function (oElement, sPseudoEl, sProperty) {
+  function _getComputedStyle (oElement, sPseudoEl, sProperty)
+  {
     if (hasGCS || typeof oElement.currentStyle != "undefined")
     {
       var compStyle = (hasGCS
@@ -298,7 +314,9 @@ jsx.dom.getComputedStyle = (function () {
     emptyResult[sProperty] = "";
 
     return (sProperty ? emptyResult : null);
-  };
+  }
+
+  return _getComputedStyle;
 }());
 
 /**
@@ -316,9 +334,9 @@ jsx.dom.getStyleProperty = (function () {
 
   /**
    * @param {HTMLElement} oElement
-   *   Reference to the element object which style is to be modified.
+   *   Reference to the element object whose style is to be retrieved.
    * @param {String} sPropertyName
-   *   Name of the style property of which the value should be retrieved.
+   *   Name of the style property whose value is to be retrieved.
    *   If "display", and there is no
    *   <code>style[<var>sPropertyName</var>]</code> property,
    *   "visibility" is used instead (fallback for the NN4 DOM).
@@ -326,7 +344,8 @@ jsx.dom.getStyleProperty = (function () {
    *   <code>null</code> if no matching object exists or if the
    *   DOM does not provide for retrieval of the property value.
    */
-  return function (oElement, sPropertyName) {
+  function _getStyleProperty (oElement, sPropertyName)
+  {
     if (oElement)
     {
       /* TODO: Needed for NN4 DOM as well? */
@@ -384,11 +403,13 @@ jsx.dom.getStyleProperty = (function () {
     }
 
     return null;
-  };
+  }
+
+  return _getStyleProperty;
 }());
 
 /**
- * Determines whether an HTMLElement object has a style property or not.
+ * Determines whether an HTMLElement object has a style property.
  *
  * @author
  *   (C) 2006  Thomas Lahn &lt;js@PointedEars.de&gt;
@@ -445,7 +466,8 @@ jsx.dom.setStyleProperty = (function () {
    *   CAVEAT: Some property values are normalized by the API when read;
    *   test before using the return value as a discriminator.
    */
-  return function (oElement, sPropertyName, propValue, altValue) {
+  function _setStyleProperty (oElement, sPropertyName, propValue, altValue)
+  {
     if (oElement)
     {
       /* TODO: Needed for NN4 DOM as well? */
@@ -521,7 +543,9 @@ jsx.dom.setStyleProperty = (function () {
     }
 
     return false;
-  };
+  }
+
+  return _setStyleProperty;
 }());
 
 /**
