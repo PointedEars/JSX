@@ -14,29 +14,125 @@ if (typeof jsx.dom == "undefined")
   jsx.dom = {};
 }
 
+/**
+ * @namespace
+ * @type jsx.dom.geolocation
+ */
 jsx.dom.geolocation = {
+  /**
+   * Character used to separate a number from a unit of length.
+   *
+   * The default is U+2009 THIN SPACE.
+   */
   TEXT_THIN_SPACE: "\u2009",
+
   TEXT_LATITUDE: "Latitude",
+
+  /**
+   * Abbreviation used for latitudes at the equator or in the
+   * Northern hemisphere
+   */
   TEXT_NORTH_ABBR: "N",
+
+  /**
+   * Abbreviation used for latitudes in the Southern hemisphere.
+   */
   TEXT_SOUTH_ABBR: "S",
+
   TEXT_LONGITUDE: "Longitude",
+
+  /**
+   * Abbreviation used for longitudes at or west of
+   * the IERS Reference Meridian.
+   */
   TEXT_WEST_ABBR: "W",
+
+  /**
+   * Abbreviation used for longitudes east of
+   * the IERS Reference Meridian.
+   */
   TEXT_EAST_ABBR: "E",
   TEXT_LAT_LNG_ACCURACY: "Lat/Lng Accuracy",
   TEXT_ALTITUDE: "Altitude",
+
+  /**
+   * Text to use for altitude accuracy
+   */
   TEXT_ALT_ACCURACY: "Alt. Accuracy",
+
   TEXT_SPEED: "Speed",
   TEXT_HEADING: "Heading",
   TEXT_NOT_AVAILABLE: "N/A",
 
+  /**
+   * @return {Position}
+   *   The <code>Position</code> stored in this object.
+   */
   getPosition: function () {
     return this._position;
   },
 
+  /**
+   * Sets the {Position} stored in this object.
+   *
+   * Automatically called from {@link #runAsync()} when
+   * geolocation is successful.  Can be manually called
+   * to ease calling several methods of this object that
+   * return human-readable string representations of that
+   * <code>Position</code>.
+   *
+   * @param {Position} value
+   * @return {jsx.dom.geolocation}
+   */
   setPosition: function (value) {
     this._position = value;
+    return this;
   },
 
+  /**
+   * @return {boolean}
+   *   <code>true</code> if geolocation is available,
+   *   <code>false</code> otherwise.
+   */
+  isAvailable: function () {
+    return jsx.object.isHostMethod(navigator, "geolocation", "getCurrentPosition");
+  },
+
+  /**
+   * Runs geolocation asynchronously.
+   *
+   * @param {Callable} callback
+   *   Called when geolocation was completed
+   * @return {boolean}
+   *   <code>true</code> if geolocation is supported,
+   *   <code>false</code> otherwise.
+   */
+  runAsync: function (callback) {
+    if (this.isAvailable())
+    {
+      var me = this;
+      navigator.geolocation.getCurrentPosition(function (position) {
+        me.setPosition(position);
+        me = null;
+        callback(position);
+      });
+
+      return true;
+    }
+
+    return false;
+  },
+
+  /**
+   * Sets the texts used for human-readable string representations
+   * of a {Position} as returned by methods of this object.
+   *
+   * @param {Object} texts
+   *   Object whose keys identify the keys of this object to be
+   *   set.  Usually an external i18n provider would define the
+   *   values.
+   * @return {jsx.dom.geolocation}
+   */
   setTexts: function (texts) {
     var keys = jsx.object.getKeys(texts);
     for (var i = 0, len = keys.length; i < len; ++i)
@@ -47,8 +143,17 @@ jsx.dom.geolocation = {
         this[key] = texts[key];
       }
     }
+
+    return this;
   },
 
+  /**
+   * Returns the string representation of a {Position}'s latitude
+   * in human-readable form.
+   *
+   * @param {Position} position = this.getPosition()
+   * @return {string}
+   */
   getLatitudeString: function (position) {
     if (!position)
     {
@@ -62,6 +167,13 @@ jsx.dom.geolocation = {
       : this.TEXT_NOT_AVAILABLE);
   },
 
+  /**
+   * Returns the string representation of a {Position}'s longitude
+   * in human-readable form.
+   *
+   * @param {Position} position = this.getPosition()
+   * @return {string}
+   */
   getLongitudeString: function (position) {
     if (!position)
     {
@@ -75,6 +187,13 @@ jsx.dom.geolocation = {
         : this.TEXT_NOT_AVAILABLE);
   },
 
+  /**
+   * Returns the string representation of a {Position}'s
+   * latitude/longitude accuracy in human-readable form.
+   *
+   * @param {Position} position = this.getPosition()
+   * @return {string}
+   */
   getLatLngAccuracyString: function (position) {
     if (!position)
     {
@@ -84,6 +203,13 @@ jsx.dom.geolocation = {
     return position.coords.accuracy + this.TEXT_THIN_SPACE + "m";
   },
 
+  /**
+   * Returns the string representation of a {Position}'s altitude
+   * in human-readable form.
+   *
+   * @param {Position} position = this.getPosition()
+   * @return {string}
+   */
   getAltitudeString: function (position) {
     if (!position)
     {
@@ -96,6 +222,13 @@ jsx.dom.geolocation = {
       : this.TEXT_NOT_AVAILABLE);
   },
 
+  /**
+   * Returns the string representation of a {Position}'s altitude
+   * accuracy in human-readable form.
+   *
+   * @param {Position} position = this.getPosition()
+   * @return {string}
+   */
   getAltAccuracyString: function (position) {
     if (!position)
     {
@@ -108,6 +241,13 @@ jsx.dom.geolocation = {
       : this.TEXT_NOT_AVAILABLE);
   },
 
+  /**
+   * Returns the string representation of a {Position}'s speed
+   * in human-readable form.
+   *
+   * @param {Position} position = this.getPosition()
+   * @return {string}
+   */
   getSpeedString: function (position) {
     if (!position)
     {
@@ -120,6 +260,13 @@ jsx.dom.geolocation = {
       : this.TEXT_NOT_AVAILABLE);
   },
 
+  /**
+   * Returns the string representation of a {Position}'s heading
+   * in human-readable form.
+   *
+   * @param {Position} position = this.getPosition()
+   * @return {string}
+   */
   getHeadingString: function (position) {
     if (!position)
     {
@@ -132,6 +279,13 @@ jsx.dom.geolocation = {
       : this.TEXT_NOT_AVAILABLE);
   },
 
+  /**
+   * Returns the string representation of a {Position} in
+   * human-readable form.
+   *
+   * @param {Position} position = this.getPosition()
+   * @return {string}
+   */
   getText: function (position) {
     return [
       this.TEXT_LATITUDE + ": " + this.getLatitudeString(position),
