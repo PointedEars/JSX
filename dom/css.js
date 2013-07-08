@@ -382,7 +382,7 @@ jsx.dom.css = (/** @constructor */ function () {
             return computedStyle;
           }
 
-          return jsx.dom.getStyleProperty({style: computedStyle}, sProperty);
+          return jsx.dom.css.getStyleProperty({style: computedStyle}, sProperty);
         }
 
         return null;
@@ -401,7 +401,7 @@ jsx.dom.css = (/** @constructor */ function () {
  * @partof
  *   http://pointedears.de/scripts/dom/css.js
  */
-jsx.dom.getStyleProperty = (function () {
+jsx.dom.css.getStyleProperty = (function () {
   var _isHostMethod = jsx.object.isHostMethod;
   var _camelize = jsx.dom.css.camelize;
   var _uncamelize = jsx.dom.css.uncamelize;
@@ -544,7 +544,7 @@ jsx.dom.getStyleProperty = (function () {
  *   <code>true</code> otherwise.
  */
 jsx.dom.hasStyleProperty = function (oElement, sPropertyName) {
-  return (jsx.dom.getStyleProperty(oElement, sPropertyName) != null);
+  return (jsx.dom.css.getStyleProperty(oElement, sPropertyName) != null);
 };
 
 /**
@@ -556,7 +556,7 @@ jsx.dom.hasStyleProperty = function (oElement, sPropertyName) {
  * @partof
  *   http://pointedears.de/scripts/dom/css.js
  */
-jsx.dom.setStyleProperty = (function () {
+jsx.dom.css.setStyleProperty = (function () {
   var _isHostMethod = jsx.object.isHostMethod;
   var _camelize = jsx.dom.css.camelize;
   var _uncamelize = jsx.dom.css.uncamelize;
@@ -710,10 +710,10 @@ jsx.dom.setStyleProperty = (function () {
  * @param {Element} oElement
  * @param {String} sPropertyName
  * @return {boolean}
- * @see jsx.dom.setStyleProperty()
+ * @see jsx.dom.css.setStyleProperty()
  */
 jsx.dom.css.resetStyleProperty = function (oElement, sPropertyName) {
-  return jsx.dom.setStyleProperty(oElement, sPropertyName, "");
+  return jsx.dom.css.setStyleProperty(oElement, sPropertyName, "");
 };
 
 /**
@@ -746,13 +746,13 @@ jsx.dom.display = function (oElement, bShow) {
   {
     if (arguments.length > 1)
     {
-      result = jsx.dom.setStyleProperty(oElement, "display",
+      result = jsx.dom.css.setStyleProperty(oElement, "display",
         bShow ? ""     : "none",
         bShow ? "show" : "hide");
     }
     else
     {
-      result = /^(\s*|show)$/.test(jsx.dom.getStyleProperty(oElement, "display"));
+      result = /^(\s*|show)$/.test(jsx.dom.css.getStyleProperty(oElement, "display"));
     }
   }
 
@@ -788,14 +788,14 @@ jsx.dom.visibility = jsx.dom.visible = function (oElement, bVisible) {
   {
     if (arguments.length > 1)
     {
-      result = jsx.dom.setStyleProperty(oElement, "visibility",
+      result = jsx.dom.css.setStyleProperty(oElement, "visibility",
         bVisible ? "visible" : "hidden",
         bVisible ? "show" : "hide");
     }
     else
     {
       result = /^(visible|show)$/.test(
-        jsx.dom.getStyleProperty(oElement, "visibility"));
+        jsx.dom.css.getStyleProperty(oElement, "visibility"));
     }
   }
 
@@ -818,7 +818,7 @@ jsx.dom.hoverImg = function (imgID, state) {
   }
 
   var me = arguments.callee;
-  return jsx.dom.setStyleProperty(img, "borderColor",
+  return jsx.dom.css.setStyleProperty(img, "borderColor",
     (state == 0 ? me.clMouseout : me.clMouseover));
 };
 jsx.dom.hoverImg.clMouseout = "#000";
