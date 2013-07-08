@@ -464,7 +464,6 @@ jsx.dom.animation.Timeline.extend(null, {
       _jsx_object = jsx.object,
       _jsx_dom = jsx.dom,
       _jsx_dom_css = _jsx_dom.css,
-      _jsx_dom_animation = _jsx_dom.animation,
       _Color = _jsx_dom.css.Color;
 
     return function () {
@@ -688,7 +687,6 @@ jsx.dom.animation.Timeline.extend(null, {
     var
       _jsx_object = jsx.object,
       _jsx_dom = jsx.dom,
-      _jsx_dom_animation = _jsx_dom.animation,
       _jsx_dom_css = _jsx_dom.css,
       getPropertySetter = function (target, values, bDontPlay, oTimeline) {
         return function () {
@@ -710,7 +708,7 @@ jsx.dom.animation.Timeline.extend(null, {
                     setToRelative = true;
                   }
 
-                  _jsx_dom.setStyleProperty(target, styleProperty, style[styleProperty] + "px");
+                  _jsx_dom_css.setStyleProperty(target, styleProperty, style[styleProperty] + "px");
                 }
                 else
                 {
@@ -1048,7 +1046,6 @@ jsx.dom.animation.KeyFrame.extend(jsx.dom.animation.Frame, {
     var _getKeys = _jsx_object.getKeys;
     var _getProperty = _jsx_object.getProperty;
     var _jsx_dom = jsx.dom;
-    var _jsx_dom_animation = _jsx_dom.animation;
     var _jsx_dom_css = _jsx_dom.css;
 
     return function () {

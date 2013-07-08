@@ -1,12 +1,12 @@
 /**
  * <title>PointedEars' DOM Library: CSS Compatibility Layer</title>
- * @version $Id: css.js 230 2011-10-01 17:00:32Z PointedEars $
+ * @version $Id$
  * @requires dom.js
  *
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2011 Thomas Lahn <js@PointedEars.de>
+ *   (C) 2011, 2013 Thomas Lahn <js@PointedEars.de>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -24,6 +24,6 @@
  * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var setStyleProperty = jsx.dom.setStyleProperty;
 var CSS = jsx.dom.css;
+var setStyleProperty = jsx.dom.setStyleProperty = jsx.dom.css.setStyleProperty;
 jsx.dom.getElemByClassName = jsx.dom.css.getElemByClassName;
