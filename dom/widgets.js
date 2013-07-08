@@ -137,22 +137,68 @@ jsx.dom.widgets.Widget.extend(null, {
   },
 
   /**
+   * Gets a property of this widget's target object.
+   *
+   * @param {String} name
+   * @return {any}
+   */
+  getTargetProperty: function (name) {
+    return this._target[name];
+  },
+
+  /**
+   * Sets a property of this widget's target object.
+   *
+   * Use {@link #setStyleProperty()}, {@link #resetStyleProperty()}
+   * or {@link #setStyle()} for setting style properties instead.
+   *
+   * @param {String} name
+   * @param value
+   * @return {jsx.dom.widgets.Widget}
+   */
+  setTargetProperty: function (name, value) {
+    this._target[name] = value;
+    return this;
+  },
+
+  /**
+   * Sets several property of this widget's target object.
+   *
+   * Use {@link #setStyleProperty()}, {@link #resetStyleProperty()}
+   * or {@link #setStyle()} for setting style properties instead.
+   *
+   * @param {String} name
+   * @param value
+   * @return {jsx.dom.widgets.Widget}
+   */
+  setTargetProperties: function (properties) {
+    var keys = jsx.object.getKeys(properties);
+    for (var i = 0, len = keys.length; i < len; ++i)
+    {
+      var propertyName = keys[i];
+      this.setTargetProperty(propertyName, properties[propertyName]);
+    }
+
+    return this;
+  },
+
+  /**
    * Sets a style property of this widget
    *
    * @function
    */
   setStyleProperty: (function () {
-    var jsx_dom_setStyleProperty = jsx.dom.setStyleProperty;
+    var jsx_dom_css_setStyleProperty = jsx.dom.css.setStyleProperty;
 
     /**
      * @param {String} name
      * @param value
      * @return {boolean}
-     * @see jsx.dom.setStyleProperty()
+     * @see jsx.dom.css.setStyleProperty()
      */
     function Widget_setStyleProperty (name, value)
     {
-      return jsx_dom_setStyleProperty(this._target, name, value);
+      return jsx_dom_css_setStyleProperty(this._target, name, value);
     }
 
     return Widget_setStyleProperty;
@@ -362,6 +408,11 @@ jsx.dom.widgets.Container.extend(jsx.dom.widgets.Widget, {
       return this;
     };
   }()),
+
+  getText: function () {
+    this.text = this._target.textContent;
+    return this.text;
+  },
 
   setText: function (text) {
     this.text = text;
