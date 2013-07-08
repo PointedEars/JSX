@@ -64,7 +64,8 @@ jsx.dom.css = (/** @constructor */ function () {
 
   var _LENGTH = 1;
   var _COLOR = 5;
-  var _TRANSFORM = 7;
+  var _FLOAT = 7;
+  var _TRANSFORM = 8;
 
   return {
     /**
@@ -145,7 +146,25 @@ jsx.dom.css = (/** @constructor */ function () {
       /**
        * List of transformations
        */
+      FLOAT:      _FLOAT,
+
+      /**
+       * List of transformations
+       */
       TRANSFORM:  _TRANSFORM
+    },
+
+    prefixedProperties: {
+      transition: true,
+      animation: true
+    },
+
+    /**
+     * Property name prefixes
+     */
+    prefixes: {
+      camelized: ["Moz", "Ms", "O", "Webkit", ""],
+      uncamelized: ["-moz-", "-ms-", "-o-", "-webkit-", ""]
     },
 
     /**
@@ -155,16 +174,49 @@ jsx.dom.css = (/** @constructor */ function () {
      * @namespace
      */
     propertyInfo: {
-      left:   {type: _LENGTH, correspondsTo: "top"},
-      top:    {type: _LENGTH, correspondsTo: "left"},
-      right:  {type: _LENGTH, correspondsTo: "bottom"},
-      bottom: {type: _LENGTH, correspondsTo: "right"},
-      width:  {type: _LENGTH, correspondsTo: "height"},
-      height: {type: _LENGTH, correspondsTo: "width"},
-      color:  {type: __COLOR},
-      backgroundColor:    {type: _COLOR},
-      "background-color": {type: _COLOR},
-      transform: {type: _TRANSFORM}
+      "float": {
+        type: _FLOAT,
+        aliases: ["cssFloat", "styleFloat"]
+      },
+      left: {
+        type: _LENGTH,
+        correspondsTo: "top"
+      },
+      top: {
+        type: _LENGTH,
+        correspondsTo: "left"
+      },
+      right: {
+        type: _LENGTH,
+        correspondsTo: "bottom"
+      },
+      bottom: {
+        type: _LENGTH,
+        correspondsTo: "right"
+      },
+      width: {
+        type: _LENGTH,
+        correspondsTo: "height"
+      },
+      height: {
+        type: _LENGTH,
+        correspondsTo: "width"
+      },
+      color: {
+        type: _COLOR
+      },
+
+      /* FIXME */
+      backgroundColor: {
+        type: _COLOR
+      },
+      "background-color": {
+        type: _COLOR
+      },
+
+      transform: {
+        type: _TRANSFORM
+      }
     },
 
     /**
@@ -262,65 +314,87 @@ jsx.dom.css = (/** @constructor */ function () {
         cache.put(sProperty, s2);
         return s2;
       };
-    })()
+    })(),
+
+    /**
+     * Returns the computed style of an {@link Element} or the
+     * computed value of an <code>Element</code>'s style property.
+     *
+     * @function
+     */
+    getComputedStyle: (function () {
+      var _isMethod = _jsx_object.isMethod;
+      var _defaultView;
+
+      /**
+       * @param {Element} oElement
+       *   Element for which the computed style should be retrieved.
+       * @param {string} sPseudoEl
+       *   The name of the pseudo-element, such as ":first-child".
+       *   Use <code>null</code> (default) for the element itself.
+       * @param {string} sProperty
+       *   The property name in CSS or script syntax (names are mapped
+       *   automatically according to the feature used).  If not passed
+       *   or empty, the entire computed style is returned.
+       * @return {CSSStyleDeclaration|currentStyle|string|null}
+       *   The return value depends on both the passed arguments
+       *   and the capabilities of the user agent:
+       *
+       *   If the UA supports either ViewCSS::getComputedStyle()
+       *   from W3C DOM Level 2 CSS or MSHTML's currentStyle
+       *   property, then
+       *     a) if <var>sProperty</var> was passed, the value of the
+       *        CSS property with name <var>sProperty</vr> is returned;
+       *        it is a string if the property is supported;
+       *     b) if <var>cssProperty</var> was not passed, the corresponding
+       *        style object is returned
+       *
+       *   However, MSHTML's currentStyle does not support pseudo-elements.
+       *   If you attempt to retrieve pseudo-element's computed style,
+       *   <code>null</code> is returned (without error).
+       *
+       *   If the UA supports neither of the above, <code>null</code>
+       *   is returned.
+       */
+      function _getComputedStyle (oElement, sPseudoEl, sProperty)
+      {
+        var computedStyle;
+
+        if (_isMethod(document, "defaultView", "getComputedStyle")
+          && (typeof _defaultView != "undefined" || (_defaultView = document.defaultView)))
+        {
+          computedStyle = _defaultView.getComputedStyle(oElement, sPseudoEl || null);
+        }
+        else
+        {
+          if (sPseudoEl)
+          {
+            return null;
+          }
+
+          computedStyle = obj.currentStyle;
+        }
+
+        if (typeof computedStyle != "undefined")
+        {
+          if (!sProperty)
+          {
+            return computedStyle;
+          }
+
+          return jsx.dom.getStyleProperty({style: computedStyle}, sProperty);
+        }
+
+        return null;
+      }
+
+      return _getComputedStyle;
+    }())
   };
 })();
 
 /**
- * Returns the computed style of an {@link Element} or the
- * computed value of an <code>Element</code>'s style property.
- *
- * @function
- */
-jsx.dom.getComputedStyle = (function () {
-  var _camelize = jsx.dom.css.camelize;
-  var _getProperty = jsx.object.getProperty;
-
-  var
-    hasGCS = jsx.object.isMethod(document, "defaultView", "getComputedStyle"),
-    propertyMap = {
-      "float": hasGCS ? "cssFloat" : "styleFloat"
-    };
-
-  /**
-   * @param {Element} oElement
-   *   Element for which the computed style should be retrieved.
-   * @param {string} sPseudoEl
-   *   The name of the pseudo-element, such as ":first-child".
-   *   Use <code>null</code> (default) for the element itself.
-   * @param {string} sProperty
-   *   The property name in CSS or script syntax (names are mapped
-   *   automatically according to the feature used).  If not passed
-   *   or empty, the entire computed style is returned.
-   * @return {CSSStyleDeclaration|currentStyle|string}
-   */
-  function _getComputedStyle (oElement, sPseudoEl, sProperty)
-  {
-    if (hasGCS || typeof oElement.currentStyle != "undefined")
-    {
-      var compStyle = (hasGCS
-        ? document.defaultView.getComputedStyle(oElement, sPseudoEl || null)
-        : oElement.currentStyle);
-
-      return (sProperty
-        ? compStyle[
-            _camelize(
-              _getProperty(propertyMap, sProperty, sProperty))
-          ]
-        : compStyle);
-    }
-
-    var emptyResult = {};
-    emptyResult[sProperty] = "";
-
-    return (sProperty ? emptyResult : null);
-  }
-
-  return _getComputedStyle;
-}());
-
-/**
- * Retrieves the value of a style property of an HTMLElement object.
+ * Retrieves the value of a style property of an {@link Element}.
  *
  * @author
  *   (C) 2005, 2013  Thomas Lahn &lt;js@PointedEars.de&gt;
@@ -332,14 +406,25 @@ jsx.dom.getStyleProperty = (function () {
   var _camelize = jsx.dom.css.camelize;
   var _uncamelize = jsx.dom.css.uncamelize;
 
+  var _prefixedProperties = jsx.dom.css.prefixedProperties;
+  var _prefixes = jsx.dom.css.prefixes;
+  var _propertyInfo = jsx.dom.css.propertyInfo;
+
   /**
-   * @param {HTMLElement} oElement
+   * @param {Element} oElement
    *   Reference to the element object whose style is to be retrieved.
    * @param {String} sPropertyName
    *   Name of the style property whose value is to be retrieved.
-   *   If "display", and there is no
-   *   <code>style[<var>sPropertyName</var>]</code> property,
-   *   "visibility" is used instead (fallback for the NN4 DOM).
+   *   Both camelCased and dash-property names are supported.
+   *   Mapping to supported prefix properties is done automatically,
+   *   i. e. <code>"transition"</code> would cause
+   *   <code>"-webkit-transition"</code> to be retrieved if
+   *   the former but not <code>"transition"</code> was available.
+   *   If the <code>style</code> property is available on the element,
+   *   the faster property-accessor approach is attempted first,
+   *   then the slower setProperty() call.
+   *   Otherwise <code>"visibility"</code> is used instead
+   *   (fallback for the NN4 DOM).
    * @return {string|null}
    *   <code>null</code> if no matching object exists or if the
    *   DOM does not provide for retrieval of the property value.
@@ -349,55 +434,86 @@ jsx.dom.getStyleProperty = (function () {
     if (oElement)
     {
       /* TODO: Needed for NN4 DOM as well? */
-      var camelizedName = _camelize(sPropertyName);
+      var camelized_name = _camelize(sPropertyName);
 
       if (typeof oElement.style != "undefined")
       {
         var style = oElement.style;
 
-        /* Prefer style.getPropertyValue() over mapping to extension properties */
+        var thisPropertyInfo = _propertyInfo[camelized_name];
+        var thisAliases = thisPropertyInfo && thisPropertyInfo.aliases;
+        if (thisAliases)
+        {
+          for (var i = thisAliases.length; i--;)
+          {
+            var alias = thisAliases[i];
+            if (typeof style[alias] != "undefined")
+            {
+              return style[alias];
+            }
+          }
+
+          return null;
+        }
+
+        if (_prefixedProperties[sPropertyName])
+        {
+          for (i = _prefixes.camelized.length; i--;)
+          {
+            var prefix = _prefixes.camelized[i];
+            var prefixed_name = (prefix
+              ? prefix
+                  + camelized_name.charAt(0).toUpperCase()
+                  + camelized_name.substring(1)
+              : camelized_name);
+            if (typeof style[prefixed_name] != "undefined")
+            {
+              return style[prefixed_name];
+            }
+          }
+
+          return null;
+        }
+
+        if (typeof style[camelized_name] != "undefined")
+        {
+          return style[camelized_name];
+        }
+
+        /* If the quick, backwards-compatible method failed for some reason */
         if (_isHostMethod(style, "getPropertyValue"))
         {
-          sPropertyName = _uncamelize(sPropertyName);
+          var uncamelized_name = _uncamelize(sPropertyName);
 
-          return style.getPropertyValue(sPropertyName);
-        }
-
-        /* handle the `float' property */
-        var isStyleFloat = false;
-
-        if (camelizedName == "float")
-        {
-          /* W3C DOM Level 2 CSS */
-          if (typeof style.cssFloat != "undefined")
+          /* NOTE: Works because of no dash-properties in _prefixedProperties */
+          if (_prefixedProperties[sPropertyName])
           {
-            camelizedName = "cssFloat";
-            isStyleFloat = true;
+            for (i = _prefixes.uncamelized.length; i--;)
+            {
+              var value = style.getPropertyValue(
+                _prefixes.uncamelized[i] + uncamelized_name);
+              if (value)
+              {
+                return value;
+              }
+            }
+
+            return null;
           }
 
-          /* MSHTML DOM */
-          else if (typeof style.styleFloat != "undefined")
-          {
-            camelizedName = "styleFloat";
-            isStyleFloat = true;
-          }
-        }
-
-        if (isStyleFloat || typeof style[camelizedName] != "undefined")
-        {
-          return style[camelizedName];
+          return style.getPropertyValue(uncamelized_name);
         }
       }
       else
       {
-        if (camelizedName == "display")
+        if (camelized_name == "display")
         {
-          camelizedName = "visibility";
+          camelized_name = "visibility";
         }
 
-        if (typeof oElement[camelizedName] != "undefined")
+        if (typeof oElement[camelized_name] != "undefined")
         {
-          return oElement[camelizedName];
+          return oElement[camelized_name];
         }
       }
     }
@@ -409,7 +525,7 @@ jsx.dom.getStyleProperty = (function () {
 }());
 
 /**
- * Determines whether an HTMLElement object has a style property.
+ * Determines whether an {@link Element} has a style property.
  *
  * @author
  *   (C) 2006  Thomas Lahn &lt;js@PointedEars.de&gt;
@@ -432,7 +548,7 @@ jsx.dom.hasStyleProperty = function (oElement, sPropertyName) {
 };
 
 /**
- * Sets the value of a style property of an HTMLElement object.
+ * Sets the value of a style property of an {@link Element}.
  *
  * @function
  * @author
@@ -445,98 +561,138 @@ jsx.dom.setStyleProperty = (function () {
   var _camelize = jsx.dom.css.camelize;
   var _uncamelize = jsx.dom.css.uncamelize;
 
+  var _prefixedProperties = jsx.dom.css.prefixedProperties;
+  var _prefixes = jsx.dom.css.prefixes;
+  var _propertyInfo = jsx.dom.css.propertyInfo;
+
   /**
-   * @param {HTMLElement} oElement
-   *   Reference to the element object which style is to be modified.
+   * @param {Element} oElement
+   *   Reference to the element object whose style is to be modified.
    * @param {string} sPropertyName
-   *   Name of the style property of which the value should be set.
-   *   If "display" and there is no <code>style[<var>sPropertyName</var>]</code>
-   *   property and <code>altValue</code> was provided, "visibility" is used
-   *   instead (fallback for the NN4 DOM).
+   *   Name of the style property whose value should be set.
+   *   Both camelCased and dash-property names are supported.
+   *   Mapping to supported prefix properties is done automatically,
+   *   i. e. <code>"transition"</code> would cause only
+   *   <code>"-webkit-transition"</code> to be set if the former
+   *   but not <code>"transition"</code> was available.
+   *   If the <code>style</code> property is available on the element,
+   *   the faster property-accessor approach is attempted first,
+   *   then the slower setProperty() call.
+   *   If <code>"display"</code>, and there is no <code>style</code>
+   *   property, and <code>altValue</code> was provided, "visibility"
+   *   is used instead (fallback for the NN4 DOM).
    * @param propValue
    *   Value of the style property to be set.
    * @param {_} altValue (optional)
-   *   Alternative value to be set if the the style property is a property of
-   *   the object itself instead of its `style' property.  Fallback for the
-   *   NN4 DOM.
+   *   Alternative value to be set if the the style property is a
+   *   property of the object itself instead of its `style' property.
+   *   Fallback for the NN4 DOM.
    * @return {boolean}
    *   <code>false</code> if no such object exists, the
    *   DOM does not provide for setting the property value,
    *   or if the assignment failed (invalid value).
-   *   CAVEAT: Some property values are normalized by the API when read;
-   *   test before using the return value as a discriminator.
+   *   CAVEAT: Some property values are normalized by the DOM API
+   *   when read; test before using the return value as a discriminator.
    */
   function _setStyleProperty (oElement, sPropertyName, propValue, altValue)
   {
     if (oElement)
     {
       /* TODO: Needed for NN4 DOM as well? */
-      var camelizedName = _camelize(sPropertyName);
+      var camelized_name = _camelize(sPropertyName);
 
       if (typeof oElement.style != "undefined")
       {
         var style = oElement.style;
 
-        /* Prefer style.setProperty() over mapping to extension properties */
+        var thisPropertyInfo = _propertyInfo[camelized_name];
+        var thisAliases = thisPropertyInfo && thisPropertyInfo.aliases;
+        if (thisAliases)
+        {
+          for (var i = thisAliases.length; i--;)
+          {
+            var alias = thisAliases[i];
+            if (typeof style[alias] != "undefined")
+            {
+              style[alias] = propValue;
+              return (String(style[alias]).toLowerCase()
+                == String(propValue).toLowerCase());
+            }
+          }
+
+          return false;
+        }
+
+        if (_prefixedProperties[sPropertyName])
+        {
+          var len;
+          for (i = 0, len = _prefixes.camelized.length; i < len; ++i)
+          {
+            var prefix = _prefixes.camelized[i];
+            var prefixed_name = (prefix
+              ? prefix
+                  + camelized_name.charAt(0).toUpperCase()
+                  + camelized_name.substring(1)
+              : camelized_name);
+            if (typeof style[prefixed_name] != "undefined")
+            {
+              style[prefixed_name] = propValue;
+            }
+          }
+
+          return (String(style[prefixed_name]).toLowerCase()
+            == String(propValue).toLowerCase());
+        }
+
+        if (typeof style[camelized_name] != "undefined")
+        {
+          style[camelized_name] = propValue;
+          return (String(style[camelized_name]).toLowerCase()
+            == String(propValue).toLowerCase());
+        }
+
+        /* If the quick, backwards-compatible method failed for some reason */
         if (_isHostMethod(style, "setProperty"))
         {
-          sPropertyName = _uncamelize(sPropertyName);
+          var uncamelized_name = _uncamelize(sPropertyName);
 
-          style.setProperty(sPropertyName, propValue);
-
-          if (!_isHostMethod(style, "getPropertyValue"))
+          /* NOTE: Works because of no dash-properties in _prefixedProperties */
+          if (_prefixedProperties[sPropertyName])
           {
-            return true;
+            for (i = 0, len = _prefixes.uncamelized.length; i < len; ++i)
+            {
+              style.setProperty(
+                _prefixes.uncamelized[i] + uncamelized_name,
+                propValue);
+            }
+
+            if (!_isHostMethod(style, "getPropertyValue"))
+            {
+              return true;
+            }
+
+            return (String(style.getPropertyValue(sPropertyName)).toLowerCase()
+              == String(propValue).toLowerCase());
           }
 
-          return (String(style.getPropertyValue(sPropertyName)).toLowerCase()
-                  == String(propValue).toLowerCase());
-        }
-
-        /* handle the `float' property */
-        var isStyleFloat = false;
-
-        if (camelizedName == "float")
-        {
-          /* W3C DOM Level 2 CSS */
-          if (typeof style.cssFloat != "undefined")
-          {
-            camelizedName = "cssFloat";
-            isStyleFloat = true;
-          }
-
-          /* MSHTML DOM */
-          else if (typeof style.styleFloat != "undefined")
-          {
-            camelizedName = "styleFloat";
-            isStyleFloat = true;
-          }
-        }
-
-        if (isStyleFloat || typeof style[camelizedName] != "undefined")
-        {
-          /*
-           * NOTE: Shortcut evaluation changed behavior;
-           * result of assignment is *right-hand side* operand
-           */
-          style[camelizedName] = propValue;
-          return (String(style[camelizedName]).toLowerCase()
+          style.setProperty(uncamelized_name, propValue);
+          return (String(style.getPropertyValue(uncamelized_name)).toLowerCase()
                   == String(propValue).toLowerCase());
         }
       }
       else
       {
         /* NN4 DOM */
-        if (camelizedName == "display" && altValue)
+        if (camelized_name == "display" && altValue)
         {
-          camelizedName = "visibility";
+          camelized_name = "visibility";
         }
 
-        if (typeof oElement[camelizedName] != "undefined")
+        if (typeof oElement[camelized_name] != "undefined")
         {
           var newValue = (altValue || propValue);
-          oElement[camelizedName] = newValue;
-          return (String(oElement[camelizedName]).toLowerCase()
+          oElement[camelized_name] = newValue;
+          return (String(oElement[camelized_name]).toLowerCase()
             == String(newValue).toLowerCase());
         }
       }
@@ -1014,63 +1170,6 @@ jsx.dom.css.showByClassName = (function () {
     }
 
     return true;
-  };
-}());
-
-/**
- * Returns the computed style of an element or
- * the computed value of a style property of an element.
- */
-jsx.dom.css.getComputedStyle = (function () {
-  var _isMethod = jsx.object.isMethod,
-  _defaultView;
-
-  /**
-   * @param {Element} obj
-   * @param {string} cssProperty
-   * @return {CSSStyleDeclaration|string}
-   *   The return value depends on both the passed arguments
-   *   and the capabilities of the user agent:
-   *
-   *   If the UA supports either ViewCSS::getComputedStyle()
-   *   from W3C DOM Level 2 CSS or MSHTML's currentStyle
-   *   property, then
-   *     a) if <var>cssProperty</var> was passed, the value of the
-   *        CSS property with name <var>cssProperty</vr> is returned;
-   *        it is a string if the property is supported;
-   *     b) if <var>cssProperty</var> was not passed, the corresponding
-   *        style object is returned
-   *
-   *   If the UA supports neither of the above, `undefined' is
-   *   returned.
-   * @type string|CSSStyleDeclaration|currentStyle
-   */
-  return function (obj, cssProperty) {
-    var computedStyle;
-
-    if (_isMethod(document, "defaultView", "getComputedStyle")
-        && (typeof _defaultView != "undefined" || (_defaultView = document.defaultView))
-        && (computedStyle = _defaultView.getComputedStyle(obj, null)))
-    {
-      if (cssProperty)
-      {
-        if (_isMethod(computedStyle, "getPropertyValue"))
-        {
-          return computedStyle.getPropertyValue(cssProperty);
-        }
-
-        return jsx.throwThis(null, "Unable to retrieve computed style property");
-      }
-    }
-    else if (typeof (computedStyle = obj.currentStyle) != "undefined")
-    {
-      if (cssProperty)
-      {
-        return computedStyle[cssProperty];
-      }
-    }
-
-    return computedStyle;
   };
 }());
 
