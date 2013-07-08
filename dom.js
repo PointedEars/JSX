@@ -936,9 +936,9 @@ jsx.dom.setAttr = function (o, sAttrName, attrValue) {
             stylePair = styleProps[i].split(/\s*:\s*/),
             stylePropName = stylePair[0].toLowerCase();
 
-          jsx.dom.setStyleProperty(o, stylePropName,
+          jsx.dom.css.setStyleProperty(o, stylePropName,
             strToValue(stylePair[1]));
-          result = jsx.dom.getStyleProperty(o, stylePropName);
+          result = jsx.dom.css.getStyleProperty(o, stylePropName);
         }
       }
       else
@@ -1068,7 +1068,7 @@ jsx.dom.createElement = (function () {
  *                     property names are <code>style</code> property
  *                     names and whose property values are the
  *                     corresponding values, as supported by
- *                     {@link jsx.dom#setStyleProperty()}.
+ *                     {@link jsx.dom.css#setStyleProperty()}.
  *               </tr>
  *               <tr>
  *                 <th><code><var>childNodes</var></code></th>
@@ -1135,10 +1135,10 @@ jsx.dom.createNodesFromObj = (function () {
         if (prop == "style")
         {
           var style = properties[prop];
-          var _setStyleProperty = jsx.dom.setStyleProperty;
+          var _setStyleProperty = jsx.object.getFeature(jsx.dom, "css", "setStyleProperty");
           if (typeof style != "string" && typeof _setStyleProperty != "function")
           {
-            jsx.warn("JSX:dom/css.js:jsx.dom.setStyleProperty()"
+            jsx.warn("JSX:dom/css.js:jsx.dom.css.setStyleProperty()"
               + " is recommended for setting style object properties");
             el[prop] = style;
           }
@@ -1383,19 +1383,37 @@ jsx.dom.getParent = function (oNode) {
 };
 
 /**
- * Appends the include located at <var>sURI</var> to the <code>head</code>
- * element of the current (X)HTML document.  (Is not wise to be
- * applied on script files that contain code to append content on
- * the fly (esp. document.write(...)) -- the existing content
- * would be overwritten.)
+ * Loads a script resource asynchonrously by appending
+ * a <code>script</code> element to the current (X)HTML document.
  *
- * Note: Tested successfully with MSIE and Mozilla/5.0; however, do not
- * rely on that the script was included, but <em>test</em> for it.
+ * A <code>script</code> element is being created and appended as
+ * child to the <code>body</code> element or the <code>head</code>
+ * element of the document, whichever is available first.  In a
+ * frameset document, <code>document.body</code> refers to the
+ * topmost <code>frameset</code> element object; in that case,
+ * it is attempted to find a <code>body</code> element by other
+ * means.  If that fails, it means that there either is no such
+ * element, or that the element object is inaccessible because
+ * it is disabled by the frameset.  In that case the
+ * <code>script</code> element is appended to the <code>head</code>
+ * element instead.
  *
- * @version 0.3.2009062115
+ * Note that previous versions of this method appended to the
+ * <code>head</code> element only.  However, this limited its use
+ * to scripts that did not modify the body content.  You may still
+ * not load such scripts with this method if the document has
+ * been loaded and the script resource uses
+ * <code>document.write()</code>.  This method intentionally does
+ * not use <code>document.write()</code> to avoid the possibility
+ * that a loaded document could be overwritten.
+ *
+ * NOTE: Tested successfully with MSIE and Mozilla/5.0; however,
+ * do not rely on that the script was included, but <em>test</em>
+ * for it.
+ *
  * @author
- *   (C) 2004-2009  Thomas Lahn <dhtml.js@PointedEars.de>,
- *       2004       Ulrich Kritzner <droeppez@web.de>
+ *   (C) 2004-2009, 2013  Thomas Lahn <dhtml.js@PointedEars.de>,
+ *       2004             Ulrich Kritzner <droeppez@web.de>
  *
  * @requires jsx.object#isMethod()
  * @param {string} sURI
@@ -1408,92 +1426,101 @@ jsx.dom.getParent = function (oNode) {
  *   HTML 4.01 and XHTML 1.0, absent from XHTML 1.1 and later
  *   versions) to specify the version of the script language.
  *   Unused by default.
- * @param bReload
+ * @param {boolean} bReload = false
  *   If <code>true</code>Force an already loaded script to be reloaded,
- *   i.e. another <code>script</code> element with the same URI in the
- *   <code>src</code> attribute to be added; if <code>false</code>
- *   (default), the attempt to load a script that has already been loaded
- *   fails silently.
+ *   i.e. another <code>script</code> element with the same URI
+ *   in the <code>src</code> attribute to be added;
+ *   if <code>false</code> (default), the attempt to load a script
+ *   that has already been loaded fails silently.
  *  @return {boolean}
  *    <code>false</code> if the script could not be loaded,
  *    <code>true</code> otherwise.
  */
-jsx.dom.loadScript = function (sURI, sType, sLanguage, bReload) {
-  var
-    me = arguments.callee,
-    jsx_object = jsx.object,
-    result = false;
+jsx.dom.loadScript =
+  function jsx_dom_loadScript (sURI, sType, sLanguage, bReload) {
+    var
+      jsx_object = jsx.object,
+      result = false;
 
-  if (typeof me.registry != "undefined"
-      && jsx_object.getProperty(me.registry, sURI, false)
-      && !bReload)
-  {
-    return true;
-  }
-
-  var oHead = jsx.dom.getElemByTagName("head", 0);
-  if (!oHead)
-  {
-    return false;
-  }
-
-  if (!jsx_object.isMethod(document, "createElement"))
-  {
-    return false;
-  }
-
-  var oScript = document.createElement("script");
-  if (!oScript)
-  {
-    return false;
-  }
-
-  /* no exception handling for backwards compatibility reasons */
-  if (typeof oScript.src != "undefined")
-  {
-    oScript.src  = sURI;
-  }
-
-  if (typeof oScript.type != "undefined")
-  {
-    oScript.type = sType || "text/javascript";
-  }
-
-  if (sLanguage)
-  {
-    oScript.language = sLanguage;
-  }
-
-  if (typeof oScript.defer != "undefined")
-  {
-    oScript.defer = true;
-  }
-
-  if (jsx_object.isMethod(oHead, "appendChild"))
-  {
-    oHead.appendChild(oScript);
-    result = (
-      typeof oHead.lastChild != "undefined"
-      && oHead.lastChild == oScript);
-  }
-  else if (jsx_object.isMethod(oHead, "insertAdjacentElement"))
-  {
-    oHead.insertAdjacentElement("beforeEnd", oScript);
-    result = true;
-  }
-
-  if (result)
-  {
-    if (typeof me.registry == "undefined")
+    if (typeof jsx_dom_loadScript.registry != "undefined"
+        && jsx_object.getProperty(jsx_dom_loadScript.registry, sURI, false)
+        && !bReload)
     {
-      me.registry = {};
+      return true;
     }
 
-    me.registry[sURI] = true;
-  }
+    var parent = document.body;
+    if (!parent || parent.tagName.toLowerCase() === "frameset")
+    {
+      parent = jsx.dom.getElemByTagName("script", 0);
+      if (!parent)
+      {
+        parent = document.head || jsx.dom.getElemByTagName("head", 0);
+      }
 
-  return result;
-};
+      if (!parent)
+      {
+        return false;
+      }
+    }
+
+    if (!jsx_object.isHostMethod(document, "createElement"))
+    {
+      return false;
+    }
+
+    var oScript = document.createElement("script");
+    if (!oScript)
+    {
+      return false;
+    }
+
+    /* no exception handling for backwards compatibility reasons */
+    if (typeof oScript.src != "undefined")
+    {
+      oScript.src  = sURI;
+    }
+
+    if (typeof oScript.type != "undefined")
+    {
+      oScript.type = sType || "text/javascript";
+    }
+
+    if (sLanguage)
+    {
+      oScript.language = sLanguage;
+    }
+
+    if (typeof oScript.defer != "undefined")
+    {
+      oScript.defer = true;
+    }
+
+    if (jsx_object.isHostMethod(parent, "appendChild"))
+    {
+      parent.appendChild(oScript);
+      result = (
+        typeof parent.lastChild != "undefined"
+        && parent.lastChild == oScript);
+    }
+    else if (jsx_object.isHostMethod(parent, "insertAdjacentElement"))
+    {
+      parent.insertAdjacentElement("beforeEnd", oScript);
+      result = true;
+    }
+
+    if (result)
+    {
+      if (typeof jsx_dom_loadScript.registry == "undefined")
+      {
+        jsx_dom_loadScript.registry = {};
+      }
+
+      jsx_dom_loadScript.registry[sURI] = true;
+    }
+
+    return result;
+  };
 
 /**
  * Retrieves descendant focusable elements in order of their
