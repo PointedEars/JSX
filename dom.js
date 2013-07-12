@@ -1170,6 +1170,101 @@ jsx.dom.createNodesFromObj = (function () {
 }());
 
 /**
+ * Removes all occurences of a class name from the
+ * <code>class</code> attribute of an {@link Element}.
+ *
+ * For compatibility, if possible removes the <code>class</code>
+ * attribute if it is empty afterwards.
+ *
+ * @param {Element} o
+ * @param {string} sClassName
+ * @return {boolean}
+ *   <code>true</code> if successful, <code>false</code> otherwise.
+ */
+jsx.dom.removeClassName = function (o, sClassName) {
+  var sRxClassName = "(^\\s*|\\s+)" + sClassName + "(\\s*$|(\\s))";
+
+  if (jsx.object.isHostMethod(o, "classList", "remove"))
+  {
+    /* W3C DOM Level 4 */
+    o.classList.remove(sClassName);
+  }
+  else
+  {
+    var curClassNames = o.className;
+    var newClassNames = curClassNames.replace(
+      new RegExp(sRxClassName, "g"),
+      "$3");
+    o.className = newClassNames;
+
+    if (!newClassNames && jsx.object.isMethod(o, "removeAttribute"))
+    {
+      o.removeAttribute("class");
+    }
+  }
+
+  return !((new RegExp(sRxClassName)).test(o.className));
+};
+
+jsx.dom.addClassName = (function () {
+  var _removeClassName = jsx.dom.removeClassName;
+
+  /**
+   * Adds a class name to the <code>class</code> attribute of
+   * an {@link Element}.
+   *
+   * @param {Element} o
+   * @param {string} sClassName
+   * @param {boolean} bRemove
+   *   If the class name is already there, and this argument is
+   *   <code>true</code>, all instances of it are removed first.
+   *   If the class is there and this argument is <code>false</code>,
+   *   exit without changing anything.  The default is <code>false</code>,
+   *   which is more efficient.
+   * @return {boolean}
+   *   <code>true</code> if the class name could be added successfully or
+   *   was already there, <code>false</code> otherwise.
+   */
+  function _addClassName (o, sClassName, bRemove)
+  {
+    var rx = new RegExp("(^\\s*|\\s+)" + sClassName + "(\\s*$|\\s)");
+
+    if (bRemove)
+    {
+      _removeClassName(o, sClassName);
+    }
+    else if (rx.test(o.className))
+    {
+      return true;
+    }
+
+    if (sClassName)
+    {
+      if (jsx.object.isHostMethod(o, "classList", "add"))
+      {
+        /* W3C DOM Level 4 */
+        o.classList.add(sClassName);
+      }
+      else
+      {
+        if (/\S/.test(o.className))
+        {
+          o.className += " " + sClassName;
+        }
+        else
+        {
+          o.className = sClassName;
+        }
+      }
+
+      return rx.test(o.className);
+    }
+  }
+
+  return _addClassName;
+}());
+
+/**
  * Appends several child nodes to a parent node in the specified order.
  *
  * @param {Node} parentNode
