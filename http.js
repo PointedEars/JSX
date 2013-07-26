@@ -404,7 +404,7 @@ jsx.net.http.Request.prototype = {
    *   <code>true</code> if the listener could be successfully
    *   set or changed; <code>false</code> on error, unless an exception is thrown.
    * @throws jsx.InvalidArgumentError if the argument is not a method
-   * @return {boolean} <code>true</code> on success, <code>false</code> otherwise
+   * @return {Request} This object on success, <code>null</code> otherwise
    */
   setSuccessListener: function (fSuccessListener) {
     /* initialization */
@@ -412,18 +412,18 @@ jsx.net.http.Request.prototype = {
         && typeof this.successListener == "undefined")
     {
       this.successListener = new jsx.net.http.ResponseListener();
-      return true;
+      return this;
     }
 
     if (typeof fSuccessListener == "function")
     {
       this.successListener = fSuccessListener;
-      return (this.successListener == fSuccessListener);
+      return (this.successListener == fSuccessListener) ? this : null;
     }
 
     jsx.throwThis("jsx.InvalidArgumentError",
       "jsx:HTTPRequest::setResponseListener: Argument is not a method");
-    return false;
+    return null;
   },
 
   /**
@@ -470,6 +470,7 @@ jsx.net.http.Request.prototype = {
    */
   setData: function (sData) {
     this.data = (sData || "");
+    return this;
   },
 
   /**
@@ -529,11 +530,16 @@ jsx.net.http.Request.prototype = {
    * @param {string} sRequestType
    *   <code>"application/x-www-form-urlencoded"</code>, if omitted or
    *   a false-value (like "", the empty string).
+   * @param {string} sEncoding
+   *   Character encoding of the message body
    * @return {jsx.net.http.Request}
    *   This object
    */
-  setRequestType: function (sRequestType) {
-    this.requestType = sRequestType || "application/x-www-form-urlencoded";
+  setRequestType: function (sRequestType, sEncoding) {
+    this.requestType =
+      (sRequestType || "application/x-www-form-urlencoded")
+      + (sEncoding ? "; charset=" + sEncoding : "");
+      
     return this;
   },
 
