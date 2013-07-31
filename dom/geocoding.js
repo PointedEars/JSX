@@ -168,7 +168,9 @@ jsx.dom.geocoding = {
         + (place ? ((street && !zip) ? ", " : " ") + place : "")
         + (region ? ((street || zip || place) ? ", " : "") + region : "")
         + (country ? ((street || zip || place || region) ? ", " : "") + country : "");
-      console.log(address);
+
+      jsx.info(address);
+
       geocoder.geocode(
         {
           'address': address
@@ -176,7 +178,6 @@ jsx.dom.geocoding = {
         function (results, status) {
           switch (status)
           {
-            /* FIXME: Be independent of Google Maps */
             case GeocoderStatus.OK:
               var loc = results[0].geometry.location;
               location.latitude = String(loc.lat());
