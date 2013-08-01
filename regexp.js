@@ -98,9 +98,20 @@ jsx.regexp = (/** @constructor */ function () {
   var _RegExp2 = jsx.object.extend(
     (/** @constructor */function () {
       var
-        _UCDfields = ["codePoint",, "propertyClass"],
         _destructure = jsx.array.destructure,
+        _WideString = _jsx_object.getFeature(
+          jsx, "string", "unicode", "WideString"),
+        _fromCharCode = function (codePoint) {
+          if (codePoint > 0xFFFF)
+          {
+            return _WideString.fromCharCode(codePoint);
+          }
+
+          return String.fromCharCode(codePoint);
+        },
+
         propertyClasses,
+        ucdFields = ["codePoint",, "propertyClass"],
 
         _parseUCDText = function () {
           (new jsx.net.http.Request(
@@ -108,17 +119,33 @@ jsx.regexp = (/** @constructor */ function () {
             function (xhr) {
               var lines = xhr.responseText.split(/\r?\n|\r/).map(
                 function (e) {
-                  return _destructure(e.split(";"), _UCDfields);
+                  var entry = _destructure(e.split(";"), ucdFields);
+                  entry.codePoint = parseInt(entry.codePoint, 16);
+                  return entry;
                 });
 
               lines.sort(function (a, b) {
-                return (a.propertyClass < b.propertyClass
-                         || (a.propertyClass === b.propertyClass
-                             && a.codePoint < b.codePoint))
-                  ? -1
-                  : ((a.propertyClass === b.propertyClass
-                      && a.codePoint === b.codePoint)
-                        ? 0 : 1);
+                if (a.propertyClass < b.propertyClass)
+                {
+                  return -1;
+                }
+
+                if (a.propertyClass > b.propertyClass)
+                {
+                  return 1;
+                }
+
+                if (a.codePoint < b.codePoint)
+                {
+                  return -1;
+                }
+
+                if (a.codePoint > b.codePoint)
+                {
+                  return 1;
+                }
+
+                return 0;
               });
 
               propertyClasses = _RegExp2.propertyClasses = {};
@@ -129,10 +156,10 @@ jsx.regexp = (/** @constructor */ function () {
                   line = lines[i],
                   propertyClass = line.propertyClass,
                   prevClass,
-                  codePoint = parseInt(line.codePoint, 16),
+                  codePoint = line.codePoint,
                   prevCodePoint;
 
-                if (isNaN(codePoint) || codePoint > 0xFFFF)
+                if (isNaN(codePoint) || (codePoint > 0xFFFF && !_WideString))
                 {
                   continue;
                 }
@@ -143,11 +170,13 @@ jsx.regexp = (/** @constructor */ function () {
                   {
                     if (startRange)
                     {
-                      propertyClasses[prevClass] += "-" + String.fromCharCode(prevCodePoint);
+                      propertyClasses[prevClass] +=
+                        "-" + _fromCharCode(prevCodePoint);
                     }
                   }
 
-                  propertyClasses[propertyClass] = String.fromCharCode(codePoint);
+                  propertyClasses[propertyClass] =
+                    _fromCharCode(codePoint);
 
                   var startRange = false;
                 }
@@ -157,12 +186,14 @@ jsx.regexp = (/** @constructor */ function () {
                   {
                     if (startRange)
                     {
-                      propertyClasses[prevClass] += "-" + String.fromCharCode(prevCodePoint);
+                      propertyClasses[prevClass] +=
+                        "-" + _fromCharCode(prevCodePoint);
 
                       startRange = false;
                     }
 
-                    propertyClasses[propertyClass] += String.fromCharCode(codePoint);
+                    propertyClasses[propertyClass] +=
+                      _fromCharCode(codePoint);
                   }
                   else
                   {
@@ -176,7 +207,8 @@ jsx.regexp = (/** @constructor */ function () {
 
               if (startRange)
               {
-                propertyClasses[prevClass] += "-" + String.fromCharCode(prevCodePoint);
+                propertyClasses[prevClass] +=
+                  "-" + _fromCharCode(prevCodePoint);
               }
             }
           )).send();
