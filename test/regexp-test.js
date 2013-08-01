@@ -599,6 +599,7 @@ function runTests ()
           name: 'Load UCD dynamically with'
             + ' <acronym title="XMLHttpRequest">XHR</acronym> (text)',
             code: function () {
+              var propertyClasses = RegExp2.propertyClasses;
               delete RegExp2.propertyClasses;
               assert(typeof RegExp2.propertyClasses == "undefined");
 
@@ -607,10 +608,19 @@ function runTests ()
               assert(typeof RegExp2.ucdScriptPath == "undefined");
               assert(typeof RegExp2.ucdTextPath == "string");
 
-              var rx = new RegExp2("\\p{Zp}");
+              var rx;
+              jsx.tryThis(
+                function () {
+                  rx = new RegExp2("\\p{Ll}");
+                },
+                function (e) {
+                  jsx.error(e);
+                });
 
+              var classLl = "[" + RegExp2.propertyClasses["Ll"] + "]";
               RegExp2.ucdScriptPath = ucdScriptPath;
-              assert(rx.source == "[\u2029]");
+              RegExp2.propertyClasses = propertyClasses;
+              assert(rx && (rx.source == classLl));
 
               if (!jsx.info(rx))
               {
