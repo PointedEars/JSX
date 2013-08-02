@@ -428,9 +428,9 @@ jsx.object = (/** @constructor */ function () {
       return result;
     }
 
-    Dummy.prototype = (typeof obj == "undefined")
+    Dummy.prototype = (typeof obj == "undefined"
                     ? Object.prototype
-                    : (obj || null);
+                    : (obj || null));
     return new Dummy();
   }
 
@@ -445,9 +445,9 @@ jsx.object = (/** @constructor */ function () {
 
   function _isArray (a)
   {
-    return (typeof Array.isArray == "function" && !Array.isArray._emulated)
+    return (typeof Array.isArray == "function" && !Array.isArray._emulated
       ? Array.isArray(a)
-      : _getClass(a) === "Array";
+      : _getClass(a) === "Array");
   }
 
   var
@@ -494,9 +494,9 @@ jsx.object = (/** @constructor */ function () {
        *       so we are creating an instance that inherits from the
        *       original's prototype, if possible.
        */
-      var o2 = (typeof oSource == "object" && oSource)
+      var o2 = (typeof oSource == "object" && oSource
              ? _createTypedObject(oSource)
-             : oSource.valueOf();
+             : oSource.valueOf());
 
       /* if "var p in ..." does not copy the array elements */
       if (_isArray(o2))
@@ -743,9 +743,9 @@ jsx.object = (/** @constructor */ function () {
       if (typeof oTarget[p] == "undefined" || (iFlags & _ADD_OVERWRITE))
       {
         jsx.tryThis(function () {
-          oTarget[p] = cloneLevel
+          oTarget[p] = (cloneLevel
             ? _clone(oSource[p], cloneLevel)
-            : oSource[p];
+            : oSource[p]);
           oTarget[p]._userDefined = true;
         });
       }
@@ -1570,25 +1570,25 @@ jsx.tryThis =
     var result;
     try
     {
-      result = (t == "function")
+      result = (t == "function"
         ? statements()
-        : eval(statements);
+        : eval(statements));
     }
     catch (e)
     {
       t = typeof errorHandler;
-      result = (t == "function")
+      result = (t == "function"
         ? errorHandler(e)
-        : eval(errorHandler);
+        : eval(errorHandler));
     }
     finally
     {
       if (finalizer != null)
       {
         t = typeof finalizer;
-        result = (t == "function")
+        result = (t == "function"
           ? finalizer()
-          : eval(finalizer);
+          : eval(finalizer));
       }
     }
 
@@ -1613,9 +1613,9 @@ jsx.throwThis = (function () {
   var
     jsx_object = jsx.object,
     _addslashes = function (e) {
-      return (typeof e == "string")
+      return (typeof e == "string"
         ? '"' + e.replace(/["'\\]/g, "\\$&").replace(/\r?\n|\r/g, "\\n") + '"'
-        : (e && typeof e.map == "function" ? "[" + e + "]" : e);
+        : (e && typeof e.map == "function" ? "[" + e + "]" : e));
     };
 
   /**
@@ -1665,7 +1665,7 @@ jsx.throwThis = (function () {
       {
         sContext = (String(context).match(/^\s*(function.+\))/)
                      || [, null])[1];
-        sContext = sContext ? sContext + ': ' : '';
+        sContext = (sContext ? sContext + ': ' : '');
       }
     }
 
@@ -2952,7 +2952,7 @@ if (jsx.options.augmentPrototypes)
         return -1;
       }
 
-      var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
+      var k = (n >= 0 ? n : Math.max(len - Math.abs(n), 0));
       for (; k < len; k++)
       {
         if (k in t && t[k] === searchElement)
@@ -2981,13 +2981,13 @@ if (jsx.options.augmentPrototypes)
       var a = [];
       var len = this.length >>> 0;
       var relativeStart = parseInt(start, 10);
-      var k = ((relativeStart < 0)
+      var k = (relativeStart < 0
             ? Math.max(len + relativeStart, 0)
             : Math.min(relativeStart, len));
-      var relativeEnd = ((typeof end == "undefined")
+      var relativeEnd = (typeof end == "undefined"
                       ? len
                       : parseInt(end, 10));
-      var final = ((relativeEnd < 0)
+      var final = (relativeEnd < 0
                  ? Math.max(len + relativeEnd, 0)
                  : Math.min(relativeEnd, len));
       var n = 0;
@@ -3050,7 +3050,7 @@ jsx.Error = function jsx_Error (sMsg) {
 };
 
 jsx.Error.extend(
-  typeof Error != "undefined" ? Error : function () {},
+  (typeof Error != "undefined" ? Error : function () {}),
   {
     /**
      * @memberOf jsx.Error#prototype
