@@ -20,24 +20,22 @@ if (typeof jsx.dom == "undefined")
  */
 jsx.dom.geocoding = {
   /**
-   * @type jsx.dom.geocoding.Geocoder
-   * @memberOf __jsx.dom.geocoding.Geocoder
+   * @function
    */
   Geocoder: (/** @constructor */ function () {
+    /* stub */
   }).extend(null, {
     /**
      * @memberOf jsx.dom.geocoding.Geocoder#prototype
      * @param {GeocoderRequest} request
-     * @param {Callable(Array[<GeocoderResult>], GeocoderStatus)} callback
+     * @param {Callable(Array[GeocoderResult], GeocoderStatus)} callback
      */
     geocode: function (request, callback) {
-
+      /* stub */
     }
   }),
 
   /**
-   * @type jsx.dom.geocoding.GeocodingInput
-   * @memberOf __jsx.dom.geocoding.GeocodingInput
    * @constructor
    * @property {string} street
    * @property {string} zip
@@ -93,11 +91,12 @@ jsx.dom.geocoding = {
     ZERO_RESULTS: "ZERO_RESULTS",
 
     setProperties: function (source) {
+      var _hasOwnProperty = jsx.object._hasOwnProperty;
       var keys = jsx.object.getKeys(this);
       for (var i = keys.length; i--;)
       {
         var key = keys[i];
-        if (typeof this[key] != "function")
+        if (_hasOwnProperty(this, key) && typeof this[key] != "function")
         {
           this[key] = source[key];
         }
@@ -106,9 +105,9 @@ jsx.dom.geocoding = {
   },
 
   /**
-   * @type jsx.dom.geocoding.GeocodeOptions
-   * @memberOf __jsx.dom.geocoding.GeocodeOptions
    * @constructor
+   * @property {boolean} continueFromLast = false
+   * @property {boolean} dontOverwrite = false
    * @property {Callable(Array[GeocodingInput], int)} onbeforecode = null
    * @property {Callable(Array[GeocodingInput], int)} onaftercode = null
    * @property {Callable(Array[GeocodingInput])} oncomplete = null
@@ -125,16 +124,36 @@ jsx.dom.geocoding = {
   geocode: (function () {
     var _runAsync = jsx.object.getFeature(jsx, "dom", "timeout", "runAsync");
     var haveWarned = false;
+    var lastData = null;
+    var lastIndex = -1;
 
     /**
      * @param {Geocoder} geocoder
      * @param {Array[GeocodingInput]} data
      * @param {GeocodingOptions} options
-     * @param {int} start = 0
+     * @param {int} index = 0
      *   Start index
      * @return {boolean}
      */
     return function _geocode (geocoder, data, options, index) {
+      function runNext (quick)
+      {
+        if (!_runAsync && !haveWarned)
+        {
+          jsx.warn(
+            "You should provide jsx.dom.timeout.runAsync"
+            + "in order to avoid server hammering");
+          haveWarned = true;
+        }
+
+        (_runAsync || function (f) { f(); })(
+          function () {
+            _geocode(geocoder, data, options, index + 1);
+          },
+          quick ? null : (options.timeout || 200)
+        );
+      }
+
       if (!options)
       {
         options = {};
@@ -142,21 +161,25 @@ jsx.dom.geocoding = {
 
       if (!index)
       {
-        index = 0;
+        if (data != lastData || lastIndex < 0)
+        {
+          index = 0;
+        }
+        else if (options.continueFromLast)
+        {
+          index = lastIndex + 1;
+        }
       }
+
+      if (index >= data.length)
+      {
+        return false;
+      }
+
+      lastData = data;
+      lastIndex = index;
 
       var location = data[index];
-
-      var GeocoderStatus = jsx.dom.geocoding.GeocoderStatus;
-      if (options.statusPropertySource)
-      {
-        GeocoderStatus.setProperties(options.statusPropertySource);
-      }
-
-      if (typeof options.onbeforecode == "function")
-      {
-        options.onbeforecode(data, index);
-      }
 
       var street = location.street;
       var zip = location.zip;
@@ -169,7 +192,27 @@ jsx.dom.geocoding = {
         + (region ? ((street || zip || place) ? ", " : "") + region : "")
         + (country ? ((street || zip || place || region) ? ", " : "") + country : "");
 
-      jsx.info(address);
+      if (location.latitude !== null
+          && location.longitude !== null
+          && options.dontOverwrite)
+      {
+        jsx.info('Ignoring already geocoded "' + address + '"');
+        runNext(true);
+        return true;
+      }
+
+      var GeocoderStatus = jsx.dom.geocoding.GeocoderStatus;
+      if (options.statusPropertySource)
+      {
+        GeocoderStatus.setProperties(options.statusPropertySource);
+      }
+
+      if (typeof options.onbeforecode == "function")
+      {
+        options.onbeforecode(data, index);
+      }
+
+      jsx.info("jsx.dom.geocoding.geocode: " + address);
 
       geocoder.geocode(
         {
@@ -190,17 +233,7 @@ jsx.dom.geocoding = {
 
               if (index < data.length - 1)
               {
-                if (!_runAsync && !haveWarned)
-                {
-                  jsx.warn(
-                    "You should provide jsx.dom.timeout.runAsync"
-                    + "in order to avoid server hammering");
-                  haveWarned = true;
-                }
-
-                (_runAsync || function (f) { f(); })(function () {
-                  _geocode(geocoder, data, options, index + 1);
-                }, options.timeout || 200);
+                runNext();
               }
               else if (typeof options.oncomplete == "function")
               {
@@ -208,13 +241,10 @@ jsx.dom.geocoding = {
               }
               break;
 
-            case GeocoderStatus.ERROR:
-            case GeocoderStatus.INVALID_REQUEST:
-            case GeocoderStatus.OVER_QUERY_LIMIT:
             default:
               if (typeof options.onerror == "function")
               {
-                options.onerror(data, index, status);
+                return options.onerror(data, index, status);
               }
               break;
           }
