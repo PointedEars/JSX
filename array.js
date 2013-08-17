@@ -281,6 +281,49 @@ jsx.array.filter = (function () {
 }());
 
 /**
+ * Returns a function that can be used for filtering an {@link Array}
+ * by the property values of its elements.
+ *
+ * @param {Object} filter
+ *   Object whose property names are the elements' property
+ *   names, and whose property values are the element's property
+ *   values to compare against
+ * @param {boolean} bStrict = false
+ *   If <code>true</code>, perform strict comparison.
+ * @return {Function}
+ *   The filter function
+ * @see jsx.array.filter
+ */
+jsx.array.createFilter = function (filter, bStrict) {
+  var keys = jsx.object.getKeys(filter);
+
+  /**
+   * @param {any} element
+   * @return {boolean}
+   */
+  return function (element) {
+    for (var i = 0, len = keys.length; i < len; ++i)
+    {
+      var key = keys[i];
+      if (bStrict)
+      {
+        if (element[key] === filter[key])
+        {
+          return true;
+        }
+      }
+      else
+      {
+        if (element[key] == filter[key])
+        {
+          return true;
+        }
+      }
+    }
+  };
+};
+
+/**
  * Removes the last element from an array and returns that
  * element.  This method changes the length of the array, if
  * applied directly to an array object.
@@ -868,7 +911,7 @@ jsx.array.equals = (function () {
 }());
 
 /**
- * Returns a comparator that can be used for sorting an array.
+ * Returns a function that can be used for sorting an {@link Array}.
  *
  * @author (C) 2013 Thomas 'PointedEars' Lahn &lt;js@PointedEars.de&gt;
  */
