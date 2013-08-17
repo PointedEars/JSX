@@ -1038,6 +1038,9 @@ if (typeof jsx.array.emulate == "undefined")
 if (jsx.array.emulate)
 {
   jsx.object.extend(Array.prototype, {
+    /**
+     * @memberOf Array.prototype
+     */
     chunk:            jsx.array.chunk,
     changeCase:       jsx.array.changeCase,
     contains:         jsx.array.contains,
