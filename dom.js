@@ -15,7 +15,7 @@
  *
  * @author
  *   (C) 2001      SELFHTML e.V. <stefan.muenz@selfhtml.org> et al.,
- *       2002-2012 Thomas Lahn <js@PointedEars.de>,
+ *       2002-2013 Thomas Lahn <js@PointedEars.de>,
  *       2004      Ulrich Kritzner <droeppez@web.de> (loadScript),
  *       2005      MozillaZine Knowledge Base contributors (DOM XPath):
  *                 Eric H. Jung <grimholtz@yahoo.com> et al.
@@ -98,9 +98,9 @@ if (typeof jsx == "undefined")
 }
 
 jsx.dom = {
-  version:   "$Id: ",
+  version:   "$Id$",
   //var dhtmlDocURL = dhtmlPath + "dhtml.htm";
-  copyright: "Copyright \xA9 2002-2011",
+  copyright: "Copyright \xA9 2002-2013",
   author:    "Thomas Lahn",
   email:     "js@PointedEars.de",
   path:      "http://pointedears.de/scripts/"
