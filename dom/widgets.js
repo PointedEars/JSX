@@ -44,6 +44,9 @@ if (typeof jsx.dom == "undefined")
  * @namespace
  */
 jsx.dom.widgets = {
+  /**
+   * @version
+   */
   version: "$Id$"
 };
 
@@ -105,242 +108,226 @@ jsx.dom.widgets.Widget = function (oTarget, oParent, oProperties) {
   }
 };
 
-jsx.dom.widgets.Widget.extend(null, {
-  /**
-   * Widgets are `div' elements by default. Inheriting classes should
-   * override this when appropriate (e. g., a menu should be a `ul').
-   *
-   * @memberOf jsx.dom.widgets.Widget.prototype
-   */
-  elementType: "div",
+jsx.dom.widgets.Widget.extend(null, (function () {
+  var _getKeys = jsx.object.getKeys;
+  var _css = jsx.dom.css;
 
-  /**
-   * @type Element
-   */
-  _target: null,
-
-  /**
-   * Defines actions to be performed when the widget is initialized.
-   * Can be overridden by inheriting types.  If it is overridden,
-   * it must also be called.
-   */
-  init: function () {
-    if (this._parent)
-    {
-      /*
-       * Automagically append widget to parent
-       * (without necessarily rendering it)
-       */
-      /* FIXME */
-//      this.appendTo();
-    }
-  },
-
-  /**
-   * Gets a property of this widget's target object.
-   *
-   * @param {String} name
-   * @return {any}
-   */
-  getTargetProperty: function (name) {
-    return this._target[name];
-  },
-
-  /**
-   * Sets a property of this widget's target object.
-   *
-   * Use {@link #setStyleProperty()}, {@link #resetStyleProperty()}
-   * or {@link #setStyle()} for setting style properties instead.
-   *
-   * @param {String} name
-   * @param value
-   * @return {jsx.dom.widgets.Widget}
-   */
-  setTargetProperty: function (name, value) {
-    this._target[name] = value;
-    return this;
-  },
-
-  /**
-   * Sets several property of this widget's target object.
-   *
-   * Use {@link #setStyleProperty()}, {@link #resetStyleProperty()}
-   * or {@link #setStyle()} for setting style properties instead.
-   *
-   * @param {String} name
-   * @param value
-   * @return {jsx.dom.widgets.Widget}
-   */
-  setTargetProperties: function (properties) {
-    var keys = jsx.object.getKeys(properties);
-    for (var i = 0, len = keys.length; i < len; ++i)
-    {
-      var propertyName = keys[i];
-      this.setTargetProperty(propertyName, properties[propertyName]);
-    }
-
-    return this;
-  },
-
-  /**
-   * Sets a style property of this widget
-   *
-   * @function
-   */
-  setStyleProperty: (function () {
-    var jsx_dom_css_setStyleProperty = jsx.dom.css.setStyleProperty;
+  return {
+    /**
+     * Widgets are `div' elements by default. Inheriting classes should
+     * override this when appropriate (e. g., a menu should be a `ul').
+     *
+     * @memberOf jsx.dom.widgets.Widget.prototype
+     */
+    elementType: "div",
 
     /**
+     * @type Element
+     */
+    _target: null,
+
+    /**
+     * Defines actions to be performed when the widget is initialized.
+     * Can be overridden by inheriting types.  If it is overridden,
+     * it must also be called.
+     */
+    init: function () {
+      if (this._parent)
+      {
+        /*
+         * Automagically append widget to parent
+         * (without necessarily rendering it)
+         */
+        /* FIXME */
+  //      this.appendTo();
+      }
+    },
+
+    /**
+     * Gets a property of this widget's target object.
+     *
+     * @param {String} name
+     * @return {any}
+     */
+    getTargetProperty: function (name) {
+      return this._target[name];
+    },
+
+    /**
+     * Sets a property of this widget's target object.
+     *
+     * Use {@link #setStyleProperty()}, {@link #resetStyleProperty()}
+     * or {@link #setStyle()} for setting style properties instead.
+     *
+     * @param {String} name
+     * @param value
+     * @return {jsx.dom.widgets.Widget}
+     */
+    setTargetProperty: function (name, value) {
+      this._target[name] = value;
+      return this;
+    },
+
+    /**
+     * Sets several property of this widget's target object.
+     *
+     * Use {@link #setStyleProperty()}, {@link #resetStyleProperty()}
+     * or {@link #setStyle()} for setting style properties instead.
+     *
+     * @param {String} name
+     * @param value
+     * @return {jsx.dom.widgets.Widget}
+     */
+    setTargetProperties: function (properties) {
+      var keys = _getKeys(properties);
+      for (var i = 0, len = keys.length; i < len; ++i)
+      {
+        var propertyName = keys[i];
+        this.setTargetProperty(propertyName, properties[propertyName]);
+      }
+
+      return this;
+    },
+
+    /**
+     * Sets a style property of this widget
+     *
      * @param {String} name
      * @param value
      * @return {boolean}
      * @see jsx.dom.css.setStyleProperty()
      */
-    function Widget_setStyleProperty (name, value)
-    {
-      return jsx_dom_css_setStyleProperty(this._target, name, value);
-    }
-
-    return Widget_setStyleProperty;
-  }()),
-
-  /**
-   * Resets a style property of this widget to its inherited value
-   *
-   * @function
-   */
-  resetStyleProperty: (function (name) {
-    var jsx_dom_css_resetStyleProperty = jsx.dom.css.resetStyleProperty;
+    setStyleProperty: function (name, value) {
+        return _css.setStyleProperty(this._target, name, value);
+    },
 
     /**
-     * @param name
-     * @returns {Function}
+     * Resets a style property of this widget to its inherited value
+     *
+     * @param {String} name
      */
-    function Widget_resetStyleProperty (name)
-    {
-      jsx_dom_css_resetStyleProperty(this._target, name);
-    }
+    resetStyleProperty: function (name) {
+      _css.resetStyleProperty(this._target, name);
+    },
 
-    return Widget_resetStyleProperty;
-  }()),
+    /**
+     * Sets several style properties of this widget at once
+     *
+     * @param {Object} style
+     */
+    setStyle: function (style) {
+      var result = true;
 
-  /**
-   * Sets several style properties of this widget at once
-   *
-   * @param {Object} style
-   */
-  setStyle: function (style) {
-    var result = true;
-
-    for (var propertyName in style)
-    {
-      var resultPart = this.setStyleProperty(propertyName, style[propertyName]);
-      if (result && !resultPart)
+      for (var propertyName in style)
       {
-        result = false;
+        var resultPart = this.setStyleProperty(propertyName, style[propertyName]);
+        if (result && !resultPart)
+        {
+          result = false;
+        }
       }
+
+      return result;
+    },
+
+    /**
+     * Defines actions to be performed when the widget's canvas should be
+     * updated to reflect its current status; should be overridden
+     * and called by inheriting types.
+     */
+    update: function () {
+      this.setStyle(this.style);
+
+      for (var i = 0, len = this.children.length; i < len; ++i)
+      {
+        this.children[i].update();
+      }
+
+      return this;
+    },
+
+    /**
+     * Causes the widget to be rendered, and attached to the document tree
+     * if not already attached.
+     *
+     * @param {Element} parent (optional)
+     *   Reference to the object representing the parent element to
+     *   which the widget should be appended as child. The default is
+     *   document.body.
+     */
+    render: function (parent) {
+      this.update();
+      this.appendTo(parent);
+      this._target.style.display = "";
+      return this;
+    },
+
+    /**
+     * Causes the widget not to be rendered, without removing it
+     * from the document tree.
+     */
+    unrender: function () {
+      this._target.style.display = "none";
+      return this;
+    },
+
+    /**
+     * Shows the widget
+     */
+    show: function () {
+      this._target.style.visibility = "visible";
+      return this;
+    },
+
+    /**
+     * Hides the widget, but keeps its box
+     */
+    hide: function () {
+      this._target.style.visibility = "hidden";
+      return this;
+    },
+
+    /**
+     * Appends the widget as a child element
+     *
+     * @param {jsx.dom.widgets.Container} parent (optional)
+     *   The widget that this widget should be appended to.
+     *   The default is the current parent widget.
+     * @see jsx.dom.widgets.Container.prototype.appendChild()
+     */
+    appendTo: function (parent) {
+      if (typeof parent == "undefined")
+      {
+        parent = this._parent;
+      }
+
+      return parent.appendChild(this);
+    },
+
+    /**
+     * Removes the widget from the document
+     *
+     * @see jsx.dom.widgets.Container.prototype.removeChild()
+     */
+    remove: function () {
+      for (var i = 0, len = this.children.length; i < len; ++i)
+      {
+        this.children[i].remove();
+      }
+
+      /* TODO: Clean-up event listener */
+
+      return this._parent.removeChild(this);
+    },
+
+    _getSetterFor: function (propertyName) {
+      var setterName =
+        "set" + propertyName.charAt(0).toUpperCase() + propertyName.substring(1);
+      var setter = this[setterName];
+      return (typeof setter == "function") ? setter : null;
     }
-
-    return result;
-  },
-
-  /**
-   * Defines actions to be performed when the widget's canvas should be
-   * updated to reflect its current status; should be overridden
-   * and called by inheriting types.
-   */
-  update: function () {
-    this.setStyle(this.style);
-
-    for (var i = 0, len = this.children.length; i < len; ++i)
-    {
-      this.children[i].update();
-    }
-
-    return this;
-  },
-
-  /**
-   * Causes the widget to be rendered, and attached to the document tree
-   * if not already attached.
-   *
-   * @param {Element} parent (optional)
-   *   Reference to the object representing the parent element to
-   *   which the widget should be appended as child. The default is
-   *   document.body.
-   */
-  render: function (parent) {
-    this.update();
-    this.appendTo(parent);
-    this._target.style.display = "";
-    return this;
-  },
-
-  /**
-   * Causes the widget not to be rendered, without removing it
-   * from the document tree.
-   */
-  unrender: function () {
-    this._target.style.display = "none";
-    return this;
-  },
-
-  /**
-   * Shows the widget
-   */
-  show: function () {
-    this._target.style.visibility = "visible";
-    return this;
-  },
-
-  /**
-   * Hides the widget, but keeps its box
-   */
-  hide: function () {
-    this._target.style.visibility = "hidden";
-    return this;
-  },
-
-  /**
-   * Appends the widget as a child element
-   *
-   * @param {jsx.dom.widgets.Container} parent (optional)
-   *   The widget that this widget should be appended to.
-   *   The default is the current parent widget.
-   * @see jsx.dom.widgets.Container.prototype.appendChild()
-   */
-  appendTo: function (parent) {
-    if (typeof parent == "undefined")
-    {
-      parent = this._parent;
-    }
-
-    return parent.appendChild(this);
-  },
-
-  /**
-   * Removes the widget from the document
-   *
-   * @see jsx.dom.widgets.Container.prototype.removeChild()
-   */
-  remove: function () {
-    for (var i = 0, len = this.children.length; i < len; ++i)
-    {
-      this.children[i].remove();
-    }
-
-    /* TODO: Clean-up event listener */
-
-    return this._parent.removeChild(this);
-  },
-
-  _getSetterFor: function (propertyName) {
-    var setterName =
-      "set" + propertyName.charAt(0).toUpperCase() + propertyName.substring(1);
-    var setter = this[setterName];
-    return (typeof setter == "function") ? setter : null;
-  }
-});
+  };
+}()));
 
 /**
  * <code>Container</code>s are widgets that may have content, such
@@ -409,17 +396,30 @@ jsx.dom.widgets.Container.extend(jsx.dom.widgets.Widget, {
     };
   }()),
 
+  /**
+   * @memberOf jsx.dom.widgets.Container.prototype
+   * @return {string}
+   */
   getText: function () {
     this.text = this._target.textContent;
     return this.text;
   },
 
+
+  /**
+   * @param {string} text
+   * @return {jsx.dom.widgets.Container}
+   */
   setText: function (text) {
     this.text = text;
     this.innerHTML = null;
     return this;
   },
 
+  /**
+   * @param {string} html
+   * @return {jsx.dom.widgets.Container}
+   */
   setInnerHTML: function (html) {
     this.text = "";
     this.innerHTML = html;
@@ -427,7 +427,6 @@ jsx.dom.widgets.Container.extend(jsx.dom.widgets.Widget, {
   },
 
   /**
-   * @memberOf jsx.dom.widgets.Container.prototype
    * @param {jsx.dom.widgets.Widget} child
    * @return {jsx.dom.widgets.Widget}
    *   The appended widget.
@@ -438,21 +437,27 @@ jsx.dom.widgets.Container.extend(jsx.dom.widgets.Widget, {
     var target = this._target;
     var success = true;
 
+    /*
+     * If the child widget's element is not in the document tree,
+     * or if it is not already a child of our element …
+     */
     if (!target.parentNode || (target != childTarget.parentNode))
     {
+      /*
+       * … append it as child element
+       */
       target.appendChild(child._target);
       success = (target.lastChild == childTarget);
     }
 
     if (success)
     {
+      /* Append the widget to our children if we not have it already */
       var childIndex = this.children.indexOf(child);
-      if (childIndex >= 0)
+      if (childIndex < 0)
       {
-        this.children.splice(childIndex, 1);
+        this.children.push(child);
       }
-
-      this.children.push(child);
 
       result = child;
     }
@@ -477,7 +482,7 @@ jsx.dom.widgets.Section =
 
 jsx.dom.widgets.Section.extend(jsx.dom.widgets.Container, {
   /**
-   * @memberOf jsx.dom.widgets.Section#prototype
+   * @memberOf jsx.dom.widgets.Section.prototype
    */
   elementType: "section"
 });
@@ -489,7 +494,7 @@ jsx.dom.widgets.Label =
 
 jsx.dom.widgets.Label.extend(jsx.dom.widgets.Container, {
   /**
-   * @memberOf jsx.dom.widgets.Label#prototype
+   * @memberOf jsx.dom.widgets.Label.prototype
    */
   elementType: "label"
 });
@@ -501,7 +506,7 @@ jsx.dom.widgets.TextArea =
 
 jsx.dom.widgets.TextArea.extend(jsx.dom.widgets.Container, {
   /**
-   * @memberOf jsx.dom.widgets.TextArea#prototype
+   * @memberOf jsx.dom.widgets.TextArea.prototype
    */
   elementType: "textarea"
 });
@@ -518,7 +523,7 @@ jsx.dom.widgets.position = {
 
 jsx.dom.widgets.CheckBox.extend(jsx.dom.widgets.Widget, {
   /**
-   * @memberOf jsx.dom.widgets.CheckBox#prototype
+   * @memberOf jsx.dom.widgets.CheckBox.prototype
    */
   elementType: "input",
 
@@ -607,36 +612,33 @@ jsx.dom.widgets.CheckBox.extend(jsx.dom.widgets.Widget, {
    * Appends the widget as a child element
    *
    * @param parent
-   * @return {Array}
+   * @return {Array[Widget]}
+   *   An {@link Array} containing the checkbox widget and its
+   *   label widget, if specified.
    * @see jsx.dom.widgets.Widget.prototype.appendTo()
    */
   appendTo: function (parent) {
-    if (typeof parent == "undefined")
-    {
-      parent = this._parent;
-    }
-
-    var checkboxTarget = jsx.dom.widgets.CheckBox._super.prototype.appendTo.call(this, parent);
+    jsx.dom.widgets.CheckBox._super.prototype.appendTo.call(this, parent);
 
     var label = this.label;
     if (label)
     {
       if (this.labelPosition === jsx.dom.widgets.position.BEFORE)
       {
-        var labelTarget = parent._target.insertBefore(label._target, this._target);
+        parent._target.insertBefore(label._target, this._target);
       }
       else
       {
         if (this.labelPosition === jsx.dom.widgets.position.AFTER)
         {
-          labelTarget = parent._target.insertBefore(label._target, this._target.nextSibling);
+          parent._target.insertBefore(label._target, this._target.nextSibling);
         }
       }
 
       label.appendTo(parent);
     }
 
-    return [checkboxTarget, labelTarget];
+    return [this, label];
   },
 
   /**
@@ -670,7 +672,7 @@ jsx.dom.widgets.CheckBox.extend(jsx.dom.widgets.Widget, {
  */
 jsx.dom.widgets.Input =
   function jsx_dom_widgets_Input (oTarget, oParent, oProperties) {
-    jsx_dom_widgets_Input._super.apply(this, arguments);
+  jsx_dom_widgets_Input._super.apply(this, arguments);
 
     var me = this;
     jsx.dom.addEventListener(this._target, "keypress", jsx.dom.createEventListener(
@@ -696,7 +698,7 @@ jsx.dom.widgets.Input.extend(jsx.dom.widgets.Widget, {
    * this widget. CAUTION: Too restrictive an expression could render
    * the widget unusable.
    *
-   * @memberOf jsx.dom.widgets.Input#prototype
+   * @memberOf jsx.dom.widgets.Input.prototype
    * @type RegExp
    */
   allowedChars: /./,
@@ -735,7 +737,7 @@ jsx.dom.widgets.Button =
 
 jsx.dom.widgets.Button.extend(jsx.dom.widgets.Container, {
   /**
-   * @memberOf jsx.dom.widgets.Button#prototype
+   * @memberOf jsx.dom.widgets.Button.prototype
    */
   elementType: "button",
 
@@ -778,7 +780,7 @@ jsx.dom.widgets.Button.extend(jsx.dom.widgets.Container, {
  */
 jsx.dom.widgets.NumberInput =
   function jsx_dom_widgets_NumberInput (oTarget, oParent, oProperties) {
-    jsx_dom_widgets_NumberInput._super.apply(this, arguments);
+  jsx_dom_widgets_NumberInput._super.apply(this, arguments);
 
     var me = this;
 
@@ -802,7 +804,7 @@ jsx.dom.widgets.NumberInput =
 
 jsx.dom.widgets.NumberInput.extend(jsx.dom.widgets.Input, {
   /**
-   * @memberOf jsx.dom.widgets.NumberInput#prototype
+   * @memberOf jsx.dom.widgets.NumberInput.prototype
    * @type RegExp
    */
   allowedChars: /[\d.]/,
@@ -1095,7 +1097,7 @@ jsx.dom.widgets.SpinnerInput.extend(jsx.dom.widgets.NumberInput, {
   /**
    * Increases the value of the input by 1
    *
-   * @memberOf jsx.dom.widgets.SpinnerInput#prototype
+   * @memberOf jsx.dom.widgets.SpinnerInput.prototype
    */
   inc: function () {
     var v, t = this._target;
@@ -1143,23 +1145,24 @@ jsx.dom.widgets.SpinnerInput.extend(jsx.dom.widgets.NumberInput, {
   }())
 });
 
-jsx.dom.widgets.ListItem =
-  function jsx_dom_widgets_ListItem () {
-    jsx_dom_widgets_ListItem._super.apply(this, arguments);
-  };
+jsx.dom.widgets.ListItem = function jsx_dom_widgets_ListItem () {
+  jsx_dom_widgets_ListItem._super.apply(this, arguments);
+};
 
 jsx.dom.widgets.ListItem.extend(jsx.dom.widgets.Container, {
+  /**
+   * @memberOf jsx.dom.widgets.ListItem.prototype
+   */
   elementType: "li"
 });
 
-jsx.dom.widgets.List =
-  function jsx_dom_widgets_List () {
-    jsx_dom_widgets_List._super.apply(this, arguments);
-  };
+jsx.dom.widgets.List = function jsx_dom_widgets_List () {
+  jsx_dom_widgets_List._super.apply(this, arguments);
+};
 
 jsx.dom.widgets.List.extend(jsx.dom.widgets.Widget, {
   /**
-   * @memberOf jsx.dom.widgets.List#prototype
+   * @memberOf jsx.dom.widgets.List.prototype
    * @param {jsx.dom.widgets.ListItem} listItem
    */
   addItem: function (listItem) {
@@ -1252,38 +1255,36 @@ jsx.dom.widgets.List.extend(jsx.dom.widgets.Widget, {
   }())
 });
 
-jsx.dom.widgets.OrderedList =
-  function jsx_dom_widgets_OrderedList () {
-    jsx_dom_widgets_OrderedList._super.apply(this, arguments);
-  };
+jsx.dom.widgets.OrderedList = function jsx_dom_widgets_OrderedList () {
+  jsx_dom_widgets_OrderedList._super.apply(this, arguments);
+};
 
 jsx.dom.widgets.OrderedList.extend(jsx.dom.widgets.List, {
   /**
-   * @memberOf jsx.dom.widgets.OrderedList#prototype
+   * @memberOf jsx.dom.widgets.OrderedList.prototype
    */
   elementType: "ol"
 });
 
-jsx.dom.widgets.UnorderedList =
-  function jsx_dom_widgets_UnorderedList () {
-    jsx_dom_widgets_UnorderedList._super.apply(this, arguments);
-  };
+jsx.dom.widgets.UnorderedList = function jsx_dom_widgets_UnorderedList () {
+  jsx_dom_widgets_UnorderedList._super.apply(this, arguments);
+};
 
 jsx.dom.widgets.UnorderedList.extend(jsx.dom.widgets.List, {
   /**
-   * @memberOf jsx.dom.widgets.UnorderedList#prototype
+   * @memberOf jsx.dom.widgets.UnorderedList.prototype
    */
   elementType: "ul"
 });
 
 jsx.dom.widgets.Tree =
   function jsx_dom_widgets_Tree (oTarget, oParent, oProperties) {
-    jsx_dom_widgets_Tree._super.apply(this, arguments);
+  jsx_dom_widgets_Tree._super.apply(this, arguments);
   };
 
 jsx.dom.widgets.Tree.extend(jsx.dom.widgets.Widget, {
   /**
-   * @memberOf jsx.dom.widgets.Tree#prototype
+   * @memberOf jsx.dom.widgets.Tree.prototype
    */
   _list: null,
 
@@ -1328,7 +1329,7 @@ jsx.dom.widgets.Table.extend(jsx.dom.widgets.Widget, {
 
   /**
    * (non-JSdoc)
-   * @memberOf jsx.dom.widgets.Table#prototype
+   * @memberOf jsx.dom.widgets.Table.prototype
    * @see jsx.dom.widgets.Widget.prototype.init()
    */
   init: function () {
@@ -1481,14 +1482,13 @@ jsx.dom.widgets.Timer =
 
 jsx.dom.widgets.Timer.extend(jsx.dom.widgets.Widget);
 
-jsx.dom.widgets.InitError =
-  function jsx_dom_widgets_InitError (widgetType) {
-    jsx_dom_widgets_InitError._super.call(this, widgetType);
-  };
+jsx.dom.widgets.InitError = function jsx_dom_widgets_InitError (widgetType) {
+  jsx_dom_widgets_InitError._super.call(this, widgetType);
+};
 
 jsx.dom.widgets.InitError.extend(jsx.Error, {
   /**
-   * @memberOf jsx.dom.widgets.InitError#prototype
+   * @memberOf jsx.dom.widgets.InitError.prototype
    */
   name: "jsx.dom.widgets.InitError"
 });
