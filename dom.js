@@ -155,201 +155,208 @@ if (typeof document != "undefined")
 
   jsx.dom.hasDocumentLayers = false;
 
-  jsx.dom.getElemByName = jsx.dom.gEBN = (function () {
-    function dummy()
-    {
-      return null;
-    }
+  jsx.dom.getElementsByName = jsx.dom.getElemByName = jsx.dom.gEBN = (
+    function () {
+      function dummy()
+      {
+        return null;
+      }
 
-    if (typeof document == "undefined")
-    {
-      return dummy;
-    }
+      if (typeof document == "undefined")
+      {
+        return dummy;
+      }
 
-    if (jsx.object.isMethod(document, "getElementsByName"))
-    {
-      /* W3C DOM Level 2 HTML */
-      /**
-       * @param {string} sName
-       * @param {number} index (optional)
-       * @return Element|Layer|Null|Undefined
-       */
-      return function (sName, index) {
-        var result = document.getElementsByName(sName);
-        if (result && !isNaN(index) && index > -1)
-        {
-          result = result[index];
-        }
-        return result;
-      };
-    }
-    else if (jsx.dom.hasDocumentAll)
-    {
-      /* IE4 DOM */
-      return function (sName, index) {
-        var result = document.all(sName);
-        if (result && !isNaN(index) && index > -1)
-        {
-          result = result[index];
-        }
-        return result;
-      };
-    }
-    else if ((jsx.dom.hasDocumentLayers = (typeof document.layers == "object")))
-    {
-      /* NN4 DOM */
-      return function (sName, index) {
-        var result = document.layers[sName];
-        if (result && !isNaN(index) && index > -1)
-        {
-          result = result[index];
-        }
-        return result;
-      };
-    }
-
-    return dummy;
-  }());
-
-  jsx.dom.hasGetElementsByTagName = false;
-
-  jsx.dom.getElemByTagName = jsx.dom.gEBTN = (function () {
-    var jsx_object = jsx.object;
-
-    if (jsx_object.isMethod(jsx, "xpath", "evaluate"))
-    {
-      /* W3C DOM Level 3 XPath */
-      /**
-       * @param {string} sTagName
-       * @param {number} index (optional)
-       * @param {Element} oContextNode (optional)
-       * @return {Array|Element}
-       *   An <code>Array</code> of references to objects representing
-       *   matching elements, or one reference to such an object if
-       *   <var>index</var> was provided.
-       */
-      return function (sTagName, index, oContextNode) {
-        if (!sTagName)
-        {
-          sTagName = '*';
-        }
-
-        if (arguments.length > 2 && typeof index != "number")
-        {
-          var tmp = oContextNode;
-          oContextNode = index;
-          index = tmp;
-        }
-
-        var result = jsx.dom.xpath.evaluate('.//' + sTagName, oContextNode || null,
-          null, XPathResult.ORDERED_NODE_ITERATOR_TYPE);
-
-        if (result)
-        {
-          if (!isNaN(index) && index > -1)
+      if (jsx.object.isMethod(document, "getElementsByName"))
+      {
+        /* W3C DOM Level 2 HTML */
+        /**
+         * @param {string} sName
+         * @param {number} index (optional)
+         * @return Element|Layer|Null|Undefined
+         */
+        return function (sName, index) {
+          var result = document.getElementsByName(sName);
+          if (result && !isNaN(index) && index > -1)
           {
             result = result[index];
           }
-        }
 
-        return result;
+          return result;
+        };
+      }
+      else if (jsx.dom.hasDocumentAll)
+      {
+        /* IE4 DOM */
+        return function (sName, index) {
+          var result = document.all(sName);
+          if (result && !isNaN(index) && index > -1)
+          {
+            result = result[index];
+          }
+
+          return result;
+        };
+      }
+      else if ((jsx.dom.hasDocumentLayers = (typeof document.layers == "object")))
+      {
+        /* NN4 DOM */
+        return function (sName, index) {
+          var result = document.layers[sName];
+          if (result && !isNaN(index) && index > -1)
+          {
+            result = result[index];
+          }
+
+          return result;
+        };
+      }
+
+      return dummy;
+    }()
+  );
+
+  jsx.dom.hasGetElementsByTagName = false;
+
+  jsx.dom.getElementsByTagName = jsx.dom.getElemByTagName = jsx.dom.gEBTN = (
+    function () {
+      var jsx_object = jsx.object;
+
+      if (jsx_object.isNativeMethod(jsx, "xpath", "evaluate"))
+      {
+        /* W3C DOM Level 3 XPath */
+        /**
+         * @param {string} sTagName
+         * @param {number} index (optional)
+         * @param {Element} oContextNode (optional)
+         * @return {Array|Element}
+         *   An <code>Array</code> of references to objects representing
+         *   matching elements, or one reference to such an object if
+         *   <var>index</var> was provided.
+         */
+        return function (sTagName, index, oContextNode) {
+          if (!sTagName)
+          {
+            sTagName = '*';
+          }
+
+          if (arguments.length > 2 && typeof index != "number")
+          {
+            var tmp = oContextNode;
+            oContextNode = index;
+            index = tmp;
+          }
+
+          var result = jsx.dom.xpath.evaluate('.//' + sTagName, oContextNode || null,
+            null, XPathResult.ORDERED_NODE_ITERATOR_TYPE);
+
+          if (result)
+          {
+            if (!isNaN(index) && index > -1)
+            {
+              result = result[index];
+            }
+          }
+
+          return result;
+        };
+      }
+
+      if ((jsx.dom.hasGetElementsByTagName =
+            (typeof document != "undefined"
+              && jsx_object.isMethod(document, "getElementsByTagName"))))
+      {
+        /* W3C DOM Level 2 Core */
+        /**
+         * @param {string} sTagName
+         * @param {number} index (optional)
+         * @param {Element} oContextNode (optional)
+         * @return {NodeList|Element|Null}
+         *   An <code>NodeList</code> of references to objects representing
+         *   matching elements, or one reference to such an object if
+         *   <var>index</var> was provided; <code>null</code> if there
+         *   is no matching element.
+         */
+        return function (sTagName, index, oContextNode) {
+          if (!sTagName)
+          {
+            sTagName = '*';
+          }
+
+          if (arguments.length > 2 && typeof index != "number")
+          {
+            var tmp = oContextNode;
+            oContextNode = index;
+            index = tmp;
+          }
+
+          if (!oContextNode)
+          {
+            oContextNode = document;
+          }
+
+          if (!jsx_object.isMethod(oContextNode, "getElementsByTagName"))
+          {
+            return null;
+          }
+
+          var result = oContextNode.getElementsByTagName(sTagName);
+          if (result && !isNaN(index) && index > -1)
+          {
+            result = result[index];
+          }
+
+          return result;
+        };
+      }
+
+      if (jsx.dom.hasDocumentAll && isMethod(document.all, "tags"))
+      {
+        /**
+         * @param {string} sTagName
+         * @param {number} index (optional)
+         * @param {Element} oContextNode (optional)
+         * @return {NodeList|Element|Undefined}
+         *   An <code>NodeList</code> of references to objects representing
+         *   matching elements, or one reference to such an object if
+         *   <var>index</var> was provided; <code>null</code>
+         *   if there is no matching element.
+         */
+        return function (sTagName, index, oContextNode) {
+          if (arguments.length > 2 && typeof index != "number")
+          {
+            var tmp = oContextNode;
+            oContextNode = index;
+            index = tmp;
+          }
+
+          if (!oContextNode)
+          {
+            oContextNode = document;
+          }
+
+          if (!jsx.object.isMethod(oContextNode, "all", "tags"))
+          {
+            return null;
+          }
+
+          var result = oContextNode.all.tags(sTagName);
+          if (result && !isNaN(index) && index > -1)
+          {
+            result = result[index];
+          }
+
+          return result;
+        };
+      }
+
+      return function () {
+        return null;
       };
-    }
+    }()
+  );
 
-    if ((jsx.dom.hasGetElementsByTagName =
-          (typeof document != "undefined"
-            && jsx_object.isMethod(document, "getElementsByTagName"))))
-    {
-      /* W3C DOM Level 2 Core */
-      /**
-       * @param {string} sTagName
-       * @param {number} index (optional)
-       * @param {Element} oContextNode (optional)
-       * @return {NodeList|Element|Null}
-       *   An <code>NodeList</code> of references to objects representing
-       *   matching elements, or one reference to such an object if
-       *   <var>index</var> was provided; <code>null</code> if there
-       *   is no matching element.
-       */
-      return function (sTagName, index, oContextNode) {
-        if (!sTagName)
-        {
-          sTagName = '*';
-        }
-
-        if (arguments.length > 2 && typeof index != "number")
-        {
-          var tmp = oContextNode;
-          oContextNode = index;
-          index = tmp;
-        }
-
-        if (!oContextNode)
-        {
-          oContextNode = document;
-        }
-
-        if (!jsx_object.isMethod(oContextNode, "getElementsByTagName"))
-        {
-          return null;
-        }
-
-        var result = oContextNode.getElementsByTagName(sTagName);
-        if (result && !isNaN(index) && index > -1)
-        {
-          result = result[index];
-        }
-
-        return result;
-      };
-    }
-
-    if (jsx.dom.hasDocumentAll && isMethod(document.all, "tags"))
-    {
-      /**
-       * @param {string} sTagName
-       * @param {number} index (optional)
-       * @param {Element} oContextNode (optional)
-       * @return {NodeList|Element|Undefined}
-       *   An <code>NodeList</code> of references to objects representing
-       *   matching elements, or one reference to such an object if
-       *   <var>index</var> was provided; <code>null</code>
-       *   if there is no matching element.
-       */
-      return function (sTagName, index, oContextNode) {
-        if (arguments.length > 2 && typeof index != "number")
-        {
-          var tmp = oContextNode;
-          oContextNode = index;
-          index = tmp;
-        }
-
-        if (!oContextNode)
-        {
-          oContextNode = document;
-        }
-
-        if (!jsx.object.isMethod(oContextNode, "all", "tags"))
-        {
-          return null;
-        }
-
-        var result = oContextNode.all.tags(sTagName);
-        if (result && !isNaN(index) && index > -1)
-        {
-          result = result[index];
-        }
-
-        return result;
-      };
-    }
-
-    return function () {
-      return null;
-    };
-  }());
-
-  jsx.dom.getElemByIndex = jsx.dom.gEBIdx = (function () {
+  jsx.dom.getElementByIndex = jsx.dom.getElemByIndex = jsx.dom.gEBIdx = (function () {
     function dummy()
     {
       return null;
