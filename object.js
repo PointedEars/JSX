@@ -1605,17 +1605,17 @@ jsx.tryThis =
  *
  * @function
  * @author
- *   Copyright (c) 2008 Thomas 'PointedEars' Lahn <cljs@PointedEars.de>.
+ *   Copyright (c) 2008, 2013 Thomas 'PointedEars' Lahn <cljs@PointedEars.de>.
  *   Distributed under the GNU GPL v3 and later.
  * @partof JSX:object.js
  */
 jsx.throwThis = (function () {
   var
-    jsx_object = jsx.object,
+    _jsx_object = jsx.object,
     _addslashes = function (e) {
       return (typeof e == "string"
-        ? '"' + e.replace(/["'\\]/g, "\\$&").replace(/\r?\n|\r/g, "\\n") + '"'
-        : (e && typeof e.map == "function" ? "[" + e + "]" : e));
+        ? e.replace(/["'\\]/g, "\\$&").replace(/\r?\n|\r/g, "\\n")
+        : e);
     };
 
   /**
@@ -1635,6 +1635,7 @@ jsx.throwThis = (function () {
     var sErrorType = errorType;
     var isError = false;
 
+    var messageIsArray =_jsx_object.isArray(message);
     if (typeof Error == "function"
         && Error.prototype.isPrototypeOf(errorType))
     {
@@ -1643,11 +1644,16 @@ jsx.throwThis = (function () {
     }
     else if (typeof errorType == "function")
     {
-      sErrorType = "new errorType";
+      sErrorType = "errorType";
+
+      if (!messageIsArray)
+      {
+        sErrorType = "new " + sErrorType;
+      }
     }
     else if (typeof errorType == "string")
     {
-      sErrorType = "new " + errorType;
+      sErrorType = errorType;
     }
 
     var sContext = "";
@@ -1661,7 +1667,7 @@ jsx.throwThis = (function () {
     /* DEBUG: set breakpoint here */
     if (!sContext)
     {
-      if (jsx_object.isMethod(context))
+      if (_jsx_object.isMethod(context))
       {
         sContext = (String(context).match(/^\s*(function.+\))/)
                      || [, null])[1];
@@ -1669,20 +1675,28 @@ jsx.throwThis = (function () {
       }
     }
 
-    /* Array for exception constructor's argument list */
-    if (jsx_object.isMethod(message, "map"))
+    /*
+     * Array or array-like object for exception constructor's
+     * argument list
+     */
+    if (_jsx_object.isMethod(message, "map"))
     {
       message = message.map(_addslashes);
     }
     else
     {
       message = (message || "") + (sContext || "");
-      message = _addslashes(message);
+      message = '"' + _addslashes(message) + '"';
     }
 
     /* DEBUG */
     var throwStmt = 'throw ' + (sErrorType ? sErrorType : '')
-                  + (isError ? '' : '(' + (message || "") + ')') + ';';
+                  + (isError
+                      ? ''
+                      : (messageIsArray
+                          ? '.construct(message)'
+                          : '(' + (message || '') + ')'))
+                  + ';';
 
     eval(throwStmt);
   };
