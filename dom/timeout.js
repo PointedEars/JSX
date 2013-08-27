@@ -9,7 +9,7 @@
  *   (C) 2002-2012 Thomas Lahn <js@PointedEars.de>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
- * 
+ *
  * JSX is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -50,7 +50,7 @@ if (typeof jsx.dom.timeout == "undefined")
 
 /**
  * Creates a container for code that can be run later
- * 
+ *
  * @param f : Function
  *   Code to be run later.  The default is <code>null</code>.
  * @param delay : int
@@ -66,7 +66,7 @@ jsx.dom.timeout.Timeout = function(f, delay) {
 /**
  * Runs the associated code after <var>delay</var> milliseconds;
  * cancels any planned but not yet performed executions.
- * 
+ *
  * @param f : Function
  *   Code to be run later.  The default is the value of the
  *   <code>code</code> property as initialized upon construction.
@@ -84,17 +84,17 @@ jsx.dom.timeout.Timeout = function(f, delay) {
  */
 jsx.dom.timeout.Timeout.prototype.run = function(f, delay) {
   this.unset();
-  
+
   if (typeof f == "function")
   {
     this.code = f;
   }
-  
+
   if (delay)
   {
     this.delay = parseInt(delay, 10);
   }
-  
+
   if (jsx.object.isMethod(jsx.global, "window", "setTimeout"))
   {
     this.running = true;
@@ -104,7 +104,7 @@ jsx.dom.timeout.Timeout.prototype.run = function(f, delay) {
       me.unset();
     }, this.delay);
   }
-  
+
   return this;
 };
 
@@ -114,18 +114,18 @@ jsx.dom.timeout.Timeout.prototype.run = function(f, delay) {
 jsx.dom.timeout.Timeout.prototype.unset = function() {
   if (this.running)
   {
-    if (jsx.object.isMethod(jsx.global, window, "clearTimeout"))
+    if (jsx.object.isMethod(jsx.global, "window", "clearTimeout"))
     {
       window.clearTimeout(this.data);
     }
-    
+
     this.running = false;
   }
 };
 
 /**
  * Provides a container for {@link #Timeout}s.
- * 
+ *
  * @param timeouts : Array[Timeout]
  *   The list of {@link jsx.dom.timeout#Timeout Timeouts} to be considered
  * @constructor
@@ -146,7 +146,7 @@ jsx.dom.timeout.TimeoutList.prototype.unsetAll = function() {
 
 /**
  * Schedules code for later execution.
- * 
+ *
  * @param code : String|Function
  *   Code to be executed or function to be called.
  * @param iTimeout : number
