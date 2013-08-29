@@ -437,10 +437,16 @@ jsx.object = (/** @constructor */ function () {
   var _getClass = (function () {
     var _toString = ({}).toString;
 
-    return function (obj) {
+    /**
+     * @return {string}
+     */
+    function getClass (obj)
+    {
       return (_toString.call(obj)
-        .match(/^\s*\[object\s+(\S+)\s*\]\s*$/) || [, ])[1];
-    };
+        .match(/^\s*\[object\s+(\S+)\s*\]\s*$/) || [, ""])[1];
+    }
+
+    return getClass;
   }());
 
   function _isArray (a)
@@ -712,7 +718,7 @@ jsx.object = (/** @constructor */ function () {
      *   Included in the info message in case getters and setters
      *   could not be defined.
      */
-    return function (o, propertyName, descriptor, sContext) {
+    function _defineProperty (o, propertyName, descriptor, sContext) {
       if (!/^(object|function)$/.test(typeof o) || !o)
       {
         return jsx.throwThis("TypeError", "Object expected");
@@ -723,7 +729,9 @@ jsx.object = (/** @constructor */ function () {
       _defineOwnProperty(o, name, desc, true, sContext);
 
       return o;
-    };
+    }
+
+    return _defineProperty;
   }());
 
   function _extend (oTarget, oSource, iFlags)
@@ -1279,6 +1287,53 @@ jsx.object = (/** @constructor */ function () {
       }
 
       return "";
+    },
+
+    /**
+     * Returns a new object that can serve as data container.
+     *
+     * Returns a new object that, if supported, does not inherit or
+     * have any properties.  This is accomplished by either cutting
+     * off its existing prototype chain or not creating one for it
+     * in the first place.
+     *
+     * @return {Object}
+     * @see Object.create
+     */
+    getDataObject: function () {
+      return _inheritFrom(null);
+    },
+
+    /**
+     * Returns a feature of an object
+     *
+     * @param {Object} obj
+     *   Object which provides the feature
+     * @params {string}
+     *   Property names on the feature path, including the property
+     *   for the feature itself.  For example, use
+     *   <code>jsx.object.getFeature("foo", "bar", "baz")</code> for
+     *   safe access to <code>foo.bar.baz</code>.
+     * @return {any}
+     *   <code>undefined</code> if <var>obj</var> does not have such
+     *   a feature.  Note that features whose value can be
+     *   <code>undefined</code> cannot be detected with this method.
+     */
+    getFeature: function (obj) {
+      for (var i = 1, len = arguments.length; i < len; i++)
+      {
+        var arg = arguments[i];
+        if (typeof obj != "undefined" && typeof obj[arg] != "undefined" && obj[arg])
+        {
+          obj = obj[arg];
+        }
+        else
+        {
+          return void 0;
+        }
+      }
+
+      return obj;
     }
   };
 
@@ -1642,18 +1697,26 @@ jsx.throwThis = (function () {
       isError = true;
       sErrorType = "errorType";
     }
-    else if (typeof errorType == "function")
+    else
     {
-      sErrorType = "errorType";
+      var t = typeof errorType;
 
-      if (!messageIsArray)
+      if (t == "function" || t == "string")
       {
-        sErrorType = "new " + sErrorType;
+        if (t == "function")
+        {
+          sErrorType = "errorType";
+        }
+        else if (t == "string")
+        {
+          sErrorType = errorType;
+        }
+
+        if (!messageIsArray)
+        {
+          sErrorType = "new " + sErrorType;
+        }
       }
-    }
-    else if (typeof errorType == "string")
-    {
-      sErrorType = errorType;
     }
 
     var sContext = "";
@@ -1710,26 +1773,6 @@ jsx.throwThis = (function () {
 jsx.rethrowThis = function (exception) {
   eval("throw exception");
 };
-
-/**
- * Returns a new object that can serve as data container.
- *
- * Returns a new object that, if supported, does not inherit or
- * have any properties.  This is accomplished by either cutting
- * off its existing prototype chain or not creating one for it
- * in the first place.
- *
- * @function
- * @return {Object}
- * @see Object.create
- */
-jsx.object.getDataObject = (function () {
-  var _inheritFrom = jsx.object.inheritFrom;
-
-  return function () {
-    return _inheritFrom(null);
-  };
-}());
 
 if (jsx.options.augmentBuiltins)
 {
@@ -1791,40 +1834,9 @@ if (jsx.options.augmentBuiltins)
 }
 
 /**
- * Returns a feature of an object
- *
- * @param {Object} obj
- *   Object which provides the feature
- * @params {string}
- *   Property names on the feature path, including the property
- *   for the feature itself.  For example, use
- *   <code>jsx.object.getFeature("foo", "bar", "baz")</code> for
- *   safe access to <code>foo.bar.baz</code>.
- * @return {any}
- *   <code>undefined</code> if <var>obj</var> does not have such
- *   a feature.  Note that features whose value can be
- *   <code>undefined</code> cannot be detected with this method.
- */
-jsx.object.getFeature = function (obj) {
-  for (var i = 1, len = arguments.length; i < len; i++)
-  {
-    var arg = arguments[i];
-    if (typeof obj != "undefined" && typeof obj[arg] != "undefined" && obj[arg])
-    {
-      obj = obj[arg];
-    }
-    else
-    {
-      return void 0;
-    }
-  }
-
-  return obj;
-};
-
-/**
- * Emulates the <code>instanceof</code> operator (JavaScript 1.5) compatible to JavaScript 1.1
- * for <strong>one</strong> inheritance level.
+ * Emulates the <code>instanceof</code> operator (JavaScript 1.5)
+ * compatible to JavaScript 1.1 for <strong>one</strong>
+ * inheritance level.
  *
  * Example:
  * <pre><code>
@@ -2250,7 +2262,7 @@ jsx.importOnce = (function () {
      */
     function scriptIncluded (uri)
     {
-      var scripts = document.getElementByTagName("script");
+      var scripts = document.getElementsByTagName("script");
       if (scripts)
       {
         var uriAbsPath = _absPath(uri);
