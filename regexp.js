@@ -83,16 +83,12 @@ jsx.regexp = (/** @constructor */ function () {
    *   Flag specifying whether the used expression was built using
    *   Unicode mode.
    * @method exec
-   *   In Unicode mode, a variant of the built-in
-   *   {@link RegExp.prototype#exec()} to support named groups
-   *   and Unicode mode transparently.  Identical to
-   *   <code>RegExp.prototype.exec()</code> otherwise.
+   *   A variant of the built-in {@link RegExp.prototype#exec()}
+   *   to support named groups and Unicode mode transparently.
    * @method _oldExec
-   *   The original inherited exec() method.  Used internally,
-   *   only available in Unicode mode.
+   *   The original inherited exec() method.  Used internally.
    * @method _realExec
-   *   The used exec() method.  Used internally, only available
-   *   in Unicode mode.
+   *   The used exec() method.  Used internally.
    * @function
    */
   var _RegExp2 = jsx.object.extend(
@@ -641,7 +637,7 @@ jsx.regexp = (/** @constructor */ function () {
 
           if (sFlags.indexOf("u") > -1)
           {
-            var originalUnicodeMode = unicodeMode = true;
+            unicodeMode = true;
           }
 
           sFlags = sFlags.replace(/[xsu]/g, "");
@@ -788,7 +784,7 @@ jsx.regexp = (/** @constructor */ function () {
           };
 
           expression = expression.replace(
-            /\[(([^\\\]]|\\.)*)\]|(\\([dsw]))/gi,
+            /\[(([^\]\\]|\\.)*)\]|(\\([dsw]))/gi,
             function (match, charClassContent, p2, classCharacter, escapeLetter) {
               if (charClassContent)
               {
@@ -867,11 +863,8 @@ jsx.regexp = (/** @constructor */ function () {
         rx.extended = !!originalExtended;
         rx.unicodeMode = unicodeMode;
 
-        if (unicodeMode)
-        {
-          rx._oldExec = rx.exec;
-          rx.exec = jsx_regexp_RegExp.exec;
-        }
+        rx._oldExec = rx.exec;
+        rx.exec = jsx_regexp_RegExp.exec;
 
         return rx;
       }
@@ -1191,8 +1184,7 @@ jsx.regexp = (/** @constructor */ function () {
            * @return {string}
            */
           function () {
-            var
-              a = [];
+            var a = [];
 
             for (var flag in this.flags)
             {
