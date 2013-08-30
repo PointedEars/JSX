@@ -734,13 +734,9 @@ function runTests ()
             var rx = new RegExp2("(?<foo>bar)");
             assert(rx.groups[1] === "foo");
 
-            var s = new jsx.regexp.String("bar");
-            assert(s == "bar");
-            assert("bar" == s);
-            assertFalse(s === "bar");
-            assertFalse("bar" === s);
+            assert(rx.exec("bar").groups.foo === "bar");
 
-            var m = s.match(rx);
+            var m = new String2("bar").match(rx);
             assert(m.groups.foo === "bar");
           }
         },
@@ -751,12 +747,9 @@ function runTests ()
             var rx = new RegExp2("(?P'foo'bar)");
             assert(rx.groups[1] === "foo");
 
-            var s = new jsx.regexp.String("bar");
-            assert(s == "bar");
-            assert("bar" == s);
-            assertFalse(s === "bar");
-            assertFalse("bar" === s);
+            assert(rx.exec("bar").groups.foo === "bar");
 
+            var s = new String2("bar");
             var m = s.match(rx);
             assert(m.groups.foo === "bar");
           }
@@ -768,12 +761,9 @@ function runTests ()
             var rx = new RegExp2("(?P<foo>bar)");
             assert(rx.groups[1] === "foo");
 
-            var s = new jsx.regexp.String("bar");
-            assert(s == "bar");
-            assert("bar" == s);
-            assertFalse(s === "bar");
-            assertFalse("bar" === s);
+            assert(rx.exec("bar").groups.foo === "bar");
 
+            var s = new String2("bar");
             var m = s.match(rx);
             assert(m.groups.foo === "bar");
           }
@@ -930,6 +920,17 @@ function runTests ()
             var rx = new RegExp2("\\bä", "u");
             assert((RegExp2.exec(" ä", rx) || [])[0] === "ä");
           }
+        },
+        {
+          feature: 'new jsx.regexp.String(String)',
+          desc: "Convert correctly",
+            code: function () {
+              var s = new jsx.regexp.String("bar");
+              assert(s == "bar");
+              assert("bar" == s);
+              assertFalse(s === "bar");
+              assertFalse("bar" === s);
+            }
         },
         {
           feature: 'jsx.regexp.String.prototype.match(new jsx.regexp.RegExp(…, "u"))',
