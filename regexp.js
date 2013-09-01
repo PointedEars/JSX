@@ -892,10 +892,8 @@ jsx.regexp = (/** @constructor */ function () {
         /**
          * @param {string} s
          * @param {jsx.regexp.RegExp} rx
-         *   Instance to be tested
-         * @return {boolean}
-         *   <code>true</code> if <var>rx</var> has been constructed
-         *   using this constructpr, <code>false</code> otherwise.
+         * @return {Object|null}
+         * @see RegExp.prototype.exec()
          */
         function _exec (s, rx)
         {
