@@ -41,7 +41,10 @@ if (typeof jsx.array == "undefined")
 jsx.array = (/** @constructor */ function () {
   /* Imports */
   var _jsx_object = jsx.object;
+  var _getKeys = _jsx_object.getKeys;
+  var _hasOwnProperty = _jsx_object._hasOwnProperty;
   var _isArray = _jsx_object.isArray;
+  var _isNativeMethod = _jsx_object.isNativeMethod;
 
   /**
    * @param {Array} a (optional)
@@ -339,7 +342,7 @@ jsx.array = (/** @constructor */ function () {
      * @see jsx.array.filter
      */
     createFilter: function (filter, bStrict) {
-      var keys = _jsx_object.getKeys(filter);
+      var keys = _getKeys(filter);
 
       /**
        * @param {any} element
@@ -383,6 +386,11 @@ jsx.array = (/** @constructor */ function () {
       if (!_isArray(a) && _isArray(this))
       {
         a = this;
+      }
+
+      if (_isNativeMethod(a, "pop"))
+      {
+        return a.pop();
       }
 
       var result = null;
@@ -754,35 +762,31 @@ jsx.array = (/** @constructor */ function () {
       };
     }()),
 
-    every: (function () {
-      var _isNativeMethod = _jsx_object.isNativeMethod;
+    every: function (callback, thisObject) {
+      /* NOTE: Checks for null or undefined */
+      if (thisObject == null && _isArray(this))
+      {
+        thisObject = this;
+      }
 
-      return function (callback, thisObject) {
-        /* NOTE: null or undefined */
-        if (thisObject == null && _isArray(this))
+      if (_isNativeMethod(thisObject, "every"))
+      {
+        return thisObject.every(callback);
+      }
+
+      for (var i = 0, len = thisObject.length; i < len; i++)
+      {
+        if (!callback(thisObject[i]))
         {
-          thisObject = this;
+          return false;
         }
+      }
 
-        if (_isNativeMethod(thisObject, "every"))
-        {
-          return thisObject.every(callback);
-        }
-
-        for (var i = 0, len = thisObject.length; i < len; i++)
-        {
-          if (!callback(thisObject[i]))
-          {
-            return false;
-          }
-        }
-
-        return true;
-      };
-    }()),
+      return true;
+    },
 
     equals: function (otherObject, thisObject, strict) {
-      /* NOTE: null or undefined */
+      /* NOTE: Check for null or undefined */
       if (thisObject == null && _isArray(this))
       {
         thisObject = this;
@@ -815,13 +819,96 @@ jsx.array = (/** @constructor */ function () {
     },
 
     /**
+     * Returns an {@link Array} from which all duplicates
+     * have been removed.
+     *
+     * NOTE: Warns and falls back to {@link #uniqStr()} if
+     * {@link jsx.map.Map()} is unavailable.
+     *
+     * @function
+     */
+    uniq: (function () {
+      var _Map;
+
+      /**
+       * @param {Object} thisObject
+       *   The object to operate on.  Is used instead of the calling
+       *   object if this method is called as a method of an
+       *   {@link Array}.
+       */
+      return function (thisObject) {
+        /* NOTE: Check for null or undefined */
+        if (thisObject == null && _isArray(this))
+        {
+          thisObject = this;
+        }
+
+        if (!_Map)
+        {
+          _Map = jsx.object.getFeature(jsx, "map", "Map");
+          if (!_Map)
+          {
+            jsx.warn("jsx.array.uniq(): jsx.map.Map N/A, falling back to jsx.array.uniqStr()");
+            return jsx.array.uniqStr(thisObject);
+          }
+        }
+
+        var condensed = new _Map();
+
+        for (var i = 0, len = thisObject.length; i < len; ++i)
+        {
+          if (_hasOwnProperty(thisObject, i))
+          {
+            condensed.put(thisObject[i], true);
+          }
+        }
+
+        return condensed.getKeys();
+      };
+    }()),
+
+    /**
+     * Returns an {@link Array} from which all {@link String}
+     * duplicates have been removed.
+     *
+     * This method is more efficient than {@link #uniq} if you
+     * can be sure that either all elements are string values
+     * or their string representations can be compared.  However,
+     * different to <code>uniq()</code>, the order of the
+     * resulting elements is implementation-dependent.
+     *
+     * @param {Object} thisObject
+     *   The object to operate on.  Is used instead of the calling
+     *   object if this method is called as a method of an
+     *   {@link Array}.
+     */
+    uniqStr: function (thisObject) {
+      /* NOTE: Check for null or undefined */
+      if (thisObject == null && _isArray(this))
+      {
+        thisObject = this;
+      }
+
+      var condensed = jsx.object.getDataObject();
+
+      for (var i = 0, len = thisObject.length; i < len; ++i)
+      {
+        if (_hasOwnProperty(thisObject, i))
+        {
+          condensed[thisObject[i]] = true;
+        }
+      }
+
+      return _getKeys(condensed);
+    },
+
+    /**
      * Returns a function that can be used for sorting an {@link Array}.
      *
      * @author (C) 2013 Thomas 'PointedEars' Lahn &lt;js@PointedEars.de&gt;
      */
     createComparator: (function () {
       var _isObject = _jsx_object.isObject;
-      var _hasOwnProperty = _jsx_object._hasOwnProperty;
 
       /**
        * @param {Array} aKeys
@@ -1030,12 +1117,7 @@ jsx.array = (/** @constructor */ function () {
 
 //jsx.array.docURL = jsx.array.path + "array.htm";
 
-if (typeof jsx.array.emulate == "undefined")
-{
-  jsx.array.emulate = false;
-}
-
-if (jsx.array.emulate)
+if (jsx.options.augmentPrototypes)
 {
   jsx.object.extend(Array.prototype, {
     /**
@@ -1055,6 +1137,8 @@ if (jsx.array.emulate)
     splice:           jsx.array.splice,
     toLowerCase:      jsx.array.toLowerCase,
     toUpperCase:      jsx.array.toUpperCase,
+    uniq:             jsx.array.uniq,
+    uniqStr:          jsx.array.uniqStr,
 
     /* JavaScript 1.6 (1.5 in Gecko 1.8b2 and later) emulation */
     every:            jsx.array.every,
