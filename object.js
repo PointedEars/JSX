@@ -86,7 +86,6 @@ if (typeof jsx.options == "undefined")
    * modify built-in objects.  Options include, with increasing
    * degree of flexibility and side-effects by nesting level:
    *
-   *
    * <table>
    *   <thead>
    *     <tr>
@@ -141,7 +140,6 @@ if (typeof jsx.options == "undefined")
    *         Set to <code>false</code> if you are testing features
    *         of ECMAScript implementations with JSX,
    *         like with the ECMAScript Support Matrix.
-   *         The default is <code>true</code>.
    *       <dl>
    *         <dt>augmentPrototypes</dt>
    *           <dd>Allow prototype objects to be augmented,
@@ -180,7 +178,7 @@ if (typeof jsx.options.augmentBuiltins == "undefined")
   /**
    * If <code>false</code> built-ins are not modified.
    * The default is <code>true</code>.
-   * </p>
+   *
    * @type boolean
    */
   jsx.options.augmentBuiltins = true;
@@ -191,7 +189,7 @@ if (typeof jsx.options.augmentPrototypes == "undefined")
   /**
    * If <code>false</code> built-in prototypes are not modified.
    * The default is <code>true</code>.
-   * </p>
+   *
    * @type boolean
    */
   jsx.options.augmentPrototypes = true;
@@ -202,7 +200,7 @@ if (typeof jsx.options.augmentObjectPrototype == "undefined")
   /**
    * If <code>false</code>, the Object prototype object is
    * not modified.  The default is <code>false</code>.
-   * </p>
+   *
    * @type boolean
    */
   jsx.options.augmentObjectPrototype = false;
@@ -213,7 +211,7 @@ if (typeof jsx.options.replaceBuiltins == "undefined")
   /**
    * If <code>false</code> built-ins are not replaced.
    * The default is <code>true</code>.
-   * </p>
+   *
    * @type boolean
    */
   jsx.options.replaceBuiltins = true;
@@ -2888,26 +2886,49 @@ jsx.array = {
  * Returns an <code>Array</code> created from mapping items
  * of an Array-like object.
  *
- * @function
+ * @param {Object} iterable
+ *   <code>Array</code>-like object
+ * @param {Function} builder (optional)
+ *   Mapping function whose return value specifies the
+ *   mapped value in the new <code>Array</code>.
+ *   Pass <code>null</code> for no mapping.
+ * @param {Object} oThis (optional)
+ *   <code>this</code> value in the mapping function
+ * @return {Array}
+ * @see Array.prototype#map
  */
-jsx.array.from = (function () {
-  var _map = jsx.array.map;
+jsx.array.from = function (iterable, builder, oThis) {
+  if (arguments.length < 2)
+  {
+    builder = null;
+  }
 
-  /**
-   * @param {Function} builder
-   *   Mapping function whose return value specifies the
-   *   mapped value in the new <code>Array</code>
-   * @param {Object} iterable
-   *   <code>Array</code>-like object
-   * @param {Object} oThis
-   *   <code>this</code> value in the mapping function
-   * @return {Array}
-   * @see Array.prototype#map
-   */
-  return function (builder, iterable, oThis) {
-    return _map(iterable, builder, oThis);
-  };
-}());
+  if (arguments.length > 1 && builder && typeof builder != "function")
+  {
+    return jsx.throwThis("TypeError",
+      (_isMethod(builder, "toSource") ? builder.toSource() : builder)
+        + " is not callable",
+      this + ".map");
+  }
+
+  if (arguments.length < 3)
+  {
+    oThis = iterable;
+  }
+
+  var
+    len = iterable.length >>> 0,
+    res = [];
+
+  for (var i = 0; i < len; ++i)
+  {
+    res[i] = (builder
+      ? builder.call(oThis, iterable[i], i, iterable)
+      : oThis[i]);
+  }
+
+  return res;
+};
 
 if (jsx.options.augmentBuiltins)
 {
