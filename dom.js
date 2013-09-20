@@ -1066,6 +1066,12 @@ jsx.dom.createElement = (function () {
  *                 <td>Element type (case-sensitivity depends on
  *                     the document type)</td>
  *               </tr>
+ *               <!--<tr>
+ *                 <th><code><var>attributes</var></code></th>
+ *                 <td><code>Object</code></td>
+ *                 <td>Attributes of the element.  All attributes
+ *                     are created in the <code>null</code> namespace.</td>
+ *               </tr>-->
  *               <tr>
  *                 <th><code><var>properties</var></code></th>
  *                 <td><code>Object</code></td>
@@ -1076,6 +1082,8 @@ jsx.dom.createElement = (function () {
  *                     names and whose property values are the
  *                     corresponding values, as supported by
  *                     {@link jsx.dom.css#setStyleProperty()}.
+ *                     <!--Note that some properties may overwrite
+ *                     attributes.-->
  *               </tr>
  *               <tr>
  *                 <th><code><var>childNodes</var></code></th>
@@ -1096,6 +1104,7 @@ jsx.dom.createElementFromObj = jsx.dom.createNodeFromObj =
 jsx.dom.createNodesFromObj = (function () {
   var _getKeys = jsx.object.getKeys;
   var _isArray = jsx.object.isArray;
+  var _isHostMethod = jsx.object.isHostMethod;
 
   /**
    * @param {Array|Object} data
@@ -1129,39 +1138,50 @@ jsx.dom.createNodesFromObj = (function () {
       return null;
     }
 
+//    var attributes = data.attributes;
+//    if (attributes && _isHostMethod(el, "setAttribute"))
+//    {
+//      var keys = _getKeys(attributes);
+//
+//      for (var i = 0, len = keys.length; i < len; ++i)
+//      {
+//        var attrName = keys[i];
+//        el.setAttribute(attrName, attributes[attrName]);
+//      }
+//    }
+
     var properties = data.properties;
     if (properties)
     {
-      for (var prop in properties)
-      {
-        if (!properties.hasOwnProperty(prop))
-        {
-          continue;
-        }
+      keys = _getKeys(properties);
 
-        if (prop == "style")
+      for (i = 0, len = keys.length; i < len; ++i)
+      {
+        var propName = keys[i];
+
+        if (propName == "style")
         {
-          var style = properties[prop];
+          var style = properties[propName];
           var _setStyleProperty = jsx.object.getFeature(jsx.dom, "css", "setStyleProperty");
           if (typeof style != "string" && typeof _setStyleProperty != "function")
           {
             jsx.warn("JSX:dom/css.js:jsx.dom.css.setStyleProperty()"
               + " is recommended for setting style object properties");
-            el[prop] = style;
+            el[propName] = style;
           }
           else
           {
-            var keys = _getKeys(style);
-            for (var i = 0, len = keys.length; i < len; ++i)
+            var styleKeys = _getKeys(style);
+            for (var i = 0, len = styleKeys.length; i < len; ++i)
             {
-              var styleProp = keys[i];
-              _setStyleProperty(el, styleProp, style[styleProp]);
+              var stylePropName = styleKeys[i];
+              _setStyleProperty(el, stylePropName, style[stylePropName]);
             }
           }
         }
         else
         {
-          el[prop] = properties[prop];
+          el[propName] = properties[propName];
         }
       }
     }
@@ -1297,13 +1317,22 @@ jsx.dom.appendChildren = function (parentNode, childNodes) {
  * Removes several child nodes of a parent node in reverse order.
  *
  * @param {Node} parentNode
- * @param {NodeList|Array} childNodes
+ * @param {NodeList|Array} childNodes (optional)
+ *   The child nodes to be deleted.  If not provided,
+ *   all child nodes of <var>parentNode</var> are deleted,
+ *   the table-safe equivalent to
+ *   <code><var>parentNode</var>.innerHTML = "";</code>
  * @return {boolean}
  *   <code>true</code> on success, <code>false</code> otherwise.
  */
 jsx.dom.removeChildren = function (parentNode, childNodes) {
   if (parentNode)
   {
+    if (arguments.length < 2)
+    {
+      childNodes = parentNode.childNodes;
+    }
+
     for (var i = childNodes.length; i--;)
     {
       parentNode.removeChild(childNodes[i]);
