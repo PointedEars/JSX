@@ -770,9 +770,19 @@ function runTests ()
         },
         {
           name: "PCRE named subpatterns with modifiers: <code>(?sx'name'…)</code>"
-            + " (Python style)",
+            + " (Perl style)",
             code: function () {
               var rx = new RegExp2("(?s'foo'.)");
+              assert(rx.source === "([\\S\\s])");
+              assert(rx.groups[1] === "foo");
+              assert(rx.names["foo"] === 1);
+            }
+        },
+        {
+          name: "PCRE named subpatterns with modifiers: <code>(?sx<name>…)</code>"
+            + " (Python style)",
+            code: function () {
+              var rx = new RegExp2("(?s<foo>.)");
               assert(rx.source === "([\\S\\s])");
               assert(rx.groups[1] === "foo");
               assert(rx.names["foo"] === 1);
@@ -913,6 +923,14 @@ function runTests ()
           }
         },
         {
+          feature: 'jsx.regexp.RegExp(…, "su"))',
+          desc: "Unicode mode: <code>.</code> works with PCRE_DOTALL",
+            code: function () {
+              var rx = new RegExp2("x.y", "su");
+              assert(rx.source === "x[\\S\\s]y");
+            }
+        },
+        {
           feature: "jsx.regexp.RegExp.exec(jsx.regexp.RegExp, String)",
           desc: "Unicode mode: <code>\\b</code> match"
               + " before non-ASCII letter is trimmed",
@@ -953,12 +971,24 @@ function runTests ()
           }
         },
         {
-          feature: 'jsx.regexp.RegExp(…, "su"))',
-          desc: "Unicode mode: <code>.</code> works with PCRE_DOTALL",
-            code: function () {
-              var rx = new RegExp2("x.y", "su");
-              assert(rx.source === "x[\\S\\s]y");
-            }
+          feature: 'jsx.regexp.String.prototype.replace(jsx.regexp.RegExp), String)',
+          desc: "Named backreferences are supported",
+          code: function () {
+            var rx = new RegExp2(" (?'foo'ä) ö", "g");
+            var s = new String2(" ä ö").replace(rx, "${foo}");
+            assert(s === "ä");
+          }
+        },
+        {
+          feature: 'jsx.regexp.String.prototype.replace(jsx.regexp.RegExp, Function)',
+          desc: "Named backreferences are supported",
+          code: function () {
+            var rx = new RegExp2(" (?'foo'ä) ö", "g");
+            var s = new String2(" ä ö").replace(rx, function () {
+              return this.groups["foo"];
+            });
+            assert(s === "ä");
+          }
         }
       ]
     });
