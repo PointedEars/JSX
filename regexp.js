@@ -1044,6 +1044,9 @@ jsx.regexp = (/** @constructor */ function () {
 
       this.value = String(s);
     }.extend(String, (function () {
+      var _replace = String.prototype.replace;
+      var _getDataObject = jsx.object.getDataObject;
+
       function _toString ()
       {
         return this.value;
@@ -1055,7 +1058,6 @@ jsx.regexp = (/** @constructor */ function () {
          * of jsx.regexp.RegExp if possible
          *
          * @function
-         * @memberOf jsx.regexp.String#prototype
          */
         match: (function () {
           var rxLeadingGroups, rxNonWordChars;
@@ -1117,6 +1119,62 @@ jsx.regexp = (/** @constructor */ function () {
             return matches;
           };
         }()),
+
+        /**
+         * Replaces matches in a string, and returns the new string.
+         *
+         * Different to {@link String.prototype.replace()},
+         * this methods also allows you to refer to backreferences
+         * by name.  In a String-like object, you may use
+         * <code>"${name}"</code>, and in a replacement function
+         * you may use <code>this.groups["name"]</code>.
+         *
+         * NOTE: Because of the latter the replacement function
+         * is called as a method of this object, not of
+         * the Global Object anymore.  The <code>groups</code>
+         * property of this object is retained; that is, the last
+         * arguments to this method can be found in there.
+         * (Arguments and return value of the replacement function
+         * still work as specified in ECMAScript.)
+         *
+         * @memberOf jsx.regexp.String.prototype
+         * @param {jsx.regexp.RegExp|RegExp|String} expression
+         * @param {String|Function} replacement
+         * @return {string}
+         * @see String.prototype.replace
+         */
+        replace: function (expression, replacement) {
+          if (jsx.regexp.RegExp.isInstance(expression))
+          {
+            var groups = expression.groups;
+            var len = groups.length;
+
+            if ((typeof replacement) == "function")
+            {
+              var me = this;
+              return _replace.call(this, expression, function () {
+                me.groups = _getDataObject();
+                for (var i = 1; i <= len; ++i)
+                {
+                  me.groups[groups[i]] = arguments[i];
+                }
+
+                return replacement.apply(me, arguments);
+              });
+            }
+
+            for (var i = 1; i <= len; ++i)
+            {
+              /* replace "${name}" with "${index}" */
+              replacement = _replace.call(
+                replacement,
+                new RegExp("\\$\\{" + groups[i] + "\\}", "g"),
+                "$" + i);
+            }
+          }
+
+          return _replace.call(this, expression, replacement);
+        },
 
         /**
          * Returns this object's encapsulated string value
