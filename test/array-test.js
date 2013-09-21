@@ -4,10 +4,139 @@ function runTests()
   var assert = _test.assert;
   var assertArrayEquals = _test.assertArrayEquals;
   var _createComparator = jsx.array.createComparator;
+  var BigArray = jsx.array.BigArray;
 
   _test.runner.run({
     file: "array.js",
     tests: [
+      {
+        feature: 'jsx.array.BigArray()',
+        description: 'Return new instance (factory)',
+        code: function () {
+          assert(BigArray() instanceof BigArray);
+        }
+      },
+      {
+        feature: 'new jsx.array.BigArray()',
+        description: 'Return new empty instance (constructor)',
+        code: function () {
+          assert(new BigArray() instanceof BigArray);
+        }
+      },
+      {
+        feature: 'new BigArray(BigArray)',
+        description: 'Clone instance',
+        code: function () {
+          var s = (new BigArray(new BigArray("x"))).toString();
+          assert(s === "x");
+        }
+      },
+      {
+        feature: 'new BigArray("")',
+        description: 'Return one-element array',
+        code: function () {
+          assertArrayEquals([""], new BigArray("").toArray());
+        }
+      },
+      {
+        feature: 'new BigArray("x")',
+        description: 'Convert to <code>BigArray("x")</code>',
+        code: function () {
+          assertArrayEquals(["x"], new BigArray("x").toArray());
+        }
+      },
+      {
+        feature: 'new BigArray(int)',
+        description: 'Create <code>BigArray</code> of specified length',
+        code: function () {
+          var a = [];
+          a.length = 42;
+          assertArrayEquals(a, new BigArray(42).toArray());
+        }
+      },
+
+      {
+        feature: 'BigArray.prototype.toArray()',
+        description: 'Return the correct value',
+        code: function () {
+          assertArrayEquals([], new BigArray().toArray());
+          assertArrayEquals([""], new BigArray("").toArray());
+          assertArrayEquals(["x"], new BigArray("x").toArray());
+          assertArrayEquals([23, 42], new BigArray(23, 42).toArray());
+        }
+      },
+      {
+        feature: 'BigArray.length',
+        description: 'Getter works',
+        code: function () {
+          var i = Math.pow(2, 53);
+          assert(new BigArray(i).length == i);
+        }
+      },
+
+      {
+        feature: 'BigArray.getLength()',
+        description: 'Return the correct value',
+        code: function () {
+          assert(new BigArray().getLength() === 0);
+          assert(new BigArray(42).getLength() === 42);
+          assert(new BigArray("").getLength() === 1);
+          assert(new BigArray("x").getLength() === 1);
+          assert(new BigArray("x", "y").getLength() === 2);
+        }
+      },
+
+      {
+        feature: 'BigArray.prototype.get()',
+        description: 'Throw <code>jsx.InvalidArgumentError</code>',
+        code: function () {
+          var failure = jsx.tryThis(
+            function () {
+              new BigArray().get();
+              return false;
+            },
+            function (e) {
+              return (e instanceof jsx.InvalidArgumentError);
+            });
+          assert(failure);
+        }
+      },
+      {
+        feature: 'BigArray.prototype.get(…)',
+        description: 'Return the correct value',
+        code: function () {
+          assert(new BigArray("x").get(0) === "x");
+          assert(typeof new BigArray("x").get(1) == "undefined");
+
+          assert(new BigArray("x", "y").get(-2) === "x");
+          assert(new BigArray("x", "y").get(-1) === "y");
+          assert(typeof new BigArray("x", "y").get(-4) == "undefined");
+        }
+      },
+
+      /* TODO: Override and test Array methods that are not MAX_LENGTH-safe */
+
+      {
+        feature: 'BigArray.prototype.toString(…)',
+        description: 'Return the correct value',
+        code: function () {
+          assert(new BigArray().toString() === "");
+          assert(new BigArray(0).toString() === "");
+          assert(new BigArray(1).toString() === "");
+          assert(new BigArray(2).toString() === ",");
+        }
+      },
+
+      {
+        feature: 'BigArray.prototype.valueOf(…)',
+        description: 'Return the correct value',
+        code: function () {
+          var a = new BigArray("x\uD834\uDD1Ey");
+          var v = a.valueOf();
+          assert(v === a);
+        }
+      },
+
       {
         feature: 'jsx.array.createComparator(aKeys)',
         description: 'Sort <code>Array</code> as specified',

@@ -40,10 +40,20 @@ if (typeof jsx.array == "undefined")
  */
 jsx.array = (/** @constructor */ function () {
   /* Imports */
-  var _jsx_object = jsx.object;
+  var _jsx = jsx;
+  var _tryThis = _jsx.tryThis;
+  var _jsx_object = _jsx.object;
+  var _defineProperty = _jsx_object.defineProperty;
+  var _getClass = _jsx_object.getClass;
+  var _getKeys = _jsx_object.getKeys;
+  var _hasOwnProperty = _jsx_object._hasOwnProperty;
   var _getKeys = _jsx_object.getKeys;
   var _hasOwnProperty = _jsx_object._hasOwnProperty;
   var _isArray = _jsx_object.isArray;
+  var _isNativeObject = _jsx_object.isNativeObject;
+
+  /* Constant-like variables */
+  var _MAX_ARRAY_LENGTH = Math.pow(2, 32) - 1;
   var _isNativeMethod = _jsx_object.isNativeMethod;
 
   /**
@@ -123,7 +133,327 @@ jsx.array = (/** @constructor */ function () {
     return [];
   }
 
+  /**
+   * Array index out of range
+   *
+   * @type jsx.array.RangeError
+   * @extends RangeError|jsx.InvalidArgumentError
+   * @constructor
+   */
+  var _RangeError = (
+    function (sReason, sGot, sExpected) {
+      _jsx.InvalidArgumentError.apply(this, arguments);
+    }
+  ).extend(
+    typeof RangeError == "function"
+      ? RangeError
+      : _jsx.InvalidArgumentError,
+    {
+      name: "jsx.array.RangeError"
+    });
+
+  /**
+   * Array-like object which can hold up to 2<sup>53</sup> elements
+   *
+   * @function
+   * @type jsx.array.BigArray
+   * @extends Array
+   * @constructor
+   */
+  var _BigArray = jsx.object.extend(
+    /**
+     * @type __jsx.array.BigArray
+     * @param {Array|Object} src (optional)
+     *   Array-like object to be converted
+     * @return {jsx.arrayBigArray}
+     */
+    function jsx_array_BigArray (src) {
+      if (!(this instanceof jsx_array_BigArray))
+      {
+        return jsx_array_BigArray.construct(arguments);
+      }
+
+      /**
+       * @memberOf __jsx.array.BigArray
+       * @private
+       */
+      var _length = 0;
+
+      /**
+       * Removes all elements from the array
+       *
+       * @memberOf jsx.array.BigArray
+       */
+      this.clear = function () {
+        for (var i in this)
+        {
+          if (_BigArray.isIndex(i))
+          {
+            delete this[i];
+          }
+        }
+
+        this.setLength(0);
+      };
+
+      /**
+       * Sets the real length of this array
+       *
+       * @param {int} value
+       * @throws jsx.array.RangeError
+       *   if the value is less than <code>0</code> or
+       *   greater than {@link BigArray.MAX_LENGTH}
+       */
+      this.setLength = function BigArray_setLength (value) {
+        if (value < 0 || value > _BigArray.MAX_LENGTH)
+        {
+          return _jsx.throwThis(_RangeError,
+            ["Invalid length", value,
+             "0.." + _BigArray.MAX_LENGTH
+             + " (2^" + Math.floor(Math.log(_BigArray.MAX_LENGTH) / Math.log(2)) + ")"],
+            BigArray_setLength);
+        }
+
+        _length = Math.floor(value);
+
+        return this;
+      };
+
+      /**
+       * Returns the real length of this array
+       *
+       * @return {int}
+       */
+      this.getLength = function () {
+        return _length;
+      };
+
+      _defineProperty(this, "length", {
+        /**
+         * @memberOf jsx.array.BigArray
+         */
+        "get": this.getLength,
+        "set": this.setLength
+      }, "jsx.array.BigArray");
+
+      /**
+       * Sets the element at <var>index</var> to <var>value</var>
+       *
+       * @param {int} index
+       * @param {any} value
+       */
+      this.set = function (index, value) {
+        if (index < 0)
+        {
+          index = this.getLength() + Math.ceil(index);
+        }
+        else
+        {
+          index = Math.floor(index);
+        }
+
+        if (this.getLength() < index + 1)
+        {
+          this.setLength(index + 1);
+        }
+
+        this[index] = value;
+
+        return this;
+      };
+
+      /**
+       * @param {int} index
+       * @return {any} the element of this array at <var>index</var>
+       */
+      this.get = function BigArray_get (index) {
+        if (arguments.length < 1)
+        {
+          return jsx.throwThis(jsx.InvalidArgumentError,
+            ["Not enough arguments", "", "(int)"],
+            BigArray_get);
+        }
+
+        if (index < 0)
+        {
+          index = this.getLength() + Math.ceil(index);
+        }
+        else
+        {
+          index = Math.floor(index);
+        }
+
+        return this[index];
+      };
+
+      this.clear();
+
+      var arglen = arguments.length;
+      if (arglen > 1)
+      {
+        for (var i = arglen; i--;)
+        {
+          this.set(i, arguments[i]);
+        }
+      }
+      else if (arglen == 1)
+      {
+        var t = typeof src;
+        if (t == "number")
+        {
+          this.setLength(src);
+        }
+        else
+        {
+          if (!_isArray(src) && _isNativeObject(src)
+              && _getClass(src) != "Object")
+          {
+            this.set(0, src);
+          }
+          else
+          {
+            this.setAll(src);
+          }
+        }
+      }
+    },
+    {
+      /**
+       * Maximum number of elements that can be stored in
+       * a <code>BigArray</code>. Successor of the greatest
+       * integer value that can be used as index.
+       *
+       * @memberOf __jsx.array.BigArray
+       */
+      MAX_LENGTH: Math.pow(2, 53),
+
+      /**
+       * Determines if a value can be used as <code>BigArray</code>
+       * index.
+       *
+       * @param {any} i
+       */
+      isIndex: function (i) {
+        return parseInt(i, 10).toString() == i
+          && i > -1 && i < _BigArray.MAX_LENGTH;
+      },
+
+      /**
+       * Determines if an object is a <code>BigArray</code>.
+       *
+       * @param {Object} o
+       * @return {boolean}
+       */
+      isInstance: function (o) {
+        return o.constructor == _BigArray;
+      }
+    }
+  ).extend(Array, {
+    /**
+     * Returns the string representations of this array's
+     * elements, separated by another string (representation).
+     *
+     * @memberOf jsx.array.BigArray.prototype
+     * @param {String} glue
+     *   The separator between the string representations
+     * @return {string}
+     */
+    join: function (glue) {
+      var len = this.getLength();
+
+      if (len <= _MAX_ARRAY_LENGTH)
+      {
+        return [].join.apply(this, arguments);
+      }
+
+      if (arguments.length < 1)
+      {
+        glue = ",";
+      }
+
+      var s = "";
+
+      for (var i = 0; i < len; ++i)
+      {
+        s += this.get(i);
+
+        if (glue !== "" && i < len - 1)
+        {
+          s += glue;
+        }
+      }
+
+      return s;
+    },
+
+    /**
+     * Sets all elements based on another object.
+     *
+     * @param {Object} src
+     *   If an <code>Array</code> or </code>BigArray</code>,
+     *   copies all array elements (enumerable properties whose
+     *   name is an array index) to this array.
+     *   Otherwise, copies all properties with numeric name, from
+     *   0 to the name specified by the value of the object's
+     *   <code>length</code> property, to this array.
+     */
+    setAll: function (src) {
+      if (_isArray(src) || src instanceof _BigArray)
+      {
+        for (var i in src)
+        {
+          if (_BigArray.isIndex(i))
+          {
+            this.set(i, src[i]);
+          }
+        }
+      }
+      else
+      {
+        for (i = src.length; i--;)
+        {
+          if (_BigArray.isIndex(i))
+          {
+            this.set(i, src[i]);
+          }
+        }
+      }
+    },
+
+    /**
+     * Returns this <code>BigArray</code> as an {@link Array}
+     * with extra indexes.
+     *
+     * @return {Array}
+     */
+    toArray: function () {
+      var a = [];
+      a.length = this.length;
+
+      for (var i in this)
+      {
+        if (_BigArray.isIndex(i) && i < _MAX_ARRAY_LENGTH)
+        {
+          a[i] = this.get(i);
+        }
+      }
+
+      return a;
+    },
+
+    /**
+     * Returns the string representation of this array
+     * as a comma-separated list.
+     */
+    toString: function () {
+      return this.join(",");
+    }
+  });
+
   return {
+    /**
+     * @memberOf jsx.array
+     */
     version: "0.1.$Rev$",
     copyright: "Copyright \xA9 2004-2013",
     author: "Thomas Lahn",
@@ -131,7 +461,6 @@ jsx.array = (/** @constructor */ function () {
     path: "http://pointedears.de/scripts/",
 
     /**
-     * @memberOf jsx.array
      * @param {string} sMsg (optional)
      * @return {boolean} false
      */
@@ -149,6 +478,9 @@ jsx.array = (/** @constructor */ function () {
           + sMsg);
       return false;
     },
+
+    BigArray: _BigArray,
+    RangeError: _RangeError,
 
     /**
      * Splits the array <code>a</code> into several arrays with
@@ -291,7 +623,7 @@ jsx.array = (/** @constructor */ function () {
           }
           else
           {
-            jsx.throwThis('TypeError');
+            _jsx.throwThis('TypeError');
           }
         }
         else
@@ -305,7 +637,7 @@ jsx.array = (/** @constructor */ function () {
 
       if (typeof fCallback != "function")
       {
-        jsx.throwThis('TypeError');
+        _jsx.throwThis('TypeError');
       }
 
       var res = [];
@@ -386,11 +718,6 @@ jsx.array = (/** @constructor */ function () {
       if (!_isArray(a) && _isArray(this))
       {
         a = this;
-      }
-
-      if (_isNativeMethod(a, "pop"))
-      {
-        return a.pop();
       }
 
       var result = null;
@@ -728,9 +1055,9 @@ jsx.array = (/** @constructor */ function () {
      * @function
      */
     splice: (function() {
-      if (typeof jsx.global.array_splice != "undefined")
+      if (typeof _jsx.global.array_splice != "undefined")
       {
-        return jsx.global.array_splice;
+        return _jsx.global.array_splice;
       }
       else if (typeof Array != "undefined"
                && _jsx_object.isNativeMethod(Array, "prototype", "splice"))
