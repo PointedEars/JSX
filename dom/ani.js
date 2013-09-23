@@ -109,7 +109,8 @@ jsx.dom.animation = (/** @constructor */ function () {
         return new _Color(
           startValue.red   + (endValue.red - startValue.red) * fraction,
           startValue.green + (endValue.green - startValue.green) * fraction,
-          startValue.blue  + (endValue.blue - startValue.blue) * fraction
+          startValue.blue  + (endValue.blue - startValue.blue) * fraction,
+          startValue.opacity + (endValue.opacity - startValue.opacity) * fraction
         );
       }
 
