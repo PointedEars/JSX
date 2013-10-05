@@ -5,7 +5,7 @@
  * @author (C) 2004-2013 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
- *
+ * <pre>
  * JSX is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -18,6 +18,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
+ * </pre>
  */
 
 if (typeof jsx == "undefined")
@@ -41,12 +42,9 @@ if (typeof jsx.array == "undefined")
 jsx.array = (/** @constructor */ function () {
   /* Imports */
   var _jsx = jsx;
-  var _tryThis = _jsx.tryThis;
   var _jsx_object = _jsx.object;
   var _defineProperty = _jsx_object.defineProperty;
   var _getClass = _jsx_object.getClass;
-  var _getKeys = _jsx_object.getKeys;
-  var _hasOwnProperty = _jsx_object._hasOwnProperty;
   var _getKeys = _jsx_object.getKeys;
   var _hasOwnProperty = _jsx_object._hasOwnProperty;
   var _isArray = _jsx_object.isArray;
@@ -180,23 +178,6 @@ jsx.array = (/** @constructor */ function () {
       var _length = 0;
 
       /**
-       * Removes all elements from the array
-       *
-       * @memberOf jsx.array.BigArray
-       */
-      this.clear = function () {
-        for (var i in this)
-        {
-          if (_BigArray.isIndex(i))
-          {
-            delete this[i];
-          }
-        }
-
-        this.setLength(0);
-      };
-
-      /**
        * Sets the real length of this array
        *
        * @param {int} value
@@ -228,63 +209,14 @@ jsx.array = (/** @constructor */ function () {
         return _length;
       };
 
+      /**
+       * @memberOf jsx.array.BigArray
+       * @name length
+       */
       _defineProperty(this, "length", {
-        /**
-         * @memberOf jsx.array.BigArray
-         */
         "get": this.getLength,
         "set": this.setLength
       }, "jsx.array.BigArray");
-
-      /**
-       * Sets the element at <var>index</var> to <var>value</var>
-       *
-       * @param {int} index
-       * @param {any} value
-       */
-      this.set = function (index, value) {
-        if (index < 0)
-        {
-          index = this.getLength() + Math.ceil(index);
-        }
-        else
-        {
-          index = Math.floor(index);
-        }
-
-        if (this.getLength() < index + 1)
-        {
-          this.setLength(index + 1);
-        }
-
-        this[index] = value;
-
-        return this;
-      };
-
-      /**
-       * @param {int} index
-       * @return {any} the element of this array at <var>index</var>
-       */
-      this.get = function BigArray_get (index) {
-        if (arguments.length < 1)
-        {
-          return jsx.throwThis(jsx.InvalidArgumentError,
-            ["Not enough arguments", "", "(int)"],
-            BigArray_get);
-        }
-
-        if (index < 0)
-        {
-          index = this.getLength() + Math.ceil(index);
-        }
-        else
-        {
-          index = Math.floor(index);
-        }
-
-        return this[index];
-      };
 
       this.clear();
 
@@ -323,7 +255,7 @@ jsx.array = (/** @constructor */ function () {
        * a <code>BigArray</code>. Successor of the greatest
        * integer value that can be used as index.
        *
-       * @memberOf __jsx.array.BigArray
+       * @memberOf jsx.array.BigArray
        */
       MAX_LENGTH: Math.pow(2, 53),
 
@@ -350,40 +282,72 @@ jsx.array = (/** @constructor */ function () {
     }
   ).extend(Array, {
     /**
-     * Returns the string representations of this array's
-     * elements, separated by another string (representation).
+     * Removes all elements from the array
      *
      * @memberOf jsx.array.BigArray.prototype
-     * @param {String} glue
-     *   The separator between the string representations
-     * @return {string}
      */
-    join: function (glue) {
-      var len = this.getLength();
-
-      if (len <= _MAX_ARRAY_LENGTH)
+    clear: function () {
+      for (var i in this)
       {
-        return [].join.apply(this, arguments);
-      }
-
-      if (arguments.length < 1)
-      {
-        glue = ",";
-      }
-
-      var s = "";
-
-      for (var i = 0; i < len; ++i)
-      {
-        s += this.get(i);
-
-        if (glue !== "" && i < len - 1)
+        if (_BigArray.isIndex(i))
         {
-          s += glue;
+          delete this[i];
         }
       }
 
-      return s;
+      this.setLength(0);
+    },
+
+    /**
+     * @param {int} index
+     * @return {any} the element of this array at <var>index</var>
+     */
+    get: function BigArray_get (index) {
+      if (arguments.length < 1)
+      {
+        return jsx.throwThis(jsx.InvalidArgumentError,
+          ["Not enough arguments", "", "(int)"],
+          BigArray_get);
+      }
+
+      if (index < 0)
+      {
+        index = this.getLength() + Math.ceil(index);
+      }
+      else
+      {
+        index = Math.floor(index);
+      }
+
+      return this[index];
+    },
+
+    /**
+     * Sets the element at <var>index</var> to <var>value</var>
+     *
+     * @param {int} index
+     * @param {any} value
+     */
+    set: function (index, value) {
+      var length = this.getLength();
+
+      if (index < 0)
+      {
+        index = length + Math.ceil(index);
+      }
+      else
+      {
+        index = Math.floor(index);
+      }
+
+      if (length < index + 1)
+      {
+        this.setLength(index + 1);
+      }
+
+      this[index] = value;
+
+      return this;
     },
 
     /**
@@ -421,18 +385,77 @@ jsx.array = (/** @constructor */ function () {
     },
 
     /**
-     * Returns this <code>BigArray</code> as an {@link Array}
-     * with extra indexes.
+     * Returns the string representations of this array's
+     * elements, separated by another string (representation).
+     *
+     * @param {String} glue
+     *   The separator between the string representations
+     * @return {string}
+     */
+    join: function (glue) {
+      var len = this.getLength();
+      var _join = [].join;
+
+      if (len <= _MAX_ARRAY_LENGTH)
+      {
+        return _join.apply(this, arguments);
+      }
+
+      if (arguments.length < 1)
+      {
+        glue = ",";
+      }
+
+      var chunks = [];
+      var chunk_index = 0;
+
+      for (var i = 0; i < len; ++i)
+      {
+        var chunk = chunks[chunk_index];
+        if (typeof chunk == "undefined")
+        {
+          chunk = chunks[chunk_index] = [];
+        }
+
+        if (chunk.length < _MAX_ARRAY_LENGTH)
+        {
+          chunk.push(this.get(i))
+        }
+        else
+        {
+          chunks[chunk_index++] = _join.apply(chunk, arguments);
+        }
+      }
+
+      return _join.apply(chunks, arguments);
+    },
+
+    /**
+     * Returns this <code>BigArray</code> as an {@link Array},
+     * with extra indexes if necessary.
+     *
+     * <em>Note that the returned <code>Array</code>'s {@link Array#length}
+     * property does not reflect the highest index in the array if
+     * it is greater than the one supported by the implementation
+     * for <code>Array</code>s (ES 5.x: 2³²−1).  However, the extra
+     * indexes are enumerable.</em>
+     *
+     * <strong>There is no point in calling this method unless you
+     * really need an <code>Array</code>.  The original object
+     * inherits from <code>Array.prototype</code>, known methods are
+     * overridden if necessary, and all its indexes are enumerable.</strong>
      *
      * @return {Array}
      */
     toArray: function () {
       var a = [];
-      a.length = this.length;
+
+      /* Speed up addition of elements */
+      a.length = Math.min(_MAX_ARRAY_LENGTH, this.getLength());
 
       for (var i in this)
       {
-        if (_BigArray.isIndex(i) && i < _MAX_ARRAY_LENGTH)
+        if (_BigArray.isIndex(i))
         {
           a[i] = this.get(i);
         }
