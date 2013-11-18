@@ -584,7 +584,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
       jsx_dom_widgets_Anchor._super.apply(this, arguments);
     }
   ).extend(_Container, {
-    elementType: "a",
+    elementType: "a"
   });
 
   var _Label = (
