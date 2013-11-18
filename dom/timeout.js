@@ -1,12 +1,11 @@
 /**
  * <title>PointedEars' DOM Library: Timeout</title>
- * @requires types.js
- * @recommends xpath.js
+ * @requires object.js
  *
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2002-2012 Thomas Lahn <js@PointedEars.de>
+ *   (C) 2002-2013 Thomas Lahn <js@PointedEars.de>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -40,122 +39,136 @@ if (typeof jsx.dom == "undefined")
   jsx.dom = {};
 }
 
-if (typeof jsx.dom.timeout == "undefined")
-{
-  /**
-   * @namespace
-   */
-  jsx.dom.timeout = {};
-}
-
 /**
- * Creates a container for code that can be run later
- *
- * @param f : Function
- *   Code to be run later.  The default is <code>null</code>.
- * @param delay : int
- *   Milliseconds after which the code will be run by default.
- * @constructor
+ * @namespace
  */
-jsx.dom.timeout.Timeout = function(f, delay) {
-  this.running = false;
-  this.code = f || null;
-  this.delay = parseInt(delay, 10) || 50;
-};
+jsx.dom.timeout = (function () {
+  /* Imports */
+  var _isMethod = jsx.object.isMethod;
 
-/**
- * Runs the associated code after <var>delay</var> milliseconds;
- * cancels any planned but not yet performed executions.
- *
- * @param f : Function
- *   Code to be run later.  The default is the value of the
- *   <code>code</code> property as initialized upon construction.
- *   This argument's value will modify that property if the type
- *   is correct.
- * @param delay : int
- *   Milliseconds after which the code will be run by default.
- *   The default is the value of the <code>delay</code> property
- *   as initialized upon construction.
- *   This argument's value will modify that property if the type
- *   is correct.
- * @see #Timeout()
- * @return jsx.dom.timeout.Timeout
- *   This object
- */
-jsx.dom.timeout.Timeout.prototype.run = function(f, delay) {
-  this.unset();
-
-  if (typeof f == "function")
-  {
-    this.code = f;
-  }
-
-  if (delay)
-  {
-    this.delay = parseInt(delay, 10);
-  }
-
-  if (jsx.object.isMethod(jsx.global, "window", "setTimeout"))
-  {
-    this.running = true;
-    var me = this;
-    this.data = window.setTimeout(function() {
-      me.code();
-      me.unset();
-    }, this.delay);
-  }
-
-  return this;
-};
-
-/**
- * Cancels the execution of the associated code
- */
-jsx.dom.timeout.Timeout.prototype.unset = function() {
-  if (this.running)
-  {
-    if (jsx.object.isMethod(jsx.global, "window", "clearTimeout"))
-    {
-      window.clearTimeout(this.data);
+  /* Private variables */
+  var _Timeout = (
+    /**
+     * Creates a container for code that can be run later.
+     *
+     * @constructor
+     * @param {Function} f
+     *   Code to be run later.  The default is <code>null</code>.
+     * @param {int} delay
+     *   Milliseconds after which the code will be run by default.
+     */
+    function jsx_dom_timeout_Timeout (f, delay) {
+      this.running = false;
+      this.code = f || null;
+      this.delay = parseInt(delay, 10) || 50;
     }
+  ).extend(null, {
+    /**
+     * Runs the associated code after <var>delay</var> milliseconds;
+     * cancels any planned but not yet performed executions.
+     *
+     * @memberOf jsx.dom.timeout.Timeout.prototype
+     * @param {Function} f
+     *   Code to be run later.  The default is the value of the
+     *   <code>code</code> property as initialized upon construction.
+     *   This argument's value will modify that property if the type
+     *   is correct.
+     * @param {int} delay
+     *   Milliseconds after which the code will be run by default.
+     *   The default is the value of the <code>delay</code> property
+     *   as initialized upon construction.
+     *   This argument's value will modify that property if the type
+     *   is correct.
+     * @return {jsx.dom.timeout.Timeout}
+     *   This object
+     */
+    run: function(f, delay) {
+      this.unset();
 
-    this.running = false;
-  }
-};
+      if (typeof f == "function")
+      {
+        this.code = f;
+      }
 
-/**
- * Provides a container for {@link #Timeout}s.
- *
- * @param timeouts : Array[Timeout]
- *   The list of {@link jsx.dom.timeout#Timeout Timeouts} to be considered
- * @constructor
- */
-jsx.dom.timeout.TimeoutList = function(timeouts) {
-  this.timeouts = timeouts || [];
-};
+      if (delay)
+      {
+        this.delay = parseInt(delay, 10);
+      }
 
-/**
- * Unsets all {@link #Timeout}s in this container
- */
-jsx.dom.timeout.TimeoutList.prototype.unsetAll = function() {
-  for (var i = 0, timeouts = this.timeouts, len = timeouts.length; i < len; ++i)
-  {
-    timeouts[i].unset();
-  }
-};
+      if (_isMethod(jsx.global, "window", "setTimeout"))
+      {
+        this.running = true;
+        var me = this;
+        this.data = window.setTimeout(function() {
+          me.code();
+          me.unset();
+        }, this.delay);
+      }
 
-/**
- * Schedules code for later execution.
- *
- * @param code : String|Function
- *   Code to be executed or function to be called.
- * @param iTimeout : number
- *   Number of milliseconds after which <var>code</var> should be run.
- *   The time of execution is implementation-dependent, but the timer
- *   will usually not start before control has returned to the caller.
- * @return jsx.dom.timeout.Timeout
- *   The created <code>Timeout</code>
- */
-jsx.dom.timeout.runAsync = function (code, iTimeout) {
-  return (new jsx.dom.timeout.Timeout(code, iTimeout)).run();
-};
+      return this;
+    },
+
+    /**
+     * Cancels the execution of the associated code
+     */
+    unset: function() {
+      if (this.running)
+      {
+        if (_isMethod(jsx.global, "window", "clearTimeout"))
+        {
+          window.clearTimeout(this.data);
+        }
+
+        this.running = false;
+      }
+    }
+  });
+
+  return {
+    /**
+     * @memberOf jsx.dom.timeout
+     */
+    Timeout: _Timeout,
+
+    TimeoutList: (
+      /**
+       * Provides a container for {@link #Timeout}s.
+       *
+       * @constructor
+       * @param {Array} timeouts
+       *   The list of {@link jsx.dom.timeout#Timeout Timeouts} to be considered
+       */
+      function jsx_dom_timeout_TimeoutList (timeouts) {
+        this.timeouts = timeouts || [];
+      }
+    ).extend(null, {
+      /**
+       * Unsets all {@link #Timeout}s in this container
+       *
+       * @memberOf jsx.dom.timeout.TimeoutList.prototype
+       */
+      unsetAll: function() {
+        for (var i = 0, timeouts = this.timeouts, len = timeouts.length; i < len; ++i)
+        {
+          timeouts[i].unset();
+        }
+      }
+    }),
+
+    /**
+     * Schedules code for later execution.
+     *
+     * @param {String|Function} code
+     *   Code to be executed or function to be called.
+     * @param {number} iTimeout
+     *   Number of milliseconds after which <var>code</var> should be run.
+     *   The time of execution is implementation-dependent, but the timer
+     *   will usually not start before control has returned to the caller.
+     * @return {jsx.dom.timeout.Timeout}
+     *   The created <code>Timeout</code>
+     */
+    runAsync: function (code, iTimeout) {
+      return (new _Timeout(code, iTimeout)).run();
+    }
+  };
+}());
