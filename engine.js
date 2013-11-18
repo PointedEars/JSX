@@ -340,7 +340,8 @@ function _EngineInfo ()
  */
 function _EngineInfo_prototype_toString ()
 {
-  return (this.name ? this.name + ' ' : '') + this.version;
+  var name = this.getName();
+  return (name ? name + ' ' : '') + this.getVersion();
 }
 _EngineInfo.prototype.toString = _EngineInfo_prototype_toString;
 
