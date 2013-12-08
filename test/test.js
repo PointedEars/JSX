@@ -41,10 +41,11 @@ if (typeof jsx.test == "undefined")
  */
 jsx.test = (/** @constructor */ function () {
   var _isArray = jsx.object.isArray;
+  var _isObject = jsx.object.isObject;
   var _throwThis = jsx.throwThis;
 
   /**
-   * @Number of assertions made
+   * Number of assertions made
    * @private
    */
   var _assertCount = 0;
@@ -54,19 +55,68 @@ jsx.test = (/** @constructor */ function () {
     return ++_assertCount;
   }
 
-  var _AssertionError = (function jsx_test_AssertionError (s) {
-    var _super = jsx_test_AssertionError._super;
-    if (_super)
-    {
-      _super.call(this);
-    }
+  /**
+   * @constructor
+   * @namespace __jsx.test.AssertionError
+   * @type jsx.test.AssertionError
+   * @extends jsx.Error
+   */
+  var _AssertionError = (
+    /**
+     * @param {string} s
+     */
+    function jsx_test_AssertionError (s) {
+      var _super = jsx_test_AssertionError._super;
+      if (_super)
+      {
+        _super.call(this);
+      }
 
-    this.message = "Assertion failed: " + s;
-  }).extend(jsx.Error, {
+      this.message = "Assertion failed: " + s;
+    }
+  ).extend(jsx.Error, {
     /**
      * @memberOf jsx.test.AssertionError#prototype
      */
     name: "jsx.test.AssertionError"
+  });
+
+  /**
+   * @constructor
+   * @namespace __jsx.test.ArrayComparisonFailure
+   * @type jsx.test.ArrayComparisonFailure
+   * @extends jsx.InvalidArgumentError
+   * @private
+   * @memberOf __jsx.test
+   */
+  var _ArrayComparisonFailure = (
+    function jsx_test_ArrayComparisonFailure () {
+      jsx_test_ArrayComparisonFailure._super.call(this, "Arrays expected");
+    }
+  ).extend(jsx.InvalidArgumentError, {
+    /**
+     * @memberOf __jsx.test.ArrayComparisonFailure.prototype
+     */
+    name: "jsx.test.ArrayComparisonFailure"
+  });
+
+  /**
+   * @constructor
+   * @namespace __jsx.test.ObjectComparisonFailure
+   * @type jsx.test.ObjectComparisonFailure
+   * @extends jsx.InvalidArgumentError
+   * @private
+   * @memberOf __jsx.test
+   */
+  var _ObjectComparisonFailure = (
+    function jsx_test_ObjectComparisonFailure () {
+      jsx_test_ObjectComparisonFailure._super.call(this, "Objects expected");
+    }
+  ).extend(jsx.InvalidArgumentError, {
+    /**
+     * @memberOf __jsx.test.ObjectComparisonFailure.prototype
+     */
+    name: "jsx.test.ObjectComparisonFailure"
   });
 
   return {
@@ -93,7 +143,6 @@ jsx.test = (/** @constructor */ function () {
     },
 
     /**
-     * @param {string} s
      * @function
      */
     AssertionError: _AssertionError,
@@ -280,7 +329,7 @@ jsx.test = (/** @constructor */ function () {
      *
      * @function
      * @throws
-     *   {@link ArrayComparisonFailure}
+     *   {@link #ArrayComparisonFailure}
      *   if either of the given values is not a reference to an
      *   {@link Array}.
      * @throws
@@ -326,7 +375,7 @@ jsx.test = (/** @constructor */ function () {
 
         if (!_isArray(expecteds) || !_isArray(actuals))
         {
-          return _throwThis("ArrayComparisonFailure");
+          return _throwThis(_ArrayComparisonFailure);
         }
 
         var len = expecteds.length;
@@ -340,6 +389,77 @@ jsx.test = (/** @constructor */ function () {
         for (var i = len; i--;)
         {
           if (expecteds[i] !== actuals[i])
+          {
+            return _thrower(expecteds, actuals);
+          }
+        }
+
+        return true;
+      };
+    }()),
+
+    /**
+     * Asserts that two objects are equal.  If they are not,
+     * an {@link #AssertionError} is thrown with a default message.
+     * Two object are considered equal only if their keys are
+     * strictly equal (shallow strict comparison).
+     *
+     * @function
+     * @throws
+     *   {@link #ObjectComparisonFailure}
+     *   if either of the given values is not a reference to an
+     *   object.
+     * @throws
+     *   {@link #AssertionError}
+     *   if the assertion fails and either exception can be thrown.
+     * @see Global#eval()
+     */
+    assertObjectEquals: (function () {
+      function _thrower (expecteds, actuals)
+      {
+        return _throwThis(_AssertionError,
+          "assertObjectEquals(expecteds, actuals)");
+      }
+
+      /**
+       * @param {string|Object} expecteds
+       *   Expected value; if a string, it is evaluated as a <i>Program</i>.
+       * @param {string|Object} actuals
+       *   Actual value; if a string, it is evaluated as a <i>Program</i>.
+       * @return {boolean}
+       *   <code>false</code>, if comparison is not possible
+       *   or the assertion fails, and no exception can be thrown;
+       *   <code>true</code>, if the assertion is met.
+       */
+      return function (expecteds, actuals) {
+        _increaseAssertCount();
+
+        if (typeof expecteds == "string")
+        {
+          expecteds = eval(expecteds);
+        }
+
+        if (typeof actuals == "string")
+        {
+          actuals = eval(actuals);
+        }
+
+        if (typeof expecteds == typeof actuals
+          && expecteds == null && actuals == null)
+        {
+          return true;
+        }
+
+        if (!_isObject(expecteds) || !_isObject(actuals))
+        {
+          return _throwThis(_ObjectComparisonFailure);
+        }
+
+        var keys = jsx.object.getKeys(expecteds);
+        for (var i = keys.length; i--;)
+        {
+          var key = keys[i];
+          if (expecteds[key] !== actuals[key])
           {
             return _thrower(expecteds, actuals);
           }
@@ -644,7 +764,7 @@ jsx.test = (/** @constructor */ function () {
        * Runs test cases.
        *
        * @param {Object} spec
-       *   Test specifaction.  Supported properties incude:
+       *   Test specification.  Supported properties incude:
        *   <table>
        *     <thead>
        *       <th>Property</th>
