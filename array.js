@@ -151,6 +151,71 @@ jsx.array = (/** @constructor */ function () {
     });
 
   /**
+   * An <code>Array</code> whose last elements can be accessed
+   * by negative index.  This additional functionality requires
+   * support for <code>Proxy</code> (ECMAScript Edition 6 “Harmony”
+   * proposal); if not available, a regular <code>Array</code>
+   * is returned.
+   *
+   * @constructor
+   * @param {int} length
+   * @return {jsx.array.Array|Array}
+   */
+  var _Array = function jsx_array_Array (length) {
+    var me = Array.construct(arguments);
+
+    if (typeof Proxy != "undefined")
+    {
+      var traps = {
+        set: function (target, propertyName, value) {
+          var index;
+          if (!isNaN(index = parseInt(propertyName, 10)))
+          {
+            if (index < 0)
+            {
+              propertyName = target.length + index;
+            }
+          }
+
+          return (target[propertyName] = value);
+        },
+
+        get: function (target, propertyName) {
+          var index;
+          if (!isNaN(index = parseInt(propertyName, 10)))
+          {
+            if (index < 0)
+            {
+              propertyName = target.length + index;
+            }
+          }
+
+          return target[propertyName];
+        }
+      };
+
+      return jsx.tryThis(
+        function () {
+          return new Proxy(me, traps);
+        },
+
+        function () {
+          return jsx.tryThis(
+            function () {
+              return Proxy.create(me, traps);
+            },
+            function (e) {
+              return jsx.rethrowThis(e);
+            }
+          );
+        }
+      );
+    }
+
+    return me;
+  }.extend(Array);
+
+  /**
    * Array-like object which can hold up to 2<sup>53</sup> elements
    *
    * @function
@@ -280,7 +345,7 @@ jsx.array = (/** @constructor */ function () {
         return o.constructor == _BigArray;
       }
     }
-  ).extend(Array, {
+  ).extend(_Array, {
     /**
      * Removes all elements from the array
      *
@@ -482,6 +547,8 @@ jsx.array = (/** @constructor */ function () {
     author: "Thomas Lahn",
     email: "js@PointedEars.de",
     path: "http://pointedears.de/scripts/",
+
+    Array: _Array,
 
     /**
      * @param {string} sMsg (optional)
