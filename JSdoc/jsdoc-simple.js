@@ -1,84 +1,136 @@
-if (typeof de.pointedears.jsdoc == "undefined")
-{
+"use strict";
+
+/**
+ * @type de.pointedears.jsdoc
+ * @memberOf __de.pointedears.jsdoc
+ * @namespace
+ */
+de.pointedears.jsdoc = (/** @constructor */ function () {
   /**
-   * @namespace
+   * @function
    */
-  de.pointedears.jsdoc = {};
-}
+  var _Parser = (
+    /**
+     * @constructor
+     * @extends jsx.string.parser.ecmascript.Parser
+     */
+    function de_pointedears_jsdoc_Parser () {
+      de_pointedears_jsdoc_Parser._super.apply(this, arguments);
+    }
+  ).extend(jsx.string.parser.ecmascript.Parser, {
+    /**
+     * @memberOf de.pointedears.jsdoc.Parser.prototype
+     * @overrides jsx.string.parser.ecmascript.Parser.prototype.parseToken
+     */
+    parseToken: function (token) {
+      /* Parse ECMAScript */
+      _Parser._super.prototype.parseToken.apply(this, arguments);
 
-de.pointedears.jsdoc.generate = function (code) {
-  var rx = /\/\*\*(([^*]|\*[^\/])+)\*\//g, m;
-  
-  while ((m = rx.exec(code)))
-  {
-    var comment = m[1].replace(/(<pre>[\S\s]+?<\/pre>)|^\s*\*\s*/gm, "$1");
-    
-    comment = comment.replace(
-      /<title>([\S\s]+?)<\/title>/gi,
-      function (match, title) {
-        var newTitle = title + " – " + document.title;
-        document.title = newTitle;
-        window.top.document.title = newTitle;
-        return "";
-      });
-    
-    comment = comment.replace(
-      /@filename\s+(\S+)/,
-      function (match, filename) {
-        var title = document.getElementById("title");
-        jsx.dom.removeChildren(title, title.childNodes);
-        title.appendChild(jsx.dom.createElementFromObj({
-          type: "tt",
-          childNodes: [
-            filename
-          ]
-        }));
-        
-        return "";
-      });
-    
-    comment = comment.replace(
-      /@version\s+(.+)/,
-      function (match, version) {
-        document.body.appendChild(jsx.dom.createElementFromObj({
-          type: "p",
-          childNodes: [
-            {
-              type: "b",
-              childNodes: [
-                "Version: "
-              ]
-            }, " " + version
-          ]
-        }));
-        
-        return "";
-      });
-    
-    comment = comment.replace(
-      /@section\s+(.+)|@author\s+(.*)|@partof\s+(.*)/g,
-      function (match, section, author, partof)
+      console.log("Line " + this.getLine() + ": " + token.type + ": »" + token.match + "«");
+
+      if (token.type == "COMMENT_MULTI" && token.match.charAt(2) == "*")
       {
-        if (section)
-        {
-          return "<h2>" + section + "<\/h2>";
-        }
-        
-        if (author)
-        {
-          return "<p>" + author + "<\/p>";
-        }
-        
-        if (partof)
-        {
-          return "<p>Part of " + partof + "<\/p>";
-        }
-        
-        return match;
-      });
+        /* Parse JSdoc */
+        console.log("JSdoc");
+      }
 
-    var div = document.createElement("div");
-    div.innerHTML = comment;
-    document.body.appendChild(div);
-  }
-};
+      return true;
+    }
+  });
+
+  return {
+    /**
+     * @memberOf de.pointedears.jsdoc
+     */
+    Parser: (function (code) {
+      this.code = code;
+      this.state = "";
+    }).extend(null, {
+      tokens: {
+        "": [
+          {pattern: /\/\*\*/g, nextState: "comment"}
+        ],
+        "comment": [
+          {pattern: /@\w+/g},
+          {pattern: /\*\//g, nextState: ""}
+        ]
+      },
+
+      getNextToken: function () {
+        var code = this.code;
+        var current_tokens = this.tokens[this.state];
+        var longest_match_wins = this.longestMatchWins;
+        var last_index = this.lastIndex;
+        var used_match = {
+          index: Infinity,
+          lastIndex: last_index,
+          length: 0
+        };
+
+        for (var i = 0, len = current_tokens.length; i < len; ++i)
+        {
+          var current_token = current_tokens[i];
+          var rx = current_token.pattern;
+          rx.lastIndex = last_index;
+
+          var match = rx.exec(code);
+          if (match)
+          {
+            if (longest_match_wins)
+            {
+              var match_length = match[0].length;
+              if (used_match.length < match_length)
+              {
+                used_match.token = current_token;
+                used_match.match = match;
+                used_match.length = match_length;
+                used_match.lastIndex = rx.lastIndex;
+              }
+            }
+            else if (match.index < used_match.index)
+            {
+              used_match.token = current_token;
+              used_match.match = match;
+              used_match.index = match.index;
+              used_match.lastIndex = rx.lastIndex;
+            }
+          }
+        }
+
+        if (used_match.match)
+        {
+          this.lastIndex = used_match.lastIndex;
+
+          var next_state = used_match.token.nextState;
+          if (typeof next_state != "undefined")
+          {
+            this.state = next_state;
+          }
+
+          used_match.token.match = used_match.match;
+
+          return used_match.token;
+        }
+
+        return null;
+      },
+
+      parse: function () {
+        var token;
+        while ((token = this.getNextToken()))
+        {
+          console.log(token);
+        }
+      }
+    }),
+
+    /**
+     * @param {String} code
+     * @param {String} filename
+     */
+    generate: function (code, filename) {
+      var parser = new this.Parser(code);
+      parser.parse();
+    }
+  };
+}());
