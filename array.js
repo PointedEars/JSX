@@ -1499,7 +1499,7 @@ jsx.array = (/** @constructor */ function () {
               continue;
             }
 
-            equals = ((key && key.strict) || (options.strict)
+            var equals = ((key && key.strict) || (options.strict)
               ? (el1Value === el2Value)
               : (el1Value == el2Value));
 
