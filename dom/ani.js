@@ -13,36 +13,6 @@ if (typeof jsx == "undefined")
   var jsx = {};
 }
 
-/**
- * Retrieves an {@link Array} element as if by the expression
- * <code><var>a</var>.slice(<var>index</var>,
- * <var>index</var> + 1)[0]</code>.
- *
- * If <var>index</var> is negative, its absolute is counted
- * from the end of <var>a</var>.
- *
- * @param {Array} a
- * @param {Number} index
- * @return {any}
- */
-Array.get = function (a, index) {
-  if (isNaN(index))
-  {
-    jsx.throwThis("jsx.InvalidArgumentError", ["",
-      "(" + typeof a + ", " + typeof index + ")",
-      "(object[Array], number)"]);
-  }
-
-  index = +index;
-
-  if (index >= 0)
-  {
-    return a[index];
-  }
-
-  return a[a.length + index];
-};
-
 if (typeof jsx.dom == "undefined")
 {
   /**
@@ -231,7 +201,7 @@ jsx.dom.animation = (/** @constructor */ function () {
 
       /* Sort keyFrames by time */
       var keyFrames = this.keyFrames;
-      var duration = Array.get(keyFrames, -1).time;
+      var duration = jsx.array.get(keyFrames, -1).time;
 
       /* Compute keyframe times that are percentages of the duration */
       var rxTimePercentage = /^\s*\+?(\d+|\d*\.\d+)\s*%\s*$/;
@@ -268,7 +238,7 @@ jsx.dom.animation = (/** @constructor */ function () {
 //      if (keyFrames.length > 0)
 //      {
 //        /* Add mirrored keyframes */
-//        var lastKeyFrame = Array.get(keyFrames, -1);
+//        var lastKeyFrame = jsx.array.get(keyFrames, -1);
 //        for (var i = keyFrames.length - 2; i > -1; --i)
 //        {
 //          var keyFrameToClone = keyFrames[i];
@@ -376,7 +346,7 @@ jsx.dom.animation = (/** @constructor */ function () {
        * @return {Number}
        */
       getTotalDuration: function () {
-        return Array.get(this.keyFrames, -1).time
+        return jsx.array.get(this.keyFrames, -1).time
           * (this.autoReverse ? 2 : 1) * this.repeatCount;
       },
 
@@ -627,7 +597,7 @@ jsx.dom.animation = (/** @constructor */ function () {
           "#" + targetId + " {",
           "  " + animationNameProperty + ": jsx-timeline-" + timelineId + ";",
           "  " + prefix + "animation-duration: "
-          + Array.get(this.keyFrames, -1).time + "ms;",
+          + jsx.array.get(this.keyFrames, -1).time + "ms;",
           "  " + prefix + "animation-fill-mode: forwards;",
           "  " + prefix + "animation-timing-function: linear;",
           "}"
@@ -1004,7 +974,7 @@ jsx.dom.animation = (/** @constructor */ function () {
       var time = this.time + "ms";
       if (this._timeline)
       {
-        time = (this.time / Array.get(this._timeline.keyFrames, -1).time * 100)
+        time = (this.time / jsx.array.get(this._timeline.keyFrames, -1).time * 100)
           + "%";
       }
 
