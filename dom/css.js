@@ -372,7 +372,7 @@ jsx.dom.css = (/** @constructor */ function () {
             return null;
           }
 
-          computedStyle = obj.currentStyle;
+          computedStyle = oElement.currentStyle;
         }
 
         if (typeof computedStyle != "undefined")
