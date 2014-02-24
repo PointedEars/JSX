@@ -4,12 +4,12 @@
  * @requires types.js
  *
  * @section Copyright & Disclaimer
- * 
+ *
  * @author
  *   (C) 2000-2011  Thomas Lahn &lt;math.js@PointedEars.de&gt;
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
- * 
+ *
  * JSX is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -24,42 +24,65 @@
  * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * Returns the greatest common divisor (GCD) of two integers
- * <code>a</code> and <code>b</code>, implementing (the optimized form of) the
- * Euclidean algorithm (also called Euclid's algorithm).  The
- * GCD of two integer arguments is the largest positive integer
- * that both arguments are integer multiples of, i.e. by which
- * either argument can be divided without remainder.  Since
- * integers are required, the floor of <code>a</code> and <code>b</code> will
- * be used for computation.
- *
- * @param a : number
- * @param b : number
- * @return type number
- *   The GCD of <code>a</code> and <code>b</code>;
- *   <code>NaN</code> if an argument is not a number.
- * @see Math#floor(number)
- */
-Math.gcd = function(a, b) {
-  if (isNaN(a) || isNaN(b))
-  {
-    return Number.NaN;
+if (typeof jsx == "undefined")
+{
+  var jsx = {};
+}
+
+if (typeof jsx.math == "undefined")
+{
+  jsx.math = {};
+}
+
+jsx.math.integer = {
+  /**
+   * Returns the greatest common divisor (GCD) of two integers
+   * <code>a</code> and <code>b</code>, implementing (the optimized form of) the
+   * Euclidean algorithm (also called Euclid's algorithm).  The
+   * GCD of two integer arguments is the largest positive integer
+   * that both arguments are integer multiples of, i.e. by which
+   * either argument can be divided without remainder.  Since
+   * integers are required, the floor of <code>a</code> and <code>b</code> will
+   * be used for computation.
+   *
+   * @memberOf jsx.math.integer
+   * @param a : number
+   * @param b : number
+   * @return type number
+   *   The GCD of <code>a</code> and <code>b</code>;
+   *   <code>NaN</code> if an argument is not a number.
+   * @see Math#floor(number)
+   */
+  gcd: function (a, b) {
+    if (isNaN(a) || isNaN(b))
+    {
+      return Number.NaN;
+    }
+
+    a = Math.floor(a);
+    b = Math.floor(b);
+    var c;
+
+    while (b != 0)
+    {
+      c = a % b;
+      a = b;
+      b = c;
+    }
+
+    return Math.abs(a);
   }
-
-  a = Math.floor(a);
-  b = Math.floor(b);
-  var c;
-
-  while (b != 0)
-  {
-    c = a % b;
-    a = b;
-    b = c;
-  }
-
-  return Math.abs(a);
 };
+
+if (jsx.options.augmentBuiltins)
+{
+  jsx.object.extend(Math, {
+    /**
+     * @memberOf Math
+     */
+    gcd: jsx.math.integer.gcd
+  });
+}
 
 /**
  * Returns the greatest common divisor (GCD) of two or more
@@ -104,7 +127,7 @@ Math.lcm = function(a, b) {
   {
     return Number.NaN;
   }
-    
+
   if (!a || !b)
   {
     return 0;
@@ -112,7 +135,7 @@ Math.lcm = function(a, b) {
 
   a = Math.floor(a);
   b = Math.floor(b);
-  
+
   return ((a * b) / Math.gcd(a, b));
 };
 
@@ -167,7 +190,7 @@ Math.lcm = function(a, b) {
  *   Unlike common recursive implementations, the algorithm is
  *   implemented iterative here, saving stack space and thus
  *   allowing larger factorials to be computed.
- * 
+ *
  * @throws Math#OverflowError
  */
 Math.fac = function(n) {
@@ -188,7 +211,7 @@ Math.fac = function(n) {
       break;
     }
   }
-    
+
   return result;
 };
 
@@ -225,7 +248,7 @@ Math.powInt = function(nBase, iExponent) {
  * roots of certain negative values, like root(-9,
  * 1/3) cannot be computed (results in NaN there)
  * but should be.
- * 
+ *
  * @author
  *   (c) 2000-2004  Thomas Lahn &lt;math.js@PointedEars.de&gt;
  * @param nBase : number
@@ -267,7 +290,7 @@ Math.power = function(nBase, nExponent) {
         "power(" + nBase + ", " + nExponent + ")"));
     }
   }
-  
+
   return result;
 };
 
@@ -318,4 +341,55 @@ Math.log10 = function(x) {
  */
 Math.rec = function(x) {
   return (1 / x);
+};
+
+/**
+ * Finds prime numbers within a range
+ *
+ * @param {int} upperBounds
+ *   The upper bounds of the half-open interval [2, ceil(upperBounds)),
+ *   that is, the smallest integer that should not be considered
+ *   in the search.
+ * @return {Object}
+ *   An object whose property names are the primes within range.
+ *   Use {@link Object#keys()} to get an {@link Array} of
+ *   <code><em>string</em></code> values; use
+ *   {@link Array.prototype#map} to get an <code>Array</code>
+ *   of {@link Number} values.
+ *   NOTE: As of ECMAScript Edition 5.1, an <code>Array</code>
+ *   is limited to 2^32-1 elements.  Use {@link jsx.array.BigArray}
+ *   to process this <code>Object</code> efficiently.
+ */
+Math.primes = function (upperBounds) {
+  var not_prime = Object.create(null);
+  var prime = Object.create(null);
+  var i = 2;
+  var upperLimit = Math.sqrt(upperLimit);
+
+  while (i < upperLimit)
+  {
+    prime[i] = true;
+
+    for (var mult = i * i; mult < upperBounds; mult += i)
+    {
+      not_prime[mult] = true;
+    }
+
+    while (not_prime[++i])
+    {
+      ;
+    }
+  }
+
+  for (; i < upperBounds; ++i)
+  {
+    if (!not_prime[i])
+    {
+      prime[i] = true;
+    }
+
+    delete not_prime[i];
+  }
+
+  return prime;
 };
