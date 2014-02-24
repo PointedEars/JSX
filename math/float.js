@@ -4,12 +4,12 @@
  * @requires types.js
  *
  * @section Copyright & Disclaimer
- * 
+ *
  * @author
  *   (C) 2000-2012  Thomas Lahn &lt;math.js@PointedEars.de&gt;
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
- * 
+ *
  * JSX is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -42,7 +42,7 @@ if (typeof jsx.math == "undefined")
 
 /**
  * Returns the numerical value of an object.
- * 
+ *
  * @param obj : Object
  * @return {number}
  *   <code>NaN</code> if <var>obj</var> does not refer to an object
@@ -55,18 +55,18 @@ jsx.math.getValue = function (obj) {
                  && typeof obj.valueOf == "function")
             ? obj.valueOf()
             : value;
-  
+
   if (typeof value == "number")
   {
     return value;
   }
-  
+
   return NaN;
 };
 
 /**
  * Returns the value of the smallest argument.
- * 
+ *
  * @return {number}
  *   The value of the smallest argument.
  *   If an argument is an object but not an <code>Array</code>,
@@ -80,11 +80,11 @@ jsx.math.getValue = function (obj) {
  */
 jsx.math.min = (function () {
   var getValue = jsx.math.getValue;
-  
+
   return function () {
     var result = Number.POSITIVE_INFINITY;
     var min_el;
-      
+
     for (var i = 0, len = arguments.length; i < len; ++i)
     {
       var a = arguments[i];
@@ -123,14 +123,14 @@ jsx.math.min = (function () {
         result = a;
       }
     }
-    
+
     return result;
   };
 }());
 
 /**
  * Returns the value of the greatest argument.
- * 
+ *
  * @return {number}
  *   The value of the greatest argument.
  *   If an argument is an object but not an <code>Array</code>,
@@ -144,10 +144,10 @@ jsx.math.min = (function () {
  */
 jsx.math.max = (function () {
   var getValue = jsx.math.getValue;
-  
+
   return function () {
     var result = Number.NEGATIVE_INFINITY;
-    
+
     for (var i = 0, len = arguments.length; i < len; ++i)
     {
       var a = arguments[i], max_el;
@@ -186,14 +186,14 @@ jsx.math.max = (function () {
         result = a;
       }
     }
-    
+
     return result;
   };
 }());
 
 /**
  * Returns the average value of the arguments.
- * 
+ *
  * @return number
  *   The average value of the arguments.
  *   If an argument is an object but not an <code>Array</code>,
@@ -206,11 +206,11 @@ jsx.math.max = (function () {
  */
 jsx.math.avg = (function () {
   var getValue = jsx.math.getValue;
-  
+
   return function () {
     var sum = 0;
     var count = 0;
-  
+
     for (var i = 0, len = arguments.length; i < len; i++)
     {
       var a = arguments[i];
@@ -245,21 +245,21 @@ jsx.math.avg = (function () {
         sum += parseFloat(a);
       }
     }
-    
+
     return (sum / count);
   };
 }());
 
 /**
  * Returns the arithmetic median of the arguments.
- * 
+ *
  * The [arithmetic (one-dimensional)] median is [defined] as
  * the numerical value separating the higher half of a sample
  * from the lower half of a sample.  If there is an even number
  * of observations, then there is no single middle value; the
  * median is then […] defined to be the mean of the two middle
  * values. (From Wikipedia, the free encyclopedia)
- * 
+ *
  * @return number
  *   The arithmetic median of the arguments.
  *   If an argument is an object but not an <code>Array</code>,
@@ -272,11 +272,11 @@ jsx.math.avg = (function () {
  */
 jsx.math.median = (function () {
   var getValue = jsx.math.getValue;
-  
+
   return function () {
     var values = [];
     var result;
-  
+
     for (var i = 0, len = arguments.length; i < len; i++)
     {
       var a = arguments[i];
@@ -307,9 +307,9 @@ jsx.math.median = (function () {
         values.push(parseFloat(a));
       }
     }
-    
+
     values.sort(function (a, b) { return a - b; });
-    
+
     len = values.length;
     if (len > 1)
     {
@@ -409,7 +409,7 @@ function roundDigits_deprecated(x, n) {
          they could succeed
       */
   }
-  
+
   var e = Math.pow(10, n);
 
   var k = (Math.round(x * e) / e).toString();
@@ -417,7 +417,7 @@ function roundDigits_deprecated(x, n) {
        and not all JavaScript capable browsers support it.
        Use the String(...) function instead.
     */
-  
+
   if (k.indexOf('.') == -1){k += '.';
     /* Sometimes it is not desired to have the decimal point
        when dealing with integers. The function does not allow
@@ -470,7 +470,7 @@ jsx.math.roundDigits = function(n, iSigDecimals, iForceDecimals,
   {
     iSigDecimals = 0;
   }
-  
+
   /*
    * Returns the number itself when called with invalid arguments,
    * so further calculations will not fail because of a wrong
@@ -488,14 +488,14 @@ jsx.math.roundDigits = function(n, iSigDecimals, iForceDecimals,
   {
     i = String(n).length - 1;
   }
-  
+
   if (String(n).substring(0, i).length <= -iSigDecimals)
   {
     return n;
   }
-    
+
   var k = Math.round(n * e) / e;
-  
+
   if (arguments.length < 3)
   {
     iForceDecimals = 0;
@@ -508,7 +508,7 @@ jsx.math.roundDigits = function(n, iSigDecimals, iForceDecimals,
     {
       k += ".";
     }
-    
+
     for (i = k.slice(k.indexOf(".") + 1).length;
          i < iForceDecimals;
          i++)
@@ -516,7 +516,7 @@ jsx.math.roundDigits = function(n, iSigDecimals, iForceDecimals,
       k += "0";
     }
   }
-  
+
   if (bForceLeadingZero && String(k).charAt(0) == ".")
   {
     k = "0" + k;
@@ -536,7 +536,7 @@ jsx.math.roundDigits = function(n, iSigDecimals, iForceDecimals,
       k = k.substring(0, i) + sDecSeparator + k.slice(i + 1);
     }
   }
-  
+
   return k;
 };
 
@@ -568,7 +568,7 @@ jsx.math.getPeriod = function(n, bLoose, iPrecision) {
     var
       currentPeriod = s.substring(2, i),
       rx = new RegExp("^\\d*\\.\\d*(" + currentPeriod + ")+$");
-        
+
     if (rx.test(s))
     {
       return currentPeriod;
@@ -589,13 +589,13 @@ jsx.math.toFraction = function(fDec) {
    * II:     10x = 1.111111111111111
    * II - I:  9x = 1
    *           x = 1/9
-   * 
+   *
    * 1. Y = periodLength(X)
    * 2. Z = X * 10^Y
    * 3. A = Z - X
    * 4. RESULT = 'A "/" (10^Y - 1)'
    */
-  
+
   var y = jsx.math.getPeriod(fDec).length;
   var z = fDec * Math.pow(10, y);
   var dividend = Math.round(z - fDec);
@@ -608,9 +608,9 @@ jsx.math.toFraction = function(fDec) {
     dividend /= d;
     divisor /= d;
   }
-    
+
   var result = dividend + "/" + divisor;
-    
+
   return result;
 };
 
@@ -622,195 +622,67 @@ jsx.math.UNIT_DEG  = 1;
 jsx.math.UNIT_GRAD = 2;
 
 /**
- * Unlike the {@link js#Math built-in methods}, the following
- * functions accept a second argument to determine if the argument
- * should be handled as radian (dtRad == 0 [default];
- * x = n*[0..2*Math.PI], degree (dtDeg == 1; x = n*[0..360])
- * or gradian (dtGrad == 2; x = n*[0..400] gon) value.
+ * Converts an angle to another unit
+ *
+ * @param {Number} value
+ *   Angle to convert
+ * @param {number} unit2
+ *   Target unit.  Use the {@link jsx.math.UNIT_RAD jsx.math.UNIT_*})
+ *   properties.
+ * @param {number} unit1
+ *   Source unit.  The default is radians ({@link jsx.math.UNIT_RAD}).
  */
-
-/**
- * Returns the sine of an angle.
- * 
- * Call this method instead of <code>jsx.math.sinX()</code>,
- * which is deprecated.
- * 
- * @param x : number
- * @param iArgType : number
- * @return number
- *   The sine of <var>x</var>
- */
-jsx.math.sin = function(x, iArgType) {
-  switch (iArgType)
+jsx.math.convertAngle = function (value, unit2, unit1) {
+  switch (unit1)
   {
     case jsx.math.UNIT_DEG:
-      x = x/180 * Math.PI;
+      value = value/180 * Math.PI;
       break;
 
     case jsx.math.UNIT_GRAD:
-      x = x/200 * Math.PI;
+      value = value/200 * Math.PI;
+      break;
   }
 
-  return Math.sin(x);
-};
-
-/* (non-JSdoc)
- * @deprecated
- */
-jsx.math.sinX = jsx.math.sin;
-
-/**
- * Returns the cosine of an angle.
- * 
- * Call this method instead of <code>jsx.math.cosX()</code>,
- * which is deprecated.
- * 
- * @param x : number
- * @param iArgType : number
- * @return number
- *   The cosine of <var>x</var>
- */
-jsx.math.cos = function(x, iArgType) {
-  switch (iArgType)
+  switch (unit2)
   {
     case jsx.math.UNIT_DEG:
-      x = x/180 * Math.PI;
+      value = value / Math.PI * 180;
       break;
-      
-    case jsx.math.UNIT_GRAD:
-      x = x/200 * Math.PI;
-  }
-  
-  return Math.cos(x);
-};
 
-/* (non-JSdoc)
- * @deprecated
- */
-jsx.math.cosX = jsx.math.cos;
+    case jsx.math.UNIT_GRAD:
+      value = value / Math.PI * 200;
+  }
+
+  return value;
+};
 
 /**
  * Returns the tangent of an angle.
- * 
+ *
  * Call this method instead of <code>jsx.math.tanX()</code>,
  * which is deprecated.
- * 
- * @param x : number
- * @param iArgType : number
- * @return number
- *   The tangent of <var>x</var>.  If @link{js#Math.tan()} is
- *   undefined, it uses @link{jsx.math#sin()} and
- *   @link{jsx.math#cos()}.
+ *
+ * @param {number} x
+ * @return {number}
+ *   The tangent of <var>x</var>.  If {@link Math.tan()} is
+ *   not a function, it uses {@link Math.sin()} and
+ *   {@link Math.cos()}.
  * @requires jsx.object#isMethod()
  */
-jsx.math.tan = function(x, iArgType) {
-  var jsx_object = jsx.object;
-  
-  switch (iArgType)
-  {
-    case jsx.math.UNIT_DEG:
-      x = x/180 * Math.PI;
-      break;
-      
-    case jsx.math.UNIT_GRAD:
-      x = x/200 * Math.PI;
-  }
-  
-  if (jsx_object.isMethod(Math, "tan"))
+jsx.math.tan = function (x) {
+  if (typeof Math.tan == "function")
   {
     return Math.tan(x);
   }
-  
-  return (jsx.math.sin(x) / jsx.math.cos(x));
+
+  return (Math.sin(x) / Math.cos(x));
 };
 
 /* (non-JSdoc)
  * @deprecated
  */
 jsx.math.tanX = jsx.math.tan;
-
-/** @subsection Complex numbers */
-
-/**
- * @param nRe : number
- * @param nIm : number
- */
-jsx.math.Complex = function (nRe, nIm) {
-  Number.call(this);
-  this.re = Number(nRe) || 0;
-  this.im = Number(nIm) || 0;
-};
-
-jsx.math.Complex.extend(Number);
-
-/**
- * @param a : Complex
- * @param b : Complex
- * @return Complex
- *   The complex sum of <var>a</var> and <var>b</var>
- */
-jsx.math.addComplex =
-jsx.math.Complex.prototype.add = function (a, b) {
-  var result = null;
-  var math = jsx.math;
-
-  if (this instanceof math.Complex)
-  {
-    b = a;
-    a = this;
-  }
-
-  if (a && b)
-  {
-    if (!(a instanceof math.Complex))
-    {
-      a = new math.Complex(a);
-    }
-
-    if (!(b instanceof math.Complex))
-    {
-      b = new math.Complex(b);
-    }
-
-    return new math.Complex(a.re + b.re, a.im + b.im);
-  }
-};
-
-/**
- * @param a : Complex
- * @param b : Complex
- * @return Complex
- *   The complex product of <var>a</var> and <var>b</var>
- */
-jsx.math.mulComplex =
-jsx.math.Complex.prototype.mul = function(a, b) {
-  var result = null;
-
-  if (this instanceof jsx.math.Complex)
-  {
-    b = a;
-    a = this;
-  }
-
-  if (a && b)
-  {
-    if (!(a instanceof jsx.math.Complex))
-    {
-      a = new jsx.math.Complex(a);
-    }
-
-    if (!(b instanceof jsx.math.Complex))
-    {
-      b = new jsx.math.Complex(b);
-    }
-     
-    //  a.re, a.im     b.re, b.im
-    // (a,    b   ) * (c,    d   ) = (a * c - b * d, a * d + b * c)
-    return new jsx.math.Complex(
-      a.re * b.re - a.im * b.im,
-      a.re * b.im + a.im * b.re);
-  }
-};
 
 /*
  * TODO: Hyperbolic functions
