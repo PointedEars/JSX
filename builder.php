@@ -344,7 +344,7 @@ class ResourceBuilder
 
   /**
    * Returns the passed string with all single-line
-   * comments, leading and trailing whitespace removed
+   * comments, leading and trailing whitespace removed.
    *
    * @param string $s Source code to process
    * @return string Processed source code
@@ -363,7 +363,8 @@ class ResourceBuilder
   }
 
   /**
-   * Returns the passed string with all JSdoc comments but the first one removed
+   * Returns the passed string with all JSdoc comments
+   * but the first one removed.
    *
    * @param string $s Source code to process
    * @return string Processed source code
@@ -524,8 +525,16 @@ class ResourceBuilder
 
       if (!$this->debug)
       {
+        /* Pass 1: Remove all single-line comments (i.e., disabled code) */
         $content = $this->uncomment($content);
+        
+        /*
+         * Pass 2: Remove all JSdoc comments but the first one
+         * (i.e., the copyright section)
+         */
         $content = $this->stripJSdoc($content);
+        
+        /* Pass 3: Minimize (removes multi-line comments and extra whitespace) */
       }
 
       if ($verbose)
