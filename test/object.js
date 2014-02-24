@@ -148,28 +148,28 @@ function runTests ()
       },
       {
         feature: 'jsx.object._hasOwnProperty("_hasOwnProperty")',
-        desc: "Return <code>true</code>",
+        desc: "Returns <code>true</code>",
         code: function () {
           assertTrue(jsx.object._hasOwnProperty("_hasOwnProperty"));
         }
       },
       {
         feature: 'jsx.object._hasOwnProperty({}, "foo")',
-        desc: "Return <code>false</code>",
+        desc: "Returns <code>false</code>",
         code: function () {
           assertFalse(jsx.object._hasOwnProperty({}, "foo"));
         }
       },
       {
         feature: 'jsx.object._hasOwnProperty({foo: "bar"}, "foo")',
-        desc: "Return <code>true</code>",
+        desc: "Returns <code>true</code>",
         code: function () {
           assertTrue(jsx.object._hasOwnProperty({foo: "bar"}, "foo"));
         }
       },
       {
         feature: 'jsx.object._hasOwnProperty(new Foo(), "bar")',
-        desc: "Return <code>false</code> (inherited)",
+        desc: "Returns <code>false</code> (inherited)",
         code: function () {
           function Foo () {}
           Foo.prototype.bar = 42;
@@ -219,7 +219,7 @@ function runTests ()
       },
       {
         feature: 'jsx.object.getKeys({})',
-        desc: 'Return <code>[]</code>',
+        desc: 'Returns <code>[]</code>',
         code: function () {
           var result = jsx.object.getKeys({});
           assertTrue(result && result.length === 0);
@@ -237,7 +237,7 @@ function runTests ()
       },
       {
         feature: 'jsx.object.getKeys({foo: "bar"})',
-        desc: 'Return <code>["foo"]</code>',
+        desc: 'Returns <code>["foo"]</code>',
         code: function () {
           var result = jsx.object.getKeys({foo: "bar"});
           assertTrue(result && result.length === 1 && result[0] === "foo");
@@ -255,7 +255,7 @@ function runTests ()
       },
       {
         feature: 'jsx.object.getKeys(new Foo("baz"))',
-        desc: 'Return <code>["baz"]</code>',
+        desc: 'Returns <code>["baz"]</code>',
         code: function () {
           function Foo (propertyName)
           {
@@ -394,13 +394,14 @@ function runTests ()
       },
       {
         feature: 'jsx.object.extend({}, {foo: "bar"})',
-        desc: "Sets property, no cloning",
+        desc: "Sets property, no cloning; returns extended object",
         code: function () {
           var o = {};
           var o2 = {bar: "baz"};
-          jsx.object.extend(o, {foo: o2});
+          var result = jsx.object.extend(o, {foo: o2});
 
           assertTrue(o.foo && o.foo == o2 && o.foo.bar === "baz");
+          assertTrue(result === o);
         }
       },
       {
@@ -904,6 +905,44 @@ function runTests ()
             o[String.fromCharCode(i) + "_"] = true;
           }
           assert(jsx.object.findNewProperty(o, 1) === "");
+        }
+      },
+
+      {
+        feature: 'jsx.object.getDataObject()',
+        desc: 'Returns the correct value',
+        code: function () {
+          var o = jsx.object.getDataObject();
+          assertFalse(typeof o.toString == "function");
+        }
+      },
+      {
+        feature: 'jsx.object.getDataObject()',
+        desc: 'Returns the correct value without Object.create()',
+        code: function () {
+          /* Simulate missing Object.create() */
+          var Object_create = Object.create;
+          delete Object.create;
+
+          o = jsx.object.getDataObject();
+
+          Object.create = Object_create;
+
+          assertFalse(typeof o.toString == "function");
+        }
+      },
+
+      {
+        feature: 'jsx.object.getFeature(…)',
+        desc: 'Returns the correct value',
+        code: function () {
+          var o = {foo: {answer: 42}};
+          var result = jsx.object.getFeature(o, "foo", "answer");
+          assertTrue(result === 42);
+
+          o = {foo: {answer: 42}};
+          var result = jsx.object.getFeature(o, "bar", "answer");
+          assertTrue(result === void 0);
         }
       }
     ]
