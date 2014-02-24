@@ -6,7 +6,7 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2000-2011, 2013 Thomas Lahn &lt;math.js@PointedEars.de&gt;
+ *   (C) 2000-2011, 2013, 2014 Thomas Lahn &lt;math.js@PointedEars.de&gt;
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -31,109 +31,222 @@
  * Refer math.htm file for general documentation.
  */
 
-if (typeof jsx == "undefined")
-{
-  /**
-   * @namespace
-   */
-  var jsx = {};
-}
-
 /**
  * @namespace
  */
-jsx.math = {
-  version:   "1.16.$Rev$",
-  copyright: "Copyright \xA9 1999-2011, 2013",
-  author:    "Thomas Lahn",
-  email:     "math.js@PointedEars.de",
-  path:      "http://pointedears.de/scripts/"
-};
-// jsx.math.docURL = jsx.math.path + "math.htm";
+jsx.math = (/** @constructor */ function () {
+  /* Imports */
+  var _isNativeMethod = jsx.object.isNativeMethod;
 
-/* User interface language */
-jsx.math.language  = "en";
+  /* Private variables */
 
-/** @section Exceptions */
-
-jsx.math.msgInvArg = {
-  'en': 'Invalid function argument',
-  'de': 'Ungültiges Funktionsargument'
-};
-
-jsx.math.msgArgMissing = {
-  'en': 'Required argument missing',
-  'de': 'Erforderliches Argument fehlt'
-};
-
-jsx.math.msgInvOp = {
-  'en': 'Invalid operand',
-  'de': 'Ungültiger Operand'
-};
-
-jsx.math.msgOverflow = {
-  'en': 'Overflow',
-  'de': 'Überlauf'
-};
-
-jsx.math.msgUnderflow = {
-  'en': 'Underflow',
-  'de': 'Unterlauf'
-};
-
-jsx.math.msgDivByZero = {
-  'en': 'Division by zero',
-  'de': 'Division durch Null'
-};
-
-/**
- * @param sError
- * @param sMessage
- */
-jsx.math.MathError = function(sError, sMessage) {
-  this.constructor._super.call(this,
+  /**
+   * @function
+   */
+  var _MathError = (
+    /**
+     * @constructor
+     * @param {string} sError
+     * @param {string} sMessage
+     */
+    function (sError, sMessage) {
+      this.constructor._super.call(this,
         "math.js Error: "
-      + (typeof sError[jsx.math.language] != "undefined"
-           ? sError[jsx.math.language]
-           : sError["en"])
-      + " " + (sMessage || ""));
-};
-jsx.math.MathError.extend(jsx.Error);
+        + (typeof sError[jsx.math.language] != "undefined"
+          ? sError[jsx.math.language]
+        : sError["en"])
+        + " " + (sMessage || ""));
+    }
+  ).extend(jsx.Error);
 
-/**
- * @param sMethodCall
- * @param iErrorCode
- * @todo
- */
-jsx.math.InvalidArgumentError = function(sMethodCall, iErrorCode) {
-  var sSubErrType = jsx.math.msgInvArg;
+  var _msgInvArg = {
+    'en': 'Invalid function argument',
+    'de': 'Ungültiges Funktionsargument'
+  };
 
-  switch (iErrorCode)
-  {
-    case -1:
-      sSubErrType = jsx.math.msgArgMissing;
-      break;
-  }
+  var _msgArgMissing = {
+    'en': 'Required argument missing',
+    'de': 'Erforderliches Argument fehlt'
+  };
 
-  jsx.math.MathError.call(this, sSubErrType);
-};
+  var _msgInvOp = {
+    'en': 'Invalid operand',
+    'de': 'Ungültiger Operand'
+  };
 
-jsx.math.InvalidOperandError = function() {
-  jsx.math.MathError.call(this, jsx.math.msgInvOp);
-};
+  var _msgOverflow = {
+    'en': 'Overflow',
+    'de': 'Überlauf'
+  };
 
-jsx.math.OverflowError = function() {
-  jsx.math.MathError.call(jsx.math.msgOverflow);
-};
+  var _msgUnderflow = {
+    'en': 'Underflow',
+    'de': 'Unterlauf'
+  };
 
-jsx.math.UnderflowError = function() {
-  jsx.math.MathError.call(jsx.math.msgUnderflow);
-};
+  var _msgDivByZero = {
+    'en': 'Division by zero',
+    'de': 'Division durch Null'
+  };
 
-jsx.math.DivisionByZeroError = function() {
-  jsx.math.MathError.call(jsx.math.msgDivByZero);
-};
+  return {
+    /**
+     * @memberOf jsx.math
+     */
+    version:   "1.16.$Rev$",
+    copyright: "Copyright \xA9 1999-2011, 2013",
+    author:    "Thomas Lahn",
+    email:     "math.js@PointedEars.de",
+    path:      "http://pointedears.de/scripts/",
 
+    /** User interface language */
+    language: "en",
+
+    /** @section Exceptions */
+
+    msgInvArg: _msgInvArg,
+    msgArgMissing: _msgArgMissing,
+    msgInvOp: _msgInvOp,
+    msgOverflow: _msgOverflow,
+    msgUnderflow: _msgUnderflow,
+    msgDivByZero: _msgDivByZero,
+
+    MathError: _MathError,
+
+    /**
+     * @param {string} sMethodCall
+     * @param {int} iErrorCode
+     * @todo
+     */
+    InvalidArgumentError: (
+      function (sMethodCall, iErrorCode) {
+        var sSubErrType = _msgInvArg;
+
+        switch (iErrorCode)
+        {
+          case -1:
+            sSubErrType = _msgArgMissing;
+            break;
+        }
+
+        _MathError.call(this, sSubErrType);
+      }
+    ).extend(_MathError),
+
+    InvalidOperandError: function() {
+      _MathError.call(this, _msgInvOp);
+    },
+
+    OverflowError: (function() {
+      _MathError.call(_msgOverflow);
+    }).extend(_MathError),
+
+    UnderflowError: (function() {
+      _MathError.call(_msgUnderflow);
+    }).extend(_MathError),
+
+    DivisionByZeroError: (function() {
+      _MathError.call(_msgDivByZero);
+    }).extend(_MathError),
+
+    /**
+     * General addition
+     *
+     * @param op1
+     * @param op2
+     * @return {any}
+     */
+    add: function (op1, op2) {
+      if (_isNativeMethod(op1, "add"))
+      {
+        return op1.add(op2);
+      }
+
+      return op1 + op2;
+    },
+
+    /**
+     * General subtraction
+     *
+     * @param op1
+     * @param op2
+     * @return {any}
+     */
+    sub: function (op1, op2) {
+      if (_isNativeMethod(op1, "sub"))
+      {
+        return op1.sub(op2);
+      }
+
+      return op1 - op2;
+    },
+
+    /**
+     * General multiplication
+     *
+     * @param op1
+     * @param op2
+     * @return {any}
+     */
+    mul: function (op1, op2) {
+      if (_isNativeMethod(op1, "mul"))
+      {
+        return op1.mul(op2);
+      }
+
+      return op1 * op2;
+    },
+
+    /**
+     * General division
+     *
+     * @param op1
+     * @param op2
+     * @return {any}
+     */
+    div: function (op1, op2) {
+      if (_isNativeMethod(op1, "div"))
+      {
+        return op1.div(op2);
+      }
+
+      return op1 / op2;
+    },
+
+    /**
+     * General exponentiation
+     *
+     * @param op1
+     * @param op2
+     * @return {any}
+     */
+    pow: function (op1, op2) {
+      if (_isNativeMethod(op1, "pow"))
+      {
+        return op1.pow(op2);
+      }
+
+      return Math.pow(op1, op2);
+    },
+
+    /**
+     * General square root
+     *
+     * @param op
+     * @return {any}
+     */
+    sqrt: function (op) {
+      if (_isNativeMethod(op, "sqrt"))
+      {
+        return op.sqrt();
+      }
+
+      return Math.sqrt(op);
+    }
+  };
+}());
+
+// jsx.math.docURL = jsx.math.path + "math.htm";
 
 /*
  * TODO:
