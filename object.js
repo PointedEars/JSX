@@ -51,193 +51,6 @@ if (typeof de.pointedears == "undefined")
 de.pointedears.jsx = jsx;
 
 /**
- * Reference to the ECMAScript Global Object
- * @type Global
- */
-jsx.global = this;
-
-/*
- * NOTE: Cannot use jsx.object.extend() for the following
- * because values have not been defined yet!
- *
- * TODO: Should syntactic sugar be provided to work around
- * this issue?  See Function.prototype.extend().
- */
-
-jsx.MSG_INFO = "info";
-jsx.MSG_WARN = "warn";
-jsx.MSG_ERROR = "error";
-jsx.MSG_DEBUG = "debug";
-
-if (typeof jsx.options == "undefined")
-{
-  /**
-   * Holds the runtime options for JSX.
-   *
-   * Due to the dynamic nature of ECMAScript, it is very flexible.
-   * Built-in objects can be augmented and built-in methods can be
-   * overwritten to allow for "syntactic sugar" that make programs
-   * easier to write and to read, should the implementation not
-   * already provide suitable features.  However, augmentation
-   * and replacement do have disadvantages if you are not aware
-   * of the fact.  Allowing for a maximum of flexibility, JSX
-   * uses options that govern to which degree JSX components may
-   * modify built-in objects.  Options include, with increasing
-   * degree of flexibility and side-effects by nesting level:
-   *
-   * <table>
-   *   <thead>
-   *     <tr>
-   *       <td></td>
-   *       <th>mod. builtins</th>
-   *       <th>augment</th>
-   *       <th>augmentproto</th>
-   *       <th>augmentobjectproto</th>
-   *     </tr>
-   *   </thead>
-   *   <tbody>
-   *     <tr>
-   *       <th><code>augmentBuiltins</code></th>
-   *       <td>yes</td>
-   *       <td>yes</td>
-   *       <td>no</td>
-   *       <td>no</td>
-   *     </tr>
-   *     <tr>
-   *       <th><code>augmentPrototypes</code></th>
-   *       <td>yes</td>
-   *       <td>yes</td>
-   *       <td>yes</td>
-   *       <td>no</td>
-   *     </tr>
-   *     <tr>
-   *       <th><code>augmentObjectPrototype</code></th>
-   *       <td>yes</td>
-   *       <td>yes</td>
-   *       <td>yes</td>
-   *       <td>yes</td>
-   *     </tr>
-   *     <tr>
-   *       <th><code>replaceBuiltins</code></th>
-   *       <td>yes</td>
-   *       <td>depends</td>
-   *       <td>depends</td>
-   *       <td>depends</td>
-   *     </tr>
-   *   </tbody>
-   * </table>
-   *
-   * <dl>
-   *   <dt><code>augmentBuiltins</code></dt>
-   *     <dd>Allow built-ins to be augmented with new
-   *         properties.  This allows new properties on
-   *         the built-in constructors, but not on
-   *         prototype objects of built-in objects.
-   *         See <code>augmentPrototypes</code>.
-   *         Since there usually is no harm in that,
-   *         the default is <code>true</code>.
-   *         Set to <code>false</code> if you are testing features
-   *         of ECMAScript implementations with JSX,
-   *         like with the ECMAScript Support Matrix.
-   *       <dl>
-   *         <dt><code>augmentPrototypes</code></dt>
-   *           <dd>Allow prototype objects to be augmented,
-   *               except <code>Object.prototype</code>.
-   *               This allows for new, inherited methods for
-   *                <code>String</code>s, for example.
-   *                Since there usually is no harm in that, the
-   *                default is <code>true</code>.
-   *              <dl>
-   *                <dt><code>augmentObjectPrototype</code></dt>
-   *                  <dd>Allow <code>Object.prototype</code>
-   *                      to be augmented.  <em>CAUTION:
-   *                      The new properties are inherited
-   *                      to all native objects, and
-   *                      host objects that have
-   *                      <code>Object.prototype</code>
-   *                      in their prototype chain.  The new
-   *                      properties will show up everywhere,
-   *                      including <code>for-in</code>
-   *                      iteration.  If you do not know
-   *                      what this is all about, leave it
-   *                      at the default <code>false</code>.</em></dd>
-   *       </dl>
-   *     </dd>
-   *   <dt><code>replaceBuiltins</code></dt>
-   *     <dd>Allow built-ins to be replaced with native user-defined
-   *         implementations.</dd>
-   * </dl>
-   * @namespace
-   */
-  jsx.options = {};
-}
-
-if (typeof jsx.options.augmentBuiltins == "undefined")
-{
-  /**
-   * If <code>false</code>, built-ins are not modified.
-   * The default is <code>true</code>.
-   *
-   * @type boolean
-   */
-  jsx.options.augmentBuiltins = true;
-}
-
-if (typeof jsx.options.augmentPrototypes == "undefined")
-{
-  /**
-   * If <code>false</code>, built-in prototypes are not modified.
-   * The default is <code>true</code>.
-   *
-   * @type boolean
-   */
-  jsx.options.augmentPrototypes = true;
-}
-
-if (typeof jsx.options.augmentObjectPrototype == "undefined")
-{
-  /**
-   * If <code>false</code> (default), the Object prototype object is
-   * not modified.  The default is <code>false</code>.
-   *
-   * @type boolean
-   */
-  jsx.options.augmentObjectPrototype = false;
-}
-
-if (typeof jsx.options.replaceBuiltins == "undefined")
-{
-  /**
-   * If <code>false</code>, built-ins are not replaced.
-   * The default is <code>true</code>.
-   *
-   * @type boolean
-   */
-  jsx.options.replaceBuiltins = true;
-}
-
-if (typeof jsx.options.emulate == "undefined")
-{
-  /**
-   * If <code>false</code>, missing language features are not emulated.
-   * The default is <code>true</code>.
-   * <p>
-   * WARNING: JSX features may depend on emulation; intended for
-   * testing only.
-   * </p>
-   * @type boolean
-   */
-  jsx.options.emulate = true;
-}
-
-if (jsx.options.emulate)
-{
-  jsx.options.augmentBuiltins = true;
-  jsx.options.augmentPrototypes = true;
-  jsx.options.replaceBuiltins = true;
-}
-
-/**
  * Wrapper for a safer <code>try</code>...<code>catch</code>.
  *
  * Attempts to evaluate a value as a <i>StatementList</i>, and attempts
@@ -359,9 +172,6 @@ jsx.tryThis =
     return result;
   };
 //}());
-
-/* only for JSDT JSDoc */
-jsx.object = {};
 
 /**
  * @namespace
@@ -574,7 +384,7 @@ jsx.object = (/** @constructor */ function () {
    * <p>Returns <code>true</code> if the value is a reference
    * to an object; <code>false</code> otherwise.</p>
    *
-   * <p>An value "is an object" if it is a function or
+   * <p>A value "is an object" if it is a function or
    * <code>typeof "object"</code> but not <code>null</code>.
    *
    * @return {boolean}
@@ -721,7 +531,7 @@ jsx.object = (/** @constructor */ function () {
    */
   function _isNativeObject (value)
   {
-    var t = (typeof value != "undefined" && value !== null
+    var t = (_isObject(value)
       && typeof value.valueOf == "function"
       && typeof value.valueOf());
 
@@ -1219,6 +1029,11 @@ jsx.object = (/** @constructor */ function () {
 
     _hasOwnProperty: _hasOwnProperty,
     isObject: _isObject,
+
+    isString: function (s) {
+      return ((typeof s == "string") || jsx.object.isInstanceOf(s, String));
+    },
+
     getKeys: _getKeys,
     inheritFrom: _inheritFrom,
     getClass: _getClass,
@@ -1467,23 +1282,37 @@ jsx.object = (/** @constructor */ function () {
      *
      * @param {Object} obj
      *   Object which provides the feature
-     * @params {string}
+     * @param {string|Array} path
      *   Property names on the feature path, including the property
      *   for the feature itself.  For example, use
-     *   <code>jsx.object.getFeature("foo", "bar", "baz")</code> for
+     *   <code>jsx.object.getFeature(foo, "bar", "baz")</code> for
      *   safe access to <code>foo.bar.baz</code>.
+     *   If this argument is an <code>Array</code>, it is used
+     *   instead of the remaining argument list; this is the
+     *   recommended way to call this method to ensure upwards
+     *   compatibility.
      * @return {any}
      *   <code>undefined</code> if <var>obj</var> does not have such
      *   a feature.  Note that features whose value can be
      *   <code>undefined</code> cannot be detected with this method.
      */
-    getFeature: function (obj) {
-      for (var i = 1, len = arguments.length; i < len; i++)
+    getFeature: function (obj, path) {
+      var realPath = path;
+      var start = 0;
+
+      if (!_isArray(realPath))
       {
-        var arg = arguments[i];
-        if (typeof obj != "undefined" && typeof obj[arg] != "undefined" && obj[arg])
+        realPath = arguments;
+        start = 1;
+      }
+
+      for (var i = start, len = realPath.length; i < len; i++)
+      {
+        var component = realPath[i];
+        if (_isObject(obj)
+            && typeof obj[component] != "undefined" && obj[component])
         {
-          obj = obj[arg];
+          obj = obj[component];
         }
         else
         {
@@ -1620,7 +1449,7 @@ jsx.error = function (sMsg) {
  *       see Message-ID <2152411.FhMhkbZ0Pk@PointedEars.de>
  */
 jsx.clearErrorHandler = function () {
-  if (typeof window != "undefined")
+  if (typeof window != "undefined" && window !== null)
   {
     /*
      * debug.js 0.99.5.2006041101 BUGFIX:
@@ -1671,7 +1500,7 @@ jsx.setErrorHandler = (function () {
         "jsx.setErrorHandler(fHandler)");
     }
 
-    if (typeof window != "undefined"
+    if (typeof window != "undefined" && window !== null
         && typeof fHandler != "undefined")
     {
       /*
@@ -1809,6 +1638,164 @@ jsx.rethrowThis = function (exception) {
   eval("throw exception");
 };
 
+jsx.object.extend(jsx, {
+  /**
+   * Holds the runtime options for JSX.
+   *
+   * Due to the dynamic nature of ECMAScript, it is very flexible.
+   * Built-in objects can be augmented and built-in methods can be
+   * overwritten to allow for "syntactic sugar" that make programs
+   * easier to write and to read, should the implementation not
+   * already provide suitable features.  However, augmentation
+   * and replacement do have disadvantages if you are not aware
+   * of the fact.  Allowing for a maximum of flexibility, JSX
+   * uses options that govern to which degree JSX components may
+   * modify built-in objects.  Options include, with increasing
+   * degree of flexibility and side-effects by nesting level:
+   *
+   * <table>
+   *   <thead>
+   *     <tr>
+   *       <td></td>
+   *       <th>mod. builtins</th>
+   *       <th>augment</th>
+   *       <th>augmentproto</th>
+   *       <th>augmentobjectproto</th>
+   *     </tr>
+   *   </thead>
+   *   <tbody>
+   *     <tr>
+   *       <th><code>augmentBuiltins</code></th>
+   *       <td>yes</td>
+   *       <td>yes</td>
+   *       <td>no</td>
+   *       <td>no</td>
+   *     </tr>
+   *     <tr>
+   *       <th><code>augmentPrototypes</code></th>
+   *       <td>yes</td>
+   *       <td>yes</td>
+   *       <td>yes</td>
+   *       <td>no</td>
+   *     </tr>
+   *     <tr>
+   *       <th><code>augmentObjectPrototype</code></th>
+   *       <td>yes</td>
+   *       <td>yes</td>
+   *       <td>yes</td>
+   *       <td>yes</td>
+   *     </tr>
+   *     <tr>
+   *       <th><code>replaceBuiltins</code></th>
+   *       <td>yes</td>
+   *       <td>depends</td>
+   *       <td>depends</td>
+   *       <td>depends</td>
+   *     </tr>
+   *   </tbody>
+   * </table>
+   *
+   * <dl>
+   *   <dt><code>augmentBuiltins</code></dt>
+   *     <dd>Allow built-ins to be augmented with new
+   *         properties.  This allows new properties on
+   *         the built-in constructors, but not on
+   *         prototype objects of built-in objects.
+   *         See <code>augmentPrototypes</code>.
+   *         Since there usually is no harm in that,
+   *         the default is <code>true</code>.
+   *         Set to <code>false</code> if you are testing features
+   *         of ECMAScript implementations with JSX,
+   *         like with the ECMAScript Support Matrix.
+   *       <dl>
+   *         <dt><code>augmentPrototypes</code></dt>
+   *           <dd>Allow prototype objects to be augmented,
+   *               except <code>Object.prototype</code>.
+   *               This allows for new, inherited methods for
+   *                <code>String</code>s, for example.
+   *                Since there usually is no harm in that, the
+   *                default is <code>true</code>.
+   *              <dl>
+   *                <dt><code>augmentObjectPrototype</code></dt>
+   *                  <dd>Allow <code>Object.prototype</code>
+   *                      to be augmented.  <em>CAUTION:
+   *                      The new properties are inherited
+   *                      to all native objects, and
+   *                      host objects that have
+   *                      <code>Object.prototype</code>
+   *                      in their prototype chain.  The new
+   *                      properties will show up everywhere,
+   *                      including <code>for-in</code>
+   *                      iteration.  If you do not know
+   *                      what this is all about, leave it
+   *                      at the default <code>false</code>.</em></dd>
+   *       </dl>
+   *     </dd>
+   *   <dt><code>replaceBuiltins</code></dt>
+   *     <dd>Allow built-ins to be replaced with native user-defined
+   *         implementations.</dd>
+   * </dl>
+   * @namespace
+   * @memberOf jsx
+   */
+  options: {}
+});
+
+jsx.object.extend(jsx.options, {
+  /**
+   * If <code>false</code>, built-ins are not modified.
+   * The default is <code>true</code>.
+   *
+   * @memberOf jsx.options
+   * @type boolean
+   */
+  augmentBuiltins: true,
+
+  /**
+   * If <code>false</code>, built-in prototypes are not modified.
+   * The default is <code>true</code>.
+   *
+   * @type boolean
+   */
+  augmentPrototypes: true,
+
+  /**
+   * If <code>false</code> (default), the Object prototype object is
+   * not modified.  The default is <code>false</code>.
+   *
+   * @type boolean
+   */
+  augmentObjectPrototype: false,
+
+  /**
+   * If <code>false</code>, built-ins are not replaced.
+   * The default is <code>true</code>.
+   *
+   * @type boolean
+   */
+  replaceBuiltins: true,
+
+  /**
+   * If <code>false</code>, missing language features are not emulated.
+   * The default is <code>true</code>.
+   * <p>
+   * WARNING: JSX features may depend on emulation; intended for
+   * testing only.
+   * </p>
+   * @type boolean
+   */
+  emulate: true,
+});
+
+if (jsx.options.emulate)
+{
+  jsx.object.extend(jsx.options, {
+    augmentBuiltins:   true,
+    augmentPrototypes: true,
+    replaceBuiltins:   true
+  }, jsx.object.ADD_OVERWRITE);
+}
+
 if (jsx.options.augmentBuiltins)
 {
   jsx.object.extend(Object, {
@@ -1941,7 +1928,7 @@ jsx.object.getFunctionName = function (aFunction) {
   /* Return the empty string for null or undefined */
   return (aFunction != null
            && typeof aFunction.name != "undefined" && aFunction.name)
-    || (String(aFunction).match(/\s*function\s+([A-Za-z_]\w*)/) || [, ""])[1];
+    || (String(aFunction).match(/^\s*function\s+([A-Za-z_]\w*)/) || [, ""])[1];
 };
 
 /**
@@ -2060,6 +2047,20 @@ jsx.object.getProperty = function (obj, sProperty, aDefault) {
 
   return aDefault;
 };
+
+jsx.object.extend(jsx, {
+  /**
+   * Reference to the ECMAScript Global Object
+   * @memberOf jsx
+   * @type Global
+   */
+  global: this,
+
+  MSG_INFO: "info",
+  MSG_WARN: "warn",
+  MSG_ERROR: "error",
+  MSG_DEBUG: "debug"
+}, jsx.object.ADD_OVERWRITE);
 
 /**
  * Returns the absolute path for a URI-reference
@@ -3259,7 +3260,7 @@ jsx.Error = function jsx_Error (sMsg) {
 };
 
 jsx.Error.extend(
-  (typeof Error != "undefined" ? Error : function () {}),
+  (typeof Error != "undefined" && Error !== null ? Error : function () {}),
   {
     /**
      * @memberOf jsx.Error.prototype
