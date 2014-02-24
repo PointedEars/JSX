@@ -1,15 +1,14 @@
 /**
  * <title>PointedEars' JSX: Math Library: Linear Algebra</title>
  * @requires object.js
- * @requires types.js
  *
  * @section Copyright & Disclaimer
- * 
+ *
  * @author
- *   (C) 2000-2011  Thomas Lahn &lt;math.js@PointedEars.de&gt;
+ *   (C) 2000-2011, 2013  Thomas Lahn &lt;js@PointedEars.de&gt;
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
- * 
+ *
  * JSX is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -24,42 +23,446 @@
  * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @subsection Matrix Operations */
+(function () {
+  /* Imports */
+  var _isArray = jsx.object.isArray;
+  var _get = jsx.array.get;
+  var _math = jsx.math;
+  var _add = _math.add;
+  var _sub = _math.sub;
+  var _mul = _math.mul;
+  var _pow = _math.pow;
+  var _sqrt = _math.sqrt;
 
-/**
- * Creates a <code>Matrix</code> object encapsulating an m × n matrix
- * represented by an array of arrays.
- * 
- * Different to a "multi-dimensional" array, a <code>Matrix</code>'s
- * elements are indexed (like in math) starting from 1, i. e. the
- * first element of the first row has the coordinates <code>[1, 1]</code>.
- * 
- * @param rows : optional Array
- *   The array containing the elements of the new matrix or the number
- *   of rows of the new matrix.
- *   If not provided, the matrix has only one element, <code>0</code>.
- * @param columns: optional Number
- *   The number of columns of the matrix, if <var>rows</var> is not an
- *   <code>Array</code>
- * @param fill: optional Number
- *   The number the matrix should be filled with, if <var>rows</var>
- *   is not an <code>Array</code>.  The default is <code>0</code>.
- */
-jsx.math.Matrix = (function () {
-  var isMethod = jsx.object.isMethod;
-
-  return function (rows, columns, fill) {
-    this.data = [0];
-
-    if (rows)
-    {
-      if (jsx.types.isArray(rows))
+  var _Tensor = (
+    /**
+     * Creates a <code>Tensor</code> object encapsulating
+     * an tensor represented by an array of arrays.
+     *
+     * A tensor is a generalization of scalars, vectors, and
+     * matrices to an arbitrary number of indices.  The rank
+     * of a tensor specifies the number of its indices: A scalar
+     * is a tensor of rank 0 (no index), a vector of rank 1,
+     * a matrix of rank 2, aso.
+     *
+     * @constructor
+     * @param {Array} components
+     * @return {jsx.math.Tensor} when called as a factory
+     */
+    function (components) {
+      if (!(this instanceof _Tensor))
       {
-        if (isMethod(rows, "slice"))
+        return new _Tensor(components);
+      }
+
+      /**
+       * The components of this tensor
+       * @type Array
+       */
+      this.data = components || [0];
+    }
+  ).extend(null, {
+    /* Initialisers */
+
+    /**
+     * Fills this tensor with components.
+     *
+     * @memberOf jsx.math.Tensor.prototype
+     * @param {Array} dimensions (optional)
+     *   The array containing the dimensions of the tensor.
+     *   If not provided, the tensor is the scalar <code>0</code>.
+     * @param {Number|Function} fill (optional)
+     *   The value the tensor should be filled with.  If a function,
+     *   the return value of the function for each component, whereas
+     *   the function is passed the indices of the component as
+     *   argument list.  The default is <code>0</code>.
+     * @todo
+     */
+    fill: function (dimensions, fill) {
+      return jsx.throwThis(_math.NotImplementedError);
+    },
+
+    /* Information methods */
+
+    /**
+     * Returns a component of this tensor by coordinates,
+     * or a copy of of it as an <code>Array</code>.
+     *
+     * @param {Array} coords (optional)
+     * @return {any|Array}
+     */
+    "get": function (coords) {
+      var data = this.data.map(function (row) {
+        return _isArray(row) ? row.slice() : row;
+      }).slice();
+
+      if (_isArray(coords))
+      {
+        for (var i = 0, len = coords.length; i < len; ++i)
+        {
+          var coord = coords[i];
+
+          data = data[coord];
+
+          if (!data)
+          {
+            break;
+          }
+        }
+      }
+
+      return data;
+    },
+
+    /**
+     * Sets a component of this tensor by coordinates.
+     *
+     * @param {Array} coords
+     * @param {any} value
+     * @return {any}
+     *   The new component value
+     */
+    "set": function (coords, value) {
+      var tmp = this.data;
+
+      var i = 0;
+      for (var len = coords.length; i < len - 1; ++i)
+      {
+        var coord = coords[i];
+        if (coord < 0)
+        {
+          jsx.throwThis("jsx.math.CoordinateError");
+          return;
+        }
+
+        if (i < len - 1)
+        {
+          if (!_isArray(tmp[coord]))
+          {
+            tmp[coord] = [];
+          }
+
+          tmp = tmp[coord];
+        }
+      }
+
+      var last_coord = _get(coords, -1);
+      tmp[last_coord] = value;
+
+      return tmp[last_coord];
+    },
+
+    /**
+     * Returns the size of this tensor, i.e. the
+     * maximum of used indexes + 1, per index.
+     *
+     * @return {Array}
+     * @todo
+     */
+    size: function () {
+      return jsx.throwThis(_math.NotImplementedError);
+
+      var data = this.data;
+      var sizes = [data.length];
+      var index = 1;
+
+      while (_isArray(data = data[0]))
+      {
+        sizes[i++] = Math.max.apply(data.map(function (e) {
+          return e.length;
+        }));
+      }
+
+      return sizes;
+    },
+
+    /**
+     * Returns the rank of this tensor, i.e. the
+     * maximum number of used indexes.
+     *
+     * @return {number}
+     */
+    rank: function () {
+      return this.size().length;
+    },
+
+    /* Basic operations */
+
+    /**
+     * Returns the sum of this tensor and compatible one.
+     *
+     * <p>Example:</p><pre>
+     * [[[[1]], …], …] + [[[[1]], …], …] = [[[[2]], …], …]
+     * a_0,0,0,0=1     + b_0,0,0,0=1     = c_0,0,0,0=2</pre>
+     * @param {jsx.math.Tensor} tensor2
+     * @return {jsx.math.Tensor}
+     */
+    add: function (tensor2) {
+      var data = this.get();
+      var data2 = tensor2.get();
+
+      for (var i = data.length; i--;)
+      {
+        var row = data[i];
+        if (typeof row == "number")
+        {
+          data[i] = _add(data[i], data2[i]);
+        }
+        else
+        {
+          for (var j = row.length; j--;)
+          {
+            if (_isArray(row[j]))
+            {
+              row[j] = _Tensor(row[j]).add(_Tensor(data2[i][j])).get();
+            }
+            else
+            {
+              row[j] = _add(row[j], data2[i][j]);
+            }
+          }
+        }
+      }
+
+      return new this.constructor(data);
+    },
+
+    /**
+     * Returns the difference between this tensor and a compatible one.
+     *
+     * @param {jsx.math.Tensor|Number} m2
+     * @return {jsx.math.Tensor}
+     */
+    sub: function (tensor2) {
+      return this.add(_mul(tensor2, -1));
+    }
+  });
+
+  var _Vector = (function () {
+    /**
+     * Returns the result of multiplication of this vector with a value.
+     * <p>
+     * Returns the result of multiplication of this vector
+     * by a scalar, or the cross product of this vector and
+     * another vector.
+     * </p><p>
+     * The cross product is only defined for three-dimensional vectors.
+     * It is a vector that is orthogonal to both the operand vectors,
+     * considering their direction.
+     * </p>
+     * @param {Number|jsx.math.Vector} value
+     * @return {jsx.math.Vector}
+     *   <code>this</code> × <code><var>vector2</var></code>
+     * @throws {jsx.InvalidArgumentError}
+     *   if the vectors are not compatible
+     */
+    function _cross (value)
+    {
+      var data = this.get();
+
+      if (!(value instanceof _Matrix))
+      {
+        /* Scalar multiplication */
+        for (var i = data.length; i--;)
+        {
+          for (var j = data[i].length; j--;)
+          {
+            data[i][j] = _mul(data[i][j], value);
+          }
+        }
+
+        return new _Matrix(data);
+      }
+
+      var data2 = value.get();
+
+      var len = data.length;
+      var len2 = data2.length;
+      if (len != 3 || len2 != 3 || len != len2)
+      {
+        return jsx.throwThis(jsx.InvalidArgumentError,
+          [null,
+           this + " and " + value,
+           "two three-dimensional vectors"]);
+      }
+
+      return new Vector([
+        _sub(_mul(data[1], data2[2]), _mul(data[2], data2[1])),
+        _sub(_mul(data[0], data2[2]), _mul(data[2], data2[0])),
+        _sub(_mul(data[0], data2[1]), _mul(data[1], data2[0]))
+      ]);
+    }
+
+    var _Vector = (
+      /**
+       * @constructor
+       */
+      function jsx_math_Vector (components) {
+        if (!(this instanceof _Vector))
+        {
+          return new _Vector(components);
+        }
+
+        this.data = components || [0];
+      }
+    ).extend(_Tensor, {
+      /* Information methods */
+
+      /**
+       * Returns the magnitude (or length) of this vector.
+       *
+       * @memberOf jsx.math.Vector.prototype
+       * @return {number}
+       */
+      mag: function () {
+        var sum = 0;
+
+        var components = this.get();
+        for (var i = components.length; i--;)
+        {
+          sum = _add(sum, _pow(components[i], 2));
+        }
+
+        return _sqrt(sum);
+      },
+
+      /**
+       * Returns the angle between this vector and another vector.
+       *
+       * @param {jsx.math.Vector} vector2
+       * @return {number}
+       *   Angle between this vector and <code><var>vector2</var></code>
+       *   in radians.
+       */
+      angle: function (vector2) {
+        return Math.acos(this.dot(vector2) / (this.mag() * vector2.mag()));
+      },
+
+      /* Operations */
+
+      cross: _cross,
+      mul: _cross,
+
+      /**
+       * Returns the dot product of this vector and another vector.
+       * <p>
+       * The dot product is defined for two vectors of arbitrary,
+       * but equal dimension.  It is a scalar that can be used to
+       * determine the angle between the two vectors.
+       * </p>
+       * @param {jsx.math.Vector} vector2
+       * @return {any} <code><var>this</var></code> · <code><var>vector2</var></code>
+       * @see #angle(jsx.math.Vector)
+       * @throws {jsx.InvalidArgumentErrror}
+       *   if the dimensions of the vectors are not equal
+       */
+      dot: function (vector2) {
+        var result = 0;
+        var data = this.get();
+        var data2 = vector2.get();
+
+        for (var i = data.length; i--;)
+        {
+          result = _add(result, _mul(data[i], data2[i]));
+        }
+
+        return result;
+      },
+
+      /**
+       * Returns the Hadamard/Schur/entrywise product of two matrices.
+       *
+       * @param {jsx.math.Vector} vector2
+       * @return {jsx.math.Vector}
+       */
+      mulEntrywise: function (vector2) {
+        var data = this.get();
+        var data2 = vector2.get();
+
+        for (var i = data.length; i--;)
+        {
+          data[i] *= data2[i];
+        }
+
+        return new _Vector(data);
+      }
+    });
+
+    return _Vector;
+  }());
+
+  /** @subsection Matrix algrebra */
+
+  var _Matrix = jsx.object.extend(
+    /**
+     * Creates a <code>Matrix</code> object encapsulating
+     * an m × n matrix and associated operations.
+     *
+     * The matrix components are represented by
+     * an <Code>Array</code> of <code>Array</code>s.
+     *
+     * @constructor
+     * @param {Array|Number|Null|Undefined} rows (optional)
+     *   The <code>Array</code> of <code>Arrays</code> containing
+     *   the components of the new matrix, or the number of its rows.
+     *   The default (used when the argument is a null-value),
+     *   or <code>null</code> is <code>1</code>, which creates a
+     *   matrix that transforms like a scalar if
+     *   <code><var>columns</var> is a null-value,
+     *   and like a row vector if <code><var>columns</var> > 1</code>.
+     * @param {Number|Null|Undefined} columns (optional)
+     *   The number of columns of the matrix; ignored if <var>rows</var>
+     *   is an <code>Array</code>.  Otherwise, the default is <code>1</code>,
+     *   which creates a matrix that transforms like a scalar if
+     *   <code><var>rows</var> is a null-value</code>, and like a
+     *   column vector if <code><var>rows</var> > 1</code>.
+     * @param {Number|Function|any} fill (optional)
+     *   The value the matrix should be filled with.  A <code>Number</code>,
+     *   or a <code>Function</code> returning a <code>Number</code>,
+     *   is preferred (as being ideal for further computations),
+     *   but not required.
+     *
+     *   If a <code>Function</code>, the return value of the
+     *   <code>Function</code> for each component is used, where
+     *   the <code>Function</code> is passed the indices of
+     *   the component as arguments, and the <code>this</code>
+     *   value is set to the new instance.  (For example, specify
+     *   <code><var>rows</var> === <var>columns</var></code>
+     *   and {@link jsx.math.Matrix.KRONECKER_DELTA}
+     *   to create an identity/unit matrix.)
+     *   The default is <code>undefined</code>.
+     * @return {jsx.math.Matrix} when called as a factory
+     * @throws {jsx.math.DimensionError}
+     *   if the matrix has less than 1 row or a row has less
+     *   than 1 column.
+     */
+    function jsx_math_Matrix (rows, columns, fill) {
+      if (!(this instanceof _Matrix))
+      {
+        return _Matrix.construct(arguments);
+      }
+
+      this.data = [];
+
+      if (_isArray(rows))
+      {
+        if (rows.length < 1)
+        {
+          return jsx.throwThis(_math.DimensionError);
+        }
+
+        /* Set Matrix from Array */
+        if (typeof rows.slice == "function")
         {
           for (var i = rows.length; i--;)
           {
-            this.data[i] = rows[i].slice();
+            var row = rows[i];
+            if (row.length < 1)
+            {
+              return jsx.throwThis(_math.DimensionError);
+            }
+
+            this.data[i] = _isArray(row) ? row.slice() : row;
           }
         }
         else
@@ -67,6 +470,11 @@ jsx.math.Matrix = (function () {
           for (var i = rows.length; i--;)
           {
             var row = rows[i];
+            if (row.length < 1)
+            {
+              return jsx.throwThis(_math.DimensionError);
+            }
+
             this.data[i] = [];
             for (var j = row.length; j--;)
             {
@@ -77,450 +485,619 @@ jsx.math.Matrix = (function () {
       }
       else
       {
+        /* Build Matrix by dimensions */
         var a = [];
 
-        var tmp = [];
-        tmp.length = columns;
-        
-        if (typeof fill == "undefined")
+        /* null or undefined */
+        if (rows == null)
         {
-          fill = 0;
+          rows = 1;
         }
-        
-        for (var j = 0; j < columns; ++j)
+
+        if (!rows || rows < 1)
         {
-          tmp[j] = fill;
+          return jsx.throwThis(_math.DimensionError);
+        }
+
+        if (columns == null)
+        {
+          columns = 1;
+        }
+
+        if (columns < 1)
+        {
+          return jsx.throwThis(_math.DimensionError);
         }
 
         for (var i = 0; i < rows; ++i)
         {
-          if (i == 0)
+          var tmp = [];
+          tmp.length = columns;
+
+          for (var j = 0; j < columns; ++j)
+          {
+            tmp[j] =  (typeof fill == "function"
+              ? fill.call(this, i, j)
+              : fill);
+          }
+
+          if (tmp.length > 1)
           {
             a.push(tmp);
           }
           else
           {
-            a.push(tmp.slice());
+            a.push(tmp[0]);
           }
         }
 
         this.data = a;
       }
-    }
-  };
-}());
-
-/**
- * @param A
- * @return number
- *   the row dimension of <code>A</code>;
- *   1 if <code>A</code> is a scalar,
- *   greater than 1 if <code>A</code> is a vector or a matrix.
- *
- * <pre>
- * Term            X           x                 dimRow(x)
- * --------------------------------------------------------
- * scalar          1           1                 1
- * 
- * mX1 col vector (1)
- *                (2)          [1, 2, ..., m]    m
- *                (.)
- *                (m)
- *
- * 1Xn row vector (1 2 ... n)  [[1, 2, ..., n]]  1
- * 
- *                (1 2 ... n)  [[1, 2, ..., n],
- * mXn matrix     (2 . ... .)   [2, ...      ],  m
- *                (. . ... .)   [...         ],
- *                (m . ... .)   [m, ...      ]]
- * </pre>
- */
-jsx.math.Matrix.dimRow = function(A) {
-  return (Array.isArray(A)
-    ? A.length
-    : 1);
-};
-
-/**
- * @param a
- * @return number
- *   The column dimension of <code>A</code>, provided all
- *   rows of <code>A</code> have the same length (as the first one);
- *   0 if <code>A</code> is a scalar,
- *   greater than 0 if <code>A</code> is a vector or a matrix.
- *
- * <pre>
- * Term            X           x                 dimCol(x)
- * --------------------------------------------------------
- * scalar          1           1                 0
- * 
- * mX1 col vector (1)
- *                (2)          [1, 2, ..., m]    1
- *                (.)
- *                (m)
- *
- * 1Xn row vector (1 2 ... n)  [[1, 2, ..., n]]  n
- * 
- *                (1 2 ... n)  [[1, 1, ..., n],
- * mXn matrix     (2 . ... .)   [2, ...      ],  n
- *                (. . ... .)   [...         ],
- *                (m . ... .)   [m, ...      ]]
- * </pre>
- */
-jsx.math.Matrix.dimCol = function(a) {
-  return (
-    typeof (a = a[0]) != "undefined"
-      ? (Array.isArray(a[0]) ? a[0].length : 1)
-      : 0);
-};
-
-/**
- * @param a
- * @return the square root of the product of A's row dimension
- * and its column dimension.  The return value indicates
- * whether a matrix A is square or not; for square matrices,
- * the return value is an integer.
- * @see jsx.math#add()
- */
-jsx.math.Matrix.dim = function(a) {
-  return Math.sqrt(jsx.math.Matrix.dimRow(a) * jsx.math.Matrix.dimCol(a));
-};
-
-jsx.math.Matrix.prototype = {
-  constructor: Math.Matrix,
-  
-  putValue: function (coords, value) {
-    var tmp = this.data;
-    
-    for (var i = 0, len = coords.length; i < len - 1; ++i)
+    },
     {
-      var arg = coords[i] - 1;
-      if (arg < 0)
-      {
-        jsx.throwThis("jsx.math.CoordinateError");
-        return;
-      }
-      
-      if (typeof tmp[arg] == "undefined")
-      {
-        tmp[arg] = [];
-      }
-
-      tmp = tmp[arg];
+      /**
+       * The Kronecker delta function.
+       *
+       * Takes two arguments, <var>i</var> amd <var>j</var>, and
+       * returns <code>1</code> if they are equal after implicit
+       * type conversion, <code>0</code> otherwise.
+       * Useful for creating identity/unit matrices.
+       *
+       * @param {Number|any} i
+       * @param {Number|any} j
+       * @memberOf jsx.math.Matrix
+       * @return {number}
+       * @see jsx.matrix.Matrix(Number, Number, Function)
+       */
+      KRONECKER_DELTA: function (i, j) { return +(i == j); }
     }
-    
-    var lastCoord = coords.slice(coords.length - 1);
-    if (lastCoord < 1)
-    {
-      jsx.throwThis("jsx.math.CoordinateError");
-      return;
-    }
-    
-    tmp[lastCoord - 1] = value;
+  ).extend(_Tensor, {
+    /* Information methods */
 
-    return tmp[lastCoord - 1];
-  },
-
-  getValue: function (coords) {
-    var tmp = this.data;
-
-    for (var i = 0, len = coords.length; i < len; ++i)
-    {
-      var arg = coords[i] - 1;
-      tmp = tmp[arg];
-
-      if (typeof tmp == "undefined")
-      {
-        break;
-      }
-    }
-
-    return tmp;
-  },
-
-  inc: function (coords) {
-    var
-      v = +this.getValue.apply(this, coords);
-
-    return this.putValue.apply(
-      this, coords.concat((isNaN(v) ? 0 : +v) + 1));
-  },
-  
-  toString:
     /**
-     * Returns the matrix converted to string, i.e.
-     * elements of arrays arranged in rows and columns.
-     * Makes use of string.js#format() if available.
-     * 
-     * @param m : optional Matrix
-     * @return string
+     * Returns the size of this matrix, i.e. the
+     * numbers of rows, and the numbers of columns per row.
+     *
+     * @memberOf jsx.math.Matrix.prototype
+     * @return {Array}
+     */
+    size: function () {
+      var data = this.data;
+      var _size = [data.length, data[0].length];
+      _size.rows = _size[0];
+      _size.columns = _size[1];
+
+      return _size;
+    },
+
+    /* Basic operations */
+
+    /**
+     * Returns the result of multiplication of this matrix with a value.
+     * <p>
+     * Returns the result of multiplication of this matrix
+     * by a scalar, or of linear algebraic matrix multiplication
+     * with another, compatible matrix.
+     * </p>
+     * @param {Number|jsx.math.Matrix} value
+     * @return {jsx.math.Matrix} <code>this</code> × <code><var>value</var></code>
+     * @throws {jsx.InvalidArgumentError}
+     *   if the matrices are not compatible (the row dimension
+     *   of this matrix must equal the column dimension of
+     *   the other one).
+     */
+    mul: function (value) {
+      var data = this.get();
+
+      if (!(value instanceof _Matrix))
+      {
+        /* Scalar multiplication */
+        for (var i = data.length; i--;)
+        {
+          for (var j = data[i].length; j--;)
+          {
+            data[i][j] = _mul(data[i][j], value);
+          }
+        }
+
+        return new _Matrix(data);
+      }
+
+      var data2 = value.get();
+      var m = new _Matrix();
+      var num_rows = data.length;
+      var num_rows2 = data2.length;
+
+      for (var k = 0, num_cols2 = data2[0].length; k < num_cols2; ++k)
+      {
+        for (var i = 0; i < num_rows; ++i)
+        {
+          var this_row = data[i];
+          var sum = 0;
+
+          for (var j = 0, num_cols = this_row.length; j < num_cols; ++j)
+          {
+            if (j > num_rows2 - 1)
+            {
+              return jsx.throwThis(jsx.InvalidArgumentError,
+                ["Incompatible matrices",
+                 "m1.size() === [m, n]; m2.size() === [n, x]",
+                 this.size() + ", " + value.size()]);
+            }
+
+            sum = _add(sum, _mul(data[i][j], data2[j][k]));
+          }
+
+          m.set([i, k], sum);
+        }
+      }
+
+      return m;
+    },
+
+    /**
+     * Returns the Hadamard/Schur/entrywise product of two matrices.
+     *
+     * @param {jsx.math.Matrix} m2
+     * @return {jsx.math.Matrix}
+     */
+    mulEntrywise: function (matrix2) {
+      var data = this.get();
+      var data2 = matrix2.get();
+
+      for (var i = data.length; i--;)
+      {
+        for (var j = data[i].length; j--;)
+        {
+          data[i][j] = _mul(data[i][j], data2[i][j]);
+        }
+      }
+
+      return new _Matrix(data);
+    },
+
+    /**
+     * Returns the Kronecker product of two matrices.
+     *
+     * @param {Matrix} matrix2
+     * @return {jsx.math.Matrix}
      * @todo
      */
-    function(m) {
-      if (!m)
+    mulKronecker: function (matrix2) {
+      var rows = this.get();
+      var rows2 = matrix2.get();
+      var size = this.size();
+      var size2 = matrix2.size();
+      var new_matrix = new _Matrix(size.rows * size2.rows, size.columns * size2.columns);
+      var new_data = new_matrix.get();
+      var new_size = new_matrix.size();
+
+//      return jsx.throwThis(jsx.math.NotImplementedError);
+
+      var new_row = new_size.rows - 1;
+
+      for (var i = rows.length; i--;)
       {
-        m = this;
+        var row = rows[i];
+        var len2 = row.length;
+
+        for (var m = rows2.length; m--;)
+        {
+          var new_column = new_size.columns - 1;
+          var m2_row = rows2[m];
+          var len4 = m2_row.length;
+
+          for (var j = len2; j--;)
+          {
+            for (var n = len4; n--;)
+            {
+              new_data[new_row][new_column--] = _mul(row[j], m2_row[n]);
+            }
+          }
+
+          --new_row;
+        }
       }
-  
-      if ((m = m.data))
+
+      return new _Matrix(new_data);
+    },
+
+    /**
+     * Increases a component of this matrix by 1
+     */
+    inc: function (coords) {
+      var v = +this.get.apply(this, coords);
+
+      return this.set.apply(this, coords.concat((isNaN(v) ? 0 : v) + 1));
+    },
+
+    /**
+     * Divides each component of this matrix by a value,
+     * and returns the resulting matrix.
+     *
+     * @param {Number} value
+     * @return {jsx.math.Matrix}
+     */
+    div: function (value) {
+      if (value instanceof _Matrix)
+      {
+        return jsx.throwThis(jsx.InvalidArgumentError, [null, "Number", value]);
+      }
+
+      return this.mul(1 / value);
+    },
+
+    /**
+     * Applies a mapping callback to each component of this matrix
+     * and returns the result.
+     *
+     * @param {Function} callback
+     *   Called for each component, with the component, its
+     *   coordinates as an <code>Array</code>, and this
+     *   <code>Matrix</code> as argument list.  Its return value
+     *   is used as the returned new component value.
+     * @param {Object} thisValue (optional)
+     *   The callbacks <code>this</code> value.  The default
+     *   is this <code>Matrix</code>.
+     * @return {jsx.math.Matrix}
+     */
+    map: function (callback, thisValue) {
+      return new _Matrix(this.get().map(function (row, rowIndex, matrix) {
+        return row.map(function (component, columnIndex) {
+          return callback.call(thisValue, component, [rowIndex, columnIndex], matrix);
+        });
+      }));
+    },
+
+    /**
+     * Computes the square root of each component of this matrix
+     * and returns the result.
+     *
+     * @return {jsx.math.Matrix}
+     */
+    sqrt: function () {
+      return this.map(function (component) {
+        return _sqrt(component);
+      });
+    },
+
+    /**
+     * Returns the transpose of this matrix
+     *
+     * @return {jsx.math.Matrix}
+     */
+    transpose: function () {
+      var size = this.size();
+      var transposed = new _Matrix(size.columns, size.rows).get();
+
+      var data = this.get();
+      for (var i = data.length; i--;)
+      {
+        var row = data[i];
+
+        for (var j = row.length; j--;)
+        {
+          transposed[j][i] = row[j];
+        }
+      }
+
+      return new _Matrix(transposed);
+    },
+
+    /* Row operations */
+
+    /**
+     * Switches two rows of a matrix and returns the result.
+     *
+     * @param {Number} row1
+     * @param {Number} row2
+     * @return {jsx.math.Matrix}
+     */
+    switchRows: function (row1, row2) {
+      var rows = this.get();
+
+      var tmp = rows[row1];
+      rows[row1] = rows[row2];
+      rows[row2] = tmp;
+
+      return new _Matrix(rows);
+    },
+
+    /**
+     * Multiplies each element in a row by a non-zero constant.
+     *
+     * @param {Number} rowIndex
+     * @param {Number} factor
+     * @return {jsx.math.Matrix}
+     */
+    mulRow: function (rowIndex, factor) {
+      if (factor == 0)
+      {
+        return jsx.throwThis(jsx.InvalidArgumentError,
+          ["Factor must not be 0"]);
+      }
+
+      var rows = this.get();
+      var row = rows[rowIndex];
+
+      if (!row)
+      {
+        return jsx.throwThis(jsx.InvalidArgumentError,
+          ["No such row index", rowIndex]);
+      }
+
+      for (var j = row.length; j--;)
+      {
+        row[j] = _mul(row[j], factor);
+      }
+
+      return new _Matrix(rows);
+    },
+
+    /* Methods for square matrices */
+
+    /* Information methods */
+
+    /**
+     * Returns the trace of this matrix.
+     *
+     * The trace of a matrix is the sum of its main diagonal
+     * components.  It is therefore only defined for square
+     * matrices.
+     *
+     * @return {number}
+     * @throws {TypeError}
+     *   if the matrix has no or broken rows, or is not square
+     */
+    trace: function () {
+      var result;
+      var data = this.data;
+
+      for (var i = 0, len = data.length; i < len; ++i)
+      {
+        var row = data[i];
+        if (!row)
+        {
+          return jsx.throwThis("TypeError", "No or broken rows");
+        }
+
+        var component = row[i];
+        if (!component)
+        {
+          return jsx.throwThis("TypeError", "Not a square matrix");
+        }
+
+        if (typeof result == "undefined")
+        {
+          result = component;
+        }
+        else
+        {
+          result = _add(result, component);
+        }
+      }
+
+      return result;
+    },
+
+    /**
+     * Returns the determinant of this matrix.
+     *
+     * @return {Number}
+     *   <code>NaN</code> if one or more components could not
+     *   be converted to <code>Number</code>, or more than one
+     *   component was not finite.  <code>Infinity</code> or
+     *   <code>-Infinity</code> if one component was not finite.
+     * @throws {TypeError} if the Matrix is not square
+     */
+    det: function () {
+      var result = 0;
+      var data = this.data;
+      var num_rows = data.length;
+      var first_row = data[0];
+      var num_cols = first_row.length;
+
+      if (num_rows != num_cols)
+      {
+        return jsx.throwThis("TypeError", "Not a square matrix");
+      }
+
+      if (num_cols == 2)
+      {
+        return data[0][0] * data[1][1] - data[0][1] * data[1][0];
+      }
+
+      for (var col = 0; col < num_cols; ++col)
+      {
+        var product1 = data[0][col];
+        var product2 = product1;
+        var offset = 0;
+
+        for (var row = 1; row < num_cols; ++row)
+        {
+          ++offset;
+          var this_row = data[row];
+          product1 = _mul(product1, this_row[(col + offset) % num_cols]);
+          product2 = _mul(product2, _get(this_row, col - offset));
+        }
+
+        result = _add(result, _sub(product1, product2));
+      }
+
+      return result;
+    },
+
+    /**
+     * Returns the human-readable string representation of this
+     * matrix, i.e. elements of arrays arranged in rows and columns.
+     * Makes use of string.js#format() if available.
+     *
+     * @param {String} prefix (optional)
+     *   Prefix for the second, third, aso. row.  <code>" "</code>
+     *   is useful in consoles where the output is prefixed by
+     *   <kbd>"</kbd>.  The default is the empty string.
+     * @return {string}
+     * @todo
+     */
+    toString: function (prefix) {
+      var m;
+      if ((m = this.get()))
       {
         var
           as = [],
-          bHasFormat = (typeof format != "undefined"),
-          maxLen;
-        
-        if (bHasFormat)
+          /* FIXME */
+          _sprintf = jsx.object.getFeature(jsx, "string", "sprintf"),
+          max_len;
+
+        if (_sprintf)
         {
-          maxLen = Math.max(m);
+          /* TODO: Calculate optimum width per column */
+          max_len = Math.max.apply(Math, m.map(function (row) {
+            return Math.max.apply(Math, row.map(function (component) {
+              return component.toString().length;
+            }));
+          }));
         }
-  
+
         for (var i = 0, len = m.length; i < len; i++)
         {
           var row = m[i];
-          if (bHasFormat)
+          if (_sprintf)
           {
-            as[i] = format("%*$s", row, maxLen + 1);
+            as[i] = _sprintf("%*a", row, max_len + 1);
           }
           else
           {
             as[i] = row.join(" ");
           }
         }
-      }n
-  
-      return as.join("\n");
+      }
+
+      return as.join("\n" + (prefix || ""));
     },
 
-  minor:
     /**
-     * Returns the minor of the matrix, i.e. the matrix produced
-     * by removing the original's first row and i-th column.
-     * 
-     * @param i : number
-     * @param m : optional Matrix
-     * @return string
-     * @todo
+     * Returns the minor of this matrix.
+     *
+     * @param {Number} column
+     * @return {jsx.math.Matrix}
+     *   The matrix produced by removing this matrix's first row
+     *   and <code><var>column</var></code>-th column (counting
+     *   from 0).
      */
-    function (i, m) {
-      if (!m)
-      {
-        m = this;
-      }
-  
-      if ((m = m.data))
-      {
-        m = new Math.Matrix(m);
-        m.data = m.data.slice(1);
-        var j;
-        for (m, j = (m = m.data).length; j--;)
-        {
-          m[j].splice(i, 1);
-        }
-      }
-  
-      return m;
-    }
-};
+    minor: function (column) {
+      var data = this.get().slice(1);
 
-/**
- * @param a
- * @param b
- * @return Array
- *   The sum of the matrixes <var>a</var> and <var>b</var>
- */
-jsx.math.add = function(a, b) {
-  /*
-   * x00 x01 x02   y00 y01 y02   x00+y00 x01+y01 x02+y02
-   * x10 x11 x12 + y10 y11 y12 = x10+y10 x11+y11 x12+y12
-   * x20 x21 x22   y20 y21 y22   x20+y20 x21+y21 x22+y22
+      for (var j = data.length; j--;)
+      {
+        data[j].splice(column, 1);
+      }
+
+      return new _Matrix(data);
+    }
+  });
+
+  jsx.object.extend(jsx.math, {
+    Tensor: _Tensor,
+    Vector: _Vector,
+    Matrix: _Matrix
+  });
+
+  /**
+   * Computes the intersection of two orthotopes (intervals, rectangles,
+   * rectangular cuboids, etc.)
+   * <pre>
+   * ,------------------.
+   * |             ,----+------.
+   * |             |/ / |      |
+   * |             | / /|      |
+   * |             `----+------'
+   * `------------------'
+   * </pre>
+   * <p>
+   * Each orthotope is given as a list of Arrays of numbers (which may
+   * be encapsulated in a Vector), where each Array or Vector consists
+   * of the coordinates of the adjacent vertices of the orthotope
+   * (for a rectangle, the x and y coordinates of the left top and
+   * right bottom corners).  FIXME: Not reliable in 3D+!
+   * </p><p>
+   * If you need to compute the intersection of more than two
+   * orthotopes, you can compute the intersection of their
+   * intersections.
+   * </p>
+   * @param orthotope1 : Array[Array[double]|Math.Vector]
+   *   First orthotope
+   * @param orthotope2 : Array[Array[double]|Math.Vector]
+   *   Second orthotope
+   * @return Array[Array|Vector]
+   *   An Array of two Arrays or Vectors of, each of which holds one
+   *   vector pointing to an adjacent vertex of the resulting orthotope
+   *   that includes all points that the input orthotopes have in common.
    */
-  var result = new Array();
+  _math.intersect = function (orthotope1, orthotope2) {
+    var result = [[], []];
 
-  var dimARow,
-       dimACol = jsx.math.dimCol(a),
-       dimBRow,
-       dimBCol = Math.dimCol(b);
-  if ((dimARow = jsx.math.dimRow(a)) == (dimBRow = Math.dimRow(b))
-      && (dimACol == dimBCol))
-  {
-    for (var i = 0; i < dimARow; i++)
+    var ortho1LeftTop = orthotope1[0];
+    for (var i = ortho1LeftTop.length; i--;)
     {
-      result[i] = [];
-      for (var j = 0; j < dimACol; j++)
-      {
-        result[i][j] = a[i][j] + b[i][j];
-      }
+      result[0][i] = (ortho1LeftTop[i] < orthotope2[0][i])
+                   ? orthotope2[0][i]
+                   : ortho1LeftTop[i];
     }
-  }
-  else
-  {
-    throwException(new Math.InvalidOperandError(
-        "First matrix's dimension (" + dimARow + "," + dimACol
-      + ") != second matrix's dimension (" + dimBRow + ", " + dimBCol + ")"));
-    return null;
-  }
-  
-  return result;
-};
 
-/**
- * This routine uses the dimensions of <var>a</var> and <var>b</var>
- * to choose the corresponding multiplication routine.  The argument
- * dimensions, the dimension of the corresponding result,  and the
- * multiplication routine that is called are shown in the following
- * table.
- <pre>
-               B
+    var ortho1RightBottom = orthotope1[1];
+    for (i = ortho1RightBottom.length; i--;)
+    {
+      result[1][i] = (ortho1RightBottom[i] > orthotope2[1][i])
+                   ? orthotope2[1][i]
+                   : ortho1RightBottom[i];
+    }
 
-   A           qXn                   1Xn                         qX1
-               Matrix                row Vector                  col Vector            scalar
+    return result;
+  };
 
-   mXq         mXn Matrix            ERROR                       mX1 col Vector        mXq Matrix
-   Matrix      MatrixMatrixMultiply                              MatrixVectorMultiply  MatrixScalarMultiply
-
-   1Xq         1Xn row Vector        ERROR                       scalar                1Xq Vector
-   row Vector  VectorMatrixMultiply                                                    VectorScalarMultiply
-
-   mX1         ERROR                 mXn Matrix (outer product)  ERROR                 mX1  Vector
-   col Vector                        OuterProductMatrix                                VectorScalarMultiply
-
-               qXn Matrix            1Xn row Vector              qX1 col Vector        scalar
-   scalar      MatrixScalarMultiply  VectorScalarMultiply        VectorScalarMultiply  standard multipliction
- </pre>
-
- * @param a
- * @param b
- * @return number|Array
- * @throws Math#InvalidOperandError
- */
-jsx.math.multiply = function(a, b) {
-  /*
-   * a00 a01 ...   b00 b01 ...
-   * a10 a11 ... * b10 b11 ...
-   * ... ... ...   ... ... ...
-   *
-   *   a00*b00+a01*b10+...*... a00*b01+a01*b11+...*... a00*...+a01*...+...*...
-   * = a10*b10+a11*b10+...*... a10*b01+a11*b11+...*... a00*...+a01*...+...*...
-   *   ...*...+...*...+...+... ...*b01+...*b11+...*... a00*...+a01*...+...*...
+  /**
+   * @constructor
+   * @extends jsx.InvalidArgumentError
    */
-  
-  var dimRowA = Math.dimRow(a);
-  var dimColA = Math.dimCol(a);
-  var dimRowB = Math.dimRow(b);
-  var dimColB = Math.dimCol(b);
-  if ((dimRowA && dimColA) || (dimRowB && dimColB))
-  {
-    if (dimRowA || dimRowB)
-    {
-//      if (dimRowX && d
-      var result = matrixMatrixMultiply(a, b);
-    }
-    else if (Array.isArray(a) && !Array.isArray(b))
-    {
-      if (Array.isArray(a[0]))
-      {
-        // ...
-      }
-      result = matrix;
-    }
-    
-    result = new Array();
-    // matrixMultiply
-  }
-  else
-  {
-    result = a * b;
-  }
-  
-  var x_len = a.length;
-  var y_len = b.length;
-  for (var i = 0, j, xi_len, sum = 0, k;
-       i < x_len;
-       i++)
-  {
-    result[i] = new Array();
-    xi_len = a[i].length;
-    for (j = 0;
-         j < xi_len;
-         j++, sum = 0)
-    {
-      if (y_len != xi_len)
-      {
-        jsx.throwThis(new jsx.math.InvalidOperandError(
-            "First matrix's column dimension (" + xi_len
-          + ") != second matrix's row dimension (" + y_len + ")"));
-        return null;
-      }
-      sum += a[i][k] + b[k][i];
-    }
-    result[i][j] = sum;
-  }
-  
-  if (result.length == 1 && result[i].length == 1)
-  {
-    result = result[0][0];
-  }
-  
-  return result;
-};
+  _math.DimensionError = function () {
+    arguments.callee._super.call(this, "Dimension must be 1 or greater");
+  };
 
-/**
- * Computes the intersection of two orthotopes (intervals, rectangles,
- * rectangular cuboids, etc.)
- * <pre>
- * ,------------------.
- * |             ,----+------.
- * |             |/ / |      |
- * |             | / /|      |
- * |             `----+------'
- * `------------------'
- * </pre>
- * <p>
- * Each orthotope is given as a list of Arrays of numbers (which may
- * be encapsulated in a Vector), where each Array or Vector consists
- * of the coordinates of the adjacent vertices of the orthotope
- * (for a rectangle, the x and y coordinates of the left top and
- * right bottom corners).  FIXME: Not reliable in 3D+!
- * </p><p>
- * If you need to compute the intersection of more than two
- * orthotopes, you can compute the intersection of their
- * intersections.
- * </p>
- * @param orthotope1 : Array[Array[double]|Math.Vector]
- *   First orthotope
- * @param orthotope2 : Array[Array[double]|Math.Vector]
- *   Second orthotope
- * @return Array[Array|Vector]
- *   An Array of two Arrays or Vectors of, each of which holds one
- *   vector pointing to an adjacent vertex of the resulting orthotope
- *   that includes all points that the input orthotopes have in common.
- */
-jsx.math.intersect = function (orthotope1, orthotope2) {
-  var result = [[], []];
-  
-  var ortho1LeftTop = orthotope1[0];
-  for (var i = ortho1LeftTop.length; i--;)
-  {
-    result[0][i] = (ortho1LeftTop[i] < orthotope2[0][i])
-                 ? orthotope2[0][i]
-                 : ortho1LeftTop[i];
-  }
-  
-  var ortho1RightBottom = orthotope1[1];
-  for (i = ortho1RightBottom.length; i--;)
-  {
-    result[1][i] = (ortho1RightBottom[i] > orthotope2[1][i])
-                 ? orthotope2[1][i]
-                 : ortho1RightBottom[i];
-  }
+  _math.DimensionError.extend(jsx.InvalidArgumentError, {
+    /**
+     * @memberOf jsx.math.DimensionError.prototype
+     */
+    name: "jsx.math.DimensionError"
+  });
 
-  return result;
-};
+  /**
+   * @constructor
+   * @extends jsx.InvalidArgumentError
+   */
+  _math.CoordinateError = function () {
+    arguments.callee._super.call(this, "Coordinate must be 0 or greater");
+  };
 
-jsx.math.CoordinateError = function () {
-  arguments.callee._super.call(this, "Coordinate must be 1 or greater")
-};
+  _math.CoordinateError.extend(jsx.InvalidArgumentError, {
+    /**
+     * @memberOf jsx.math.CoordinateError.prototype
+     */
+    name: "jsx.math.CoordinateError"
+  });
 
-jsx.math.CoordinateError.extend(jsx.InvalidArgumentError, {
-  name: "jsx.math.CoordinateError"
-});
+  /**
+   * @constructor
+   * @extends jsx.Error
+   */
+  _math.NotImplementedError = function () {
+    arguments.callee._super.call(this, "Not implemented");
+  };
+
+  _math.NotImplementedError.extend(jsx.Error, {
+    /**
+     * @memberOf jsx.math.NotImplementedError.prototype
+     */
+    name: "jsx.math.NotImplementedError"
+  });
+}());
