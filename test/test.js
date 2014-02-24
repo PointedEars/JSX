@@ -325,7 +325,7 @@ jsx.test = (/** @constructor */ function () {
      * Asserts that two arrays are equal.  If they are not,
      * an {@link #AssertionError} is thrown with a default message.
      * Two arrays are considered equal only if their elements are
-     * strictly equal (shallow strict comparison).
+     * strictly equal (shallow or deep strict comparison).
      *
      * @function
      * @throws
@@ -349,53 +349,76 @@ jsx.test = (/** @constructor */ function () {
        *   Expected value; if a string, it is evaluated as a <i>Program</i>.
        * @param {string|Array} actuals
        *   Actual value; if a string, it is evaluated as a <i>Program</i>.
+       * @param {number} depth
+       *   If <code>undefined</code> (default), shallow comparison
+       *   is performed.  If not <code>0</code>, deep comparison
+       *   is performed: if less than <code>0</code>, there is
+       *   no limit as to the depth of the comparison; if greater
+       *   than <code>0</code>, items are compared down to the
+       *   specified depth.
+       * @param {boolean} recursive
+       *   Used internally to detect recursive assertions
        * @return {boolean}
        *   <code>false</code>, if comparison is not possible
        *   or the assertion fails, and no exception can be thrown;
        *   <code>true</code>, if the assertion is met.
        */
-      return function (expecteds, actuals) {
-        _increaseAssertCount();
+      return (
+        function jsx_test_assertArrayEquals (expecteds, actuals, depth, recursive) {
+          if (!recursive)
+          {
+            _increaseAssertCount();
+          }
 
-        if (typeof expecteds == "string")
-        {
-          expecteds = eval(expecteds);
-        }
+          if (typeof expecteds == "string")
+          {
+            expecteds = eval(expecteds);
+          }
 
-        if (typeof actuals == "string")
-        {
-          actuals = eval(actuals);
-        }
+          if (typeof actuals == "string")
+          {
+            actuals = eval(actuals);
+          }
 
-        if (typeof expecteds == typeof actuals
-            && expecteds == null && actuals == null)
-        {
-          return true;
-        }
+          if (typeof expecteds == typeof actuals
+              && expecteds == null && actuals == null)
+          {
+            return true;
+          }
 
-        if (!_isArray(expecteds) || !_isArray(actuals))
-        {
-          return _throwThis(_ArrayComparisonFailure);
-        }
+          if (!_isArray(expecteds) || !_isArray(actuals))
+          {
+            return _throwThis(_ArrayComparisonFailure);
+          }
 
-        var len = expecteds.length;
-        var len2 = actuals.length;
+          var len = expecteds.length;
+          var len2 = actuals.length;
 
-        if (len != len2)
-        {
-          return _thrower(expecteds, actuals);
-        }
-
-        for (var i = len; i--;)
-        {
-          if (expecteds[i] !== actuals[i])
+          if (len != len2)
           {
             return _thrower(expecteds, actuals);
           }
-        }
 
-        return true;
-      };
+          for (var i = len; i--;)
+          {
+            var recursive = (typeof depth == "number" && depth != 0);
+            var expected = expecteds[i];
+            var actual = actuals[i];
+
+            if (recursive && _isArray(expected) && _isArray(actual))
+            {
+              var new_level = ((depth < 0) ? depth : (depth - 1));
+              jsx_test_assertArrayEquals(expected, actual, new_level, true);
+            }
+            else if (expected !== actual)
+            {
+              return _thrower(expecteds, actuals);
+            }
+          }
+
+          return true;
+        }
+      );
     }()),
 
     /**
