@@ -151,6 +151,31 @@ jsx.array = (/** @constructor */ function () {
     });
 
   /**
+   * @param {Object} target
+   * @param {Object} traps
+   * @return {Proxy}
+   */
+  function _getProxy (target, traps)
+  {
+    return jsx.tryThis(
+      function () {
+        return new Proxy(target, traps);
+      },
+
+      function () {
+        return jsx.tryThis(
+          function () {
+            return Proxy.create(target, traps);
+          },
+          function (e) {
+            return jsx.rethrowThis(e);
+          }
+        );
+      }
+    );
+  }
+
+  /**
    * An <code>Array</code> whose last elements can be accessed
    * by negative index.  This additional functionality requires
    * support for <code>Proxy</code> (ECMAScript Edition 6 “Harmony”
@@ -166,21 +191,8 @@ jsx.array = (/** @constructor */ function () {
 
     if (typeof Proxy != "undefined")
     {
-      var traps = {
-        set: function (target, propertyName, value) {
-          var index;
-          if (!isNaN(index = parseInt(propertyName, 10)))
-          {
-            if (index < 0)
-            {
-              propertyName = target.length + index;
-            }
-          }
-
-          return (target[propertyName] = value);
-        },
-
-        get: function (target, propertyName) {
+      return _getProxy(me, {
+        "get": function (target, propertyName) {
           var index;
           if (!isNaN(index = parseInt(propertyName, 10)))
           {
@@ -191,29 +203,50 @@ jsx.array = (/** @constructor */ function () {
           }
 
           return target[propertyName];
-        }
-      };
-
-      return jsx.tryThis(
-        function () {
-          return new Proxy(me, traps);
         },
-
-        function () {
-          return jsx.tryThis(
-            function () {
-              return Proxy.create(me, traps);
-            },
-            function (e) {
-              return jsx.rethrowThis(e);
+        "set": function (target, propertyName, value) {
+          var index;
+          if (!isNaN(index = parseInt(propertyName, 10)))
+          {
+            if (index < 0)
+            {
+              propertyName = target.length + index;
             }
-          );
+          }
+
+          return (target[propertyName] = value);
         }
-      );
+      });
     }
 
     return me;
-  }.extend(Array);
+  }.extend(Array, {
+    "get": function (propertyName) {
+      var index;
+      if (!isNaN(index = parseInt(propertyName, 10)))
+      {
+        if (index < 0)
+        {
+          propertyName = target.length + index;
+        }
+      }
+
+      return target[propertyName];
+    },
+
+    "set": function (propertyName, value) {
+      var index;
+      if (!isNaN(index = parseInt(propertyName, 10)))
+      {
+        if (index < 0)
+        {
+          propertyName = target.length + index;
+        }
+      }
+
+      return (target[propertyName] = value);
+    }
+  });
 
   /**
    * Array-like object which can hold up to 2<sup>53</sup> elements
@@ -313,6 +346,30 @@ jsx.array = (/** @constructor */ function () {
           }
         }
       }
+
+      if (typeof Proxy != "undefined")
+      {
+        return _getProxy(this, {
+          "get": function (target, propertyName) {
+            var index;
+            if (!isNaN(index = parseInt(propertyName, 10)))
+            {
+              this.get(index);
+            }
+
+            return target[propertyName];
+          },
+          "set": function (target, propertyName, value) {
+            var index;
+            if (!isNaN(index = parseInt(propertyName, 10)))
+            {
+              this.set(index, value);
+            }
+
+            return (target[propertyName] = value);
+          }
+        });
+      }
     },
     {
       /**
@@ -367,7 +424,7 @@ jsx.array = (/** @constructor */ function () {
      * @param {int} index
      * @return {any} the element of this array at <var>index</var>
      */
-    get: function BigArray_get (index) {
+    "get": function BigArray_get (index) {
       if (arguments.length < 1)
       {
         return jsx.throwThis(jsx.InvalidArgumentError,
@@ -393,7 +450,7 @@ jsx.array = (/** @constructor */ function () {
      * @param {int} index
      * @param {any} value
      */
-    set: function (index, value) {
+    "set": function (index, value) {
       var length = this.getLength();
 
       if (index < 0)
