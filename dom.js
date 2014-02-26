@@ -1488,6 +1488,199 @@ jsx.dom = (/** @constructor */ function () {
       return o;
     },
 
+    /**
+     * Creates a SGML/HTML markup from an object.
+     *
+     * Returns a {@link string} from the argument, depending on
+     * its type:
+     * <table>
+     *   <thead>
+     *     <tr>
+     *       <th>Type</th>
+     *       <th>Return value</th>
+     *     </tr>
+     *   </thead>
+     *   <tbody>
+     *     <tr>
+     *       <th>{@link String}</th>
+     *       <td><code>string</code> with characters
+     *           escaped according to the following table:
+     *           <table>
+     *             <tr>
+     *               <th>Character</th>
+     *               <th>Escape</th>
+     *             </tr>
+     *             <tr><td><code>"</code></td><td><code>&amp;quot;</code></td></tr>
+     *             <tr><td><code>&amp;</code></td><td><code>&amp;amp;</code></td></tr>
+     *             <tr><td><code>&lt;</code></td><td><code>&amp;lt;</code></td></tr>
+     *             <tr><td><code>></code></td><td><code>&amp;gt;</code></td></tr>
+     *           </table>
+     *           <p>This is also used internally to ensure that
+     *           attribute values and element content is
+     *           properly escaped.</p></td>
+     *     </tr>
+     *     <tr>
+     *       <th><code>Array</code> of {@link Object} or <code>String</code></th>
+     *       <td>Markup s<code>string</code> of elements and text.
+     *           The input <code>Array</code>'s elements are processed
+     *           recursively.</td>
+     *     </tr>
+     *     <tr>
+     *       <th><code>Object</code></th>
+     *       <td>Markup <code>string</code> for one element and,
+     *           optionally, its content.  The following of
+     *           the input <code>Object</code>'s properties
+     *           are considered:
+     *           <table>
+     *             <thead>
+     *               <th>Property</th>
+     *               <th>Expected type</th>
+     *               <th>Meaning</th>
+     *             </thead>
+     *             <tbody>
+     *               <tr>
+     *                 <th><code><var>elementType</var></code> or
+     *                     <code><var>type</var></code></th>
+     *                 <td><code>String</code></td>
+     *                 <td>Element type (case-sensitivity depends on
+     *                     the document type)</td>
+     *               </tr>
+     *               <!--<tr>
+     *                 <th><code><var>attributes</var></code></th>
+     *                 <td><code>Object</code></td>
+     *                 <td>Attributes of the element.  All attributes
+     *                     are created in the <code>null</code> namespace.</td>
+     *               </tr>-->
+     *               <tr>
+     *                 <th><code><var>properties</var></code></th>
+     *                 <td><code>Object</code></td>
+     *                 <td>Properties of the element object.  The property
+     *                     <code>style</code> is handled specially: Its
+     *                     value should be an <code>Object</code> whose
+     *                     property names are <code>style</code> property
+     *                     names and whose property values are the
+     *                     corresponding values, as supported by
+     *                     {@link jsx.dom.css#setStyleProperty()}.
+     *                     <!--Note that some properties may overwrite
+     *                     attributes.-->
+     *               </tr>
+     *               <tr>
+     *                 <th><code><var>childNodes</var></code></th>
+     *                 <td><code>Array</code> of <code>Object</code>
+     *                     or <code>String</code></td>
+     *                 <td>Child nodes of the element node.
+     *                     The elements of the <code>Array</code>
+     *                     are processed recursively.
+     *               </tr>
+     *             </tbody>
+     *           </table></td>
+     *     </tr>
+     *   </tbody>
+     * </table>
+     * @param {Array|Object} data
+     * @param {boolean} bXML
+     *   If a true-value, empty elements use XML <code>SHORTTAG</code>
+     *   syntax: <code>&lt;foo/></code> instead of
+     *   <code>&lt;foo>&lt;/foo></code>.
+     * @return {string}
+     */
+    createMarkupFromObj: function _createMarkupFromObj (data, bXML) {
+      if (typeof data.valueOf() == "string")
+      {
+        return data.replace(/["&<>]/g, function (m) {
+          return ({
+            '"': "&quot;",
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;"
+          })[m];
+        });
+      }
+
+      /* Support ES5 strict mode */
+      var me = _createMarkupFromObj;
+
+      /* If input is an Array, output is string of markup */
+      if (_isArray(data))
+      {
+        var a = [];
+
+        for (var i = 0, len = data.length; i < len; ++i)
+        {
+          a[i] = me(data[i]);
+        }
+
+        return a.join("");
+      }
+
+      var type = (data.elementType || data.type);
+      var el = ["<" + type];
+
+      var attributes = data.attributes;
+      if (attributes)
+      {
+        var keys = _getKeys(attributes);
+
+        for (var i = 0, len = keys.length; i < len; ++i)
+        {
+          var attrName = keys[i];
+          el.push(" " + attrName + '="' + me(attributes[attrName]) + '"');
+        }
+      }
+
+      var properties = data.properties;
+      if (properties)
+      {
+        keys = _getKeys(properties);
+
+        for (i = 0, len = keys.length; i < len; ++i)
+        {
+          var propName = keys[i];
+
+          if (propName == "style")
+          {
+            el.push(' style="');
+
+            var style = properties[propName];
+            var _uncamelize = jsx.object.getFeature(jsx.dom, "css", "uncamelize")
+              || function (s) { return s; };
+
+            var styleKeys = _getKeys(style);
+            for (var i = 0, len = styleKeys.length; i < len; ++i)
+            {
+              var stylePropName = styleKeys[i];
+              el.push(" " + me(_uncamelize(stylePropName)) + ": " + me(style[stylePropName]));
+            }
+          }
+          else
+          {
+            el.push(" " + propName + '="' + me(properties[propName]) + '"');
+          }
+        }
+      }
+
+      var nodes = data.childNodes;
+      var bEmpty = (!nodes || !nodes.length);
+      if (bXML && bEmpty)
+      {
+        el.push("/");
+      }
+
+      el.push(">");
+
+      for (var i = 0, len = nodes && nodes.length; i < len; ++i)
+      {
+        el.push(me(nodes[i], bXML));
+      }
+
+      if (!bEmpty)
+      {
+        el.push("</" + type + ">");
+      }
+
+      return el.join("");
+    },
+
     createElementFromObj: _createNodesFromObj,
     createNodeFromObj: _createNodesFromObj,
     createNodesFromObj: _createNodesFromObj,
