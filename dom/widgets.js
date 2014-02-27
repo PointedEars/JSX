@@ -24,27 +24,7 @@
  * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-if (typeof jsx == "undefined")
-{
-  /**
-   * @namespace
-   * (must be provided by object.js, here for JSDT only)
-   */
-  var jsx = {};
-}
-
-if (typeof jsx.dom == "undefined")
-{
-  /**
-   * @namespace
-   * (must be provided by dom.js, here for JSDT only)
-   */
-  jsx.dom = {};
-}
-
 /**
- * @type jsx.dom.widgets
- * @memberOf __jsx.dom.widgets
  * @namespace
  */
 jsx.dom.widgets = (/** @constructor */ function () {
@@ -179,7 +159,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
       },
 
       /**
-       * Sets several property of this widget's target object.
+       * Sets several properties of this widget's target object.
        *
        * Use {@link #setStyleProperty()}, {@link #resetStyleProperty()}
        * or {@link #setStyle()} for setting style properties instead.
@@ -1619,6 +1599,11 @@ jsx.dom.widgets = (/** @constructor */ function () {
 
             if (expressions[j].test(_getContent(row.cells[column.index])))
             {
+              if (this.highlightMatches)
+              {
+                /* TODO: Highlight markup across element borders if necessary */
+              }
+
               row.style.display = "";
               break;
             }
