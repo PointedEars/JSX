@@ -5,7 +5,7 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2000-2011, 2013  Thomas Lahn &lt;js@PointedEars.de&gt;
+ *   (C) 2000-2011, 2013, 2014  Thomas Lahn &lt;js@PointedEars.de&gt;
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -31,6 +31,7 @@
   var _add = _math.add;
   var _sub = _math.sub;
   var _mul = _math.mul;
+  var _div = _math.div;
   var _pow = _math.pow;
   var _sqrt = _math.sqrt;
 
@@ -49,7 +50,7 @@
      * @param {Array} components
      * @return {jsx.math.Tensor} when called as a factory
      */
-    function (components) {
+    function jsx_math_Tensor (components) {
       if (!(this instanceof _Tensor))
       {
         return new _Tensor(components);
@@ -59,7 +60,7 @@
        * The components of this tensor
        * @type Array
        */
-      this.data = components || [0];
+      this.components = components || [0];
     }
   ).extend(null, {
     /* Initialisers */
@@ -92,7 +93,8 @@
      * @return {any|Array}
      */
     "get": function (coords) {
-      var data = this.data.map(function (row) {
+      /* TODO: Copy components recursively */
+      var data = this.components.map(function (row) {
         return _isArray(row) ? row.slice() : row;
       }).slice();
 
@@ -123,7 +125,7 @@
      *   The new component value
      */
     "set": function (coords, value) {
-      var tmp = this.data;
+      var tmp = this.components;
 
       var i = 0;
       for (var len = coords.length; i < len - 1; ++i)
@@ -162,13 +164,13 @@
     size: function () {
       return jsx.throwThis(_math.NotImplementedError);
 
-      var data = this.data;
-      var sizes = [data.length];
+      var components = this.components;
+      var sizes = [components.length];
       var index = 1;
 
-      while (_isArray(data = data[0]))
+      while (_isArray(components = components[0]))
       {
-        sizes[i++] = Math.max.apply(data.map(function (e) {
+        sizes[i++] = Math.max.apply(components.map(function (e) {
           return e.length;
         }));
       }
@@ -198,15 +200,15 @@
      * @return {jsx.math.Tensor}
      */
     add: function (tensor2) {
-      var data = this.get();
-      var data2 = tensor2.get();
+      var components = this.get();
+      var components2 = tensor2.get();
 
-      for (var i = data.length; i--;)
+      for (var i = components.length; i--;)
       {
-        var row = data[i];
+        var row = components[i];
         if (typeof row == "number")
         {
-          data[i] = _add(data[i], data2[i]);
+          components[i] = _add(components[i], components2[i]);
         }
         else
         {
@@ -214,17 +216,17 @@
           {
             if (_isArray(row[j]))
             {
-              row[j] = _Tensor(row[j]).add(_Tensor(data2[i][j])).get();
+              row[j] = _Tensor(row[j]).add(_Tensor(components2[i][j])).get();
             }
             else
             {
-              row[j] = _add(row[j], data2[i][j]);
+              row[j] = _add(row[j], components2[i][j]);
             }
           }
         }
       }
 
-      return new this.constructor(data);
+      return new this.constructor(components);
     },
 
     /**
@@ -258,26 +260,23 @@
      */
     function _cross (value)
     {
-      var data = this.get();
+      var components = this.get();
 
-      if (!(value instanceof _Matrix))
+      if (!(value instanceof _Vector))
       {
         /* Scalar multiplication */
-        for (var i = data.length; i--;)
+        for (var i = components.length; i--;)
         {
-          for (var j = data[i].length; j--;)
-          {
-            data[i][j] = _mul(data[i][j], value);
-          }
+          components[i] = _mul(components[i], value);
         }
 
-        return new _Matrix(data);
+        return new _Vector(components);
       }
 
-      var data2 = value.get();
+      var components2 = value.get();
 
-      var len = data.length;
-      var len2 = data2.length;
+      var len = components.length;
+      var len2 = components2.length;
       if (len != 3 || len2 != 3 || len != len2)
       {
         return jsx.throwThis(jsx.InvalidArgumentError,
@@ -286,45 +285,90 @@
            "two three-dimensional vectors"]);
       }
 
-      return new Vector([
-        _sub(_mul(data[1], data2[2]), _mul(data[2], data2[1])),
-        _sub(_mul(data[0], data2[2]), _mul(data[2], data2[0])),
-        _sub(_mul(data[0], data2[1]), _mul(data[1], data2[0]))
+      return new _Vector([
+        _sub(_mul(components[1], components2[2]), _mul(components[2], components2[1])),
+        _sub(_mul(components[0], components2[2]), _mul(components[2], components2[0])),
+        _sub(_mul(components[0], components2[1]), _mul(components[1], components2[0]))
       ]);
+    }
+
+    /**
+     * Returns the magnitude (or length) of this vector.
+     *
+     * @return {number}
+     */
+    function _mag ()
+    {
+      var sum = 0;
+
+      var components = this.get();
+      for (var i = components.length; i--;)
+      {
+        /*
+         * NOTE: We could do this by dot product instead
+         * (||A||^2 = A . A), but exponentiation by 2
+         * should be slightly faster than multiplication.
+         */
+        sum = _add(sum, _pow(components[i], 2));
+      }
+
+      return _sqrt(sum);
     }
 
     var _Vector = (
       /**
        * @constructor
+       * @param {Array} components
+       *   The components of this vector.
+       * @param {Number} size
+       *   The number of components of this vector.
+       * @param {Number|Function|any} fill (optional)
+       *   The value <var>size</var> components should be
+       *   filled with.
+       *   A <code>Number</code>, or a <code>Function</code>
+       *   returning a <code>Number</code>, is preferred (as being
+       *   ideal for further computations), but not required.
+       *
+       *   If a <code>Function</code>, the return value of the
+       *   <code>Function</code> for each component is used, where
+       *   the <code>Function</code> is passed the index of
+       *   the component as only argument, and the <code>this</code>
+       *   value is set to the new instance.
+       *   The default is <code>undefined</code>.
        */
-      function jsx_math_Vector (components) {
+      function jsx_math_Vector (components, size, fill) {
         if (!(this instanceof _Vector))
         {
-          return new _Vector(components);
+          return new _Vector(components, size, fill);
         }
 
-        this.data = components || [0];
+        var components = (components || [0]);
+
+        if (typeof size != "undefined")
+        {
+          components.length = size;
+        }
+
+        if (typeof fill != "undefined")
+        {
+          for (var i = 0, len = components.length; i < len; ++i)
+          {
+            components[i] =  (typeof fill == "function"
+              ? fill.call(this, i)
+              : fill);
+          }
+        }
+
+        this.components = components;
       }
     ).extend(_Tensor, {
       /* Information methods */
 
       /**
-       * Returns the magnitude (or length) of this vector.
-       *
        * @memberOf jsx.math.Vector.prototype
-       * @return {number}
        */
-      mag: function () {
-        var sum = 0;
-
-        var components = this.get();
-        for (var i = components.length; i--;)
-        {
-          sum = _add(sum, _pow(components[i], 2));
-        }
-
-        return _sqrt(sum);
-      },
+      abs: _mag,
+      mag: _mag,
 
       /**
        * Returns the angle between this vector and another vector.
@@ -358,12 +402,12 @@
        */
       dot: function (vector2) {
         var result = 0;
-        var data = this.get();
-        var data2 = vector2.get();
+        var components = this.get();
+        var components2 = vector2.get();
 
-        for (var i = data.length; i--;)
+        for (var i = components.length; i--;)
         {
-          result = _add(result, _mul(data[i], data2[i]));
+          result = _add(result, _mul(components[i], components2[i]));
         }
 
         return result;
@@ -376,15 +420,32 @@
        * @return {jsx.math.Vector}
        */
       mulEntrywise: function (vector2) {
-        var data = this.get();
-        var data2 = vector2.get();
-
-        for (var i = data.length; i--;)
+        var components = this.get();
+        var components2 = vector2.get();
+        for (var i = components.length; i--;)
         {
-          data[i] *= data2[i];
+          components[i] *= components2[i];
         }
 
-        return new _Vector(data);
+        return new _Vector(components);
+      },
+
+      toString: function () {
+        return "(" + this.components.join(", ") + ")";
+      },
+
+      /**
+       * Returns the unit vector for this vector.
+       *
+       * The unit vector for this vector is a vector of
+       * the same direction, but unit length.
+       */
+      unit: function () {
+        var mag = this.mag();
+
+        return new _Vector(this.get().map(function (component) {
+          return _div(component, mag);
+        }));
       }
     });
 
@@ -395,11 +456,21 @@
 
   var _Matrix = jsx.object.extend(
     /**
-     * Creates a <code>Matrix</code> object encapsulating
+     * Creates a <code>Matrix</code> encapsulating
      * an m × n matrix and associated operations.
      *
+     * <pre> (a<sub>00</sub>    a<sub>01</sub>     .. a<sub>0<var>(n−1)</var></sub>        )
+     * (a<sub>10</sub>    a<sub>11</sub>     .. a<sub>0<var>(n−)</var></sub>        )
+     * ( :      :      `.  :         )
+     * (a<sub><var>(m−1)</var>0</sub> a<sub><var>(m−1)</var>1</sub> .. a<sub><var>(m−1)</var><var>(n−1)</var></sub>)</pre>
+     *
      * The matrix components are represented by
-     * an <Code>Array</code> of <code>Array</code>s.
+     * an <Code>Array</code> of <code>Array</code>s:
+     *
+     * <pre> <code>[[a<sub>00</sub>, a<sub>01</sub>, ..., a<sub><var>0</var><var>n</var></sub>],
+     *  [a<sub>10</sub>, a<sub>11</sub>, ..., a<sub>0<var>n</var></sub>],
+     *  ...
+     *  [a<sub><var>m</var>0</sub>, a<sub><var>m</var>1</sub>, ..., a<sub><var>m</var><var>n</var></sub>]]</code></pre>
      *
      * @constructor
      * @param {Array|Number|Null|Undefined} rows (optional)
@@ -408,7 +479,7 @@
      *   The default (used when the argument is a null-value),
      *   or <code>null</code> is <code>1</code>, which creates a
      *   matrix that transforms like a scalar if
-     *   <code><var>columns</var> is a null-value,
+     *   <code><var>columns</var></code> is a null-value,
      *   and like a row vector if <code><var>columns</var> > 1</code>.
      * @param {Number|Null|Undefined} columns (optional)
      *   The number of columns of the matrix; ignored if <var>rows</var>
@@ -442,7 +513,7 @@
         return _Matrix.construct(arguments);
       }
 
-      this.data = [];
+      this.components = [];
 
       if (_isArray(rows))
       {
@@ -462,7 +533,7 @@
               return jsx.throwThis(_math.DimensionError);
             }
 
-            this.data[i] = _isArray(row) ? row.slice() : row;
+            this.components[i] = _isArray(row) ? row.slice() : row;
           }
         }
         else
@@ -475,10 +546,10 @@
               return jsx.throwThis(_math.DimensionError);
             }
 
-            this.data[i] = [];
+            this.components[i] = [];
             for (var j = row.length; j--;)
             {
-              this.data[i][j] = row[j];
+              this.components[i][j] = row[j];
             }
           }
         }
@@ -531,16 +602,19 @@
           }
         }
 
-        this.data = a;
+        this.components = a;
       }
     },
     {
       /**
        * The Kronecker delta function.
        *
-       * Takes two arguments, <var>i</var> amd <var>j</var>, and
+       * Takes two arguments, <var>i</var> and <var>j</var>, and
        * returns <code>1</code> if they are equal after implicit
-       * type conversion, <code>0</code> otherwise.
+       * type conversion, <code>0</code> otherwise:
+       * <pre>
+       * &delta;<sub><var>i</var><var>j</var></sub> := {1 if <var>i</var> == <var>j</var>;
+       *        0 otherwise}</pre>
        * Useful for creating identity/unit matrices.
        *
        * @param {Number|any} i
@@ -562,8 +636,8 @@
      * @return {Array}
      */
     size: function () {
-      var data = this.data;
-      var _size = [data.length, data[0].length];
+      var rows = this.components;
+      var _size = [rows.length, rows[0].length];
       _size.rows = _size[0];
       _size.columns = _size[1];
 
@@ -587,32 +661,32 @@
      *   the other one).
      */
     mul: function (value) {
-      var data = this.get();
+      var components = this.get();
 
-      if (!(value instanceof _Matrix))
+      if (!(value instanceof _Tensor))
       {
         /* Scalar multiplication */
-        for (var i = data.length; i--;)
+        for (var i = components.length; i--;)
         {
-          for (var j = data[i].length; j--;)
+          for (var j = components[i].length; j--;)
           {
-            data[i][j] = _mul(data[i][j], value);
+            components[i][j] = _mul(components[i][j], value);
           }
         }
 
-        return new _Matrix(data);
+        return new _Matrix(components);
       }
 
-      var data2 = value.get();
+      var components2 = value.get();
       var m = new _Matrix();
-      var num_rows = data.length;
-      var num_rows2 = data2.length;
+      var num_rows = components.length;
+      var num_rows2 = components2.length;
 
-      for (var k = 0, num_cols2 = data2[0].length; k < num_cols2; ++k)
+      for (var k = 0, num_cols2 = components2[0].length; k < num_cols2; ++k)
       {
         for (var i = 0; i < num_rows; ++i)
         {
-          var this_row = data[i];
+          var this_row = components[i];
           var sum = 0;
 
           for (var j = 0, num_cols = this_row.length; j < num_cols; ++j)
@@ -625,7 +699,7 @@
                  this.size() + ", " + value.size()]);
             }
 
-            sum = _add(sum, _mul(data[i][j], data2[j][k]));
+            sum = _add(sum, _mul(components[i][j], components2[j][k]));
           }
 
           m.set([i, k], sum);
@@ -642,18 +716,18 @@
      * @return {jsx.math.Matrix}
      */
     mulEntrywise: function (matrix2) {
-      var data = this.get();
-      var data2 = matrix2.get();
+      var components = this.get();
+      var components2 = matrix2.get();
 
-      for (var i = data.length; i--;)
+      for (var i = components.length; i--;)
       {
-        for (var j = data[i].length; j--;)
+        for (var j = components[i].length; j--;)
         {
-          data[i][j] = _mul(data[i][j], data2[i][j]);
+          components[i][j] = _mul(components[i][j], components2[i][j]);
         }
       }
 
-      return new _Matrix(data);
+      return new _Matrix(components);
     },
 
     /**
@@ -770,10 +844,10 @@
       var size = this.size();
       var transposed = new _Matrix(size.columns, size.rows).get();
 
-      var data = this.get();
-      for (var i = data.length; i--;)
+      var components = this.get();
+      for (var i = components.length; i--;)
       {
-        var row = data[i];
+        var row = components[i];
 
         for (var j = row.length; j--;)
         {
@@ -851,11 +925,11 @@
      */
     trace: function () {
       var result;
-      var data = this.data;
+      var rows = this.components;
 
-      for (var i = 0, len = data.length; i < len; ++i)
+      for (var i = 0, len = rows.length; i < len; ++i)
       {
-        var row = data[i];
+        var row = rows[i];
         if (!row)
         {
           return jsx.throwThis("TypeError", "No or broken rows");
@@ -892,9 +966,9 @@
      */
     det: function () {
       var result = 0;
-      var data = this.data;
-      var num_rows = data.length;
-      var first_row = data[0];
+      var rows = this.components;
+      var num_rows = rows.length;
+      var first_row = rows[0];
       var num_cols = first_row.length;
 
       if (num_rows != num_cols)
@@ -904,19 +978,19 @@
 
       if (num_cols == 2)
       {
-        return data[0][0] * data[1][1] - data[0][1] * data[1][0];
+        return rows[0][0] * rows[1][1] - rows[0][1] * rows[1][0];
       }
 
       for (var col = 0; col < num_cols; ++col)
       {
-        var product1 = data[0][col];
+        var product1 = rows[0][col];
         var product2 = product1;
         var offset = 0;
 
         for (var row = 1; row < num_cols; ++row)
         {
           ++offset;
-          var this_row = data[row];
+          var this_row = rows[row];
           product1 = _mul(product1, this_row[(col + offset) % num_cols]);
           product2 = _mul(product2, _get(this_row, col - offset));
         }
@@ -986,14 +1060,14 @@
      *   from 0).
      */
     minor: function (column) {
-      var data = this.get().slice(1);
+      var rows = this.get().slice(1);
 
-      for (var j = data.length; j--;)
+      for (var j = rows.length; j--;)
       {
-        data[j].splice(column, 1);
+        rows[j].splice(column, 1);
       }
 
-      return new _Matrix(data);
+      return new _Matrix(rows);
     }
   });
 
