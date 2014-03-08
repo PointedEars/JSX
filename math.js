@@ -6,7 +6,7 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2000-2011, 2013, 2014 Thomas Lahn &lt;math.js@PointedEars.de&gt;
+ *   (C) 2000-2011, 2013, 2014  Thomas Lahn &lt;math.js@PointedEars.de&gt;
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -89,6 +89,30 @@ jsx.math = (/** @constructor */ function () {
     'de': 'Division durch Null'
   };
 
+  var _slice = [].slice;
+
+  function _op (operation, operands)
+  {
+    var operand1 = operands[0];
+    if (_isNativeMethod(operand1, operation))
+    {
+      return operand1[operation].apply(operand1, _slice.call(operands, 1));
+    }
+
+    return Math[operation].apply(Math, operands);
+  }
+
+  /**
+   * Returns <code>true</code> if <var>n</var> is an integer.
+   *
+   * @param {Number} n
+   * @return {boolean}
+   */
+  function _isInteger (n)
+  {
+    return n % 1 == 0;
+  }
+
   return {
     /**
      * @memberOf jsx.math
@@ -152,96 +176,118 @@ jsx.math = (/** @constructor */ function () {
     /**
      * General addition
      *
-     * @param op1
-     * @param op2
+     * @param summand1
+     * @param summand2
      * @return {any}
      */
-    add: function (op1, op2) {
-      if (_isNativeMethod(op1, "add"))
+    add: function (summand1, summand2) {
+      if (_isNativeMethod(summand1, "add"))
       {
-        return op1.add(op2);
+        return summand1.add(summand2);
       }
 
-      return op1 + op2;
+      return summand1 + summand2;
     },
 
     /**
      * General subtraction
      *
-     * @param op1
-     * @param op2
+     * @param minuend
+     * @param subtrahend
      * @return {any}
      */
-    sub: function (op1, op2) {
-      if (_isNativeMethod(op1, "sub"))
+    sub: function (minuend, subtrahend) {
+      if (_isNativeMethod(minuend, "sub"))
       {
-        return op1.sub(op2);
+        return minuend.sub(subtrahend);
       }
 
-      return op1 - op2;
+      return minuend - subtrahend;
     },
 
     /**
      * General multiplication
      *
-     * @param op1
-     * @param op2
+     * @param factor1
+     * @param factor2
      * @return {any}
      */
-    mul: function (op1, op2) {
-      if (_isNativeMethod(op1, "mul"))
+    mul: function (factor1, factor2) {
+      if (_isNativeMethod(factor1, "mul"))
       {
-        return op1.mul(op2);
+        return factor1.mul(factor2);
       }
 
-      return op1 * op2;
+      return factor1 * factor2;
     },
 
     /**
      * General division
      *
-     * @param op1
-     * @param op2
+     * @param dividend
+     * @param divisor
      * @return {any}
      */
-    div: function (op1, op2) {
-      if (_isNativeMethod(op1, "div"))
+    div: function (dividend, divisor) {
+      if (_isNativeMethod(dividend, "div"))
       {
-        return op1.div(op2);
+        return dividend.div(divisor);
       }
 
-      return op1 / op2;
+      return dividend / divisor;
+    },
+
+    /**
+     * General operation
+     *
+     * @param {String} operation
+     * @param {Array} operands
+     * @return {any}
+     */
+    op: _op,
+
+    /**
+     * General natural logarithm
+     *
+     * @param base
+     * @return {any}
+     */
+    log: function (base) {
+      return _op("log", [base]);
     },
 
     /**
      * General exponentiation
      *
-     * @param op1
-     * @param op2
+     * @param base
+     * @param exponent
      * @return {any}
      */
-    pow: function (op1, op2) {
-      if (_isNativeMethod(op1, "pow"))
-      {
-        return op1.pow(op2);
-      }
-
-      return Math.pow(op1, op2);
+    pow: function (base, exponent) {
+      return _op("pow", [base, exponent]);
     },
 
     /**
      * General square root
      *
-     * @param op
+     * @param radicand
      * @return {any}
      */
-    sqrt: function (op) {
-      if (_isNativeMethod(op, "sqrt"))
-      {
-        return op.sqrt();
-      }
+    sqrt: function (radicand) {
+      return _op("sqrt", [radicand]);
+    },
 
-      return Math.sqrt(op);
+    isInteger: _isInteger,
+
+    /**
+     * Returns <code>true</code> if <var>n</var> is a natural number
+     * equal to or greater than 0.
+     *
+     * @param {Number} n
+     * @return {boolean}
+     */
+    isNatural: function (n) {
+      return n >= 0 && _isInteger(n);
     }
   };
 }());
