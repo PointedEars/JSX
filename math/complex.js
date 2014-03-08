@@ -5,7 +5,7 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2013  Thomas Lahn &lt;math.js@PointedEars.de&gt;
+ *   (C) 2013, 2014  Thomas Lahn &lt;math.js@PointedEars.de&gt;
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -37,6 +37,7 @@ jsx.math.complex = (/** @constructor */ function () {
   var _log = _math.log;
   var _pow = _math.pow;
   var _sqrt = _math.sqrt;
+  var _sgn = _math.sgn;
   var _isNatural = _math.isNatural;
 
   /* Private variables */
@@ -52,28 +53,33 @@ jsx.math.complex = (/** @constructor */ function () {
     + "\\s*(?:([+-])\\s*" + _rx_numeric_literal.source + "[ij])?");
 
   /**
-   * A complex number consists of a real and an imaginary part.
-   *
-   * It can be visualized as being an point in a plane with a
-   * two-dimensional Cartesian coordinate system in which
-   * the real part is measured on one axis and the imaginary
-   * part on the other.
-   *
    * @function
    */
   var _Complex = jsx.object.extend(
     /**
+     * A complex number consisting of a real and an imaginary part.
+     * <p>
+     * It can be represented geometrically as being an point in
+     * the complex plane, a plane with a two-dimensional Cartesian
+     * coordinate system in which the real part is measured on one
+     * axis and the imaginary part on the other:
+     * </p>
+     * <pre>z = x + yi = (x, y) = <code>{re: x, im: y}</code></pre>
      * @constructor
-     * @param {Number} re
-     * @param {Number} im
+     * @param {Number} re = 0
+     *   Real part.  The default is <code>0</code>.
+     * @param {Number} im = 0
+     *   Imaginary part.  The default is <code>0</code>.
      */
-    function (re, im) {
+    function jsx_math_complex_Complex (re, im) {
       if (!(this instanceof _Complex))
       {
         return new _Complex(re, im);
       }
 
-      this.re = _isObject(re) ? re : +re;
+      this.re = _isObject(re)
+        ? re
+        : (typeof re == "undefined" ? 0 : +re);
       this.im = _isObject(im)
         ? im
         : (typeof im == "undefined" ? 0 : +im);
@@ -101,11 +107,11 @@ jsx.math.complex = (/** @constructor */ function () {
     }
   ).extend(Number, {
     /**
-     * Returns the absolute value (or modulus or magnitude) of
-     * this complex number.
+     * Returns the absolute value (or modulus, or magnitude)
+     * of this number.
      * <p>
      * The magnitude also is the radius of the circle on which
-     * the number lies in the complex plane.
+     * this number lies in the complex plane.
      * </p>
      * @return {number}
      */
@@ -114,7 +120,7 @@ jsx.math.complex = (/** @constructor */ function () {
     },
 
     /**
-     * Returns the sum of this complex number and another number.
+     * Returns the sum of this number and another number.
      *
      * @memberOf jsx.math.complex.Complex.prototype
      * @param {_Complex|Number} summand2
@@ -131,8 +137,19 @@ jsx.math.complex = (/** @constructor */ function () {
     },
 
     /**
-     * Returns the product of this complex number and another
-     * number.
+     * Returns the difference of this number and another number.
+     *
+     * @memberOf jsx.math.complex.Complex.prototype
+     * @param {_Complex|Number} subtrahend
+     * @return {_Complex}
+     *   The complex difference of this number and <var>subtrahend</var>
+     */
+    sub: function (subtrahend) {
+      return _add(this, _mul(subtrahend, -1));
+    },
+
+    /**
+     * Returns the product of this number and another number.
      *
      * @param {_Complex|Number} factor2
      * @return {_Complex}
@@ -152,8 +169,7 @@ jsx.math.complex = (/** @constructor */ function () {
     },
 
     /**
-     * Returns the quotient of this complex number and another
-     * number.
+     * Returns the quotient of this number and another number.
      *
      * @param {_Complex|Number} divisor
      * @return {_Complex}
@@ -175,7 +191,7 @@ jsx.math.complex = (/** @constructor */ function () {
     },
 
     /**
-     * Returns the complex conjugate of this complex number.
+     * Returns the complex conjugate of this number.
      *
      * @return {_Complex} <code>{re: this.re, im: -this.im}</code>
      */
@@ -184,7 +200,7 @@ jsx.math.complex = (/** @constructor */ function () {
     },
 
     /**
-     * Returns the principal natural logarithm of this complex number.
+     * Returns the principal natural logarithm of this number.
      *
      * @return {_Complex}
      */
@@ -194,10 +210,8 @@ jsx.math.complex = (/** @constructor */ function () {
     },
 
     /**
-     * Returns the result of exponentiation of this complex number.
-     *
-     * It is currently only defined for natural numbers, i.e.
-     * integers 0 or greater.
+     * Returns the principal result of exponentiation of this
+     * number.
      *
      * @param {_Complex|Number} exponent
      * @return {_Complex|number}
@@ -211,26 +225,21 @@ jsx.math.complex = (/** @constructor */ function () {
           .toComplex();
       }
 
-      return NaN;
+      if (!(exponent instanceof _Complex))
+      {
+        exponent = new _Complex(exponent);
+      }
+
+      return new _Polar(_pow(polar.mag, exponent.re), _mul(exponent.im, this.log()))
+        .toComplex();
     },
 
     /**
-     * Returns the principal square root of this complex number.
+     * Returns the principal square root of this number.
      *
      * @return {_Complex}
      */
     sqrt: function () {
-      var sgn = (typeof Math.sign == "function"
-        ? Math.sign
-        : function (x) {
-            if (x == 0)
-            {
-              return 0;
-            }
-
-            return x / Math.abs(x);
-          });
-
       if (this.im == 0)
       {
         if (this.re >= 0)
@@ -245,15 +254,12 @@ jsx.math.complex = (/** @constructor */ function () {
 
       return new _Complex(
         _sqrt(_div(_add(abs, this.re), 2)),
-        _mul(
-          sgn(this.im),
-          _sqrt(_div(_sub(abs, this.re), 2))
-        )
+        _mul(_sgn(this.im), _sqrt(_div(_sub(abs, this.re), 2)))
       );
     },
 
     /**
-     * Returns this complex number in polar form.
+     * Returns this number in polar form.
      *
      * @return {_Polar}
      */
@@ -263,13 +269,15 @@ jsx.math.complex = (/** @constructor */ function () {
 
     /**
      * Returns this object as a string.
-     *
-     * (<code>{re: 1, im: 2}</code> → <code>"1+2j"</code>)
-     *
+     * <p>
+     * <code>{re: 1, im: 2}</code> → <code>"1+2j"</code>
+     * </p>
      * @param {string} imUnit
-     *   The unit to use for the imaginary part.  The default
+     *   The name to use for the imaginary unit.  The default
      *   is <code>"j"</code> (see above), but sometimes people
      *   prefer <code>"i"</code> and can pass that instead.
+     *   <em>Note that {@link jsx.complex.Complex.parse()}
+     *   can only parse <code>"i"</code> and <code>"j"</code>.</em>
      * @return {string}
      */
     toString: function (imUnit) {
@@ -284,8 +292,8 @@ jsx.math.complex = (/** @constructor */ function () {
     },
 
     /**
-     * Returns the magnitude value of this complex number for
-     * the purpose of further operations.
+     * Returns the magnitude of this number for
+     * further operations.
      *
      * @return {number}
      * @see #abs()
@@ -296,35 +304,50 @@ jsx.math.complex = (/** @constructor */ function () {
   });
 
   /**
-   * The polar coordinate of a point in a plane consists of
-   * a magnitude (or radius) and an argument (or angle).
-   *
-   * It is sometimes useful to visualize a complex number
-   * as being an point in the complex plane where its magnitude
-   * specifies the radius of the circle, centered at the
-   * origin, on which that point is located, and the
-   * argument as the angle, measured between the radius
-   * between origin and point, and the positive section
-   * of the real axis.
-   *
    * @function
    */
   var _Polar = (
     /**
+     * The polar coordinate of a point in a plane consisting of
+     * a magnitude (or radius) and an argument (or angle).
+     * <p>
+     * It is useful for several operations to represent a complex
+     * number as a point in the complex plane where its magnitude
+     * specifies the radius of the circle, centered at the
+     * origin, on which that point is located, and the
+     * argument as the angle, measured between the radius
+     * between origin and point, and the positive section
+     * of the real axis.  Thus, a complex number
+     * <pre>z = x + yi = (x, y) = <code>{re: x, im: y}</code></pre>
+     * is represented in polar form as follows:
+     * </p>
+     * <pre>
+     * r = √(x² + y²)
+     * φ = arg(z) = atan2(y, x)
+     * z = r e<sup>iφ</sup> = r (cos φ + i sin φ) = (r, φ) = <code>{mag: r, arg: φ}</code></pre>
      * @constructor
-     * @param {Number} mag
+     * @param {Number} mag = 0
+     *   Magnitude in unit length.  The default is <code>0</code>.
      * @param {Number} arg
+     *   Argument in radians.  The default is <code>0</code>.
      */
-    function (mag, arg) {
-      this.mag = mag;
-      this.arg = arg;
+    function jsx_math_complex_Polar (mag, arg) {
+      this.mag = _isObject(mag)
+        ? mag
+        : (typeof mag == "undefined" ? 0 : +mag);
+      this.arg = _isObject(arg)
+        ? arg
+        : (typeof arg == "undefined" ? 0 : +arg);
     }
   ).extend(Number, {
     /* Type conversion */
     /**
-     * Returns the Cartesian (or rectangular) coordinates
-     * for this polar coordinate as a complex number.
-     *
+     * Returns the coordinates of this point/number as
+     * a complex number with rectangular coordinates.
+     * <p>
+     * The real part of the return value specifies the first,
+     * the imaginary part the second coordinate.
+     * </p>
      * @memberOf jsx.math.complex.Polar.prototype
      * @return {_Complex}
      */
@@ -343,3 +366,5 @@ jsx.math.complex = (/** @constructor */ function () {
     Polar: _Polar
   };
 }());
+
+/* vim:set fileencoding=utf-8 tabstop=2 shiftwidth=2 softtabstop=2 expandtab: */
