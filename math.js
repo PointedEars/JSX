@@ -288,7 +288,31 @@ jsx.math = (/** @constructor */ function () {
      */
     isNatural: function (n) {
       return n >= 0 && _isInteger(n);
-    }
+    },
+
+    /**
+     * The signum (sign) function.
+     *
+     * {@link Math.sign()} is used if available.
+     *
+     * @function
+     */
+    sgn: (function () {
+      return (typeof Math.sign == "function"
+        ? Math.sign
+        : /**
+           * @param {Number} x
+           * @return {number}
+           *   <code>-1</code> if <code><var>x</var> &lt; 0</code>;
+           *   <code>-0</code> if <code><var>x</var> === -0</code>;
+           *   <code>+0</code> if <var>x</var> === <code>+0</code>;
+           *   <code>1</code> if <code><var>x</var> > 0</code>, and
+           *   <code>NaN</code> if <code>isNaN(<var>x</var>)</code>.
+           */
+          function (x) {
+            return x / Math.abs(x);
+          });
+    }())
   };
 }());
 
