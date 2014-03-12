@@ -186,19 +186,25 @@ jsx.map = {
          * Puts a value in the bucket
          *
          * @param oKey
-         * @return {string}
-         *   The string key for the object key
+         * @return {_ValueContainer}
+         *   The previous container for this key,
+         *   <code>null</code> if none.
          */
         put: function (oKey, value) {
+          var prevValue = null;
           var sKey = this.find(oKey);
           if (!sKey)
           {
             sKey = _getSafeKey(this._items, this._getNextId());
           }
+          else
+          {
+            prevValue = this._items[sKey];
+          }
 
           this._items[sKey] = new _ValueContainer(value, oKey);
 
-          return sKey;
+          return prevValue;
         },
 
         /**
@@ -456,7 +462,7 @@ jsx.map = {
               ++_size;
             }
 
-            bucket.put(key, value);
+            prevValue = bucket.put(key, value);
             v = bucket;
           }
           else
