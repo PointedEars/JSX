@@ -192,17 +192,18 @@ jsx.map = {
          */
         put: function (oKey, value) {
           var prevValue = null;
+          var items = this._items;
           var sKey = this.find(oKey);
           if (!sKey)
           {
-            sKey = _getSafeKey(this._items, this._getNextId());
+            sKey = _getSafeKey(items, this._getNextId());
           }
           else
           {
-            prevValue = this._items[sKey];
+            prevValue = items[sKey];
           }
 
-          this._items[sKey] = new _ValueContainer(value, oKey);
+          items[sKey] = new _ValueContainer(value, oKey);
 
           return prevValue;
         },
