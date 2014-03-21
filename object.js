@@ -392,7 +392,7 @@ jsx.object = (/** @constructor */ function () {
   function _isObject (a)
   {
     var t = typeof a;
-    return t == "function" || t == "object" && a !== null;
+    return t == "function" || (t == "object" && a !== null);
   }
 
   /**
@@ -1865,57 +1865,93 @@ if (jsx.options.augmentBuiltins)
 }
 
 /**
- * Emulates the <code>instanceof</code> operator (JavaScript 1.5)
- * compatible to JavaScript 1.1 for <strong>one</strong>
- * inheritance level.
+ * Emulates the <code>instanceof</code> operator
+ * of ECMAScript Edition 3 and later.
+ *
+ * Uses <code>Object.getPrototypeOf</code> (ECMAScript Ed. 3 and later)
+ * or the proprietary <code>__proto__</code> property (JavaScript 1.3
+ * and later, and compatible implementations).
  *
  * Example:
  * <pre><code>
  *   var o = new Object();
  *   o instanceof Object; // yields `true'
  *
- *   function Foo()
- *   {
- *   }
+ *   function Foo() {}
  *   var o = new Foo();
  *   o instanceof Object;     // yields `true'
  *   o instanceof Foo;        // yields `true' also
  *
  *   var _isInstanceOf = jsx.object.isInstanceOf;
- *   _isInstanceOf(o, Object); // yields `false'
- *   _isInstanceOf(o, Foo);    // yields `true'
+ *   _isInstanceOf(o, Object); // returns `true'
+ *   _isInstanceOf(o, Foo);    // returns `true' also
+ *   _isInstanceOf(o, function () {});    // returns `false'
  * </code></pre>
  *
  * NOTE: This method has previously been provided by {@link types.js};
  * optimizations in code reuse moved it here.
  *
- * @author (C) 2003, 2011, 2013  Thomas Lahn &lt;js@PointedEars.de&gt;
- * @param {Object} obj
- *   Expression to be determined a <var>Prototype</var> object.
- * @param {Function} Constructor
- *   Object to be determined the constructor of a.
- * @return {boolean}
- *   <code>true</code> if <code>obj</code> is an object derived
- *   from <var>Prototype</var>, <code>false</code> otherwise.
+ * @author (C) 2003, 2011, 2013, 2014  Thomas Lahn &lt;js@PointedEars.de&gt;
+ * @function
  */
-jsx.object.isInstanceOf = //(function () {
-//  var jsx_object = jsx.object;
-//
-//  return
-  function (obj, Constructor) {
-    return !!(obj && Constructor
-      && typeof obj.constructor != "undefined"
-      && obj.constructor == Constructor
+jsx.object.isInstanceOf = (function () {
+  var jsx_object = jsx.object;
 
-      /*
-       * For a built-in type T, T.prototype often has the same
-       * [[Class]] like instances (exception: RegExp);
-       * BUT error-prone for native user-defined objects (Color "==" KeyValue)!
-       */
-//      || jsx_object.getClass(obj) == jsx_object.getClass(Prototype.prototype)
-      );
-  };
-//}());
+  /**
+   * @param {Object} obj
+   *   Value to be determined an instance of <code>Constructor</code>
+   *   or inheriting from the constructor of <code>Constructor.prototype</code>
+   *   or an object in its prototype chain.
+   * @param {Function} Constructor
+   *   Object to be determined the constructor associated with an
+   *   object in the prototype chain of <var>obj</var>.
+   * @return {boolean}
+   *   <code>true</code> if <code>obj</code> is an object constructed
+   *   with <var>Constructor</var>, <code>false</code> otherwise.
+   */
+  function jsx_object_isInstanceOf (obj, Constructor)
+  {
+    var _hasGetPrototypeOf;
+
+    function _getProto (o)
+    {
+      if (typeof _hasGetPrototypeOf == "undefined")
+      {
+        _hasGetPrototypeOf = (typeof Object.getPrototypeOf == "function");
+      }
+
+      return (_hasGetPrototypeOf
+        ? Object.getPrototypeOf(o)
+        : o.__proto__);
+    }
+
+    if (!jsx_object.isObject(obj))
+    {
+      return false;
+    }
+
+    var proto = Constructor.prototype;
+
+    if (!jsx_object.isObject(proto))
+    {
+      return jsx.throwThis("TypeError",
+        ["Expecting a function in instanceof check, but got " + Constructor],
+        jsx_object_isInstanceOf);
+    }
+
+    while ((obj = _getProto(obj)))
+    {
+      if (proto == obj)
+      {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  return jsx_object_isInstanceOf;
+}());
 
 /**
  * Returns the name of a function
