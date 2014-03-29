@@ -2,7 +2,7 @@
  * @fileOverview <title>Array Library</title>
  * @file $Id$
  *
- * @author (C) 2004-2013 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
+ * @author (C) 2004-2014 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  * <pre>
@@ -20,19 +20,6 @@
  * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
  * </pre>
  */
-
-if (typeof jsx == "undefined")
-{
-  /**
-   * @namespace
-   */
-  var jsx = {};
-}
-
-if (typeof jsx.array == "undefined")
-{
-  jsx.array = {};
-}
 
 /**
  * @type jsx.array
@@ -176,6 +163,22 @@ jsx.array = (/** @constructor */ function () {
   }
 
   /**
+   * @param value
+   * @return <var>value</var> if it is an index, <code>NaN</code> otherwise
+   */
+  function _getIndex (value)
+  {
+    var index = +value;
+
+    if (!(isNaN(index) || index == 0 || Math.abs(index) == Number.POSITIVE_INFINITY))
+    {
+      index = (index < 0 ? Math.ceil(index) : Math.floor(index));
+    }
+
+    return (!isNaN(index) && (String(index) == String(value)) ? index : Number.NaN);
+  }
+
+  /**
    * An <code>Array</code> whose last elements can be accessed
    * by negative index.  This additional functionality requires
    * support for <code>Proxy</code> (ECMAScript Edition 6 “Harmony”
@@ -194,7 +197,7 @@ jsx.array = (/** @constructor */ function () {
       return _getProxy(me, {
         "get": function (target, propertyName) {
           var index;
-          if (!isNaN(index = parseInt(propertyName, 10)))
+          if (!isNaN(index = _getIndex(propertyName)))
           {
             if (index < 0)
             {
@@ -206,7 +209,7 @@ jsx.array = (/** @constructor */ function () {
         },
         "set": function (target, propertyName, value) {
           var index;
-          if (!isNaN(index = parseInt(propertyName, 10)))
+          if (!isNaN(index = _getIndex(propertyName)))
           {
             if (index < 0)
             {
@@ -223,7 +226,7 @@ jsx.array = (/** @constructor */ function () {
   }.extend(Array, {
     "get": function (propertyName) {
       var index;
-      if (!isNaN(index = parseInt(propertyName, 10)))
+      if (!isNaN(index = _getIndex(propertyName)))
       {
         if (index < 0)
         {
@@ -236,7 +239,7 @@ jsx.array = (/** @constructor */ function () {
 
     "set": function (propertyName, value) {
       var index;
-      if (!isNaN(index = parseInt(propertyName, 10)))
+      if (!isNaN(index = _getIndex(propertyName)))
       {
         if (index < 0)
         {
@@ -247,6 +250,8 @@ jsx.array = (/** @constructor */ function () {
       return (target[propertyName] = value);
     }
   });
+
+  var _BIGARRAY_MAX_LENGTH = Math.pow(2, 53);
 
   /**
    * Array-like object which can hold up to 2<sup>53</sup> elements
@@ -284,12 +289,12 @@ jsx.array = (/** @constructor */ function () {
        *   greater than {@link BigArray.MAX_LENGTH}
        */
       this.setLength = function BigArray_setLength (value) {
-        if (value < 0 || value > _BigArray.MAX_LENGTH)
+        if (value < 0 || value > _BIGARRAY_MAX_LENGTH)
         {
           return _jsx.throwThis(_RangeError,
             ["Invalid length", value,
-             "0.." + _BigArray.MAX_LENGTH
-             + " (2^" + Math.floor(Math.log(_BigArray.MAX_LENGTH) / Math.log(2)) + ")"],
+             "0.." + _BIGARRAY_MAX_LENGTH
+             + " (2^" + Math.floor(Math.log(_BIGARRAY_MAX_LENGTH) / Math.log(2)) + ")"],
             BigArray_setLength);
         }
 
@@ -335,7 +340,7 @@ jsx.array = (/** @constructor */ function () {
         }
         else
         {
-          if (!_isArray(src) && _isNativeObject(src)
+          if (!_isArray(src) && _isNativeObject(Object(src))
               && _getClass(src) != "Object")
           {
             this.set(0, src);
@@ -352,7 +357,7 @@ jsx.array = (/** @constructor */ function () {
         return _getProxy(this, {
           "get": function (target, propertyName) {
             var index;
-            if (!isNaN(index = parseInt(propertyName, 10)))
+            if (!isNaN(index = _getIndex(propertyName)))
             {
               this.get(index);
             }
@@ -361,7 +366,7 @@ jsx.array = (/** @constructor */ function () {
           },
           "set": function (target, propertyName, value) {
             var index;
-            if (!isNaN(index = parseInt(propertyName, 10)))
+            if (!isNaN(index = _getIndex(propertyName)))
             {
               this.set(index, value);
             }
@@ -379,17 +384,20 @@ jsx.array = (/** @constructor */ function () {
        *
        * @memberOf jsx.array.BigArray
        */
-      MAX_LENGTH: Math.pow(2, 53),
+      MAX_LENGTH: _BIGARRAY_MAX_LENGTH,
 
       /**
-       * Determines if a value can be used as <code>BigArray</code>
-       * index.
+       * Determines if a value can be used as internal
+       * <code>BigArray</code> index.
+       *
+       * Negative integers are excluded here, although they can be
+       * used for property access if Proxy is supported.
        *
        * @param {any} i
        */
       isIndex: function (i) {
-        return parseInt(i, 10).toString() == i
-          && i > -1 && i < _BigArray.MAX_LENGTH;
+        var index = _getIndex(i);
+        return !isNaN(index) && (index > -1) && (index < _BIGARRAY_MAX_LENGTH);
       },
 
       /**
@@ -541,7 +549,7 @@ jsx.array = (/** @constructor */ function () {
 
         if (chunk.length < _MAX_ARRAY_LENGTH)
         {
-          chunk.push(this.get(i))
+          chunk.push(this.get(i));
         }
         else
         {
@@ -851,15 +859,14 @@ jsx.array = (/** @constructor */ function () {
 
     /**
      * Removes the last element from an array and returns that
-     * element.  This method changes the length of the array, if
-     * applied directly to an array object.
+     * element.
      *
      * @param {Array} a (optional)
      *   Array from which the last element should be removed.  Is used
      *   instead of the {@link Array} object the function is
      *   applied to.
      * @return {any}
-     *   The element removed from the array changed array.
+     *   The element removed from the array.
      */
     pop: function (a) {
       if (!_isArray(a) && _isArray(this))
@@ -867,15 +874,15 @@ jsx.array = (/** @constructor */ function () {
         a = this;
       }
 
-      var result = null;
+      var result;
 
       if (a.length > 0)
       {
-        result = a[a.length - 1];
-        if (_isArray(this))
-        {
-          this.length = this.length - 1;
-        }
+        var last_index = a.length - 1;
+        result = a[last_index];
+
+        delete a[last_index];
+        a.length = last_index;
       }
 
       return result;
@@ -907,7 +914,10 @@ jsx.array = (/** @constructor */ function () {
 
       if (_isArray(a))
       {
-        for (var i = a.length - 1; i > -1; i--) {result[result.length] = a[i];}
+        for (var i = a.length - 1; i > -1; i--)
+        {
+          result[result.length] = a[i];
+        }
       }
 
       return result;
