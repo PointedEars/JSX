@@ -2387,43 +2387,82 @@ jsx.importOnce = (function () {
 }());
 
 /**
- * Executes a function if and once its requirements are fulfilled.
+ * Executes a function if and once its dependencies are met.
  *
  * @function
  */
 jsx.require = (function () {
-  var _importOnce = jsx.importOnce;
-  var _isArray = jsx.object.isArray;
+  var _jsx = jsx;
+  var _importOnce = _jsx.importOnce;
+  var _jsx_object = _jsx.object;
+  var _isArray = _jsx_object.isArray;
+  var _addEventListener;
 
   /**
-   * @param {string|Array} uri
+   * @param {string|Array} dependencies
    *   URI-reference or <code>Array</code> of URI-references
-   *   specifying the requirement(s)
+   *   specifying the dependency/dependencies
    * @param {Function} callback
    *   Function to be executed
    * @return {any}
    *   The return value of <var>callback</var>,
    *   <code>undefined</code> otherwise.
    */
-  return function (uri, callback) {
-    if (!_isArray(uri))
+  return function jsx_require (dependencies, callback) {
+    if (!_isArray(dependencies))
     {
-      uri = [uri];
+      dependencies = [dependencies];
     }
 
-    var success = true;
-    for (var i = 0, len = uri.length; i < len; ++i)
+    var script = document.createElement("script");
+
+    if (!script)
     {
-      if (!_importOnce(uri[i]))
+      return false;
+    }
+
+    if (typeof _addEventListener == "undefined")
+    {
+      _addEventListener = jsx.object.getFeature(jsx, "dom", "addEventListener");
+    }
+
+    if (_addEventListener)
+    {
+      var listenerSupported = _addEventListener(script, "load",
+        function () {
+          dependencies.shift();
+
+          if (dependencies.length == 0)
+          {
+            /* All dependencies loaded successfully */
+            return callback();
+          }
+
+          jsx_require(dependencies, callback);
+        });
+    }
+
+    if (listenerSupported)
+    {
+      script.src = dependencies[0];
+      (document.head || document.getElementsByTagName("head")[0])
+        .appendChild(script);
+    }
+    else
+    {
+      for (var i = 0, len = dependencies.length; i < len; ++i)
       {
-        success = false;
-        break;
+        if (!_importOnce(dependencies[i]))
+        {
+          success = false;
+          break;
+        }
       }
-    }
 
-    if (success)
-    {
-      return callback();
+      if (success)
+      {
+        return callback();
+      }
     }
   };
 }());
