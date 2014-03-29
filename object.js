@@ -1321,6 +1321,136 @@ jsx.object = (/** @constructor */ function () {
       }
 
       return obj;
+    },
+
+    /**
+     * Emulates the <code>instanceof</code> operator
+     * of ECMAScript Edition 3 and later.
+     *
+     * Uses <code>Object.getPrototypeOf</code> (ECMAScript Ed. 3 and later)
+     * or the proprietary <code>__proto__</code> property (JavaScript 1.3
+     * and later, and compatible implementations).
+     *
+     * Example:
+     * <pre><code>
+     *   var o = new Object();
+     *   o instanceof Object; // yields `true'
+     *
+     *   function Foo() {}
+     *   var o = new Foo();
+     *   o instanceof Object;     // yields `true'
+     *   o instanceof Foo;        // yields `true' also
+     *
+     *   var _isInstanceOf = jsx.object.isInstanceOf;
+     *   _isInstanceOf(o, Object); // returns `true'
+     *   _isInstanceOf(o, Foo);    // returns `true' also
+     *   _isInstanceOf(o, function () {});    // returns `false'
+     * </code></pre>
+     *
+     * NOTE: This method has previously been provided by {@link types.js};
+     * optimizations in code reuse moved it here.
+     *
+     * @author (C) 2003, 2011, 2013, 2014  Thomas Lahn &lt;js@PointedEars.de&gt;
+     * @param {Object} obj
+     *   Value to be determined an instance of <code>Constructor</code>
+     *   or inheriting from the constructor of <code>Constructor.prototype</code>
+     *   or an object in its prototype chain.
+     * @param {Function} Constructor
+     *   Object to be determined the constructor associated with an
+     *   object in the prototype chain of <var>obj</var>.
+     * @return {boolean}
+     *   <code>true</code> if <code>obj</code> is an object constructed
+     *   with <var>Constructor</var>, <code>false</code> otherwise.
+     */
+    isInstanceOf: function jsx_object_isInstanceOf (obj, Constructor) {
+      var _hasGetPrototypeOf;
+
+      function _getProto (o)
+      {
+        if (typeof _hasGetPrototypeOf == "undefined")
+        {
+          _hasGetPrototypeOf = (typeof Object.getPrototypeOf == "function");
+        }
+
+        return (_hasGetPrototypeOf
+          ? Object.getPrototypeOf(o)
+          : o.__proto__);
+      }
+
+      if (!_isObject(obj))
+      {
+        return false;
+      }
+
+      var proto = Constructor.prototype;
+
+      if (!_isObject(proto))
+      {
+        return jsx.throwThis("TypeError",
+          ["Expecting a function in instanceof check, but got " + Constructor],
+          jsx_object_isInstanceOf);
+      }
+
+      while ((obj = _getProto(obj)))
+      {
+        if (proto == obj)
+        {
+          return true;
+        }
+      }
+
+      return false;
+    },
+
+    /**
+     * Returns the name of a function
+     *
+     * @param {Function|String} aFunction
+     * @return {string}
+     *   The name of a function if it has one; the empty string otherwise.
+     */
+    getFunctionName: function (aFunction) {
+      /* Return the empty string for null or undefined */
+      return (aFunction != null
+               && typeof aFunction.name != "undefined" && aFunction.name)
+        || (String(aFunction).match(/^\s*function\s+([A-Za-z_]\w*)/) || [, ""])[1];
+    },
+
+    /**
+     * Returns minimum documentation for a function
+     *
+     * @param {Function|String} aFunction
+     * @return {string}
+     */
+    getDoc: function (aFunction) {
+      return (String(aFunction).match(
+        /^\s*(function(\s+[A-Za-z_]\w*)?\s*\([^\)]*\))/) || [, ""])[1];
+    },
+
+    /**
+     * Retrieves the value of a property of an object
+     *
+     * @param {Object} obj
+     * @param {string} sProperty
+     * @param aDefault
+     * @return {any}
+     * @throws {@link #PropertyError} if the property
+     *   does not exist or has the <code>undefined</code> value, and
+     *   <var>aDefault</var> was not provided
+     */
+    getProperty: function (obj, sProperty, aDefault) {
+      if (typeof obj[sProperty] != "undefined")
+      {
+        return obj[sProperty];
+      }
+
+      /* default value not passed */
+      if (arguments.length < 3)
+      {
+        return jsx.throwThis("jsx.object.PropertyError", sProperty);
+      }
+
+      return aDefault;
     }
   };
 
@@ -1865,120 +1995,6 @@ if (jsx.options.augmentBuiltins)
 }
 
 /**
- * Emulates the <code>instanceof</code> operator
- * of ECMAScript Edition 3 and later.
- *
- * Uses <code>Object.getPrototypeOf</code> (ECMAScript Ed. 3 and later)
- * or the proprietary <code>__proto__</code> property (JavaScript 1.3
- * and later, and compatible implementations).
- *
- * Example:
- * <pre><code>
- *   var o = new Object();
- *   o instanceof Object; // yields `true'
- *
- *   function Foo() {}
- *   var o = new Foo();
- *   o instanceof Object;     // yields `true'
- *   o instanceof Foo;        // yields `true' also
- *
- *   var _isInstanceOf = jsx.object.isInstanceOf;
- *   _isInstanceOf(o, Object); // returns `true'
- *   _isInstanceOf(o, Foo);    // returns `true' also
- *   _isInstanceOf(o, function () {});    // returns `false'
- * </code></pre>
- *
- * NOTE: This method has previously been provided by {@link types.js};
- * optimizations in code reuse moved it here.
- *
- * @author (C) 2003, 2011, 2013, 2014  Thomas Lahn &lt;js@PointedEars.de&gt;
- * @function
- */
-jsx.object.isInstanceOf = (function () {
-  var jsx_object = jsx.object;
-
-  /**
-   * @param {Object} obj
-   *   Value to be determined an instance of <code>Constructor</code>
-   *   or inheriting from the constructor of <code>Constructor.prototype</code>
-   *   or an object in its prototype chain.
-   * @param {Function} Constructor
-   *   Object to be determined the constructor associated with an
-   *   object in the prototype chain of <var>obj</var>.
-   * @return {boolean}
-   *   <code>true</code> if <code>obj</code> is an object constructed
-   *   with <var>Constructor</var>, <code>false</code> otherwise.
-   */
-  function jsx_object_isInstanceOf (obj, Constructor)
-  {
-    var _hasGetPrototypeOf;
-
-    function _getProto (o)
-    {
-      if (typeof _hasGetPrototypeOf == "undefined")
-      {
-        _hasGetPrototypeOf = (typeof Object.getPrototypeOf == "function");
-      }
-
-      return (_hasGetPrototypeOf
-        ? Object.getPrototypeOf(o)
-        : o.__proto__);
-    }
-
-    if (!jsx_object.isObject(obj))
-    {
-      return false;
-    }
-
-    var proto = Constructor.prototype;
-
-    if (!jsx_object.isObject(proto))
-    {
-      return jsx.throwThis("TypeError",
-        ["Expecting a function in instanceof check, but got " + Constructor],
-        jsx_object_isInstanceOf);
-    }
-
-    while ((obj = _getProto(obj)))
-    {
-      if (proto == obj)
-      {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  return jsx_object_isInstanceOf;
-}());
-
-/**
- * Returns the name of a function
- *
- * @param {Function|String} aFunction
- * @return {string}
- *   The name of a function if it has one; the empty string otherwise.
- */
-jsx.object.getFunctionName = function (aFunction) {
-  /* Return the empty string for null or undefined */
-  return (aFunction != null
-           && typeof aFunction.name != "undefined" && aFunction.name)
-    || (String(aFunction).match(/^\s*function\s+([A-Za-z_]\w*)/) || [, ""])[1];
-};
-
-/**
- * Returns minimum documentation for a function
- *
- * @param {Function|String} aFunction
- * @return {string}
- */
-jsx.object.getDoc = function (aFunction) {
-  return (String(aFunction).match(
-    /^\s*(function(\s+[A-Za-z_]\w*)?\s*\([^\)]*\))/) || [, ""])[1];
-};
-
-/**
  * Gets the stack trace of the calling execution context.
  *
  * Based on getStackTrace() from jsUnit 2.2alpha of 2006-03-24.
@@ -2058,31 +2074,6 @@ jsx.getStackTrace = function () {
   return result;
 };
 
-/**
- * Retrieves the value of a property of an object
- *
- * @param {Object} obj
- * @param {string} sProperty
- * @param aDefault
- * @return {any}
- * @throws {@link #PropertyError} if the property
- *   does not exist or has the <code>undefined</code> value, and
- *   <var>aDefault</var> was not provided
- */
-jsx.object.getProperty = function (obj, sProperty, aDefault) {
-  if (typeof obj[sProperty] != "undefined")
-  {
-    return obj[sProperty];
-  }
-
-  /* default value not passed */
-  if (arguments.length < 3)
-  {
-    return jsx.throwThis("jsx.object.PropertyError", sProperty);
-  }
-
-  return aDefault;
-};
 
 jsx.object.extend(jsx, {
   /**
@@ -2395,6 +2386,7 @@ jsx.require = (function () {
   var _jsx = jsx;
   var _importOnce = _jsx.importOnce;
   var _jsx_object = _jsx.object;
+  var _getFeature = _jsx_object.getFeature;
   var _isArray = _jsx_object.isArray;
   var _addEventListener;
 
@@ -2423,7 +2415,7 @@ jsx.require = (function () {
 
     if (typeof _addEventListener == "undefined")
     {
-      _addEventListener = jsx.object.getFeature(jsx, "dom", "addEventListener");
+      _addEventListener = _getFeature(jsx, ["dom", "addEventListener"]);
     }
 
     if (_addEventListener)
@@ -3388,7 +3380,6 @@ jsx.InvalidArgumentError =
         + (argc > 1 ? ": " + jsx.debugValue(sGot) : "")
         + (argc > 2 ? "; expected " + sExpected : ""));
   };
-
 jsx.InvalidArgumentError.extend(jsx.Error, {
   /**
    * @memberOf jsx.InvalidArgumentError.prototype
@@ -3406,7 +3397,6 @@ jsx.InvalidArgumentError.extend(jsx.Error, {
 jsx.object.ObjectError = function jsx_object_ObjectError (sMsg) {
   jsx_object_ObjectError._super.call(this, sMsg);
 };
-
 jsx.object.ObjectError.extend(jsx.Error, {
   /**
    * @memberOf jsx.object.ObjectError.prototype
@@ -3425,7 +3415,6 @@ jsx.object.PropertyError = function jsx_object_PropertyError (sMsg) {
   jsx_object_PropertyError._super.call(
     this, "No such property" + (arguments.length > 0 ? (": " + sMsg) : ""));
 };
-
 jsx.object.PropertyError.extend(jsx.object.ObjectError, {
   /**
    * @memberOf jsx.object.PropertyError.prototype
