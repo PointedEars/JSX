@@ -514,7 +514,7 @@ jsx.net.http.Request.prototype = {
     this.requestType =
       (sRequestType || "application/x-www-form-urlencoded")
       + (sEncoding ? "; charset=" + sEncoding : "");
-      
+
     return this;
   },
 
@@ -753,9 +753,9 @@ jsx.net.http.Request.prototype = {
           function () {
             x.setRequestHeader("Content-Type", me.requestType);
 
-            if (!this.useCache)
+            if (!me.useCache)
             {
-              this.setRequestHeaders({
+              me.setRequestHeaders({
                 "If-Modified-Since": (new Date(0)).toUTCString()
               });
             }
@@ -778,7 +778,7 @@ jsx.net.http.Request.prototype = {
         if (typeof x.onload != "undefined")
         {
           x.onload = function (response) {
-            if (!this._handledSuccess)
+            if (!me._handledSuccess)
             {
               return me.successListener(response);
             }
@@ -788,9 +788,9 @@ jsx.net.http.Request.prototype = {
         if (typeof x.onerror != "undefined")
         {
           x.onerror = function (response) {
-            if (!this._handledError)
+            if (!me._handledError)
             {
-              return this.errorListener(response);
+              return me.errorListener(response);
             }
           };
         }
