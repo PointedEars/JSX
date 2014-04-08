@@ -203,6 +203,10 @@ jsx.regexp = (/** @constructor */ function () {
             )).send();
           },
 
+          sPropertyEscapes = "\\\\(p)\\{([^\\}]+)\\}",
+          rxNegEscape = new RegExp(sPropertyEscapes.toUpperCase()
+            + "|\\\\([DSW])", "g"),
+
           /**
            * @param {String} charClassContent
            * @param {boolean} bUnicodeMode
@@ -222,10 +226,10 @@ jsx.regexp = (/** @constructor */ function () {
             }
 
             var reduced = charClassContent.replace(
-              /\\((P)\{([^\}]+)\}|(W))/g,
-              function (m, p1, cP, charProperty, cW) {
-                var escapeChar = cP || cW;
-                if (escapeChar == "P" || bUnicodeMode)
+              rxNegEscape,
+              function (m, cP, charProperty, cDSW) {
+                var escapeChar = cP || cDSW;
+                if (escapeChar == "P" || bUnicodeMode)
                 {
                   negEscapes.push("\\" + escapeChar.toLowerCase()
                     + (charProperty ? "{" + charProperty + "}" : ""));
@@ -259,7 +263,6 @@ jsx.regexp = (/** @constructor */ function () {
             return "[" + reduced + "]";
           },
 
-          sPropertyEscapes = "\\\\(p)\\{([^\\}]+)\\}",
           rxPropertyEscapes = new RegExp(sPropertyEscapes, "gi"),
           sNonPropEscInRange = "([^\\]\\\\]|\\\\[^p])*",
           sEscapes =
@@ -784,27 +787,20 @@ jsx.regexp = (/** @constructor */ function () {
               function (match, charClassContent, p2, classCharacter, escapeLetter) {
                 if (charClassContent)
                 {
+                  /* Do not expand PCRE_DOTALL expansion */
+                  /* TODO: Never expand all-inclusive character classes */
+                  if (charClassContent == "\\S\\s")
+                  {
+                    return "[" + charClassContent + "]";
+                  }
+
                   var normalized = _normalizeCharClass(charClassContent, true);
 
                   return normalized.replace(
-                    /\\\\|(\\([dsw]))/gi,
-                    function (match, classCharacter, escapeLetter) {
-                      if (classCharacter)
+                    /\\\\|\\([dsw])/gi,
+                    function (match, escapeLetter) {
+                      if (escapeLetter)
                       {
-                        if (escapeLetter >= "A" && escapeLetter <= "Z")
-                        {
-                          if (charClassContent.charAt(0) != "^")
-                          {
-                            jsx.warn("jsx.regexp.RegExp: Negative character"
-                              + " class escape sequences in character"
-                              + " class not yet supported in Unicode mode."
-                              + " Use positive escape sequences in negated"
-                              + " character classes in the meantime.");
-
-                            return classCharacter;
-                          }
-                        }
-
                         return characterEscapes[escapeLetter.toLowerCase()];
                       }
 
