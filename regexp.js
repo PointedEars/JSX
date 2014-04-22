@@ -229,7 +229,7 @@ jsx.regexp = (/** @constructor */ function () {
               rxNegEscape,
               function (m, cP, charProperty, cDSW) {
                 var escapeChar = cP || cDSW;
-                if (escapeChar == "P" || bUnicodeMode)
+                if (escapeChar == "P" || bUnicodeMode)
                 {
                   negEscapes.push("\\" + escapeChar.toLowerCase()
                     + (charProperty ? "{" + charProperty + "}" : ""));
