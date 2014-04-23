@@ -65,7 +65,6 @@
         
         ul.tree li label
         {
-          background: url(../package_obj.gif) 15px 1px no-repeat;
           display: block;
           padding-left: 37px;
         }
@@ -83,6 +82,23 @@
           background: url(../logical_package_obj.gif) 15px 1px no-repeat;
         }
         
+        ul.tree li label.package
+        {
+          background: url(../package_obj.gif) 15px 1px no-repeat;
+        }
+
+        ul.tree li label.array {
+          padding-left: 2ex;
+          background: none;
+        }
+          ul.tree li label.array:before {
+            float: left;
+            display: block;
+            width: 20px;
+            content: "[\00a0 ] ";
+            text-decoration: none !important;
+          }
+              
         ul.tree li label.boolean
         {
           background: url(../../test/ObjectInspector/nightly/boolean.gif) 16px 3px no-repeat;
@@ -113,7 +129,11 @@
           background: none;
         }
           ul.tree li label.namespace:before {
+            float: left;
+            display: block;
+            width: 20px;
             content: "{\00a0 } ";
+            text-decoration: none !important;
           }
       
         ul.tree li input:checked + ul
@@ -146,7 +166,7 @@
         </ul></li>
       <li><label class="namespace"><code>jsx</code></label><input type="checkbox" checked>
         <ul>
-          <li><label><code>array</code></label><input type="checkbox" checked>
+          <li><label class="package"><code>array</code></label><input type="checkbox" checked>
             <ul>
               <li><label class="function"><code>Array</code></label></li>
               <li><label class="function"><code>ArrayError</code></label></li>
@@ -200,18 +220,79 @@
               <li><label class="function"><code>uniq</code></label></li>
               <li><label class="function"><code>uniqStr</code></label></li>
             </ul></li>
+          <li><label class="package"><code>collection</code></label><input type="checkbox" checked>
+            <ul>
+              <li><label class="function"><code>Collection</code></label><input type="checkbox" checked>
+                <ul>
+                  <li><label class="boolean"><code>allowExceptionMsg</code></label></li>
+                  <li><label class="string"><code>author</code></label></li>
+                  <li><label class="string"><code>copyright</code></label></li>
+                  <li><label class="string"><code>email</code></label></li>
+                  <li><label class="object"><code>items</code></label></li>
+                  <li><label class="object"><code>path</code></label></li>
+                  <li><label class="string"><code>URI</code></label></li>
+                  <li><label class="string"><code>version</code></label></li>
+                  <li><label class="function"><code>add</code></label></li>
+                  <li><label class="function"><code>addItems</code></label></li>
+                  <li><label class="function"><code>clear</code></label></li>
+                  <li><label class="function"><code>iterator</code></label></li>
+                  <li><label class="function"><code>keys</code></label></li>
+                  <li><label class="function"><code>set</code></label></li>
+                  <li><label class="function"><code>values</code></label></li>
+                </ul></li>
+              <li><label class="function"><code>CollectionItem</code></label><input type="checkbox" checked>
+                <ul>
+                  <li><code>value</code></li>
+                </ul></li>
+              <li><label class="function"><code>Iterator</code></label><input type="checkbox" checked>
+                <ul>
+                  <li><label class="number"><code>currItem</code></label></li>
+                  <li><label class="number"><code>nextItem</code></label></li>
+                  <li><label class="number"><code>prevItem</code></label></li>
+                  <li><label class="object"><code>target</code></label></li>
+                  <li><label class="function"><code>hasNext</code></label></li>
+                  <li><label class="function"><code>hasPrev</code></label></li>
+                  <li><label class="function"><code>next</code></label></li>
+                  <li><label class="function"><code>prev</code></label></li>
+                  <li><label class="function"><code>remove</code></label></li>
+                  <li><code>prevItem</code></li>
+                </ul></li>
+              <li><label class="function"><code>ValueCollection</code></label><input type="checkbox" checked>
+                <ul>
+                  <li><code>value</code></li>
+                </ul></li>
+            </ul></li>
+          <li><label class="package"><code>date</code></label><input type="checkbox" checked>
+            <ul>
+              <li><label class="array"><code>DAYTIMES</code></label></li>
+              <li><label class="array"><code>MONTHS</code></label></li>
+              <li><label class="array"><code>TIMEZONES</code></label></li>
+              <li><label class="array"><code>WEEKDAYS</code></label></li>
+              <li><label class="string"><code>author</code></label></li>
+              <li><label class="string"><code>copyright</code></label></li>
+              <li><label class="string"><code>email</code></label></li>
+              <li><label class="string"><code>format</code></label></li>
+              <li><label class="string"><code>path</code></label></li>
+              <li><label class="string"><code>version</code></label></li>
+              <li><label class="function"><code>dayOfYear</code></label></li>
+              <li><label class="function"><code>isLeapYear</code></label></li>
+              <li><label class="function"><code>isoWeekDay</code></label></li>
+              <li><label class="function"><code>isoWeekNumber</code></label></li>
+              <li><label class="function"><code>isValid</code></label></li>
+              <li><label class="function"><code>tzOffsetHours</code></label></li>
+            </ul></li>
           <li><label class="container"><code>dom</code></label><input type="checkbox" checked>
             <ul>
               <li><label class="container"><code>css</code></label><input type="checkbox" checked>
                 <ul>
-                  <li><label><code>color</code></label>
+                  <li><label class="package"><code>color</code></label>
                 </ul></li>
             </ul></li>
           <li><label class="container"><code>math</code></label><input type="checkbox" checked>
             <ul>
-              <li><label><code>complex</code></label></li>
+              <li><label class="package"><code>complex</code></label></li>
             </ul></li>
-          <li><label><code>object</code></label><input type="checkbox" checked>
+          <li><label class="package"><code>object</code></label><input type="checkbox" checked>
             <ul>
               <li><label class="number"><code>ADD_OVERWRITE</code></label>
               <li><label class="number"><code>COPY_ENUM</code></label>
@@ -353,8 +434,11 @@
         </ul></li>
       <li><label class="function"><code>Date</code></label><input type="checkbox" checked>
         <ul>
-          <li><label class="function"><code>construct</code></label></li>
-        </ul></li>
+          <li><label class="object"><code>prototype</code></label><input type="checkbox" checked>
+            <ul><label class="function"><code>isLeapYear</code></label></li>
+              <li><label class="function"><code>isValid</code></label></li></ul></li>
+              <li><label class="function"><code>construct</code></label></li>
+            </ul></li>
       <li><label class="object"><code>Function</code></label><input type="checkbox" checked>
         <ul>
           <li><label class="object"><code>prototype</code></label><input type="checkbox" checked>
@@ -373,6 +457,14 @@
           <li><label class="function"><code>defineProperties</code></label></li>
           <li><label class="function"><code>keys</code></label></li>
         </ul></li>
+      <li><label class="deprecated namespace"><code>types</code></label>
+      <li><label class="deprecated function"><code>addProperties</code></label>
+      <li><label class="deprecated function"><code>clearErrorHandler</code></label>
+      <li><label class="deprecated function"><code>Collection</code></label>
+      <li><label class="deprecated function"><code>isInstanceOf</code></label>
+      <li><label class="deprecated function"><code>isMethod</code></label>
+      <li><label class="deprecated function"><code>isMethodType</code></label>
+      <li><label class="deprecated function"><code>setErrorHandler</code></label>
     </ul>
   </body>
 </html>
