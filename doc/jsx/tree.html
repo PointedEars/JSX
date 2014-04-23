@@ -1,0 +1,378 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+  "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Object Hierarchy &#8212; JSX API Documentation</title>
+    <base target="main">
+    <link rel="stylesheet" href="../style.css" type="text/css">
+    <style type="text/css">
+      <!--
+      /* CSS Tree menu styles */
+      ul.tree
+      {
+        padding: 0 0 0 30px;
+        width: 300px;
+      }
+      
+        ul.tree li
+        { 
+          position: relative; 
+          margin-left: -15px;
+          list-style: none;
+        }
+        
+        ul.tree li.file
+        {
+          margin-left: -1px !important;
+        }
+        
+          ul.tree li.file a
+          {
+            background: url(document.png) 0 0 no-repeat;
+            color: #fff;
+            padding-left: 21px;
+            text-decoration: none;
+            display: block;
+          }
+          
+          ul.tree li.file a[href *= '.pdf'] { background: url(document.png) 0 0 no-repeat; }
+          ul.tree li.file a[href *= '.html']  { background: url(document.png) 0 0 no-repeat; }
+          ul.tree li.file a[href $= '.css'] { background: url(document.png) 0 0 no-repeat; }
+          ul.tree li.file a[href $= '.js']    { background: url(document.png) 0 0 no-repeat; }
+        
+        ul.tree li input
+        {
+          position: absolute;
+          left: 0;
+          margin-left: 0;
+          opacity: 0;
+          z-index: 2;
+          cursor: pointer;
+          height: 1em;
+          width: 1em;
+          top: 0;
+        }
+          
+          ul.tree li input + ul
+          {
+            background: url(../../test/ObjectInspector/nightly/plus-3d.png) 40px 0 no-repeat;
+            margin: -0.938em 0 0 -44px; /* 15px */
+            height: 1em;
+          }
+          
+            li input + ul > li { display: none; margin-left: -14px !important; padding-left: 1px; }
+        
+        ul.tree li label
+        {
+          background: url(../package_obj.gif) 15px 1px no-repeat;
+          display: block;
+          padding-left: 37px;
+        }
+        
+        ul.tree li label[for] {
+          cursor: pointer;
+        }
+        
+        ul.tree li label.deprecated {
+          text-decoration: line-through;
+        }
+        
+        ul.tree li label.container
+        {
+          background: url(../logical_package_obj.gif) 15px 1px no-repeat;
+        }
+        
+        ul.tree li label.boolean
+        {
+          background: url(../../test/ObjectInspector/nightly/boolean.gif) 16px 3px no-repeat;
+        }
+        
+        ul.tree li label.function
+        {
+          background: url(../../test/ObjectInspector/nightly/function.gif) 16px 3px no-repeat;
+        }
+        
+        ul.tree li label.number
+        {
+          background: url(../../test/ObjectInspector/nightly/number.gif) 16px 3px no-repeat;
+        }
+        
+        ul.tree li label.object
+        {
+          background: url(../../test/ObjectInspector/nightly/object.gif) 16px 3px no-repeat;
+        }
+        
+        ul.tree li label.string
+        {
+          background: url(../../test/ObjectInspector/nightly/string.gif) 16px 3px no-repeat;
+        }
+        
+        ul.tree li label.namespace {
+          padding-left: 2ex;
+          background: none;
+        }
+          ul.tree li label.namespace:before {
+            content: "{\00a0 } ";
+          }
+      
+        ul.tree li input:checked + ul
+        {
+          background: url(../../test/ObjectInspector/nightly/minus-3d.png) 40px 5px no-repeat;
+          margin: -1.25em 0 0 -44px; /* 20px */
+          padding: 1.563em 0 0 80px;
+          height: auto;
+        }
+        
+          ul.tree li input:checked + ul > li { display: block; margin: 0 0 0.125em;  /* 2px */}
+          ul.tree li input:checked + ul > li:last-child { margin: 0 0 0.063em; /* 1px */ }      
+
+      [title] {
+        cursor: help;
+      }
+      -->
+    </style>
+  </head>
+
+  <body>
+    <h1>All Objects</h1>
+    <ul class="tree">
+      <li><label class="namespace"><code>de</code></label><input type="checkbox" checked>
+        <ul>
+          <li><label class="namespace"><code>pointedears</code></label><input type="checkbox" checked>
+            <ul>
+              <li><label class="namespace"><code>jsx</code></label></li>
+            </ul></li>
+        </ul></li>
+      <li><label class="namespace"><code>jsx</code></label><input type="checkbox" checked>
+        <ul>
+          <li><label><code>array</code></label><input type="checkbox" checked>
+            <ul>
+              <li><label class="function"><code>Array</code></label></li>
+              <li><label class="function"><code>ArrayError</code></label></li>
+              <li><label class="function"><code>BigArray</code></label><input type="checkbox" checked>
+                <ul>
+                  <li><label class="number"><code>MAX_LENGTH</code></label></li>
+                  <li><label class="object"><code>prototype</code></label><input type="checkbox" checked>
+                    <ul>
+                      <li><label class="function"><code>clear</code></label></li>
+                      <li><label class="function"><code>get</code></label></li>
+                      <li><label class="function"><code>join</code></label></li>
+                      <li><label class="function"><code>set</code></label></li>
+                      <li><label class="function"><code>setAll</code></label></li>
+                      <li><label class="function"><code>toArray</code></label></li>
+                      <li><label class="function"><code>toString</code></label></li>
+                    </ul></li>
+                  <li><label class="function"><code>isIndex</code></label></li>
+                  <li><label class="function"><code>isInstance</code></label></li>
+                  <li><label class="function"><code>getLength</code></label></li>
+                  <li><label class="function"><code>setLength</code></label></li>
+                </ul></li>
+              <li><label class="function"><code>RangeError</code></label></li>
+              <li><label class="string"><code>author</code></label></li>
+              <li><label class="string"><code>copyright</code></label></li>
+              <li><label class="string"><code>email</code></label></li>
+              <li><label class="string"><code>path</code></label></li>
+              <li><label class="string"><code>version</code></label></li>
+              <li><label class="function"><code>changeCase</code></label></li>
+              <li><label class="function"><code>chunk</code></label></li>
+              <li><label class="function"><code>contains</code></label></li>
+              <li><label class="function"><code>countValues</code></label></li>
+              <li><label class="function"><code>createComparator</code></label></li>
+              <li><label class="function"><code>createFilter</code></label></li>
+              <li><label class="function"><code>destructure</code></label></li>
+              <li><label class="function"><code>equals</code></label></li>
+              <li><label class="function"><code>every</code></label></li>
+              <li><label class="function"><code>fill</code></label></li>
+              <li><label class="function"><code>filter</code></label></li>
+              <li><label class="function"><code>from</code></label></li>
+              <li><label class="function"><code>get</code></label></li>
+              <li><label class="function"><code>getRealIndex</code></label></li>
+              <li><label class="function"><code>map</code></label></li>
+              <li><label class="function"><code>pop</code></label></li>
+              <li><label class="function"><code>push</code></label></li>
+              <li><label class="function"><code>reverse</code></label></li>
+              <li><label class="function"><code>search</code></label></li>
+              <li><label class="function"><code>set</code></label></li>
+              <li><label class="function"><code>splice</code></label></li>
+              <li><label class="function"><code>toLowerCase</code></label></li>
+              <li><label class="function"><code>toUpperCase</code></label></li>
+              <li><label class="function"><code>uniq</code></label></li>
+              <li><label class="function"><code>uniqStr</code></label></li>
+            </ul></li>
+          <li><label class="container"><code>dom</code></label><input type="checkbox" checked>
+            <ul>
+              <li><label class="container"><code>css</code></label><input type="checkbox" checked>
+                <ul>
+                  <li><label><code>color</code></label>
+                </ul></li>
+            </ul></li>
+          <li><label class="container"><code>math</code></label><input type="checkbox" checked>
+            <ul>
+              <li><label><code>complex</code></label></li>
+            </ul></li>
+          <li><label><code>object</code></label><input type="checkbox" checked>
+            <ul>
+              <li><label class="number"><code>ADD_OVERWRITE</code></label>
+              <li><label class="number"><code>COPY_ENUM</code></label>
+              <li><label class="number"><code>COPY_ENUM_DEEP</code></label>
+              <li><label class="number"><code>COPY_INHERIT</code></label>
+              <li><label class="string"><code>author</code></label>
+              <li><label class="string"><code>email</code></label>
+              <li><label class="string"><code>copyright</code></label>
+              <li><label class="string"><code>path</code></label>
+              <li><label class="string"><code>version</code></label>
+              <li><label class="function"><code>areHostMethods</code></label>
+              <li><label class="function"><code>areMethods</code></label>
+              <li><label class="function"><code>areNativeMethods</code></label>
+              <li><label class="function"><code>callIfMethod</code></label>
+              <li><label class="function"><code>clone</code></label>
+              <li><label class="function"><code>defineProperty</code></label>
+              <li><label class="function"><code>defineProperties</code></label>
+              <li><label class="function"><code>extend</code></label>
+              <li><label class="function"><code>findNewProperty</code></label>
+              <li><label class="function"><code>getClass</code></label>
+              <li><label class="function"><code>getDataObject</code></label>
+              <li><label class="function"><code>getDoc</code></label>
+              <li><label class="function"><code>getFeature</code></label>
+              <li><label class="function"><code>getFunctionName</code></label>
+              <li><label class="function"><code>getKeys</code></label>
+              <li><label class="function"><code>getProperty</code></label>
+              <li><label class="function"><code>_hasOwnProperty</code></label>
+              <li><label class="function"><code>hasPropertyValue</code></label>
+              <li><label class="function"><code>inheritFrom</code></label>
+              <li><label class="function"><code>isArray</code></label>
+              <li><label class="function"><code>isHostObject</code></label>
+              <li><label class="function"><code>isInstanceOf</code></label>
+              <li><label class="function"><code>isMethod</code></label>
+              <li><label class="deprecated function"><code>isMethodType</code></label>
+              <li><label class="function"><code>isNativeMethod</code></label>
+              <li><label class="function"><code>isNativeObject</code></label>
+              <li><label class="function"><code>isObject</code></label>
+              <li><label class="function"><code>isString</code></label>
+              <li><label class="function"><code>isHostMethod</code></label>
+              <li><label class="function"><code>_propertyIsEnumerable</code></label>
+              <li><label class="deprecated function"><code>setProperties</code></label>
+            </ul></li>
+          <li><label class="namespace"><code>options</code></label><input type="checkbox" checked>
+            <ul>
+              <li><label class="boolean"><code>augmentBuiltins</code></label></li>
+              <li><label class="boolean"><code>augmentObjectPrototype</code></label></li>
+              <li><label class="boolean"><code>augmentPrototypes</code></label></li>
+              <li><label class="boolean"><code>emulate</code></label></li>
+              <li><label class="boolean"><code>replaceBuiltins</code></label></li>
+            </ul></li>
+          <li><label><code>types</code></label></li>
+          <li><label class="function"><code>Error</code></label><input type="checkbox" checked>
+            <ul>
+              <li><label class="object"><code>prototype</code></label><input type="checkbox" checked>
+                <ul>
+                  <li><label class="string"><code>name</code></label></li>
+                  <li><label class="function"><code>getMessage</code></label></li>
+                  <li><label class="function"><code>getStackTrace</code></label></li>
+                  <li><label class="function"><code>printStackTrace</code></label></li>
+                </ul></li>
+            </ul></li>
+          <li><label class="function"><code>InvalidArgumentError</code></label><input type="checkbox" checked>
+            <ul>
+              <li><label class="object"><code>prototype</code></label><input type="checkbox" checked>
+                <ul>
+                  <li><label class="function"><code>name</code></label></li>
+                </ul></li>
+            </ul></li>
+          <li><label class="function"><code>ObjectError</code></label><input type="checkbox" checked>
+            <ul>
+              <li><label class="object"><code>prototype</code></label><input type="checkbox" checked>
+                <ul>
+                  <li><label class="function"><code>name</code></label></li>
+                </ul></li>
+            </ul></li>
+          <li><label class="function"><code>PropertyError</code></label><input type="checkbox" checked>
+            <ul>
+              <li><label class="object"><code>prototype</code></label><input type="checkbox" checked>
+                <ul>
+                  <li><label class="function"><code>name</code></label></li>
+                </ul></li>
+            </ul></li>
+          <li><label class="string"><code>MSG_INFO</code></label></li>
+          <li><label class="string"><code>MSG_DEBUG</code></label></li>
+          <li><label class="string"><code>MSG_ERROR</code></label></li>
+          <li><label class="string"><code>MSG_WARN</code></label></li>
+          <li><label class="object"><code>global</code></label>
+          <li><label class="function"><code>absPath</code></label></li>
+          <li><label class="function"><code>clearErrorHandler</code></label>
+          <li><label class="function"><code>debugValue</code></label>
+          <li><label class="function"><code>dmsg</code></label>
+          <li><label class="function"><code>error</code></label></li>
+          <li><label class="function"><code>getStackTrace</code></label>
+          <li><label class="function"><code>info</code></label>
+          <li><label class="function"><code>import</code></label>
+          <li><label class="function"><code>importFrom</code></label>
+          <li><label class="function"><code>importOnce</code></label>
+          <li><label class="function"><code>_import</code></label>
+          <li><label class="function"><code>setErrorHandler</code></label>
+          <li><label class="function"><code>require</code></label>
+          <li><label class="function"><code>rethrowThis</code></label></li>
+          <li><label class="function"><code>throwThis</code></label></li>
+          <li><label class="function"><code>tryThis</code></label></li>
+          <li><label class="function"><code>warn</code></label>
+        </ul></li>
+      <li><label class="function"><code>Array</code></label><input type="checkbox" checked>
+        <ul>
+          <li><label class="object"><code>prototype</code></label><input type="checkbox" checked>
+            <ul>
+              <li><label class="function"><code>changeCase</code></label></li>
+              <li><label class="function"><code>chunk</code></label></li>
+              <li><label class="function"><code>contains</code></label></li>
+              <li><label class="function"><code>countValues</code></label></li>
+              <li><label class="function"><code>equals</code></label></li>
+              <li><label class="function"><code>every</code></label></li>
+              <li><label class="function"><code>fill</code></label></li>
+              <li><label class="function"><code>filter</code></label></li>
+              <li><label class="function"><code>get</code></label></li>
+              <li><label class="function"><code>indexOf</code></label></li>
+              <li><label class="function"><code>iterate</code></label></li>
+              <li><label class="function"><code>map</code></label></li>
+              <li><label class="function"><code>pop</code></label></li>
+              <li><label class="function"><code>push</code></label></li>
+              <li><label class="function"><code>reverse</code></label></li>
+              <li><label class="function"><code>search</code></label></li>
+              <li><label class="function"><code>set</code></label></li>
+              <li><label class="function"><code>slice</code></label></li>
+              <li><label class="function"><code>splice</code></label></li>
+              <li><label class="function"><code>toLowerCase</code></label></li>
+              <li><label class="function"><code>toUpperCase</code></label></li>
+              <li><label class="function"><code>uniq</code></label></li>
+              <li><label class="function"><code>uniqStr</code></label></li>
+            </ul></li>
+          <li><label class="function"><code>destructure</code></label></li>
+          <li><label class="function"><code>from</code></label></li>
+          <li><label class="function"><code>get</code></label></li>
+          <li><label class="function"><code>isArray</code></label></li>
+          <li><label class="function"><code>set</code></label></li>
+        </ul></li>
+      <li><label class="function"><code>Date</code></label><input type="checkbox" checked>
+        <ul>
+          <li><label class="function"><code>construct</code></label></li>
+        </ul></li>
+      <li><label class="object"><code>Function</code></label><input type="checkbox" checked>
+        <ul>
+          <li><label class="object"><code>prototype</code></label><input type="checkbox" checked>
+            <ul>
+              <li><label class="function"><code>apply</code></label></li>
+              <li><label class="function"><code>bind</code></label></li>
+              <li><label class="function"><code>call</code></label></li>
+              <li><label class="function"><code>construct</code></label></li>
+              <li><label class="function"><code>extend</code></label></li>
+            </ul></li>
+        </ul></li>
+     <li><label class="function"><code>Object</code></label><input type="checkbox" checked>
+        <ul>
+          <li><label class="function"><code>create</code></label></li>
+          <li><label class="function"><code>defineProperty</code></label></li>
+          <li><label class="function"><code>defineProperties</code></label></li>
+          <li><label class="function"><code>keys</code></label></li>
+        </ul></li>
+    </ul>
+  </body>
+</html>
