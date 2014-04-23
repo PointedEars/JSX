@@ -1,7 +1,132 @@
+body {
+  background-color: white;
+  color: black;
+  font-family: sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+p {
+  text-align: justify;
+  line-height: 1.5;       
+}
+
+a[href^="http:"],
+a[href^="https:"]
+{
+  padding-right: 13px;
+  background: transparent url(/media/video/img/external.png) no-repeat right center;
+}
+
+a[href^="http://PointedEars.de/"],
+a[href^="https://PointedEars.de/"]
+{
+  padding-right: 0;
+  background: none;
+}
+
+table {
+  border: 1px solid;
+}
+
+thead tr
+{
+  font-weight: bold !important;
+  background-color: #99f !important;
+  color: #000;
+}
+
 th, td {
+  padding: 0.125em 0.25em;
   vertical-align: top;
 }
 
 th {
   text-align: left;
+}
+
+section {
+  display: block;
+  margin-top: 1em;
+  border: 1px solid #99f;
+  padding: 0;
+  padding-top: 0;
+}
+
+section,
+section section section,
+section section section section section  
+{
+  background-color: #f9f9f9;
+}
+
+section section,
+section section section section,
+section section section section section section
+{
+  background-color: #fff;
+}
+
+section section,
+section > ul,
+section > table,
+section > dl,
+section > p
+{
+  margin: 1em;
+  margin-top: 0;
+}
+      
+h2, h3, h4, h5, h6 {
+  margin: 0;
+  margin-bottom: 1em;
+  padding: 0.25em 0.5em;
+  background-color: #99f;
+}
+
+h1 {
+  font-size: 1.5em;
+}
+
+h2 {
+  font-size: 1.4em;
+}
+
+h3 {
+  font-size: 1.3em;
+}
+
+h4 {
+  font-size: 1.2em;
+}
+
+h5 {
+  font-size: 1.1em;
+}
+
+h6 {
+  font-size: 1em;
+}
+      
+hr {
+  display: none;
+}
+
+table {
+  margin-top: 1em;
+}
+
+tr.top {
+  vertical-align: top;
+}
+
+th.left {
+  text-align: left;
+}
+
+em {
+  font-style: italic;
+}
+
+em > i {
+  font-style: normal;
 }
