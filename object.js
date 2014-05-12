@@ -384,15 +384,21 @@ jsx.object = (/** @constructor */ function () {
    * <p>Returns <code>true</code> if the value is a reference
    * to an object; <code>false</code> otherwise.</p>
    *
-   * <p>A value "is an object" if it is a function or
-   * <code>typeof "object"</code> but not <code>null</code>.
+   * <p>A value "is an object" if it is a function,
+   * <code>typeof "object"</code> or a host object
+   * (not a primitive value), but not <code>null</code>.
    *
    * @return {boolean}
    */
   function _isObject (a)
   {
     var t = typeof a;
-    return t == "function" || (t == "object" && a !== null);
+
+    return t == "function"
+      || (t == "object"
+            || (t != "undefined" && t != "boolean"
+                && t != "number" && t != "string")
+          && a !== null);
   }
 
   /**
@@ -934,6 +940,34 @@ jsx.object = (/** @constructor */ function () {
     return oTarget;
   }
 
+  function _getFeature (obj, path)
+  {
+    var realPath = path;
+    var start = 0;
+
+    if (!_isArray(realPath))
+    {
+      realPath = arguments;
+      start = 1;
+    }
+
+    for (var i = start, len = realPath.length; i < len; i++)
+    {
+      var component = realPath[i];
+      if (_isObject(obj)
+          && typeof obj[component] != "undefined" && obj[component])
+      {
+        obj = obj[component];
+      }
+      else
+      {
+        return void 0;
+      }
+    }
+
+    return obj;
+  }
+  
   var jsx_object = {
     /**
      * @memberOf jsx.object
@@ -984,10 +1018,10 @@ jsx.object = (/** @constructor */ function () {
         fTester = _isMethod;
       }
 
-      if (fMethod.apply(aPath))
+      if (fTester.apply(this, aPath))
       {
-        var method = _getFeature.apply(aPath);
-        var returnValue = method.apply(method, aArguments);
+        var method = _getFeature.apply(this, aPath);
+        var returnValue = method.apply(aPath[0], aArguments);
         return {returnValue: returnValue};
       }
 
@@ -1296,32 +1330,7 @@ jsx.object = (/** @constructor */ function () {
      *   a feature.  Note that features whose value can be
      *   <code>undefined</code> cannot be detected with this method.
      */
-    getFeature: function (obj, path) {
-      var realPath = path;
-      var start = 0;
-
-      if (!_isArray(realPath))
-      {
-        realPath = arguments;
-        start = 1;
-      }
-
-      for (var i = start, len = realPath.length; i < len; i++)
-      {
-        var component = realPath[i];
-        if (_isObject(obj)
-            && typeof obj[component] != "undefined" && obj[component])
-        {
-          obj = obj[component];
-        }
-        else
-        {
-          return void 0;
-        }
-      }
-
-      return obj;
-    },
+    getFeature: _getFeature,
 
     /**
      * Emulates the <code>instanceof</code> operator
@@ -1781,16 +1790,16 @@ jsx.object.extend(jsx, {
    * of the fact.  Allowing for a maximum of flexibility, JSX
    * uses options that govern to which degree JSX components may
    * modify built-in objects.  Options include, with increasing
-   * degree of flexibility and side-effects by nesting level:
+   * degree of flexibility and side-effects:
    *
    * <table>
    *   <thead>
    *     <tr>
    *       <td></td>
-   *       <th>mod. builtins</th>
-   *       <th>augment</th>
-   *       <th>augmentproto</th>
-   *       <th>augmentobjectproto</th>
+   *       <th>Modify built-ins</th>
+   *       <th>Augment built-ins</th>
+   *       <th>Augment built-in prototypes</th>
+   *       <th>Augment <code>Object</code> prototype</th>
    *     </tr>
    *   </thead>
    *   <tbody>
@@ -1831,12 +1840,13 @@ jsx.object.extend(jsx, {
    *         properties.  This allows new properties on
    *         the built-in constructors, but not on
    *         prototype objects of built-in objects.
-   *         See <code>augmentPrototypes</code>.
+   *         (See <code>augmentPrototypes</code>.)
    *         Since there usually is no harm in that,
    *         the default is <code>true</code>.
    *         Set to <code>false</code> if you are testing features
    *         of ECMAScript implementations with JSX,
-   *         like with the ECMAScript Support Matrix.
+   *         like with the
+   *         {@link http://PointedEars.de/es-matrix ECMAScript Support Matrix}.
    *       <dl>
    *         <dt><code>augmentPrototypes</code></dt>
    *           <dd>Allow prototype objects to be augmented,
@@ -2940,6 +2950,9 @@ Function.prototype.extend = (function () {
   };
 }());
 
+/**
+ * @namespace
+ */
 jsx.array = {
   version: jsx.object.version,
 
