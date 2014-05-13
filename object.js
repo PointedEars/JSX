@@ -940,6 +940,25 @@ jsx.object = (/** @constructor */ function () {
     return oTarget;
   }
 
+  /**
+   * Returns a feature of an object
+   *
+   * @param {Object} obj
+   *   Object which provides the feature
+   * @param {string|Array} path
+   *   Property names on the feature path, including the property
+   *   for the feature itself.  For example, use
+   *   <code>jsx.object.getFeature(foo, "bar", "baz")</code> for
+   *   safe access to <code>foo.bar.baz</code>.
+   *   If this argument is an <code>Array</code>, it is used
+   *   instead of the remaining argument list; this is the
+   *   recommended way to call this method to ensure upwards
+   *   compatibility.
+   * @return {any}
+   *   <code>undefined</code> if <var>obj</var> does not have such
+   *   a feature.  Note that features whose value can be
+   *   <code>undefined</code> cannot be detected with this method.
+   */
   function _getFeature (obj, path)
   {
     var realPath = path;
@@ -967,7 +986,21 @@ jsx.object = (/** @constructor */ function () {
 
     return obj;
   }
-  
+
+  /* For getFunctionName from JSdoc; TODO: Use ES parser library */
+  var _srxUnicodeLetter = "\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}";
+  var _srxUnicodeEscapeSequence = "\\\\u[\\da-fA-F]{4}";
+  var _srxIdentifierStart = _srxUnicodeLetter + "$_" + _srxUnicodeEscapeSequence;
+  var _srxUnicodeCombiningMark = "\p{Mn}\p{Mc}";
+  var _srxUnicodeDigit = "\\{Nd}";
+  var _srxUnicodeConnectorPunctuation = "\\p{Pc}";
+  var _srxIdentifierPart =
+    + _srxIdentifierStart
+    + _srxUnicodeCombiningMark
+    + _srxUnicodeDigit
+    + _srxUnicodeConnectorPunctuation;
+  var _srxIdentifierName = "[" + _srxIdentifierStart + "][" + _srxIdentifierPart + "]*";
+
   var jsx_object = {
     /**
      * @memberOf jsx.object
@@ -1311,25 +1344,6 @@ jsx.object = (/** @constructor */ function () {
       return _inheritFrom(null);
     },
 
-    /**
-     * Returns a feature of an object
-     *
-     * @param {Object} obj
-     *   Object which provides the feature
-     * @param {string|Array} path
-     *   Property names on the feature path, including the property
-     *   for the feature itself.  For example, use
-     *   <code>jsx.object.getFeature(foo, "bar", "baz")</code> for
-     *   safe access to <code>foo.bar.baz</code>.
-     *   If this argument is an <code>Array</code>, it is used
-     *   instead of the remaining argument list; this is the
-     *   recommended way to call this method to ensure upwards
-     *   compatibility.
-     * @return {any}
-     *   <code>undefined</code> if <var>obj</var> does not have such
-     *   a feature.  Note that features whose value can be
-     *   <code>undefined</code> cannot be detected with this method.
-     */
     getFeature: _getFeature,
 
     /**
@@ -1419,10 +1433,35 @@ jsx.object = (/** @constructor */ function () {
      *   The name of a function if it has one; the empty string otherwise.
      */
     getFunctionName: function (aFunction) {
+      /* TODO: Cache expression */
+      var rx, _RegExp;
+
+      if ((_RegExp = _getFeature(jsx, "regexp", "RegExp")))
+      {
+        jsx.tryThis(
+          function () {
+            rx = new _RegExp("^\\s*function\\s+(" + _srxIdentifierName + ")");
+          },
+          function (e) {
+            jsx.warn("Could not use Unicode character properties: " + e.message);
+          }
+        );
+      }
+      else
+      {
+        jsx.warn("jsx.regexp.RegExp not loaded.");
+      }
+
+      if (!rx)
+      {
+        jsx.warn("Non-ASCII identifiers cannot be parsed.");
+        rx = /^\s*function\s+([A-Za-z_]\w*)/;
+      }
+
       /* Return the empty string for null or undefined */
       return (aFunction != null
                && typeof aFunction.name != "undefined" && aFunction.name)
-        || (String(aFunction).match(/^\s*function\s+([A-Za-z_]\w*)/) || [, ""])[1];
+        || (String(aFunction).match(rx) || [, ""])[1];
     },
 
     /**
@@ -1687,13 +1726,14 @@ jsx.throwThis = (function () {
    *   it is passed as argument list to the constructor for the error type
    * @param {Callable|string} context
    *   Optional callable object to specify the context
-   *   where the exception occurred.
+   *   where the exception occurred.  Ignored if <var>message</var>
+   *   is an <code>Array</code>.
    */
   return function (errorType, message, context) {
     var sErrorType = errorType;
     var isError = false;
+    var messageIsArray = _jsx_object.isArray(message);
 
-    var messageIsArray =_jsx_object.isArray(message);
     if (typeof Error == "function"
         && Error.prototype.isPrototypeOf(errorType))
     {
@@ -1722,35 +1762,27 @@ jsx.throwThis = (function () {
       }
     }
 
-    var sContext = "";
-
-    var stack = jsx.getStackTrace();
-    if (stack)
+    if (!messageIsArray)
     {
-      sContext = "\n\n" + stack;
-    }
+      var sContext = "";
 
-    /* DEBUG: set breakpoint here */
-    if (!sContext)
-    {
-      if (_jsx_object.isMethod(context))
+      var stack = jsx.getStackTrace();
+      if (stack)
       {
-        sContext = (String(context).match(/^\s*(function.+\))/)
-                     || [, null])[1];
-        sContext = (sContext ? sContext + ': ' : '');
+        sContext = "\n\n" + stack;
       }
-    }
 
-    /*
-     * Array or array-like object for exception constructor's
-     * argument list
-     */
-    if (_jsx_object.isMethod(message, "map"))
-    {
-      message = message.map(_addslashes);
-    }
-    else
-    {
+      /* DEBUG: set breakpoint here */
+      if (!sContext)
+      {
+        if (_jsx_object.isMethod(context))
+        {
+          sContext = (String(context).match(/^\s*(function.+\))/)
+            || [, null])[1];
+          sContext = (sContext ? sContext + ': ' : '');
+        }
+      }
+
       message = (message || "") + (sContext || "");
       message = '"' + _addslashes(message) + '"';
     }
