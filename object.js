@@ -634,7 +634,7 @@ jsx.object = (/** @constructor */ function () {
       {
         for (var i = e.length; i--;)
         {
-          if (iLevel && typeof oSource[i] == "object" && null != oSource[i])
+          if (iLevel && _isObject(oSource[i]))
           {
             jsx.tryThis(function () { o2[i] = me(oSource[i], iLevel); });
           }
@@ -647,7 +647,7 @@ jsx.object = (/** @constructor */ function () {
 
       for (var p in oSource)
       {
-        if (iLevel && typeof oSource[p] == "object" && null != oSource[p])
+        if (iLevel && _isObject(oSource[p]))
         {
           jsx.tryThis(function () { o2[p] = me(oSource[p], iLevel); });
         }
@@ -929,6 +929,7 @@ jsx.object = (/** @constructor */ function () {
       if (typeof oTarget[p] == "undefined" || (iFlags & _ADD_OVERWRITE))
       {
         jsx.tryThis(function () {
+          /* TODO: Support cloning of property attributes */
           oTarget[p] = (cloneLevel
             ? _clone(oSource[p], cloneLevel)
             : oSource[p]);
@@ -1332,16 +1333,41 @@ jsx.object = (/** @constructor */ function () {
     /**
      * Returns a new object that can serve as data container.
      *
-     * Returns a new object that, if supported, does not inherit or
-     * have any properties.  This is accomplished by either cutting
-     * off its existing prototype chain or not creating one for it
-     * in the first place.
+     * Returns a reference to a new object that, if supported,
+     * does not inherit or have any properties other than those
+     * provided by the keys of <var>source</var>.  This is
+     * accomplished by either cutting off its existing prototype
+     * chain or not creating one for it in the first place.
      *
+     * Different to {@link Object.create()}, properties from
+     * <var>oSource</var> are created with the attributes
+     * <code>[[Writable]]</code>, <code>[[Enumerable]]</code>
+     * and <code>[[Configurable]]</code>.  Attributes of the
+     * properties of <var>oSource</var> are _not_ copied.
+     * Property values of the resulting object are a shallow copy
+     * of the property values of <var>oSource</var> unless
+     * specified otherwise with <var>iFlags</var>.
+     *
+     * @param {Object} oSource (optional)
+     * @param {Number} iFlags (optional)
      * @return {Object}
-     * @see Object.create
+     * @see Object.create()
+     * @see jsx.object.clone()
      */
-    getDataObject: function () {
-      return _inheritFrom(null);
+    getDataObject: function (oSource, iFlags) {
+      var obj = _inheritFrom(null);
+
+      if (_isObject(oSource))
+      {
+        for (var i = 0, keys = _getKeys(oSource), len = keys.length;
+             i < len; ++i)
+        {
+          var property_name = oSource[keys[i]];
+          obj[property_name] = _clone(oSource[property_name], iFlags);
+        }
+      }
+
+      return obj;
     },
 
     getFeature: _getFeature,
@@ -2171,10 +2197,6 @@ jsx.absPath = function (relativePath, basePath) {
  * jsx.importFrom() for that and include jsx.net.http.
  *
  * @function
- * @return {boolean}
- *   <code>false</code> if <var>properties</var> is provided and not
- *   all properties could be imported; <code>true</code> otherwise.
- * @throws TypeError, if <var>obj</var> is not an iterable object
  */
 jsx._import = (function () {
   var _jsx_object = jsx.object;
@@ -2199,6 +2221,10 @@ jsx._import = (function () {
    *   There must be specified as many aliases as properties were
    *   specified.  Ignored if <var>properties</var> is
    *   <code>null</code>.
+   * @return {boolean}
+   *   <code>false</code> if <var>properties</var> is provided and not
+   *   all properties could be imported; <code>true</code> otherwise.
+   * @throws TypeError, if <var>obj</var> is not an iterable object
    */
   return function (obj, properties, objAlias, propertyAliases) {
     if (!obj)
