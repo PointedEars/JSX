@@ -24,16 +24,11 @@
  * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-if (typeof jsx == "undefined")
+if (typeof jsx.dom == "undefined")
 {
   /**
    * @namespace
    */
-  var jsx = {};
-}
-
-if (typeof jsx.dom == "undefined")
-{
   jsx.dom = {};
 }
 
@@ -71,11 +66,6 @@ if (typeof jsx.dom == "undefined")
  * @return {Object}
  *   A reference to the added listener on success,
  *   <code>null</code> otherwise.
- *   Since addEventListener(...) returns no value and throws
- *   no exceptions (what a bad design!), it is considered to be
- *   successful always, while the new value of the proprietary
- *   event-handling property must match the assigned value for
- *   the method to be successful.
  * @see <a href="http://www.quirksmode.org/blog/archives/2005/08/addevent_consid.html">QuirksBlog: addEvent() considered harmful (2005-08 CE)</a>
  * @see <a href="dom2-events#Events-EventTarget-addEventListener">W3C DOM Level 2 Events: EventTarget::addEventListener</a>
  * @see <a href="msdn#workshop/author/dhtml/reference/methods/attachevent.asp">MSDN Library: attachEvent()</a>
@@ -206,6 +196,98 @@ jsx.dom.addEventListenerCapture = function(oNode, sEvent, fListener) {
 };
 
 /**
+ * Removes an event-handling function (event listener) for a
+ * DOM object as event target.
+ * <ul>
+ *   <li>removeEventListener() and addEventListener(...) methods
+ *   (W3C-DOM Level 2)</li>
+ *   <li>Assignment to event-handling property (MSIE 4+ and others)</li>
+ * </ul>
+ *
+ * Note that this still relies on the existence of the proprietary
+ * event-handling property that yields a reference to the (first added)
+ * event listener for the respective event.
+ *
+ * @author
+ *   (C) 2010, 2013  Thomas Lahn &lt;js@PointedEars.de&gt;
+ * @param {Node} oNode
+ *   Reference to the DOM object.
+ * @param {string} sEvent
+ *   Required string to be used as event identifier.
+ *   `on' is used as its prefix to reference the respective
+ *   proprietary event-handling property.
+ * @param {Function} fListener
+ *   Reference to the Function object that provides
+ *   event-handling code.  Is ignored to (re)set the
+ *   proprietary event-handling property if available.
+ * @param {boolean} bUseCapture (optional)
+ *   Optional. If <code>true</code>, the argument indicates that
+ *   the user wished to initiate capture.  Corresponds to the
+ *   third parameter of the removeEventListener(...) method, is
+ *   ignored if that method is not supported by the DOM (object).
+ * @return {boolean}
+ *   <code>true</code> on success, <code>false</code> otherwise.
+ *   Since removeEventListener(...) returns no value and throws
+ *   no exceptions (what a bad design!), it is considered to be
+ *   successful always, while attachEvent(...) returns success
+ *   or failure, and the new value of the proprietary
+ *   event-handling property must be <code>null</code> for
+ *   the method to be successful.
+ * @see <a href="dom2-events#Events-EventTarget-removeEventListener">W3C DOM Level 2 Events: EventTarget::removeEventListener()</a>
+ * @see <a href="msdn#workshop/author/dhtml/reference/methods/detachevent.asp">MSDN Library: detachEvent()</a>
+ */
+jsx.dom.removeEventListener = function(oNode, sEvent, fListener, bUseCapture) {
+  var
+    result = false,
+    jsx_object = jsx.object,
+    sHandler = "on" + sEvent;
+
+  if (oNode && sEvent)
+  {
+    var handler = oNode[sHandler];
+
+    if (jsx_object.isMethod(fListener))
+    {
+      if (jsx_object.isMethod(oNode, "removeEventListener"))
+      {
+        oNode.removeEventListener(sEvent, fListener, bUseCapture);
+
+        if (handler == fListener)
+        {
+          oNode[sHandler] = null;
+        }
+
+        return true;
+      }
+    }
+
+    if (jsx_object.isMethod(oNode, sHandler))
+    {
+      var listeners = handler._listeners;
+
+      if (listeners)
+      {
+        for (var i = listeners.length; i--;)
+        {
+          if (listeners[i] == fListener)
+          {
+            delete listeners[i];
+            result = (typeof listeners[i] == "undefined");
+          }
+        }
+      }
+      else
+      {
+        handler = oNode[sHandler] = null;
+        result = (handler == null);
+      }
+    }
+  }
+
+  return result;
+};
+
+/**
  * Replaces the event-handling function (event listener) for a
  * DOM object as event target.  The following methods are
  * used (in order of preference):
@@ -258,108 +340,13 @@ jsx.dom.replaceEventListener = function(oNode, sEvent, fListener, bUseCapture) {
 
   if (oNode && sEvent && jsx_object.isMethod(fListener))
   {
-    if (jsx_object.areMethods(oNode, ["removeEventListener", "addEventListener"]))
+    if (jsx_object.isMethod(oNode[sHandler]))
     {
-      if (jsx_object.isMethod(oNode[sHandler]))
-      {
-        var fOldListener = oNode[sHandler];
-        oNode.removeEventListener(sEvent, fOldListener, !!bUseCapture);
-      }
-
-      oNode.addEventListener(sEvent, fListener, !!bUseCapture);
-      result = true;
-    }
-    else
-    {
-      oNode[sHandler] = fListener;
-      result = (oNode[sHandler] == fListener);
-    }
-  }
-
-  return result;
-};
-
-/**
- * Removes an event-handling function (event listener) for a
- * DOM object as event target.
- * <ul>
- *   <li>removeEventListener() and addEventListener(...) methods
- *   (W3C-DOM Level 2)</li>
- *   <li>Assignment to event-handling property (MSIE 4+ and others)</li>
- * </ul>
- *
- * Note that this still relies on the existence of the proprietary
- * event-handling property that yields a reference to the (first added)
- * event listener for the respective event.
- *
- * @author
- *   (C) 2010, 2013  Thomas Lahn &lt;js@PointedEars.de&gt;
- * @param {Node} oNode
- *   Reference to the DOM object.
- * @param {string} sEvent
- *   Required string to be used as event identifier.
- *   `on' is used as its prefix to reference the respective
- *   proprietary event-handling property.
- * @param {Function} fListener
- *   Reference to the Function object that provides
- *   event-handling code.  Is ignored to (re)set the
- *   proprietary event-handling property if available.
- * @param {boolean} bUseCapture (optional)
- *   Optional. If <code>true</code>, the argument indicates that
- *   the user wished to initiate capture.  Corresponds to the
- *   third parameter of the removeEventListener(...) method, is
- *   ignored if that method is not supported by the DOM (object).
- * @return {boolean}
- *   <code>true</code> on success, <code>false</code> otherwise.
- *   Since removeEventListener(...) returns no value and throws
- *   no exceptions (what a bad design!), it is considered to be
- *   successful always, while attachEvent(...) returns success
- *   or failure, and the new value of the proprietary
- *   event-handling property must be <code>null</code> for
- *   the method to be successful.
- * @see <a href="dom2-events#Events-EventTarget-removeEventListener">W3C DOM Level 2 Events: EventTarget::removeEventListener()</a>
- * @see <a href="msdn#workshop/author/dhtml/reference/methods/detachevent.asp">MSDN Library: detachEvent()</a>
- */
-jsx.dom.removeEventListener = function(oNode, sEvent, fListener, bUseCapture) {
-  var
-    result = false,
-    jsx_object = jsx.object,
-    sHandler = "on" + sEvent;
-
-  if (oNode && sEvent)
-  {
-    if (jsx_object.isMethod(fListener))
-    {
-      if (jsx_object.isMethod(oNode, "removeEventListener"))
-      {
-        oNode.removeEventListener(sEvent, fListener, bUseCapture);
-        return true;
-      }
+      var fOldListener = oNode[sHandler];
+      jsx.dom.removeEventListener(oNode, sEvent, fOldListener, !!bUseCapture);
     }
 
-    if (jsx_object.isMethod(oNode, sHandler))
-    {
-      var
-        handler = oNode[sHandler],
-        listeners = handler._listeners;
-
-      if (listeners)
-      {
-        for (var i = listeners.length; i--;)
-        {
-          if (listeners[i] == fListener)
-          {
-            delete listeners[i];
-            result = (typeof listeners[i] == "undefined");
-          }
-        }
-      }
-      else
-      {
-        handler = oNode[sHandler] = null;
-        result = (handler == null);
-      }
-    }
+    return !!jsx.dom.addEventListener(oNode, sEvent, fListener, !!bUseCapture);
   }
 
   return result;
@@ -396,7 +383,9 @@ jsx.dom.createEventListener = function(f) {
      * so values need to be copied
      */
     var e2 = {originalEvent: e};
-    var properties = ["type", "charCode", "keyCode", "which", "keyIdentifier",
+    var properties = ["bubbles", "cancelable", "currentTarget",
+                      "eventPhase", "target", "timeStamp", "type",
+                      "charCode", "keyCode", "which", "keyIdentifier",
                       "clientX", "clientY", "offsetX", "offsetY",
                       "shiftKey", "ctrlKey", "altKey", "metaKey"];
     for (var i = properties.length; i--;)
