@@ -36,7 +36,21 @@ jsx.types = {
   copyright: "Copyright \xA9 1999-2009",
   author:    "Thomas Lahn",
   email:     "types.js@PointedEars.de",
-  path:      "http://pointedears.de/scripts/"
+  path:      "http://pointedears.de/scripts/",
+
+  /**
+   * Determines if a value is a primitive <string>string</code>
+   * value or a reference to a <code>String</code> instance.
+   *
+   * @param {any} value
+   * @returns {boolean}
+   */
+  isString: function (value) {
+    return (typeof value == "string"
+             || (value != null
+                 && typeof value.valueOf == "function"
+                 && typeof value.valueOf() == "string"));
+  }
 };
 
 jsx.types.URI = jsx.types.path + "types.js";
@@ -121,27 +135,6 @@ var isUndefined = jsx.types.isUndefined = function (o, p) {
 jsx.types.isInstanceOf = jsx.object.isInstanceOf;
 
 /**
- * Determines whether an object is an array
- *
- * @author
- *   (C) 2003, 2009, 2011 Thomas Lahn &lt;object.js@PointedEars.de&gt;
- * @partof http://pointedears.de/scripts/object.js
- * @requires jsx.object#isInstanceOf
- * @param {Object} a
- *   Expression to be determined an array.
- * @return {boolean}
- *   <code>true</code> if <code>a</code> is an object
- *   derived from Array, <code>false</code> otherwise.
- *   Returns also <code>false</code> if the language
- *   version does not support Array objects (JavaScript
- *   before 1.1).
- * @todo
- */
-var isArray = jsx.types.isArray = function (a) {
-  return jsx.object.isInstanceOf(a, typeof Array != "undefined" ? Array : null);
-};
-
-/**
  * @author
  *   (C) 2003  Thomas Lahn &lt;types.js@PointedEars.de&gt;
  * @param {Object} o
@@ -163,6 +156,23 @@ var isIterable = jsx.types.isIterable = function (o) {
     o
     && typeof o.length != "undefined"
     && typeof o[0] != "undefined");
+};
+
+jsx.types.isNativeValue = function (value) {
+  var _class = jsx.object.getClass(value);
+  return (
+    jsx.object.isArray(value)
+    || _class == "Boolean" || value instanceof Boolean
+    || _class == "Date" || value instanceof Date
+    || _class == "Error" || value instanceof Error
+    || _class == "Function" || value instanceof Function
+    || _class == "JSON"
+    || _class == "Math"
+    || _class == "Number" || value instanceof Number
+    || _class == "Object" || value instanceof Object
+    || _class == "RegExp" || value instanceof RegExp
+    || _class == "String" || value instanceof String
+  );
 };
 
 /**
