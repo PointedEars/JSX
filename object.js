@@ -616,56 +616,68 @@ jsx.object = (/** @constructor */ function () {
       iLevel = _COPY_ENUM;
     }
 
-    var me = _clone;
-
-    if (!iLevel || (iLevel & _COPY_ENUM_DEEP))
-    {
-      /*
-       * NOTE: For objects, valueOf() only copies the object reference,
-       *       so we are creating an instance that inherits from the
-       *       original's prototype, if possible.
-       */
-      var o2 = (typeof oSource == "object" && oSource
-             ? _createTypedObject(oSource)
-             : oSource.valueOf());
-
-      /* if "var p in ..." does not copy the array elements */
-      if (_isArray(o2))
-      {
-        for (var i = e.length; i--;)
-        {
-          if (iLevel && _isObject(oSource[i]))
-          {
-            jsx.tryThis(function () { o2[i] = me(oSource[i], iLevel); });
-          }
-          else
-          {
-            jsx.tryThis(function () { o2[i] = oSource[i]; });
-          }
-        }
-      }
-
-      for (var p in oSource)
-      {
-        if (iLevel && _isObject(oSource[p]))
-        {
-          jsx.tryThis(function () { o2[p] = me(oSource[p], iLevel); });
-        }
-        else
-        {
-          jsx.tryThis(function () { o2[p] = oSource[p]; });
-        }
-      }
-
-      return o2;
-    }
-
     if (iLevel & _COPY_INHERIT)
     {
       return _inheritFrom(oSource);
     }
 
-    return null;
+    var me = _clone;
+
+    /*
+     * NOTE: For objects, valueOf() only copies the object reference,
+     *       so we are creating an instance that inherits from the
+     *       original's prototype, if possible.
+     */
+    var o2 = (typeof oSource == "object" && oSource
+           ? _createTypedObject(oSource)
+           : oSource.valueOf());
+
+    for (var p in oSource)
+    {
+      if (_hasOwnProperty(oSource, i))
+      {
+        if (iLevel && _isObject(oSource[p]))
+        {
+          jsx.tryThis(function () {
+            o2[p] = me(oSource[p], iLevel);
+          });
+        }
+        else
+        {
+          jsx.tryThis(function () {
+            o2[p] = oSource[p];
+          });
+        }
+      }
+    }
+
+    /*
+     * "var p in ..." might not have copied (all) the array elements
+     * (NN < 4.8 or user-defined non-enumerable elements only)
+     */
+    if (_isArray(o2))
+    {
+      for (var i = oSource.length; i--;)
+      {
+        if (_hasOwnProperty(oSource, i) && !_hasOwnProperty(o2, i))
+        {
+          if (iLevel && _isObject(oSource[i]))
+          {
+            jsx.tryThis(function () {
+              o2[i] = me(oSource[i], iLevel);
+            });
+          }
+          else
+          {
+            jsx.tryThis(function () {
+              o2[i] = oSource[i];
+            });
+          }
+        }
+      }
+    }
+
+    return o2;
   }
 
   /**
