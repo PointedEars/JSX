@@ -552,7 +552,7 @@ jsx.net.http.Request.prototype = {
       {
         if (_hasOwnProperty(obj, name))
         {
-          this.requestHeaders[name] = obj[name];
+          this.setRequestHeader(name, obj[name]);
         }
       }
 
@@ -755,9 +755,8 @@ jsx.net.http.Request.prototype = {
 
             if (!me.useCache)
             {
-              me.setRequestHeaders({
-                "If-Modified-Since": (new Date(0)).toUTCString()
-              });
+              me.setRequestHeader("If-Modified-Since",
+                (new Date(0)).toUTCString());
             }
 
             var requestHeaders = me.requestHeaders;
