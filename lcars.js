@@ -635,7 +635,7 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
                   else
                   {
                     jsx.dom.timeout.runAsync(clickAction,
-                      (beep.duration - beep.currentTime) * 1000);
+                      (beep.duration - beep.currentTime + 0.250) * 1000);
                     e.preventDefault();
                   }
                 };
