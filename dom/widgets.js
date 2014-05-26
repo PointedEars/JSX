@@ -37,17 +37,17 @@ jsx.dom.widgets = (/** @constructor */ function () {
 
   /* Other private variables */
   /**
-   * Constructor of the abstract prototype for widgets. It provides
-   * shallow copying of the passed properties, stores the reference to the
-   * manipulated DOM object, and applies the given properties to the
-   * display of that object. Widgets should inherit from this prototype,
-   * and this constructor should be called only from the constructors of
-   * prototypes of specialized widgets.
-   *
    * @function
    */
   var _Widget = (
     /**
+     * Constructor of the abstract prototype for widgets. It provides
+     * shallow copying of the passed properties, stores the reference to the
+     * manipulated DOM object, and applies the given properties to the
+     * display of that object. Widgets should inherit from this prototype,
+     * and this constructor should be called only from the constructors of
+     * prototypes of specialized widgets.
+     *
      * @constructor
      * @param {Element} oTarget
      *   Reference to the DOM object that represents the
@@ -60,13 +60,14 @@ jsx.dom.widgets = (/** @constructor */ function () {
      *   {@link #appendTo()} method later to append it.
      * @param {Object} oProperties
      */
-    function (oTarget, oParent, oProperties) {
-      this._target = oTarget || document.createElement(this.elementType);
+    function jsx_dom_widgets_Widget (oTarget, oParent, oProperties) {
+      this._setTarget(oTarget || document.createElement(this.elementType));
 
       if (oParent && !(oParent instanceof _Container))
       {
         return jsx.throwThis(jsx.InvalidArgumentError,
-          [null, jsx.object.getFunctionName(oParent.constructor), "jsx.dom.widgets.Container"]);
+          [null, jsx.object.getFunctionName(oParent.constructor),
+           "jsx.dom.widgets.Container"]);
       }
 
       this._parent = oParent || null;
@@ -93,7 +94,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
         }
       }
 
-      if (this._target)
+      if (this.getTarget())
       {
         this.init();
         this.update();
@@ -113,6 +114,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
       elementType: "div",
 
       /**
+       * @protected
        * @type Element
        */
       _target: null,
@@ -134,13 +136,25 @@ jsx.dom.widgets = (/** @constructor */ function () {
       },
 
       /**
+       * @protected
+       * @param value
+       */
+      _setTarget: function (value) {
+        this._target = value;
+      },
+
+      getTarget: function () {
+        return this._target;
+      },
+
+      /**
        * Gets a property of this widget's target object.
        *
        * @param {String} name
        * @return {any}
        */
       getTargetProperty: function (name) {
-        return this._target[name];
+        return this.getTarget()[name];
       },
 
       /**
@@ -154,7 +168,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
        * @return {jsx.dom.widgets.Widget}
        */
       setTargetProperty: function (name, value) {
-        this._target[name] = value;
+        this.getTarget()[name] = value;
         return this;
       },
 
@@ -188,7 +202,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
        * @see jsx.dom.css.setStyleProperty()
        */
       setStyleProperty: function (name, value) {
-        return _css.setStyleProperty(this._target, name, value);
+        return _css.setStyleProperty(this.getTarget(), name, value);
       },
 
       /**
@@ -197,7 +211,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
        * @param {String} name
        */
       resetStyleProperty: function (name) {
-        _css.resetStyleProperty(this._target, name);
+        _css.resetStyleProperty(this.getTarget(), name);
       },
 
       /**
@@ -226,12 +240,18 @@ jsx.dom.widgets = (/** @constructor */ function () {
        * and called by inheriting types.
        */
       update: function () {
-        this.setStyle(this.style);
+        /* TODO: Only update if dirty */
+//        if (this._dirty)
+//        {
+          this.setStyle(this.style);
 
-        for (var i = 0, len = this.children.length; i < len; ++i)
-        {
-          this.children[i].update();
-        }
+          for (var i = 0, len = this.children.length; i < len; ++i)
+          {
+            this.children[i].update();
+          }
+
+          this._dirty = false;
+//        }
 
         return this;
       },
@@ -241,7 +261,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
        */
       render: function (parent) {
         this.update();
-        this._target.style.display = "";
+        this.getTarget().style.display = "";
         return this;
       },
 
@@ -250,7 +270,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
        * from the document tree.
        */
       unrender: function () {
-        this._target.style.display = "none";
+        this.getTarget().style.display = "none";
         return this;
       },
 
@@ -258,7 +278,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
        * Shows the widget
        */
       show: function () {
-        this._target.style.visibility = "visible";
+        this.getTarget().style.visibility = "visible";
         return this;
       },
 
@@ -266,7 +286,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
        * Hides the widget, but keeps its box
        */
       hide: function () {
-        this._target.style.visibility = "hidden";
+        this.getTarget().style.visibility = "hidden";
         return this;
       },
 
@@ -303,6 +323,11 @@ jsx.dom.widgets = (/** @constructor */ function () {
         return this._parent.removeChild(this);
       },
 
+      /**
+       * @protected
+       * @param {String} propertyName
+       * @return {Function|Null}
+       */
       _getSetterFor: function (propertyName) {
         var setterName =
           "set" + propertyName.charAt(0).toUpperCase() + propertyName.substring(1);
@@ -340,7 +365,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
     init: function () {
       _Container._super.prototype.init.call(this);
 
-      this._defaultContent = this.innerHTML || this._target.innerHTML || "";
+      this._defaultContent = this.innerHTML || this.getTarget().innerHTML || "";
     },
 
     /**
@@ -355,7 +380,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
       return function () {
         _Container._super.prototype.update.call(this);
 
-        var target = this._target;
+        var target = this.getTarget();
 
         var html = this.innerHTML;
         if (html !== null)
@@ -456,7 +481,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
      * @return {string}
      */
     getText: function () {
-      this.text = this._target.textContent;
+      this.text = this.getTarget().textContent;
       return this.text;
     },
 
@@ -498,8 +523,8 @@ jsx.dom.widgets = (/** @constructor */ function () {
      */
     appendChild: function (child) {
       var result = null;
-      var childTarget = child._target;
-      var target = this._target;
+      var childTarget = child.getTarget();
+      var target = this.getTarget();
       var success = true;
 
       /*
@@ -511,7 +536,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
         /*
          * … append it as child element
          */
-        target.appendChild(child._target);
+        target.appendChild(child.getTarget());
         success = (target.lastChild == childTarget);
       }
 
@@ -539,7 +564,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
       var childIndex = this.children.indexOf(child);
       if (childIndex >= 0)
       {
-        this._target.removeChild(child._target);
+        this.getTarget().removeChild(child.getTarget());
         this.children.splice(childIndex, 1);
       }
     }
@@ -565,6 +590,42 @@ jsx.dom.widgets = (/** @constructor */ function () {
     }
   ).extend(_Container, {
     elementType: "a"
+  });
+
+  var _Button = (
+    /**
+     * @constructor
+     */
+    function jsx_dom_widgets_Button (oTarget, oParent, oProperties) {
+      jsx_dom_widgets_Button._super.apply(this, arguments);
+    }
+  ).extend(_Container, {
+    /**
+     * @memberOf jsx.dom.widgets.Button.prototype
+     */
+    elementType: "button",
+
+    /**
+     * (non-JSdoc)
+     * @see jsx.dom.widgets.Widget.prototype.init()
+     */
+    init: function jsx_dom_widgets_Button_prototype_init () {
+      _Button._super.prototype.init.call(this);
+
+      var me = this;
+
+      jsx.tryThis(
+        function ()  {
+          me.getTarget().type = "button";
+        },
+
+        function () {
+          /* IE 7 and other borken UAs that don't support inline-block properly */
+          jsx.throwThis("jsx.dom.widgets.InitError", "jsx.dom.widgets.Button",
+            jsx_dom_widgets_Button_prototype_init);
+        }
+      );
+    }
   });
 
   var _Label = (
@@ -622,7 +683,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
       jsx_dom_widgets_Input._super.apply(this, arguments);
 
       var me = this;
-      _jsx_dom.addEventListener(this._target, "keypress", _jsx_dom.createEventListener(
+      _jsx_dom.addEventListener(this.getTarget(), "keypress", _jsx_dom.createEventListener(
         function (e) {
           var charCode =
             (typeof e.charCode != "undefined")
@@ -660,12 +721,12 @@ jsx.dom.widgets = (/** @constructor */ function () {
 
       if (typeof this.value != "undefined")
       {
-        this._target.value = this.value;
+        this.getTarget().value = this.value;
       }
 
       if (typeof this.tabIndex != "undefined")
       {
-        this._target.tabIndex = this.tabIndex;
+        this.getTarget().tabIndex = this.tabIndex;
       }
 
       return this;
@@ -698,7 +759,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
 
       var me = this;
 
-      var target = this._target;
+      var target = this.getTarget();
       _jsx_dom.addEventListener(target, "blur", function () {
         me.update();
       });
@@ -741,7 +802,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
     init: function () {
       _NumberInput._super.prototype.init.call(this);
 
-      var target = this._target;
+      var target = this.getTarget();
 
       if (target.type != "number")
       {
@@ -770,7 +831,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
     update: function () {
       _NumberInput._super.prototype.update.call(this);
 
-      var target = this._target;
+      var target = this.getTarget();
 
       var v = parseFloat(target.value);
 
@@ -814,10 +875,11 @@ jsx.dom.widgets = (/** @constructor */ function () {
 
       if (!isNaN(value))
       {
-        if (this._target.type == "number")
+        var target = this.getTarget();
+        if (target.type == "number")
         {
           /* HTML5 support */
-          this._target[valueType] = String(value);
+          target[valueType] = String(value);
         }
 
         this[valueType + "Value"] = value;
@@ -836,345 +898,6 @@ jsx.dom.widgets = (/** @constructor */ function () {
 
     setMaxValue: function (value) {
       return this._setBoundary("max", value);
-    }
-  });
-
-  var _ListItem = (
-    /**
-     * @constructor
-     */
-    function jsx_dom_widgets_ListItem () {
-      jsx_dom_widgets_ListItem._super.apply(this, arguments);
-    }
-  ).extend(_Container, {
-    /**
-     * @memberOf jsx.dom.widgets.ListItem.prototype
-     */
-    elementType: "li"
-  });
-
-  /**
-   * @function
-   */
-  var _List = (
-    /**
-     * @constructor
-     */
-    function jsx_dom_widgets_List () {
-      jsx_dom_widgets_List._super.apply(this, arguments);
-    }
-  ).extend(_Container, {
-    /**
-     * (non-JSdoc)
-     * @see jsx.dom.widgets.Widget.prototype.init()
-     */
-    init: function () {
-      _List._super.prototype.init.call(this);
-
-      if (!this.items)
-      {
-        var target = this._target;
-        if (target)
-        {
-          var childNodes = target.children || target.childNodes;
-          for (var i = 0, len = childNodes.length; i < len; ++i)
-          {
-            var node = childNodes[i];
-            if (node.nodeType == 1)
-            {
-              var item = new _ListItem(node);
-              item.appendTo(this);
-              this.addItem(item);
-            }
-          }
-        }
-      }
-    },
-
-    /**
-     * @memberOf jsx.dom.widgets.List.prototype
-     * @param {any} listItem
-     */
-    addItem: function (listItem) {
-      if (!this.items)
-      {
-        this.items = [];
-      }
-
-      this.items.push(listItem);
-    },
-
-    /**
-     * @param {any} listItem
-     */
-    removeItem: function (item) {
-      var items = this.items;
-      if (items)
-      {
-        var i = items.indexOf(item);
-        if (i > -1)
-        {
-          items.splice(i, 1);
-        }
-      }
-    },
-
-    /**
-     * (non-JSdoc)
-     * @see jsx.dom.widgets.List.prototype.update()
-     */
-    update: function () {
-      _List._super.prototype.update.call(this);
-
-      var items = this._items;
-      var i;
-      var len = items && items.length || 0;
-
-      for (i = len; i--;)
-      {
-        var item = items[i];
-        if (item._target.tagName.toUpperCase() != "LI")
-        {
-          items[i] = new _ListItem(null, null, {
-            children: [item]
-          });
-        }
-
-        items[i].update();
-      }
-
-      var target = this._target;
-      var listItems = _gEBTN("li", -1, target);
-      var len2 = listItems.length;
-      for (i = 0; i < len && i < len2; ++i)
-      {
-        var listItem = listItems[i];
-        item = items[i];
-
-        if (listItem != item._target)
-        {
-          target.replaceChild(item._target, listItem);
-        }
-      }
-
-      for (var j = listItems.length; j-- > i;)
-      {
-        target.removeChild(listItems[j]);
-      }
-
-      for (++j; j < len; ++j)
-      {
-        items[j].appendTo(this);
-      }
-
-      return this;
-    }
-  });
-
-  var _OrderedList = (
-    /**
-     * @constructor
-     */
-    function jsx_dom_widgets_OrderedList () {
-      jsx_dom_widgets_OrderedList._super.apply(this, arguments);
-    }
-  ).extend(_List, {
-    /**
-     * @memberOf jsx.dom.widgets.OrderedList.prototype
-     */
-    elementType: "ol"
-  });
-
-  /**
-   * @function
-   */
-  var _UnorderedList = (
-    /**
-     * @constructor
-     */
-    function jsx_dom_widgets_UnorderedList () {
-      jsx_dom_widgets_UnorderedList._super.apply(this, arguments);
-    }
-  ).extend(_List, {
-    /**
-     * @memberOf jsx.dom.widgets.UnorderedList.prototype
-     */
-    elementType: "ul"
-  });
-
-  var _Checkbox = (
-    /**
-     * @constructor
-     */
-    function jsx_dom_widgets_Checkbox (oTarget, oParent, oProperties) {
-      jsx_dom_widgets_Checkbox._super.apply(this, arguments);
-    }
-  ).extend(_Widget, {
-    /**
-     * @memberOf jsx.dom.widgets.Checkbox.prototype
-     */
-    elementType: "input",
-
-    labelPosition: _AFTER,
-
-    /**
-     * Unique ID of this control
-     */
-    _uid: -1,
-
-    /**
-     * (non-JSdoc)
-     * @see jsx.dom.widgets.Widget.prototype.init()
-     */
-    init: function () {
-      _Checkbox._super.prototype.init.call(this);
-
-      this._target.type = "checkbox";
-      this._target.id = "checkbox" + (++this._uid);
-
-      var label = this.label;
-      if (label)
-      {
-        if (typeof label.valueOf() == "string")
-        {
-          this.label = new _jsx_dom.widgets.Label(null, this._parent, {
-            innerHTML: [label]
-          });
-        }
-      }
-    },
-
-    /**
-     * (non-JSdoc)
-     * @see jsx.dom.widgets.Widget.prototype.render()
-     */
-    render: function () {
-      _Checkbox._super.prototype.render.call(this);
-
-      var label = this.label;
-      if (label)
-      {
-        label._target.htmlFor = this._target.id;
-        label.render();
-      }
-    },
-
-    /**
-     * (non-JSdoc)
-     * @see jsx.dom.widgets.Widget.prototype.unrender()
-     */
-    unrender: function () {
-      _Checkbox._super.prototype.unrender.call(this);
-
-      if (this.label)
-      {
-        this.label.unrender();
-      }
-    },
-
-    /**
-     * (non-JSdoc)
-     * @see jsx.dom.widgets.Widget.prototype.show()
-     */
-    show: function () {
-      _Checkbox._super.protoype.show.call(this);
-
-      if (this.label)
-      {
-        this.label.show();
-      }
-    },
-
-    /**
-     * (non-JSdoc)
-     * @see jsx.dom.widgets.Widget.prototype.hide()
-     */
-    hide: function () {
-      _Checkbox._super.prototype.hide.call(this);
-
-      if (this.label)
-      {
-        this.label.hide();
-      }
-    },
-
-    /**
-     * Appends the widget as a child element
-     *
-     * @param parent
-     * @return {Array[Widget]}
-     *   An {@link Array} containing the Checkbox widget and its
-     *   label widget, if specified.
-     * @see jsx.dom.widgets.Widget.prototype.appendTo()
-     */
-    appendTo: function (parent) {
-      _Checkbox._super.prototype.appendTo.call(this, parent);
-
-      var label = this.label;
-      if (label)
-      {
-        if (this.labelPosition === _jsx_dom.widgets.position.BEFORE)
-        {
-          parent._target.insertBefore(label._target, this._target);
-        }
-        else
-        {
-          if (this.labelPosition === _jsx_dom.widgets.position.AFTER)
-          {
-            parent._target.insertBefore(label._target, this._target.nextSibling);
-          }
-        }
-
-        label.appendTo(parent);
-      }
-
-      return [this, label];
-    },
-
-    /**
-     * (non-JSdoc)
-     * @see jsx.dom.widgets.Widget.prototype.remove()
-     */
-    remove: function () {
-      var CheckboxTarget = _Checkbox._super.prototype.remove.call(this);
-      var labelTarget = this.label.remove();
-      return [CheckboxTarget, labelTarget];
-    }
-  });
-
-  var _Button = (
-    /**
-     * @constructor
-     */
-    function jsx_dom_widgets_Button (oTarget, oParent, oProperties) {
-      jsx_dom_widgets_Button._super.apply(this, arguments);
-    }
-  ).extend(_Container, {
-    /**
-     * @memberOf jsx.dom.widgets.Button.prototype
-     */
-    elementType: "button",
-
-    /**
-     * (non-JSdoc)
-     * @see jsx.dom.widgets.Widget.prototype.init()
-     */
-    init: function jsx_dom_widgets_Button_prototype_init () {
-      _Button._super.prototype.init.call(this);
-
-      var me = this;
-
-      jsx.tryThis(
-        function ()  {
-          me._target.type = "button";
-        },
-
-        function () {
-          /* IE 7 and other borken UAs that don't support inline-block properly */
-          jsx.throwThis("jsx.dom.widgets.InitError", "jsx.dom.widgets.Button",
-            jsx_dom_widgets_Button_prototype_init);
-        }
-      );
     }
   });
 
@@ -1197,7 +920,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
 
       jsx_dom_widgets_SpinnerInput._super.apply(this, arguments);
 
-      var target = this._target;
+      var target = this.getTarget();
       if (target.type != "number")
       {
         /* If no HTML5 support, try adding arrow controls */
@@ -1217,9 +940,10 @@ jsx.dom.widgets = (/** @constructor */ function () {
               onclick: function () {
                 me.inc();
 
-                if (typeof me._target.onchange == "function")
+                var target = me.getTarget();
+                if (typeof target.onchange == "function")
                 {
-                  me._target.onchange();
+                  target.onchange();
                 }
               }
             });
@@ -1238,9 +962,10 @@ jsx.dom.widgets = (/** @constructor */ function () {
               onclick: function () {
                 me.dec();
 
-                if (typeof me._target.onchange == "function")
+                var target = me.getTarget();
+                if (typeof target.onchange == "function")
                 {
-                  me._target.onchange();
+                  target.onchange();
                 }
               }
             });
@@ -1250,8 +975,8 @@ jsx.dom.widgets = (/** @constructor */ function () {
             buttonContainer.style.lineHeight = "1em";
             buttonContainer.style.verticalAlign = "middle";
 
-            buttonContainer.appendChild(me.buttonUp._target);
-            buttonContainer.appendChild(me.buttonDown._target);
+            buttonContainer.appendChild(me.buttonUp.getTarget());
+            buttonContainer.appendChild(me.buttonDown.getTarget());
             target.parentNode.insertBefore(buttonContainer, target.nextSibling);
           },
 
@@ -1335,7 +1060,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
      * @memberOf jsx.dom.widgets.SpinnerInput.prototype
      */
     inc: function () {
-      var v, t = this._target;
+      var v, t = this.getTarget();
 
       if ( (this.maxValue == Infinity || t.value < this.maxValue)
         && !isNaN(v = parseInt(t.value, 10) + 1)
@@ -1349,7 +1074,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
      * Decreases the value of the input by 1
      */
     dec: function () {
-      var v, t = this._target;
+      var v, t = this.getTarget();
 
       if ( (this.minValue == -Infinity || t.value > this.minValue)
         && !isNaN(v = parseInt(t.value, 10) - 1)
@@ -1366,7 +1091,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
     update: function () {
       _NumberInput.prototype.update.call(this);
 
-      var target = this._target;
+      var target = this.getTarget();
       if (typeof target.onchange == "function")
       {
         target.onchange();
@@ -1374,6 +1099,335 @@ jsx.dom.widgets = (/** @constructor */ function () {
 
       return this;
     }
+  });
+
+  var _Checkbox = (
+    /**
+     * @constructor
+     */
+    function jsx_dom_widgets_Checkbox (oTarget, oParent, oProperties) {
+      jsx_dom_widgets_Checkbox._super.apply(this, arguments);
+    }
+  ).extend(_Widget, {
+    /**
+     * @memberOf jsx.dom.widgets.Checkbox.prototype
+     */
+    elementType: "input",
+
+    labelPosition: _AFTER,
+
+    /**
+     * Unique ID of this control
+     */
+    _uid: -1,
+
+    /**
+     * (non-JSdoc)
+     * @see jsx.dom.widgets.Widget.prototype.init()
+     */
+    init: function () {
+      _Checkbox._super.prototype.init.call(this);
+
+      var target = this.getTarget();
+      target.type = "checkbox";
+      target.id = "checkbox" + (++this._uid);
+
+      var label = this.label;
+      if (label)
+      {
+        if (typeof label.valueOf() == "string")
+        {
+          this.label = new _jsx_dom.widgets.Label(null, this._parent, {
+            innerHTML: [label]
+          });
+        }
+      }
+    },
+
+    update: function () {
+      this.getTarget().checked = this.checked;
+
+      _Checkbox._super.prototype.update.call(this);
+    },
+
+    /**
+     * (non-JSdoc)
+     * @see jsx.dom.widgets.Widget.prototype.render()
+     */
+    render: function () {
+      _Checkbox._super.prototype.render.call(this);
+
+      var label = this.label;
+      if (label)
+      {
+        label.getTarget().htmlFor = this.getTarget().id;
+        label.render();
+      }
+    },
+
+    /**
+     * (non-JSdoc)
+     * @see jsx.dom.widgets.Widget.prototype.unrender()
+     */
+    unrender: function () {
+      _Checkbox._super.prototype.unrender.call(this);
+
+      if (this.label)
+      {
+        this.label.unrender();
+      }
+    },
+
+    /**
+     * (non-JSdoc)
+     * @see jsx.dom.widgets.Widget.prototype.show()
+     */
+    show: function () {
+      _Checkbox._super.protoype.show.call(this);
+
+      if (this.label)
+      {
+        this.label.show();
+      }
+    },
+
+    /**
+     * (non-JSdoc)
+     * @see jsx.dom.widgets.Widget.prototype.hide()
+     */
+    hide: function () {
+      _Checkbox._super.prototype.hide.call(this);
+
+      if (this.label)
+      {
+        this.label.hide();
+      }
+    },
+
+    /**
+     * Appends the widget as a child element
+     *
+     * @param parent
+     * @return {Array[Widget]}
+     *   An {@link Array} containing the Checkbox widget and its
+     *   label widget, if specified.
+     * @see jsx.dom.widgets.Widget.prototype.appendTo()
+     */
+    appendTo: function (parent) {
+      _Checkbox._super.prototype.appendTo.call(this, parent);
+
+      var label = this.label;
+      if (label)
+      {
+        if (this.labelPosition === _jsx_dom.widgets.position.BEFORE)
+        {
+          parent.getTarget().insertBefore(label.getTarget(), this.getTarget());
+        }
+        else
+        {
+          if (this.labelPosition === _jsx_dom.widgets.position.AFTER)
+          {
+            parent.getTarget().insertBefore(label.getTarget(), this.getTarget().nextSibling);
+          }
+        }
+
+        label.appendTo(parent);
+      }
+
+      return [this, label];
+    },
+
+    /**
+     * (non-JSdoc)
+     * @see jsx.dom.widgets.Widget.prototype.remove()
+     */
+    remove: function () {
+      var CheckboxTarget = _Checkbox._super.prototype.remove.call(this);
+      var labelTarget = this.label.remove();
+      return [CheckboxTarget, labelTarget];
+    },
+
+    setChecked: function (value) {
+      this.checked = !!value;
+      return this;
+    },
+
+    getChecked: function () {
+      return this.checked;
+    },
+
+    check: function () {
+      return this.setChecked(true);
+    },
+
+    uncheck: function () {
+      return this.setChecked(false);
+    }
+  });
+
+  var _ListItem = (
+    /**
+     * @constructor
+     */
+    function jsx_dom_widgets_ListItem () {
+      jsx_dom_widgets_ListItem._super.apply(this, arguments);
+    }
+  ).extend(_Container, {
+    /**
+     * @memberOf jsx.dom.widgets.ListItem.prototype
+     */
+    elementType: "li"
+  });
+
+  /**
+   * @function
+   */
+  var _List = (
+    /**
+     * @constructor
+     */
+    function jsx_dom_widgets_List () {
+      jsx_dom_widgets_List._super.apply(this, arguments);
+    }
+  ).extend(_Container, {
+    /**
+     * (non-JSdoc)
+     * @see jsx.dom.widgets.Widget.prototype.init()
+     */
+    init: function () {
+      _List._super.prototype.init.call(this);
+
+      if (!this.items)
+      {
+        var itemType = this.itemType || _ListItem;
+        var target = this.getTarget();
+        if (target)
+        {
+          var childNodes = target.children || target.childNodes;
+          for (var i = 0, len = childNodes.length; i < len; ++i)
+          {
+            var node = childNodes[i];
+            if (node.nodeType == 1)
+            {
+              var item = new itemType(node);
+              item.appendTo(this);
+              this.addItem(item);
+            }
+          }
+        }
+      }
+    },
+
+    /**
+     * @memberOf jsx.dom.widgets.List.prototype
+     * @param {any} listItem
+     */
+    addItem: function (listItem) {
+      if (!this.items)
+      {
+        this.items = [];
+      }
+
+      this.items.push(listItem);
+    },
+
+    /**
+     * @param {any} listItem
+     */
+    removeItem: function (item) {
+      var items = this.items;
+      if (items)
+      {
+        var i = items.indexOf(item);
+        if (i > -1)
+        {
+          items.splice(i, 1);
+        }
+      }
+    },
+
+    /**
+     * (non-JSdoc)
+     * @see jsx.dom.widgets.List.prototype.update()
+     */
+    update: function () {
+      _List._super.prototype.update.call(this);
+
+      var items = this._items;
+      var i;
+      var len = items && items.length || 0;
+      var itemType = this.itemType || _ListItem;
+
+      for (i = len; i--;)
+      {
+        var item = items[i];
+        if (item.getTarget().tagName.toUpperCase() != "LI")
+        {
+          items[i] = new itemType(null, null, {
+            children: [item]
+          });
+        }
+
+        items[i].update();
+      }
+
+      var target = this.getTarget();
+      var listItems = _gEBTN("li", -1, target);
+      var len2 = listItems.length;
+      for (i = 0; i < len && i < len2; ++i)
+      {
+        var listItem = listItems[i];
+        item = items[i];
+
+        if (listItem != item.getTarget())
+        {
+          target.replaceChild(item.getTarget(), listItem);
+        }
+      }
+
+      for (var j = listItems.length; j-- > i;)
+      {
+        target.removeChild(listItems[j]);
+      }
+
+      for (++j; j < len; ++j)
+      {
+        items[j].appendTo(this);
+      }
+
+      return this;
+    }
+  });
+
+  var _OrderedList = (
+    /**
+     * @constructor
+     */
+    function jsx_dom_widgets_OrderedList () {
+      jsx_dom_widgets_OrderedList._super.apply(this, arguments);
+    }
+  ).extend(_List, {
+    /**
+     * @memberOf jsx.dom.widgets.OrderedList.prototype
+     */
+    elementType: "ol"
+  });
+
+  /**
+   * @function
+   */
+  var _UnorderedList = (
+    /**
+     * @constructor
+     */
+    function jsx_dom_widgets_UnorderedList () {
+      jsx_dom_widgets_UnorderedList._super.apply(this, arguments);
+    }
+  ).extend(_List, {
+    /**
+     * @memberOf jsx.dom.widgets.UnorderedList.prototype
+     */
+    elementType: "ul"
   });
 
   var _CheckboxList = (
@@ -1407,7 +1461,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
         }
 
         /* Add the contained checkbox as item */
-        var checkbox = _gEBTN("input", 0, item._target);
+        var checkbox = _gEBTN("input", 0, item.getTarget());
         if (!checkbox|| checkbox.type.toLowerCase() != "checkbox")
         {
           return jsx.throwThis(jsx.InvalidArgumentError,
@@ -1428,8 +1482,81 @@ jsx.dom.widgets = (/** @constructor */ function () {
     }
   });
 
+  var _TreeNode = (
+    function jsx_dom_widgets_TreeNode (oTarget, oParent, oProperties) {
+      jsx_dom_widgets_TreeNode._super.apply(this, arguments);
+    }
+  ).extend(_ListItem, {
+    init: function () {
+      _TreeNode._super.prototype.init.call(this);
+
+      this._checkbox = new _Checkbox
+    },
+
+    oncollapsechanged: function (collapse) {
+      if (this._checkbox)
+      {
+        this._checkbox.setChecked = !collapse;
+      }
+    }
+  });
+
+  var _TreeList = (
+    /**
+     * @constructor
+     */
+    function jsx_dom_widgets_TreeList (oTarget, oParent, oProperties) {
+      jsx_dom_widgets_Tree._super.call(this, oTarget, oParent, oProperties);
+    }
+  ).extend(_UnorderedList, {
+    itemType: _TreeNode,
+
+    /**
+     * @memberOf jsx.dom.widgets.TreeList
+     */
+    addItem: function (item) {
+      if (!(item instanceof _TreeNode))
+      {
+        if (!(item instanceof _ListItem))
+        {
+          return jsx.throwThis(jsx.InvalidArgumentError,
+            [null, jsx.object.getFunctionName(item.constructor),
+             "jsx.dom.widgets.TreeNode or jsx.dom.widgets.ListItem"]);
+        }
+
+        var node = new _TreeNode(item.getTarget());
+      }
+      else
+      {
+        node = item;
+      }
+
+      _TreeList._super.prototype.addItem.call(this, node);
+
+      return item;
+    }
+  });
+
   var _Tree = (
     /**
+     * A <code>Tree</code> widget is implemented using nested
+     * unordered lists and checkboxes:
+     * <pre>
+     *   Tree extends Widget
+     *     ._root : UnorderedList
+     *       ._target : HTMLULElement
+     *       ._items : [TreeNode]
+     *
+     *   TreeNode extends ListItem
+     *     .target : HTMLLIElement
+     *     ._checkbox : Checkbox
+     *     .label
+     *     .icon
+     *     .collapsed
+     *     .childNodes : UnorderedList
+     *       .target : HTMLULElement
+     *       .items : [TreeNode]
+     * </pre>
      * @constructor
      */
     function jsx_dom_widgets_Tree (oTarget, oParent, oProperties) {
@@ -1448,10 +1575,9 @@ jsx.dom.widgets = (/** @constructor */ function () {
     init: function () {
       _Tree._super.prototype.init.call(this);
 
-      if (!this._list)
+      if (!this._root)
       {
-        this._list = new _UnorderedList();
-        this._list.addItem(new _ListItem());
+        this._root = new _TreeList(this.getTarget());
       }
     },
 
@@ -1493,7 +1619,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
         var id2title = {};
         var rxSpace = /[ \t\n\x0C\r]+/;
 
-        for (var rows = this._target.tBodies[0].rows, i = rows.length; i--;)
+        for (var rows = this.getTarget().tBodies[0].rows, i = rows.length; i--;)
         {
           var row = rows[i];
           for (var cells = row.cells, j = cells.length; j--;)
@@ -1568,7 +1694,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
 
         var expressions = [];
 
-        for (var rows = this._target.tBodies[0].rows, i = rows.length; i--;)
+        for (var rows = this.getTarget().tBodies[0].rows, i = rows.length; i--;)
         {
           var row = rows[i];
           row.style.display = "none";
@@ -1618,11 +1744,12 @@ jsx.dom.widgets = (/** @constructor */ function () {
   });
 
   /**
-   * A <code>Timer</code> widget uses several <code>NumberInput</code>
-   * widgets to implement a digital timer.
+   * @function
    */
   var _Timer=(
     /**
+     * A <code>Timer</code> widget uses several <code>NumberInput</code>
+     * widgets to implement a digital timer.
      * @constructor
      * @param {Element} oTarget
      *   Reference to the DOM object that represents the
@@ -1784,7 +1911,7 @@ function handleKeypress(e)
   console.log("e = ", e);
   if (e)
   {
-    var t = e._target || e.srcElement;
+    var t = e.getTarget() || e.srcElement;
     console.log("t = ", t);
     if (t && /^\s*\binput\b\s*$/i.test(t.tagName)
       && /^\s*\btext\b\s*$/i.test(t.type))
