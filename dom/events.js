@@ -6,7 +6,7 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2004-2012 Thomas Lahn <js@PointedEars.de>
+ *   (C) 2004-2014 Thomas Lahn <js@PointedEars.de>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -48,9 +48,7 @@ if (typeof jsx.dom == "undefined")
  * the event listener not referring to the event target then.
  *
  * @author
- *   (C) 2004-2010  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
- * @partof
- *   <a href="http://pointedears.de/scripts/dhtml.js">dhtml.js</a>
+ *   (C) 2004-2010, 2014  Thomas Lahn &lt;js@PointedEars.de&gt;
  * @param {Object} oNode
  *   Reference to the DOM object.
  * @param {string} sEvent
@@ -70,7 +68,7 @@ if (typeof jsx.dom == "undefined")
  * @see <a href="dom2-events#Events-EventTarget-addEventListener">W3C DOM Level 2 Events: EventTarget::addEventListener</a>
  * @see <a href="msdn#workshop/author/dhtml/reference/methods/attachevent.asp">MSDN Library: attachEvent()</a>
  */
-jsx.dom.addEventListener = function(oNode, sEvent, fListener) {
+jsx.dom.addEventListener = function (oNode, sEvent, fListener) {
   var
     jsx_object = jsx.object,
     result = null,
@@ -166,9 +164,7 @@ jsx.dom.addEventListener = function(oNode, sEvent, fListener) {
  * </ul>
  *
  * @author
- *   (C) 2007-2010 Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
- * @partof
- *   http://pointedears.de/scripts/dhtml.js
+ *   (C) 2007-2010, 2014 Thomas Lahn &lt;js@PointedEars.de&gt;
  * @param {Node} oNode
  *   Reference to the DOM object.
  * @param {string} sEvent
@@ -185,7 +181,7 @@ jsx.dom.addEventListener = function(oNode, sEvent, fListener) {
  *   <code>true</code> on success, <code>false</code> otherwise.
  * @see <a href="dom2-events#Events-EventTarget-addEventListener">W3C DOM Level 2 Events: EventTarget::addEventListener()</a>
  */
-jsx.dom.addEventListenerCapture = function(oNode, sEvent, fListener) {
+jsx.dom.addEventListenerCapture = function (oNode, sEvent, fListener) {
   if (oNode && sEvent && jsx.object.isMethod(fListener))
   {
     oNode.addEventListener(sEvent, fListener, true);
@@ -209,7 +205,7 @@ jsx.dom.addEventListenerCapture = function(oNode, sEvent, fListener) {
  * event listener for the respective event.
  *
  * @author
- *   (C) 2010, 2013  Thomas Lahn &lt;js@PointedEars.de&gt;
+ *   (C) 2010, 2013, 2014  Thomas Lahn &lt;js@PointedEars.de&gt;
  * @param {Node} oNode
  *   Reference to the DOM object.
  * @param {string} sEvent
@@ -236,7 +232,7 @@ jsx.dom.addEventListenerCapture = function(oNode, sEvent, fListener) {
  * @see <a href="dom2-events#Events-EventTarget-removeEventListener">W3C DOM Level 2 Events: EventTarget::removeEventListener()</a>
  * @see <a href="msdn#workshop/author/dhtml/reference/methods/detachevent.asp">MSDN Library: detachEvent()</a>
  */
-jsx.dom.removeEventListener = function(oNode, sEvent, fListener, bUseCapture) {
+jsx.dom.removeEventListener = function (oNode, sEvent, fListener, bUseCapture) {
   var
     result = false,
     jsx_object = jsx.object,
@@ -303,9 +299,7 @@ jsx.dom.removeEventListener = function(oNode, sEvent, fListener, bUseCapture) {
  * event listener for the respective event.
  *
  * @author
- *   (C) 2007-2010  Thomas Lahn &lt;dhtml.js@PointedEars.de&gt;
- * @partof
- *   http://pointedears.de/scripts/dhtml.js
+ *   (C) 2007-2014 Thomas Lahn &lt;js@PointedEars.de&gt;
  * @param {Node} oNode
  *   Reference to the DOM object.
  * @param {string} sEvent
@@ -332,7 +326,7 @@ jsx.dom.removeEventListener = function(oNode, sEvent, fListener, bUseCapture) {
  * @see <a href="dom2-events#Events-EventTarget-removeEventListener">W3C DOM Level 2 Events: EventTarget::removeEventListener()</a>
  * @see <a href="dom2-events#Events-EventTarget-addEventListener">W3C DOM Level 2 Events: EventTarget::addEventListener()</a>
  */
-jsx.dom.replaceEventListener = function(oNode, sEvent, fListener, bUseCapture) {
+jsx.dom.replaceEventListener = function (oNode, sEvent, fListener, bUseCapture) {
   var
     jsx_object = jsx.object,
     result = false,
@@ -365,7 +359,7 @@ jsx.dom.replaceEventListener = function(oNode, sEvent, fListener, bUseCapture) {
  * @return {Function}
  *   A reference to a <code>Function</code> that can be used as event listener.
  */
-jsx.dom.createEventListener = function(f) {
+jsx.dom.createEventListener = function (f) {
   var jsx_object = jsx.object;
 
   function listener(e)
@@ -465,7 +459,7 @@ jsx.dom.createEventListener = function(f) {
  *   <code>false</code> otherwise.  The return value of this
  *   method can be used to return a value to the event-handler.
  */
-jsx.dom.preventDefault = function(e) {
+jsx.dom.preventDefault = function (e) {
   if (!e)
   {
     return true;
