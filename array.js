@@ -28,6 +28,8 @@
  */
 jsx.array = (/** @constructor */ function () {
   /* Imports */
+  var _slice = [].slice;
+
   var _jsx = jsx;
   var _jsx_object = _jsx.object;
   var _defineProperty = _jsx_object.defineProperty;
@@ -170,12 +172,29 @@ jsx.array = (/** @constructor */ function () {
   {
     var index = +value;
 
-    if (!(isNaN(index) || index == 0 || Math.abs(index) == Number.POSITIVE_INFINITY))
+    if (!(isNaN(index) || index == 0 || Math.abs(index) == Infinity))
     {
       index = (index < 0 ? Math.ceil(index) : Math.floor(index));
     }
 
     return (!isNaN(index) && (String(index) == String(value)) ? index : Number.NaN);
+  }
+
+  function _toInteger (a)
+  {
+    var number = +a;
+
+    if (isNaN(number))
+    {
+      return 0;
+    }
+
+    if (number === 0 || number == Infinity || number == -Infinity)
+    {
+      return number;
+    }
+
+    return (number < 0 ? -1 : 1) * Math.floor(Math.abs(number));
   }
 
   /**
@@ -251,25 +270,24 @@ jsx.array = (/** @constructor */ function () {
     }
   });
 
-  var _BIGARRAY_MAX_LENGTH = Math.pow(2, 53);
+  var _BIGARRAY_MAX_LENGTH = Math.pow(2, 53) - 1;
 
   /**
-   * Array-like object which can hold up to 2<sup>53</sup> elements
+   * Array-like object which can hold up to 2<sup>53</sup>−1 elements.
    *
    * @function
-   * @type jsx.array.BigArray
-   * @extends Array
-   * @constructor
    */
   var _BigArray = jsx.object.extend(
     /**
+     * @constructor
+     * @extends Array
      * @type __jsx.array.BigArray
      * @param {Array|Object} src (optional)
      *   Array-like object to be converted
      * @return {jsx.arrayBigArray}
      */
     function jsx_array_BigArray (src) {
-      if (!(this instanceof jsx_array_BigArray))
+      if (!jsx_array_BigArray.isInstance(this))
       {
         return jsx_array_BigArray.construct(arguments);
       }
@@ -284,11 +302,22 @@ jsx.array = (/** @constructor */ function () {
        * Sets the real length of this array
        *
        * @param {int} value
+       * @throws jsx.InvalidArgumentsError
+       *   if the value is not a number
        * @throws jsx.array.RangeError
        *   if the value is less than <code>0</code> or
        *   greater than {@link BigArray.MAX_LENGTH}
        */
       this.setLength = function BigArray_setLength (value) {
+        if (isNaN(value))
+        {
+          return _jsx.throwThis(jsx.InvalidArgumentError,
+            ["Invalid length", value,
+             "0.." + _BIGARRAY_MAX_LENGTH
+             + " (2^" + Math.floor(Math.log(_BIGARRAY_MAX_LENGTH) / Math.log(2)) + ")"],
+            BigArray_setLength);
+        }
+
         if (value < 0 || value > _BIGARRAY_MAX_LENGTH)
         {
           return _jsx.throwThis(_RangeError,
@@ -383,8 +412,79 @@ jsx.array = (/** @constructor */ function () {
        * integer value that can be used as index.
        *
        * @memberOf jsx.array.BigArray
+       * @type Number
        */
       MAX_LENGTH: _BIGARRAY_MAX_LENGTH,
+
+      /**
+       * Returns a <code>BigArray</code> whose elements are
+       * delimited parts of a string.
+       *
+       * Works the same as {@link String.prototype.split}
+       * except that it returns a <code>BigArray</code>
+       * instead of an <code>Array</code>.
+       *
+       * @requires regexp.js
+       * @param {String} s
+       * @return jsx.array.BigArray
+       * @throws jsx.array.RangeError
+       *   if the string has more parts than
+       *   jsx.array.BigArray.MAX_LENGTH
+       */
+      fromString: function (s, rxDelim) {
+        /* globalize expression */
+        if (typeof rxDelim == "string")
+        {
+          rxDelim = jsx.regexp.escape(rxDelim);
+        }
+
+        rxDelim = new jsx.regexp.RegExp(rxDelim, "g");
+
+        var a = new this();
+        var start = 0;
+
+        var match;
+        while ((match = rxDelim.exec(s)))
+        {
+          a.push(s.substring(start, match.index));
+          start = match.index + 1;
+        }
+
+        a.push(s.substring(start));
+
+        return a;
+      },
+
+      /**
+       * Returns a <code>BigArray</code> whose elements are
+       * characters of a string.
+       *
+       * @requires regexp.js
+       * @param {String} s
+       * @param {RegExp} rxChars (option)
+       *   Regular expression to match characters.
+       *   The default is <code>/[\u0000-\uFFFF]/</code>.
+       * @return jsx.array.BigArray
+       * @throws jsx.array.RangeError
+       *   if the string has more characters than
+       *   jsx.array.BigArray.MAX_LENGTH
+       */
+      fromChars: function (s, rxChars) {
+        /* globalize expression */
+        rxChars = rxChars
+          ? new jsx.regexp.RegExp(rxChars, "g")
+          : /[\u0000-\uFFFF]/g;
+
+        var a = new this();
+
+        var match;
+        while ((match = rxChars.exec(s)))
+        {
+          a.push(match[0]);
+        }
+
+        return a;
+      },
 
       /**
        * Determines if a value can be used as internal
@@ -428,11 +528,30 @@ jsx.array = (/** @constructor */ function () {
       this.setLength(0);
     },
 
+    deleteElement: function (index) {
+      this.set(index, void 0);
+
+      var max_index = -1;
+
+      if (this.getLength() === index + 1)
+      {
+        for (var i in this)
+        {
+          if (_BigArray.isIndex(i) && i < index && i > max_index)
+          {
+            max_index = i;
+          }
+        }
+      }
+
+      this.setLength(max_index + 1);
+    },
+
     /**
      * @param {int} index
      * @return {any} the element of this array at <var>index</var>
      */
-    "get": function BigArray_get (index) {
+    get: function BigArray_get (index) {
       if (arguments.length < 1)
       {
         return jsx.throwThis(jsx.InvalidArgumentError,
@@ -440,14 +559,9 @@ jsx.array = (/** @constructor */ function () {
           BigArray_get);
       }
 
-      if (index < 0)
-      {
-        index = this.getLength() + Math.ceil(index);
-      }
-      else
-      {
-        index = Math.floor(index);
-      }
+      index = (index < 0
+        ? this.getLength() + Math.ceil(index)
+        : Math.floor(index));
 
       return this[index];
     },
@@ -458,7 +572,7 @@ jsx.array = (/** @constructor */ function () {
      * @param {int} index
      * @param {any} value
      */
-    "set": function (index, value) {
+    set: function (index, value) {
       var length = this.getLength();
 
       if (index < 0)
@@ -492,7 +606,7 @@ jsx.array = (/** @constructor */ function () {
      *   <code>length</code> property, to this array.
      */
     setAll: function (src) {
-      if (_isArray(src) || src instanceof _BigArray)
+      if (_isArray(src) || _BigArray.isInstance(src))
       {
         for (var i in src)
         {
@@ -558,6 +672,197 @@ jsx.array = (/** @constructor */ function () {
       }
 
       return _join.apply(chunks, arguments);
+    },
+
+    /**
+     * Adds elements at the end of this array.
+     *
+     * @params New elements
+     * @return {int} the new length
+     */
+    push: function () {
+      var len = this.getLength();
+
+      for (var i = 0, argc = arguments.length; i < argc; ++i)
+      {
+        var arg = arguments[i];
+        this.set(len++, arg);
+      }
+
+      return len;
+    },
+
+    /**
+     * Returns a part (slice) of this array.
+     *
+     * <em>WARNING: Because slices observe element order, returning
+     * big slices of BigArrays with lengths (maximum index + 1)
+     * greater than 2³²−1 can take a considerable amount of time.
+     * Avoid running such code in the main thread.  Where order
+     * does not matter, use {@link #unorderedSlice()} instead.</em>
+     *
+     * @param {int} start
+     *   Index of the first element to include in the slice.
+     *   If negative, the absolute value is counted from
+     *   the end of this array.
+     * @param {int} end (optional)
+     *   Index of the first element not to include in the slice.
+     *   If negative, the absolute value is counted from
+     *   the end of this array.  The default is the length
+     *   of this array, therefore omitting this argument
+     *   returns a slice of all elements from the one at index
+     *   <var>start</var>.
+     * @return jsx.array.BigArray
+     */
+    slice: function (start, end) {
+      var len = this.getLength();
+      if (len <= _MAX_ARRAY_LENGTH)
+      {
+        return new _BigArray(_slice.call(this, start, end));
+      }
+
+      var relativeStart = _toInteger(start);
+
+      var k = (relativeStart < 0
+        ? Math.max(len + relativeStart, 0)
+        : Math.min(relativeStart, len));
+
+      var relativeEnd = (typeof end == "undefined"
+        ? len
+        : _toInteger(end));
+
+      var _final = (relativeEnd < 0
+        ? Math.max(len + relativeEnd, 0)
+        : Math.min(relativeEnd, len));
+
+      var n = 0;
+      var part = new _BigArray();
+
+      while (k < _final)
+      {
+        if (k in this)
+        {
+          /* Using set() instead of push() avoids repeated getLength() */
+          part.set(n, this.get(k));
+        }
+
+        ++k;
+        ++n;
+      }
+
+      return part;
+    },
+
+    /**
+     * Modifies this array in place.
+     *
+     * @param {int} start
+     *   Index at where to start processing
+     * @param {int} deleteCount
+     *   Number of elements to delete
+     * @params {int} _
+     *   Elements to insert
+     * @return {int} Number of inserted elements
+     */
+    splice: function (start, deleteCount) {
+      var relativeStart = _toInteger(start);
+
+      var len = this.getLength();
+
+      var actualStart = (relativeStart < 0
+        ? Math.max(len + relativeStart, 0)
+        : min(relativeStart, len));
+
+      var actualDeleteCount = Math.min(
+        Math.max(_toInteger(deleteCount), 0),
+        len - actualStart);
+
+      for (var i = actualStart; i < actualStart + actualDeleteCount; ++i)
+      {
+        this.deleteElement(i);
+      }
+
+      var inserted = 0;
+
+      i = start;
+      for (var argi = 2, argc = arguments.length; argi < argc; ++argi)
+      {
+        this.set(i++, arguments[argi]);
+        ++inserted;
+      }
+
+      return inserted;
+    },
+
+    /**
+     * Returns a part (slice) of this array without observing
+     * index order.
+     *
+     * @param {int} start
+     *   Index of the first element to include in the slice.
+     *   If negative, the absolute value is counted from
+     *   the end of this array.
+     * @param {int} end (optional)
+     *   Index of the first element not to include in the slice.
+     *   If negative, the absolute value is counted from
+     *   the end of this array.  The default is the length
+     *   of this array, therefore omitting this argument
+     *   returns a slice of all elements from the one at index
+     *   <var>start</var>.
+     * @return jsx.array.BigArray
+     */
+    unorderedSlice: function (start, end) {
+      function _toInteger (a)
+      {
+        var number = +a;
+
+        if (isNaN(number))
+        {
+          return 0;
+        }
+
+        if (number === 0 || number === Infinity || number === -Infinity)
+        {
+          return number;
+        }
+
+        return (number < 0 ? -1 : 1) * Math.floor(Math.abs(number));
+      }
+
+      var len = this.getLength();
+      if (len <= _MAX_ARRAY_LENGTH)
+      {
+        return new _BigArray(_slice.call(this, start, end));
+      }
+
+      var part = new _BigArray();
+
+      var relativeStart = _toInteger(start);
+
+      var k = (relativeStart < 0
+        ? Math.max(len + relativeStart, 0)
+        : Math.min(relativeStart, len));
+
+      var relativeEnd = (typeof end == "undefined"
+        ? len
+        : _toInteger(end));
+
+      var _final = (relativeEnd < 0
+        ? Math.max(len + relativeEnd, 0)
+        : Math.min(relativeEnd, len));
+
+      var n = 0;
+
+      for (var p in this)
+      {
+        if (_BigArray.isIndex(p) && p >= k && p < _final)
+        {
+          /* Using set() instead of push() avoids repeated getLength() */
+          part.set(n++, this.get(p));
+        }
+      }
+
+      return part;
     },
 
     /**
