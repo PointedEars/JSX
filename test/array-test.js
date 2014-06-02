@@ -56,26 +56,47 @@ function runTests()
       },
 
       {
-        feature: 'BigArray.prototype.toArray()',
-        description: 'Return the correct value',
-        code: function () {
-          assertArrayEquals([], new BigArray().toArray());
-          assertArrayEquals([""], new BigArray("").toArray());
-          assertArrayEquals(["x"], new BigArray("x").toArray());
-          assertArrayEquals([23, 42], new BigArray(23, 42).toArray());
-        }
-      },
-      {
-        feature: 'BigArray.length',
+        feature: 'bigArray.length',
         description: 'Getter works',
         code: function () {
-          var i = Math.pow(2, 53);
+          var i = Math.pow(2, 53) - 1;
           assert(new BigArray(i).length == i);
         }
       },
-
       {
-        feature: 'BigArray.getLength()',
+        feature: 'bigArray.setLength()',
+        description: 'Throw <code>jsx.InvalidArgumentError</code>',
+        code: function () {
+          var a = new BigArray();
+          var failure = jsx.tryThis(
+            function () {
+              a.setLength();
+            },
+            function (e) {
+              return (e instanceof jsx.InvalidArgumentError);
+            }
+          );
+          assert(failure);
+        }
+      },
+      {
+        feature: 'bigArray.setLength()',
+        description: 'Throw <code>jsx.array.RangeError</code>',
+        code: function () {
+          var a = new BigArray();
+          var failure = jsx.tryThis(
+            function () {
+              a.setLength(Math.pow(2, 53));
+            },
+            function (e) {
+              return (e instanceof jsx.array.RangeError);
+            }
+          );
+          assert(failure);
+        }
+      },
+      {
+        feature: 'bigArray.getLength()',
         description: 'Return the correct value',
         code: function () {
           assert(new BigArray().getLength() === 0);
@@ -113,9 +134,45 @@ function runTests()
           assert(typeof new BigArray("x", "y").get(-4) == "undefined");
         }
       },
+      {
+        feature: 'BigArray.prototype.set(Math.pow(2, 53) - 1, 23)',
+        description: 'Throw <code>jsx.array.RangeError</code> (index too large)',
+        code: function () {
+          var a = new BigArray();
+          var failure = jsx.tryThis(
+            function () {
+              a.set(Math.pow(2, 53) - 1, 23);
+              return false;
+            },
+            function (e) {
+              return (e instanceof jsx.array.RangeError);
+            });
+          assert(failure);
+        }
+      },
+      {
+        feature: 'BigArray.prototype.set(Math.pow(2, 53) - 2, 42)',
+        description: 'Set element at maximum index',
+        code: function () {
+          var a = new BigArray();
+          var i = Math.pow(2, 53) - 2;
+          a.set(i, 42);
+          assert(a.get(i) === 42);
+        }
+      },
 
       /* TODO: Override and test Array methods that are not MAX_LENGTH-safe */
 
+      {
+        feature: 'BigArray.prototype.toArray()',
+        description: 'Return the correct value',
+        code: function () {
+          assertArrayEquals([], new BigArray().toArray());
+          assertArrayEquals([""], new BigArray("").toArray());
+          assertArrayEquals(["x"], new BigArray("x").toArray());
+          assertArrayEquals([23, 42], new BigArray(23, 42).toArray());
+        }
+      },
       {
         feature: 'BigArray.prototype.toString(…)',
         description: 'Return the correct value',
