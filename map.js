@@ -306,9 +306,14 @@ jsx.map = {
       /**
        * @param {jsx.map.Map} map
        *   The map whose mappings are to be placed in this map
+       * @param {Boolean} strictKeys (optional)
+       *   If <code>true</code>, keys are stored as they are.
+       *   Otherwise only object keys are stored as they are,
+       *   and other keys are converted to string.  The default
+       *   is <code>false</code>.
        * @constructor
        */
-      function _Map (map)
+      function _Map (map, strictKeys)
       {
 //      var Map = arguments.callee;
 
@@ -323,10 +328,12 @@ jsx.map = {
 
         /**
          * Gets the maximum alias property name length
-         * for further storage and retrieval operations.  The default is 255.
+         * for further storage and retrieval operations.
+         * The default is 255.
          *
          * @return {boolean}
-         *   <code>true</code> if successful, <code>false</code> otherwise.
+         *   <code>true</code> if successful,
+         *   <code>false</code> otherwise.
          * @public
          */
         this.getMaxAliasLength = function () {
@@ -338,10 +345,11 @@ jsx.map = {
          * for further storage and retrieval operations.
          *
          * @param {number} len
-         *   Integer greater than 0 to define the maximum alias property name
-         *   length.  The default maximum is 255.
+         *   Integer greater than 0 to define the maximum
+         *   alias property name length.  The default maximum is 255.
          * @return {boolean}
-         *   <code>true</code> if successful, <code>false</code> otherwise.
+         *   <code>true</code> if successful,
+         *   <code>false</code> otherwise.
          * @throws jsx.map#InvalidLengthError
          * @public
          */
@@ -447,7 +455,7 @@ jsx.map = {
           var v;
           var prevValue = _items[k];
 
-          if (_isObjectRef(key))
+          if (_isObjectRef(key) || (typeof key != "string" && this.strictKeys))
           {
             var bucket = prevValue;
             if (_Bucket.isInstance(bucket))
@@ -640,7 +648,7 @@ jsx.map = {
               var bucketMappings = o.mappings();
               for (var i = 0, len = bucketMappings.length; i < len; ++i)
               {
-                a.push(a, bucketMappings[i]);
+                a.push(bucketMappings[i]);
               }
             }
           }
@@ -657,7 +665,9 @@ jsx.map = {
           _items = null;
         };
 
-        if (arguments.length > 0)
+        this.strictKeys = !!strictKeys;
+
+        if (arguments.length > 0 && map != null)
         {
           this.putAll(map);
         }
