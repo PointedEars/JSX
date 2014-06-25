@@ -413,6 +413,16 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
         }
       }),
 
+      FullscreenButton: (function lcars_FullscreenButton () {
+        lcars_FullscreenButton._super.apply(this, arguments);
+      }).extend(jsx.dom.widgets.Button, {
+        elementType: "div",
+
+        writeHTML: function () {
+          document.write(this.text);
+        }
+      }),
+
       /**
        * @type MultiDisplay
        * @extends jsx.dom.widgets.Container
@@ -645,4 +655,18 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
       }
     };
   }());
+}
+
+function toggleFullscreen (button)
+{
+  var nowIsFullscreen = fullscreen.isFullscreen();
+
+  if (nowIsFullscreen)
+  {
+    fullscreen.cancel();
+  }
+  else
+  {
+    fullscreen.requestOn(document.documentElement, button);
+  }
 }
