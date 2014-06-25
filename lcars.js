@@ -240,7 +240,39 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
   var lcars = (/** @constructor */ function () {
     "use strict";
 
+    function _setTexts (texts)
+    {
+      var keys = jsx.object.getKeys(texts);
+      for (var i = 0, len = keys.length; i < len; ++i)
+      {
+        var key = keys[i];
+        if (typeof this[key] == "string")
+        {
+          this[key] = texts[key];
+        }
+      }
+    }
+
     return {
+      /**
+       * @protected
+       */
+      _position: null,
+
+     /**
+       * @return {Position}
+       */
+      getPosition: function () {
+        return this._position;
+      },
+
+      /**
+       * @param {Position} position
+       */
+      setPosition: function (position) {
+        this._position = position;
+      },
+
       /**
        * @type Content
        * @memberOf lcars
@@ -249,48 +281,145 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
       Content: (function lcars_Content () {
         lcars_Content._super.apply(this, arguments);
       }).extend(jsx.dom.widgets.Container, {
+        TEXT_CURRENT_COORDS: "Your current coordinates on Terra",
+
         init: function () {
           this._target = document.getElementById("content");
         },
+
+        setTexts: _setTexts,
 
         /**
          * @param {String} title
          * @param {String} language
          */
         showMap: function (language) {
-          var content = document.getElementById("content");
-
-          var map = lcars._gmaps_map;
+          var map = this._gmaps_map;
           if (!map)
           {
-            /* Disable transition while map is loading */
-            content.style.transition = "none";
-            content.className = "fixed";
+            /* Disable transition when switching to "fixed" */
+            this.setStyleProperty("transition", "none");
+            this.setTargetProperty("className", "fixed");
             this.setInnerHTML(
               // '<select><option>Google Maps</option><option>OpenStreetMap</option></select>'
               '<div id="map-canvas" style="position: absolute; width: 100%; height: 100%"></div>');
             this.update();
           }
 
-          var script = this._gmaps_script;
-          if (!script)
+          if (!this._gmaps_script_loaded)
           {
-            script = document.createElement("script");
-            script.type = "text/javascript";
-            script.src = "http://maps.googleapis.com/maps/api/js"
-              + "?key=AIzaSyCpW3bu57j4V7_vcK_cVpvFkXMmKkKgADI"
-              + "&sensor=true&callback=lcars.multiDisplay.initGMap"
-              + "&language=" + language;
-            document.body.appendChild(script);
-            if (script.parentNode == document.body)
-            {
-              this._gmaps_script = script;
-            }
+            this._gmaps_script_loaded = jsx.dom.loadScript(
+              "http://maps.googleapis.com/maps/api/js"
+                + "?key=AIzaSyCpW3bu57j4V7_vcK_cVpvFkXMmKkKgADI"
+                + "&sensor=true&callback=lcars.content.initGMap"
+                + "&language=" + language);
           }
           else
           {
             lcars.multiDisplay.initGMap();
           }
+        },
+
+        initGMap: function () {
+          var coords = lcars.getPosition().coords;
+          var center = new google.maps.LatLng(coords.latitude, coords.longitude);
+
+          var zoom = 9;
+          var zoomAccuracy = [
+            1e7, 5e6, 2e6, 2e6, 1e6, 5e5, 2e5, 1e5, 5e4,
+            2e4, 1e4, 5e3, 2000, 2000, 1000, 500, 200,
+            100, 50, 20
+          ];
+
+          var accuracy = coords.accuracy;
+          if (!isNaN(accuracy))
+          {
+            for (var i = 0, len = zoomAccuracy.length; i < len; ++i)
+            {
+              if (accuracy > zoomAccuracy[i])
+              {
+                zoom = i;
+                break;
+              }
+            }
+          }
+
+          var map = this._gmaps_map;
+          if (!map)
+          {
+            var mapOptions = {
+              center: center,
+              zoom: zoom,
+              mapTypeId: google.maps.MapTypeId.HYBRID,
+              backgroundColor: "#000",
+              noClear: true,
+              scaleControl: true
+            };
+
+            map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+            jsx.dom.addEventListener(window, "resize", function () {
+              jsx.dom.timeout.runAsync(function () {
+                map.setCenter(center);
+              }, 2000);
+            });
+
+            this._gmaps_map = map;
+          }
+          else
+          {
+            map.setCenter(center);
+            map.setZoom(zoom);
+          }
+
+          var circle = this._gmaps_circle;
+          if (!circle)
+          {
+            if (!isNaN(coords.accuracy))
+            {
+              circle = new google.maps.Circle({
+                map: map,
+                center: center,
+                radius: coords.accuracy,
+                fillColor: "white",
+                fillOpacity: 0.125,
+                strokeColor: "white",
+                strokeOpacity: 0.5
+              });
+
+              var me = this;
+              circle.addListener("click", function () {
+                window.alert(me.TEXT_CURRENT_COORDS + "\n\n"
+                  + jsx.dom.geolocation.getText());
+              });
+
+              this._gmaps_circle = circle;
+            }
+          }
+          else
+          {
+            if (!isNaN(coords.accuracy))
+            {
+              circle.setCenter(center);
+              circle.setRadius(coords.accuracy);
+            }
+            else
+            {
+              circle.setMap(null);
+            }
+          }
+
+          /* Restore transition */
+          this.resetStyleProperty("transition");
+        }
+      }),
+
+      FullscreenButton: (function lcars_FullscreenButton () {
+        lcars_FullscreenButton._super.apply(this, arguments);
+      }).extend(jsx.dom.widgets.Button, {
+        elementType: "div",
+
+        writeHTML: function () {
+          document.write(this.text);
         }
       }),
 
@@ -302,7 +431,6 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
         lcars_MultiDisplay._super.apply(this, arguments);
       }).extend(jsx.dom.widgets.Container, {
         TEXT_ACCURACY: "accuracy",
-        TEXT_CURRENT_COORDS: "Your current coordinates on Terra",
         TEXT_NOT_AVAILABLE: "N/A",
 
         /**
@@ -313,7 +441,7 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
         _title: null,
 
         /**
-         * @type jsx.dom.widgets.Container
+         * @type lcars.Content
          * @protected
          */
         _content: null,
@@ -321,19 +449,20 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
         init: function () {
           this._title = new jsx.dom.widgets.Container(document.getElementById("title"));
           this._analysis = new jsx.dom.widgets.Container(document.getElementById("analysis"));
-          this._content = new lcars.Content();
         },
 
-        setTexts: function (texts) {
-          var keys = jsx.object.getKeys(texts);
-          for (var i = 0, len = keys.length; i < len; ++i)
-          {
-            var key = keys[i];
-            if (typeof this[key] == "string")
-            {
-              this[key] = texts[key];
-            }
-          }
+        setTexts: _setTexts,
+
+        setContent: function (value) {
+          this._content = value;
+        },
+
+        getContent: function () {
+          return this._content;
+        },
+
+        getTitle: function () {
+          return this._title.getText();
         },
 
         /**
@@ -392,15 +521,33 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
         },
 
         geolocate: function (title, language) {
+          var me = this;
+          var jsx_dom = jsx.dom;
+
+          if (jsx.object.areHostMethods(window, "history", "pushState"))
+          {
+            var value = true;
+            var stateTitle = document.title + ": Geolocation";
+            var url = "#geolocation";
+            window.history.pushState(value, stateTitle, url);
+
+            var currentTitle = this.getTitle();
+            var f = function f2 () {
+              me.setTitle(currentTitle);
+              me = null;
+              jsx_dom.removeEventListener(window, "popstate", f2, false);
+              jsx_dom = null;
+            };
+            jsx_dom.addEventListener(window, "popstate", f, false);
+          }
+
           this.setTitle(title);
 
-          var me = this;
-          navigator.geolocation.getCurrentPosition(function (position) {
+          var _geolocation = jsx_dom.geolocation;
+          _geolocation.runAsync(function (position) {
             lcars.setPosition(position);
             var coords = position.coords;
             var altitudeAccuracy = coords.altitudeAccuracy;
-            var _geolocation = jsx.dom.geolocation;
-            _geolocation.setPosition(position);
             me.setAnalysis([
               {
                 title: _geolocation.TEXT_LATITUDE,
@@ -433,118 +580,93 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
             ]);
 
             me._content.showMap(language);
-            me = null;
           });
 
           return false;
-        },
-
-        initGMap: function () {
-          var coords = lcars.getPosition().coords;
-          var center = new google.maps.LatLng(coords.latitude, coords.longitude);
-
-          var zoom = 9;
-          var zoomAccuracy = [
-            1e7, 5e6, 2e6, 2e6, 1e6, 5e5, 2e5, 1e5, 5e4,
-            2e4, 1e4, 5e3, 2000, 2000, 1000, 500, 200,
-            100, 50, 20
-          ];
-
-          var accuracy = coords.accuracy;
-          if (!isNaN(accuracy))
-          {
-            for (var i = 0, len = zoomAccuracy.length; i < len; ++i)
-            {
-              if (accuracy > zoomAccuracy[i])
-              {
-                zoom = i;
-                break;
-              }
-            }
-          }
-
-          var map = lcars._gmaps_map;
-          if (!map)
-          {
-            var mapOptions = {
-              center: center,
-              zoom: zoom,
-              mapTypeId: google.maps.MapTypeId.HYBRID,
-              backgroundColor: "#000",
-              noClear: true,
-              scaleControl: true
-            };
-
-            map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
-            lcars._gmaps_map = map;
-          }
-          else
-          {
-            map.setCenter(center);
-            map.setZoom(zoom);
-          }
-
-          var circle = this._gmaps_circle;
-          if (!circle)
-          {
-            if (!isNaN(coords.accuracy))
-            {
-              circle = new google.maps.Circle({
-                map: map,
-                center: center,
-                radius: coords.accuracy,
-                fillColor: "white",
-                fillOpacity: 0.125,
-                strokeColor: "white",
-                strokeOpacity: 0.5
-              });
-
-              var me = this;
-              circle.addListener("click", function () {
-                // TODO
-                window.alert(me.TEXT_CURRENT_COORDS + "\n\n"
-                  + jsx.dom.geolocation.getText(lcars.getPosition()));
-              });
-
-              this._gmaps_circle = circle;
-            }
-          }
-          else
-          {
-            if (!isNaN(coords.accuracy))
-            {
-              circle.setCenter(center);
-              circle.setRadius(coords.accuracy);
-            }
-            else
-            {
-              circle.setMap(null);
-            }
-          }
-
-          /* Restore transition */
-          this._content.resetStyleProperty("transition");
         }
       }),
 
-      /**
-       * @protected
-       */
-      _position: null,
+      insertSound: function () {
+        var beep = document.createElement("audio");
+        if (beep)
+        {
+          beep.src = "/media/audio/sound/beep1med.wav";
+          beep.preload = "auto";
+          document.body.appendChild(beep);
+        }
 
-     /**
-       * @return {Position}
-       */
-      getPosition: function () {
-        return this._position;
-      },
+        var widgets = jsx.dom.xpath.evaluate(
+          './/a[@href] | .//div[@onclick]',
+          document.body);
 
-      /**
-       * @param {Position} position
-       */
-      setPosition: function (position) {
-        this._position = position;
+        if (widgets)
+        {
+          var fMouseDown = function () {
+            jsx.object.callIfMethod([beep, "play"]);
+          };
+
+          var fKeyDown = jsx.dom.createEventListener(function (e) {
+            if (e.keyCode == 13)
+            {
+              fMouseDown(e);
+            }
+          });
+
+          for (var i = widgets.length; i--;)
+          {
+            var widget = widgets[i];
+
+            jsx.dom.addEventListener(widget, "mousedown", fMouseDown);
+            jsx.dom.addEventListener(widget, "keydown", fKeyDown);
+            jsx.dom.addEventListener(widget, "touch", fMouseDown);
+
+            jsx.dom.replaceEventListener(widget, "click",
+              jsx.dom.createEventListener((function (oldClickListener) {
+                return function (e) {
+                  function clickAction ()
+                  {
+                    var returnValue = true;
+
+                    if (jsx.object.isMethod(oldClickListener))
+                    {
+                      returnValue = oldClickListener.call(e.currentTarget, e);
+                    }
+
+                    if (returnValue && e.currentTarget.href)
+                    {
+                      window.location = e.currentTarget.href;
+                    }
+                  }
+
+                  if (beep.ended)
+                  {
+                    clickAction();
+                  }
+                  else
+                  {
+                    jsx.dom.timeout.runAsync(clickAction,
+                      (beep.duration - beep.currentTime + 0.250) * 1000);
+                    e.preventDefault();
+                  }
+                };
+              }(widget.onclick))));
+          }
+        }
       }
     };
   }());
+}
+
+function toggleFullscreen (button)
+{
+  var nowIsFullscreen = fullscreen.isFullscreen();
+
+  if (nowIsFullscreen)
+  {
+    fullscreen.cancel();
+  }
+  else
+  {
+    fullscreen.requestOn(document.documentElement, button);
+  }
 }
