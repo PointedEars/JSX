@@ -2,7 +2,7 @@
  * @fileOverview <title>Basic Object Library</title>
  * @file $Id$
  *
- * @author (C) 2004-2013 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
+ * @author (C) 2004-2014 Thomas Lahn <js@PointedEars.de>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -53,7 +53,6 @@ de.pointedears.jsx = jsx;
 /**
  * Reference to the ECMAScript Global Object
  * @type Global
- * @field
  */
 jsx.global = this;
 
@@ -101,7 +100,7 @@ jsx.object = new Object();
  * @version
  */
 jsx.object.version = "$Revision$ ($Date$)";
-jsx.object.copyright = "Copyright \xA9 2004-2013";
+jsx.object.copyright = "Copyright \xA9 2004-2014";
 jsx.object.author = "Thomas Lahn";
 jsx.object.email = "js@PointedEars.de";
 jsx.object.path = "http://PointedEars.de/scripts/";
@@ -197,7 +196,7 @@ function jsx_object_isMethod (obj, prop)
   {
     if (checkNative)
     {
-      return rxNativeMethod.test(t) && obj && true || false;
+      return t == "function" && obj && true || false;
     }
 
     return rxUnknown.test(t) || rxMethod.test(t) && obj && true || false;
@@ -311,7 +310,6 @@ jsx.object.isMethodType = function (s) {
  * likely to be a native method.
  *
  * @author (C) 2011  <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
- * @function
  * @param {Object} obj
  *   Object which should be tested for a method, or checked
  *   for being a method if no further arguments are provided.
@@ -880,21 +878,24 @@ jsx.object.findNewProperty = jsx_object_findNewProperty;
  *     <thead>
  *       <tr>
  *         <th>Property</th>
+ *         <th>Type</th>
  *         <th>Meaning</th>
  *       </tr>
  *     </thead>
  *     <tbody>
  *       <tr>
- *         <th><code><var>exclude</var> :&nbsp;Array</code></th>
- *         <td><code>Array</code> containing the names of the
- *             properties that should not be searched</td>
+ *         <th><code><var>exclude</var></code></th>
+ *         <td><code>Array</code></td>
+ *         <td>Names of the properties that should not be searched</td>
  *       </tr>
  *       <tr>
- *         <th><code><var>recursive</var> :&nbsp;boolean</code></th>
+ *         <th><code><var>recursive</var></code></th>
+ *         <td><code>boolean</code></td>
  *         <td>If a true-value, search recursively.</td>
  *       </tr>
  *       <tr>
- *         <th><code><var>strict</var> :&nbsp;boolean</code></th>
+ *         <th><code><var>strict</var></code></th>
+ *         <td><code>boolean</code></td>
  *         <td>If a true-value, perform a strict comparison
  *             without type conversion.</td>
  *       </tr>
@@ -2101,7 +2102,7 @@ jsx.importOnce = (function () {
      */
     function scriptIncluded (uri)
     {
-      var scripts = document.getElementByTagName("script");
+      var scripts = document.getElementsByTagName("script");
       if (scripts)
       {
         var uriAbsPath = _absPath(uri);
@@ -2912,10 +2913,10 @@ jsx.Error = function jsx_Error (sMsg) {
 };
 
 jsx.Error.extend(
-  typeof Error != "undefined" ? Error : function () {},
+  (typeof Error != "undefined" ? Error : function () {}),
   {
     /**
-     * @memberOf jsx.Error#prototype
+     * @memberOf jsx.Error.prototype
      */
     name: "jsx.Error",
     getMessage: function () { return this.message; },
@@ -2925,6 +2926,27 @@ jsx.Error.extend(
       jsx.dmsg(s) || window.alert(s);
   }
 });
+
+/**
+ * Formats a value for debug output
+ *
+ * @param value
+ * @returns {string}
+ */
+jsx.debugValue = function jsx_debugValue (value) {
+  var type = typeof value;
+  var _class = jsx.object.getClass(value);
+
+  return (
+    (_class == "Array"
+      ? "[" + value.map(jsx_debugValue).join(", ") + "]"
+      : (jsx.object.isInstanceOf(value, String)
+          ? '"' + value.replace(/["\\]/g, "\\$&") + '"'
+          : value))
+    + " : "
+    + (type == "object" || type == "function" ? _class : type)
+  );
+};
 
 /**
  * Invalid argument
@@ -2937,15 +2959,17 @@ jsx.Error.extend(
  */
 jsx.InvalidArgumentError =
   function jsx_InvalidArgumentError (sReason, sGot, sExpected) {
+    var argc = arguments.length;
+
     jsx_InvalidArgumentError._super.call(this,
-    (sReason || "Invalid argument(s)")
-        + (sGot && sGot.length > 0 ? ": " + sGot : "")
-      + (sExpected ? "; expected " + sExpected : ""));
+      (sReason || "Invalid argument(s)")
+        + (argc > 1 ? ": " + jsx.debugValue(sGot) : "")
+        + (argc > 2 ? "; expected " + sExpected : ""));
 };
 
 jsx.InvalidArgumentError.extend(jsx.Error, {
   /**
-   * @memberOf jsx.InvalidArgumentError#prototype
+   * @memberOf jsx.InvalidArgumentError.prototype
    */
   name: "jsx.InvalidArgumentError"
 });
@@ -2963,7 +2987,7 @@ jsx.object.ObjectError = function jsx_object_ObjectError (sMsg) {
 
 jsx.object.ObjectError.extend(jsx.Error, {
   /**
-   * @memberOf jsx.object.ObjectError#prototype
+   * @memberOf jsx.object.ObjectError.prototype
    */
   name: "jsx.object.ObjectError"
 });
@@ -2973,7 +2997,7 @@ jsx.object.ObjectError.extend(jsx.Error, {
  *
  * @constructor
  * @param {string} sMsg
- * @extends jsx.object#ObjectError
+ * @extends #ObjectError
  */
 jsx.object.PropertyError = function jsx_object_PropertyError (sMsg) {
   jsx_object_PropertyError._super.call(
@@ -2982,7 +3006,7 @@ jsx.object.PropertyError = function jsx_object_PropertyError (sMsg) {
 
 jsx.object.PropertyError.extend(jsx.object.ObjectError, {
   /**
-   * @memberOf jsx.object.PropertyError#prototype
+   * @memberOf jsx.object.PropertyError.prototype
    */
   name: "jsx.object.PropertyError"
 });
