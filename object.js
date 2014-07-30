@@ -1,3 +1,4 @@
+"use strict";
 /**
  * @fileOverview <title>Basic Object Library</title>
  * @file $Id$
@@ -177,6 +178,8 @@ jsx.tryThis =
  * @namespace
  */
 jsx.object = (/** @constructor */ function () {
+  var _MAX_ARRAY_LENGTH = Math.pow(2, 32) - 1;
+
   var
     rxUnknown = /^unknown$/,
     rxMethod = /^(function|object)$/;
@@ -574,14 +577,21 @@ jsx.object = (/** @constructor */ function () {
    */
   var _COPY_INHERIT = 4;
 
-  function _createTypedObject (oOriginal)
+  function _getProto (o)
   {
-    if (oOriginal.constructor)
+    if (typeof Object.getPrototypeOf == "function"
+        && !Object.getPrototypeOf._emulated)
     {
-      return _inheritFrom(oOriginal.constructor.prototype);
+      return Object.getPrototypeOf(o);
     }
 
-    return new Object();
+    return o.__proto__ || (o.constructor && o.constructor.prototype);
+  }
+
+  function _createTypedObject (oOriginal)
+  {
+    var prototype = _getProto(oOriginal);
+    return (prototype ? _inheritFrom(prototype) : _inheritFrom());
   }
 
   /**
@@ -634,7 +644,7 @@ jsx.object = (/** @constructor */ function () {
 
     for (var p in oSource)
     {
-      if (_hasOwnProperty(oSource, i))
+      if (_hasOwnProperty(oSource, p))
       {
         if (iLevel && _isObject(oSource[p]))
         {
@@ -1127,6 +1137,118 @@ jsx.object = (/** @constructor */ function () {
     clone: _clone,
 
     /**
+     * Exchanges an objects keys and their values and returns
+     * the new object.
+     *
+     * @param {Object} obj
+     *   The object to be flipped.
+     * @param {boolean} bAccumulate (optional)
+     *   If <code>true</code> and different keys have the same
+     *   value, the key-values are accumulated in an {@link Array}
+     *   (a {@link jsx.array.BigArray} if possible) in the resulting
+     *   object.  Otherwise key-values will be overwritten, so that
+     *   the value-key has the last matching key as its value.
+     * @param {Function} flipper (optional)
+     *   Function that should be called to determine whether
+     *   the property should be flipped.  Is passed the key as
+     *   argument and the object as <code>this</code> value.
+     *   The property is flipped only if <var>flipper</var>
+     *   returns a true-value.
+     * @return {Object}
+     *   A new object (a {@link jsx.map.Map} if possible) with
+     *   the original object's keys and values exchanged.
+     */
+    flip: function (obj, bAccumulate, flipper) {
+      if (flipper && typeof flipper != "function")
+      {
+        return jsx.throwThis(jsx.InvalidArgumentError,
+          ["", typeof flipper, "Function"]);
+      }
+
+      var _Map = _getFeature(jsx, "map", "Map");
+      var flipped = _Map ? new _Map() : _createTypedObject(obj);
+      var keys = _getKeys(obj);
+      var _BigArray = _getFeature(jsx, "array", "BigArray");
+      var _Array = _BigArray || Array;
+
+      for (var i = 0, len = keys.length; i < len; ++i)
+      {
+        var key = keys[i];
+
+        if (flipper && !flipper.call(obj, key))
+        {
+          continue;
+        }
+
+        var value = obj[key];
+
+        var value_is_object = _isObject(value);
+        if (value_is_object && !_Map)
+        {
+          jsx.warn("Information loss because value is an object."
+            + " Load jsx.map.Map to avoid.");
+        }
+
+        var has_value_key = _Map
+          ? flipped.hasKey(value)
+          : _hasOwnProperty(flipped, value);
+
+        var key_value = _Map
+          ? flipped.get(value)
+          : flipped[value];
+
+        if (has_value_key && bAccumulate)
+        {
+          if (!_isArray(key_value))
+          {
+            var a = new _Array();
+            a.push(key_value);
+
+            if (_Map)
+            {
+              flipped.put(value, a);
+            }
+            else
+            {
+              flipped[value] = a;
+            }
+          }
+
+          if (flipped.length == _MAX_ARRAY_LENGTH && !_BigArray)
+          {
+            jsx.warn("Possible information loss due to Array limits."
+              + " Provide jsx.array.BigArray to avoid.");
+          }
+
+          key_value = _Map
+            ? flipped.get(value)
+            : flipped[value];
+
+          key_value.push(key);
+        }
+        else
+        {
+          if (has_value_key)
+          {
+            jsx.warn("Information loss due to same value."
+              + " Pass bAccumulate === true to avoid.");
+          }
+
+          if (_Map)
+          {
+            flipped.put(value, key);
+          }
+          else
+          {
+            flipped[value] = key;
+          }
+        }
+      }
+
+      return flipped;
+    },
+
+    /**
      * @deprecated in favor of {@link #extend}
      */
     setProperties: _extend,
@@ -1347,7 +1469,7 @@ jsx.object = (/** @constructor */ function () {
      *
      * Returns a reference to a new object that, if supported,
      * does not inherit or have any properties other than those
-     * provided by the keys of <var>source</var>.  This is
+     * provided by the keys of <var>oSource</var>.  This is
      * accomplished by either cutting off its existing prototype
      * chain or not creating one for it in the first place.
      *
@@ -1355,13 +1477,14 @@ jsx.object = (/** @constructor */ function () {
      * <var>oSource</var> are created with the attributes
      * <code>[[Writable]]</code>, <code>[[Enumerable]]</code>
      * and <code>[[Configurable]]</code>.  Attributes of the
-     * properties of <var>oSource</var> are _not_ copied.
+     * properties of <var>oSource</var> are <em>not</em> copied.
      * Property values of the resulting object are a shallow copy
      * of the property values of <var>oSource</var> unless
      * specified otherwise with <var>iFlags</var>.
      *
      * @param {Object} oSource (optional)
      * @param {Number} iFlags (optional)
+     *   See {@link #clone()}.
      * @return {Object}
      * @see Object.create()
      * @see jsx.object.clone()
@@ -1374,8 +1497,13 @@ jsx.object = (/** @constructor */ function () {
         for (var i = 0, keys = _getKeys(oSource), len = keys.length;
              i < len; ++i)
         {
-          var property_name = oSource[keys[i]];
-          obj[property_name] = _clone(oSource[property_name], iFlags);
+          var name = keys[i];
+          var value = oSource[name];
+
+          /* NOTE: formerly, numeric flags was first argument of _clone() */
+          obj[name] = (typeof value != "number"
+            ? _clone(value, iFlags)
+            : value);
         }
       }
 
@@ -1424,20 +1552,6 @@ jsx.object = (/** @constructor */ function () {
      *   with <var>Constructor</var>, <code>false</code> otherwise.
      */
     isInstanceOf: function jsx_object_isInstanceOf (obj, Constructor) {
-      var _hasGetPrototypeOf;
-
-      function _getProto (o)
-      {
-        if (typeof _hasGetPrototypeOf == "undefined")
-        {
-          _hasGetPrototypeOf = (typeof Object.getPrototypeOf == "function");
-        }
-
-        return (_hasGetPrototypeOf
-          ? Object.getPrototypeOf(o)
-          : o.__proto__);
-      }
-
       if (!_isObject(obj))
       {
         return false;
@@ -2121,7 +2235,7 @@ jsx.getStackTrace = function () {
 
   var result = '';
 
-  if (typeof arguments.caller != 'undefined')
+  if (jsx.object.hasOwnProperty(arguments, "caller") && arguments.caller)
   {
     /* JScript and older JavaScript */
     for (var a = arguments.caller; a != null; a = a.caller)
@@ -2474,7 +2588,7 @@ jsx.require = (function () {
    * @param {string|Array} dependencies
    *   URI-reference or <code>Array</code> of URI-references
    *   specifying the dependency/dependencies
-   * @param {Function} callback
+   * @param {Function} callback (optional)
    *   Function to be executed
    * @return {any}
    *   The return value of <var>callback</var>,
@@ -2496,6 +2610,18 @@ jsx.require = (function () {
     if (typeof _addEventListener == "undefined")
     {
       _addEventListener = _getFeature(jsx, ["dom", "addEventListener"]);
+
+      if (!_addEventListener)
+      {
+        /* no wrapper, try W3C DOM directly */
+        _addEventListener = function (target, eventType, listener) {
+          return jsx.tryThis(
+            function () {
+              target.addEventListener(eventType, listener, false);
+              return listener;
+            });
+        };
+      }
     }
 
     if (_addEventListener)
@@ -2507,7 +2633,12 @@ jsx.require = (function () {
           if (dependencies.length == 0)
           {
             /* All dependencies loaded successfully */
-            return callback();
+            if (typeof callback == "function")
+            {
+              return callback();
+            }
+
+            return true;
           }
 
           jsx_require(dependencies, callback);
@@ -3437,7 +3568,7 @@ jsx.debugValue = function jsx_debugValue (value) {
   return (
     (_class == "Array"
       ? "[" + value.map(jsx_debugValue).join(", ") + "]"
-      : (jsx.object.isInstanceOf(value, String)
+      : (jsx.object.isString(value)
           ? '"' + value.replace(/["\\]/g, "\\$&") + '"'
           : value))
     + " : "
