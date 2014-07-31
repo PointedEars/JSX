@@ -37,6 +37,7 @@ jsx.array = (/** @constructor */ function () {
   var _getKeys = _jsx_object.getKeys;
   var _hasOwnProperty = _jsx_object._hasOwnProperty;
   var _isArray = _jsx_object.isArray;
+  var _isObject = _jsx_object.isObject;
   var _isNativeObject = _jsx_object.isNativeObject;
 
   /* Constant-like variables */
@@ -908,6 +909,37 @@ jsx.array = (/** @constructor */ function () {
     }
   });
 
+  /**
+   * Returns the indexes of an array-like object as an {@link Array}
+   *
+   * @param {Array} a
+   * @param {boolean} bStrict = false
+   *   If <code>true</code>, properties are only considered
+   *   indexes if they meet the definition in the ECMAScript
+   *   Language Specification, 5.1 Edition.  The default is
+   *   <code>false</code> which considers all integers.
+   * @return {Array}
+   */
+  function _getIndexes (a, bStrict)
+  {
+    var keys = _getKeys(a);
+    var result = [];
+    for (var i = 0, len = keys.length; i < len; ++i)
+    {
+      var key = keys[i];
+
+      if (key % 1 == 0)
+      {
+        if (!bStrict || (key > -1 && key < _MAX_ARRAY_LENGTH - 1))
+        {
+          result.push(key);
+        }
+      }
+    }
+
+    return result;
+  }
+
   return {
     /**
      * @memberOf jsx.array
@@ -1064,6 +1096,8 @@ jsx.array = (/** @constructor */ function () {
      *   or <code>false</code>.  If it returns <code>true</code>
      *   for the element of <code>a</code>, that element is
      *   included in the resulting array, otherwise it is not.
+     *   A function that filters on property values can be created
+     *   with {@link createFilter()}.
      * @param {Array} a (optional)
      *   Array which should be filtered.  Is used instead of the
      *   <code>Array</code> object the function is applied to.
@@ -1077,7 +1111,7 @@ jsx.array = (/** @constructor */ function () {
         {
           if (_isArray(fCallback))
           {
-            var tmp = a;
+            var tmp = fCallback;
             fCallback = a;
             a = tmp;
           }
@@ -1093,7 +1127,7 @@ jsx.array = (/** @constructor */ function () {
         }
       }
 
-      var len = this.length;
+      var len = a.length;
 
       if (typeof fCallback != "function")
       {
@@ -1104,10 +1138,10 @@ jsx.array = (/** @constructor */ function () {
 
       for (var i = 0; i < len; i++)
       {
-        if (i in this)
+        if (i in a)
         {
           /* mozilla.org: in case fCallback mutates `this'(?) */
-          var val = this[i];
+          var val = a[i];
 
           if (fCallback.call(a, val, i, this))
           {
@@ -1120,20 +1154,158 @@ jsx.array = (/** @constructor */ function () {
     },
 
     /**
+     * Creates an {@link Array} from the own enumerable properties
+     * of an object.
+     *
+     * @param {Object} obj
+     * @param {Object} options
+     *   <table>
+     *     <thead>
+     *       <tr>
+     *         <th>Option</th>
+     *         <th>Type</th>
+     *         <th>Meaning</th>
+     *       </tr>
+     *     <thead>
+     *     <tbody>
+     *       <tr>
+     *         <th>preserveKeys</th>
+     *         <td><code>boolean</code></th>
+     *         <td>If <code>true</code>, the return value is an
+     *             <code>Array</code> of <code>Object</code>s
+     *             whose elements have properties <code>key</code>
+     *             and <code>value</code>, for the original object's
+     *             property names and associated values, respectively.<br>
+     *             The default is <code>false</code>, so that the
+     *             referred <code>Array</code> only contains the
+     *             original property values.</td>
+     *       </tr>
+     *       <tr>
+     *         <th>depth</th>
+     *         <td><code>number</code></th>
+     *         <td>If not equal to <code>0</code> and the original
+     *           property value is a reference to an object, that
+     *           object's properties are turned into an array as well,
+     *           using this method, so are its properties, and so on.
+     *           If less than <code>0</code>, recursion is performed
+     *           as deep as possible; if greater than <code>0</code>,
+     *           recursion is performed until the specified depth
+     *           is reached.  The default is <code>0</code>.
+     *           <em>Note that recursion is limited by the maximum
+     *           stack size.</em></td>
+     *       </tr>
+     *     </tbody>
+     *   </table>
+     * @return {Array[Object]} that can be filtered with {@link #filter()}.
+     */
+    fromObject: function jsx_array_fromObject (obj, options) {
+      var keys = _getKeys(obj);
+      var result = [];
+
+      for (var i = 0, len = keys.length; i < len; ++i)
+      {
+        var key = keys[i];
+        var value = obj[key];
+
+        var item = value;
+
+        if (options)
+        {
+          if (typeof options.depth != "undefined")
+          {
+            options.depth = Math.floor(options.depth);
+
+            if (options.depth != 0 && _isObject(value))
+            {
+              --options.depth;
+              value = jsx_array_fromObject(value, options);
+            }
+          }
+
+          if (options.preserveKeys)
+          {
+            item = {
+              key: key,
+              value: value
+            };
+          }
+        }
+
+        result.push(item);
+      }
+
+      return result;
+    },
+
+    getIndexes: _getIndexes,
+
+    /**
      * Returns a function that can be used for filtering an {@link Array}
      * by the property values of its elements.
      *
      * @param {Object} filter
-     *   Object whose property names are the elements' property
-     *   names, and whose property values are the element's property
-     *   values to compare against
-     * @param {boolean} bStrict = false
-     *   If <code>true</code>, perform strict comparison.
-     * @return {Function}
-     *   The filter function
-     * @see jsx.array.filter
+     *   Object whose property names (keys) are compared agains
+     *   the elements' property names, and whose property values
+     *   (key values) are compared against the elements'
+     *   corresponding property values.  A filter key value of
+     *   <code>NaN</code> applies to <code>NaN</code> element
+     *   property values even though <code>NaN</code> usually
+     *   does not compare equal to anything.
+     * @param {Object} options
+     *   <table>
+     *     <thead>
+     *       <tr>
+     *         <th>Key</th>
+     *         <th>Type</th>
+     *         <th>Meaning</th>
+     *       </tr>
+     *     </thead>
+     *     <tbody>
+     *       <tr>
+     *         <th>compareStructure</th>
+     *         <td><code>boolean</code></td>
+     *         <td>If <code>true</code> and the filter key value
+     *           is an object, perform structural comparison.
+     *           If it or a subordered entity is an <code>Array</code>
+     *           instance, use its elements to filter for
+     *           items that have the same value or structure:
+     *           Otherwise, filter for elements' properties whose
+     *           value is a reference to an object with the specified
+     *           properties. Examples:
+     *           <ol>
+     *             <li><pre><code>jsx.array.filter(jsx.array.createFilter({foo: {bar: "baz"}), <var>a</var>);</code></pre>
+     *               filters the array-like object referred to by
+     *               <code><var>a</var></code> for elements whose
+     *               values are references to objects whose
+     *               <code>foo</code> property value is a reference
+     *               to an object whose <code>bar</code> property
+     *               value is <code>"baz"</code>.</li>
+     *             <li><pre><code>jsx.array.filter(jsx.array.createFilter({foo: [, "bar"]}), <var>a</var>);</code></pre>
+     *               filters the array-like object referred to by
+     *               <code><var>a</var></code> for elements whose
+     *               values are references to an object whose
+     *               <code>foo</code> property value is a reference
+     *               to an <code>Aarray</code> instance whose second
+     *               element is <code>"bar"</code>.</li>
+     *           </ol>
+     *           The default is <code>false</code>.</td>
+     *       </tr>
+     *     </tbody>
+     *       <tr>
+     *         <th>strict</th>
+     *         <td><code>boolean</code></td>
+     *         <td>If <code>true</code> and <var>compareStructure</var>
+     *           is <code>false</code>, perform strict comparison.
+     *           The default is <code>false</code>.</td>
+     *       </tr>
+     *     </tbody>
+     *   </table>
+     * @return {Function} that takes the element as first and only
+     *   argument and returns <code>true</code> if the element meets
+     *   all specified filter criteria, <code>false</code> otherwise.
+     * @see jsx.array.filter()
      */
-    createFilter: function (filter, bStrict) {
+    createFilter: function (filter, options) {
       var keys = _getKeys(filter);
 
       /**
@@ -1141,24 +1313,133 @@ jsx.array = (/** @constructor */ function () {
        * @return {boolean}
        */
       return function (element) {
+        function _isNaN (value)
+        {
+          return (typeof value == "number" && isNaN(value));
+        }
+
+        /**
+         * @param item
+         * @param filter
+         */
+        function _structureCompare (item, filter, bStrict)
+        {
+          if (_isArray(filter))
+          {
+            if (!_isArray(item))
+            {
+              return false;
+            }
+
+            var filter_keys = _getIndexes(filter);
+            for (var i = 0, len = filter_keys.length; i < len; ++i)
+            {
+              var array_key = filter_keys[i];
+              var array_value = item[array_key];
+              var filter_value = filter[array_key];
+
+              if (_isObject(filter_value))
+              {
+                if (!_structureCompare(array_value, filter_value, bStrict))
+                {
+                  return false;
+                }
+              }
+              else
+              {
+                if (bStrict)
+                {
+                  if (array_value !== filter_value)
+                  {
+                    return false;
+                  }
+                }
+                else if (array_value != filter_value)
+                {
+                  return false;
+                }
+              }
+            }
+          }
+          else if (_isObject(filter))
+          {
+            if (!_isObject(item))
+            {
+              return false;
+            }
+
+            filter_keys = _getKeys(filter);
+            for (var i = 0, len = filter_keys.length; i < len; ++i)
+            {
+              var object_key = filter_keys[i];
+              var object_value = item[object_key];
+              filter_value = filter[object_key];
+
+              if (_isObject(filter_value))
+              {
+                if (!_structureCompare(object_value, filter_value, bStrict))
+                {
+                  return false;
+                }
+              }
+              else
+              {
+                if (bStrict)
+                {
+                  if (object_value !== filter_value)
+                  {
+                    return false;
+                  }
+                }
+                else if (object_value != filter_value)
+                {
+                  return false;
+                }
+              }
+            }
+          }
+
+          return true;
+        }
+
         for (var i = 0, len = keys.length; i < len; ++i)
         {
           var key = keys[i];
-          if (bStrict)
+          var element_property_value = element[key];
+          var filter_key_value = filter[key];
+
+          if (_isNaN(filter_key_value) &&
+              !_isNaN(element_property_value))
           {
-            if (element[key] === filter[key])
+            return false;
+          }
+
+          if (options.compareStructure)
+          {
+            if (!_structureCompare(
+                  element_property_value, filter_key_value,
+                  options && options.strict))
             {
-              return true;
+              return false;
             }
           }
           else
           {
-            if (element[key] == filter[key])
+            if (options && options.strict)
             {
-              return true;
+              if (element_property_value !== filter_key_value)
+              {
+                return false;
+              }
+            }
+            else if (element_property_value != filter_key_value)
+            {
+              return false;
             }
           }
         }
+
+        return true;
       };
     },
 
@@ -1695,212 +1976,204 @@ jsx.array = (/** @constructor */ function () {
      * Returns a function that can be used for sorting an {@link Array}.
      *
      * @author (C) 2013 Thomas 'PointedEars' Lahn &lt;js@PointedEars.de&gt;
+     * @param {Array} aKeys
+     *   Array of keys that should be sorted by, in order.
+     *   A key may be a {@link string} value or a native object.
+     *   If it is a <code>string</code>, it specifies the property name
+     *   of the sort key.  If it is another native object, the following
+     *   of its properties are used as options.  See the <var>options</var>
+     *   parameter for the default values of these options.
+     *   <table>
+     *     <tr>
+     *       <th><code>key</code></th>
+     *       <td>The name of the property of the elements whose values
+     *           should be sorted by (sort values).  If this option is
+     *           not present or a false-value, the element values are
+     *           used as sort values.</td>
+     *     </tr>
+     *     <tr>
+     *       <th><code>callback</code></th>
+     *       <td>A reference to the <code>Function</code> whose
+     *           return value, when passed the current sort value,
+     *           defines the new sort value.</td>
+     *     </tr>
+     *     <tr>
+     *       <th><code>constructor</code></th>
+     *       <td>A reference to the <code>Function</code> whose
+     *           return value when passed the current sort value
+     *           and called as a constructor, defines the new
+     *           sort value.  This is useful if data can be converted
+     *           to an object whose <code>toString</code> or
+     *           <code>valueOf</code> methods can return a
+     *           valid sort value.  If both <code>callback</code>
+     *           and <code>constructor</code> are specified, the
+     *           return value of the callback is passed to
+     *           the constructor.</td>
+     *     </tr>
+     *     <tr>
+     *       <th><code>comparator</code></th>
+     *       <td>A reference to the <code>Function</code> that
+     *           should be passed the first and second current
+     *           sort values and whose return value defines
+     *           the relation between the first and second sort
+     *           value.  If the return value is not (loosely) equal
+     *           to 0 or if the key is the last key, its return
+     *           value is returned.  Otherwise the subsequent
+     *           sort values are compared.</td>
+     *     </tr>
+     *     <tr>
+     *       <th><code>descending</code></th>
+     *       <td>If a true-value, the sort order for this key
+     *           is descending.</td>
+     *     </tr>
+     *     <tr>
+     *       <th><code>numeric</code></th>
+     *       <td>If a true-value, the sort values are compared as if
+     *           both of them were <code>Number</code> values.</td>
+     *     </tr>
+     *     <tr>
+     *       <th><code>strict</code></th>
+     *       <td>If a true-value, the sort values are sorted
+     *           using the <code>===</code> operator.</td>
+     *     </tr>
+     *   </table>
+     * @param {Object} options (optional)
+     *   Default sort options.  The following properties are used:
+     *   <table>
+     *     <tr>
+     *       <th><code>callback</code></th>
+     *       <td>A reference to the <code>Function</code> whose
+     *           return value, when passed the current sort value,
+     *           defines the new sort value.  The factory default
+     *           is not to use a callback.</td>
+     *     </tr>
+     *     <tr>
+     *       <th><code>constructor</code></th>
+     *       <td>A reference to the <code>Function</code> whose
+     *           return value when passed the current sort value
+     *           and called as a constructor, defines the new
+     *           sort value.  The factory default is not to use
+     *           a constructor.</td>
+     *     </tr>
+     *     <tr>
+     *       <th><code>comparator</code></th>
+     *       <td>A reference to the <code>Function</code> that
+     *           should be passed the first and second current
+     *           sort values and whose return value defines
+     *           the relation between the first and second sort
+     *           value.  The factory default is not to use a
+     *           special sort value comparator.</td>
+     *     </tr>
+     *     <tr>
+     *       <th><code>descending</code></th>
+     *       <td>If a true-value, the default sort order is
+     *           descending.  The factory default is ascending.</td>
+     *     </tr>
+     *     <tr>
+     *       <th><code>numeric</code></th>
+     *       <td>If a true-value, by default the sort values are compared
+     *           as if they were <code>Number</code> values.  The factory
+     *           default is a generic comparison that uses the operators
+     *           <code>==</code> (non-strict) or <code>===</code>
+     *           (strict), and <code>&lt;</code>, and <code>></code>.</td>
+     *     </tr>
+     *     <tr>
+     *       <th><code>strict</code></th>
+     *       <td>If a true-value, use strict comparison by default.
+     *           The factory default is non-strict comparison.</td>
+     *     </tr>
+     *   </table>
+     * @return {Function}
      */
-    createComparator: (function () {
-      var _isObject = _jsx_object.isObject;
-
-      /**
-       * @param {Array} aKeys
-       *   Array of keys that should be sorted by, in order.
-       *   A key may be a {@link string} value or a native object.
-       *   If it is a <code>string</code>, it specifies the property name
-       *   of the sort key.  If it is another native object, the following
-       *   of its properties are used as options.  See the <var>options</var>
-       *   parameter for the default values of these options.
-       *   <table>
-       *     <tr>
-       *       <th><code>key</code></th>
-       *       <td>The name of the property of the elements whose values
-       *           should be sorted by (sort values).  If this option is
-       *           not present or a false-value, the element values are
-       *           used as sort values.</td>
-       *     </tr>
-       *     <tr>
-       *       <th><code>callback</code></th>
-       *       <td>A reference to the <code>Function</code> whose
-       *           return value, when passed the current sort value,
-       *           defines the new sort value.</td>
-       *     </tr>
-       *     <tr>
-       *       <th><code>constructor</code></th>
-       *       <td>A reference to the <code>Function</code> whose
-       *           return value when passed the current sort value
-       *           and called as a constructor, defines the new
-       *           sort value.  This is useful if data can be converted
-       *           to an object whose <code>toString</code> or
-       *           <code>valueOf</code> methods can return a
-       *           valid sort value.  If both <code>callback</code>
-       *           and <code>constructor</code> are specified, the
-       *           return value of the callback is passed to
-       *           the constructor.</td>
-       *     </tr>
-       *     <tr>
-       *       <th><code>comparator</code></th>
-       *       <td>A reference to the <code>Function</code> that
-       *           should be passed the first and second current
-       *           sort values and whose return value defines
-       *           the relation between the first and second sort
-       *           value.  If the return value is not (loosely) equal
-       *           to 0 or if the key is the last key, its return
-       *           value is returned.  Otherwise the subsequent
-       *           sort values are compared.</td>
-       *     </tr>
-       *     <tr>
-       *       <th><code>descending</code></th>
-       *       <td>If a true-value, the sort order for this key
-       *           is descending.</td>
-       *     </tr>
-       *     <tr>
-       *       <th><code>numeric</code></th>
-       *       <td>If a true-value, the sort values are compared as if
-       *           both of them were <code>Number</code> values.</td>
-       *     </tr>
-       *     <tr>
-       *       <th><code>strict</code></th>
-       *       <td>If a true-value, the sort values are sorted
-       *           using the <code>===</code> operator.</td>
-       *     </tr>
-       *   </table>
-       * @param {Object} options (optional)
-       *   Default sort options.  The following properties are used:
-       *   <table>
-       *     <tr>
-       *       <th><code>callback</code></th>
-       *       <td>A reference to the <code>Function</code> whose
-       *           return value, when passed the current sort value,
-       *           defines the new sort value.  The factory default
-       *           is not to use a callback.</td>
-       *     </tr>
-       *     <tr>
-       *       <th><code>constructor</code></th>
-       *       <td>A reference to the <code>Function</code> whose
-       *           return value when passed the current sort value
-       *           and called as a constructor, defines the new
-       *           sort value.  The factory default is not to use
-       *           a constructor.</td>
-       *     </tr>
-       *     <tr>
-       *       <th><code>comparator</code></th>
-       *       <td>A reference to the <code>Function</code> that
-       *           should be passed the first and second current
-       *           sort values and whose return value defines
-       *           the relation between the first and second sort
-       *           value.  The factory default is not to use a
-       *           special sort value comparator.</td>
-       *     </tr>
-       *     <tr>
-       *       <th><code>descending</code></th>
-       *       <td>If a true-value, the default sort order is
-       *           descending.  The factory default is ascending.</td>
-       *     </tr>
-       *     <tr>
-       *       <th><code>numeric</code></th>
-       *       <td>If a true-value, by default the sort values are compared
-       *           as if they were <code>Number</code> values.  The factory
-       *           default is a generic comparison that uses the operators
-       *           <code>==</code> (non-strict) or <code>===</code>
-       *           (strict), and <code>&lt;</code>, and <code>></code>.</td>
-       *     </tr>
-       *     <tr>
-       *       <th><code>strict</code></th>
-       *       <td>If a true-value, use strict comparison by default.
-       *           The factory default is non-strict comparison.</td>
-       *     </tr>
-       *   </table>
-       * @return {Function}
-       */
-      function _createComparator (aKeys, options)
+    createComparator: function (aKeys, options)
+    {
+      if (aKeys == null || !_isArray(aKeys))
       {
-        if (aKeys == null || !_isArray(aKeys))
-        {
-          aKeys = [aKeys];
-        }
-
-        if (options == null || !_isObject(options))
-        {
-          options = {};
-        }
-
-        return function (el1, el2) {
-          for (var i = 0, len = aKeys.length; i < len; ++i)
-          {
-            var key = aKeys[i];
-            var propertyName = ((key == null || typeof key.valueOf() == "string")
-              ? key
-              : key.key);
-
-            var el1Value = (propertyName != null ? el1[propertyName] : el1);
-            var el2Value = (propertyName != null ? el2[propertyName] : el2);
-
-            if (key && typeof key.callback == "function")
-            {
-              el1Value = key.callback(el1Value);
-              el2Value = key.callback(el2Value);
-            }
-            else if (typeof options.callback == "function")
-            {
-              el1Value = options.callback(el1Value);
-              el2Value = options.callback(el2Value);
-            }
-
-            if (key && _hasOwnProperty(key, "constructor"))
-            {
-              el1Value = new key.constructor(el1Value);
-              el2Value = new key.constructor(el2Value);
-            }
-            else if (_hasOwnProperty(options, "constructor"))
-            {
-              el1Value = new options.constructor(el1Value);
-              el2Value = new options.constructor(el2Value);
-            }
-
-            var isLastKey = (i == len - 1);
-            var hasKeySpecificComparator = (typeof key.comparator == "function");
-            if (hasKeySpecificComparator
-                || (typeof options.comparator == "function"))
-            {
-              var comparatorResult = (hasKeySpecificComparator
-                ? key.comparator(el1Value, el2Value)
-                : options.comparator(el1Value, el2Value));
-
-              if (isLastKey || comparatorResult != 0)
-              {
-                return comparatorResult;
-              }
-
-              continue;
-            }
-
-            var equals = ((key && key.strict) || (options.strict)
-              ? (el1Value === el2Value)
-              : (el1Value == el2Value));
-
-            if (equals)
-            {
-              if (isLastKey)
-              {
-                /* last key, same value */
-                return 0;
-              }
-            }
-            else
-            {
-              var descending = ((key && key.descending) || options.descending);
-
-              return ((key && key.numeric) || options.numeric
-                ? (descending
-                    ? el2Value - el1Value
-                    : el1Value - el2Value)
-                : (descending
-                    ? (el1Value > el2Value ? -1 : 1)
-                    : (el1Value < el2Value ? -1 : 1)));
-            }
-          }
-        };
+        aKeys = [aKeys];
       }
 
-      return _createComparator;
-    }())
+      if (options == null || !_isObject(options))
+      {
+        options = {};
+      }
+
+      return function (el1, el2) {
+        for (var i = 0, len = aKeys.length; i < len; ++i)
+        {
+          var key = aKeys[i];
+          var propertyName = ((key == null || typeof key.valueOf() == "string")
+            ? key
+            : key.key);
+
+          var el1Value = (propertyName != null ? el1[propertyName] : el1);
+          var el2Value = (propertyName != null ? el2[propertyName] : el2);
+
+          if (key && typeof key.callback == "function")
+          {
+            el1Value = key.callback(el1Value);
+            el2Value = key.callback(el2Value);
+          }
+          else if (typeof options.callback == "function")
+          {
+            el1Value = options.callback(el1Value);
+            el2Value = options.callback(el2Value);
+          }
+
+          if (key && _hasOwnProperty(key, "constructor"))
+          {
+            el1Value = new key.constructor(el1Value);
+            el2Value = new key.constructor(el2Value);
+          }
+          else if (_hasOwnProperty(options, "constructor"))
+          {
+            el1Value = new options.constructor(el1Value);
+            el2Value = new options.constructor(el2Value);
+          }
+
+          var isLastKey = (i == len - 1);
+          var hasKeySpecificComparator = (typeof key.comparator == "function");
+          if (hasKeySpecificComparator
+              || (typeof options.comparator == "function"))
+          {
+            var comparatorResult = (hasKeySpecificComparator
+              ? key.comparator(el1Value, el2Value)
+              : options.comparator(el1Value, el2Value));
+
+            if (isLastKey || comparatorResult != 0)
+            {
+              return comparatorResult;
+            }
+
+            continue;
+          }
+
+          var equals = ((key && key.strict) || (options.strict)
+            ? (el1Value === el2Value)
+            : (el1Value == el2Value));
+
+          if (equals)
+          {
+            if (isLastKey)
+            {
+              /* last key, same value */
+              return 0;
+            }
+          }
+          else
+          {
+            var descending = ((key && key.descending) || options.descending);
+
+            return ((key && key.numeric) || options.numeric
+              ? (descending
+                  ? el2Value - el1Value
+                  : el1Value - el2Value)
+              : (descending
+                  ? (el1Value > el2Value ? -1 : 1)
+                  : (el1Value < el2Value ? -1 : 1)));
+          }
+        }
+      };
+    }
   };
 }());
 
