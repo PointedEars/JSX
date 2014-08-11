@@ -320,13 +320,37 @@ jsx.regexp = (/** @constructor */ function () {
               });
             }
 
-            var _rangesStack = [];
-            /**
-             * @return {string}
-             */
-            _rangesStack.toString = function () {
-              return this.join(" --> ");
-            };
+            var _rangesStack = _getDataObject({
+              seen: _getDataObject(),
+              items: [],
+
+              indexOf: function (item) {
+                var item = this.seen[item];
+                return (item ? item.index : -1);
+              },
+
+              pop: function () {
+                var items = this.items;
+                var last = items.pop();
+                delete this.seen[last];
+                this.length = items.length;
+                return last;
+              },
+
+              push: function (item) {
+                var items = this.items;
+                this.seen[item] = _getDataObject({index: items.length});
+                items.push(item);
+                this.length = items.length;
+              },
+
+              /**
+               * @return {string}
+               */
+              toString: function () {
+                return this.items.join(" --> ");
+              }
+            });
 
             var _propertyClassReplacer = function (match, propertySpecifier, propertyClass) {
               if (propertySpecifier === "P")
