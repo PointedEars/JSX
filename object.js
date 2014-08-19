@@ -3006,25 +3006,24 @@ Function.prototype.extend = (function () {
   }
 
   /**
-   * @param {Function} fConstructor
-   *   Constructor from which prototype object should be
-   *   inherited.
+   * @param {Function} fSuper
+   *   Constructor from whose prototype object should be inherited.
    * @param {Object} oProtoProps
    *   Object from which to shallow-copy properties as prototype
    *   properties.  Of those, the <code>_super</code>,
    *   <code>constructor</code>, and <code>_userDefined</code>
    *   properties are ignored as they are used internally.
    */
-  return function (fConstructor, oProtoProps) {
+  return function (fSuper, oProtoProps) {
     var me = this;
 
     /*
      * Allows constructor to be null or undefined to inherit from
      * Object.prototype by default (see below)
      */
-    if (fConstructor == null)
+    if (fSuper == null)
     {
-      if (typeof fConstructor == "undefined")
+      if (typeof fSuper == "undefined")
       {
         /* Passing undefined is probably unintentional, so warn about it */
         _jsx.warn((_jsx_object.getFunctionName(me) || "[anonymous Function]")
@@ -3032,7 +3031,7 @@ Function.prototype.extend = (function () {
           + " Parent constructor is undefined, using Object");
       }
 
-      fConstructor = "Object";
+      fSuper = "Object";
     }
 
     /*
@@ -3044,9 +3043,9 @@ Function.prototype.extend = (function () {
      * on user call only, might be useful for constructors defined
      * in Object initializers.
      */
-    if (typeof fConstructor.valueOf() == "string")
+    if (typeof fSuper.valueOf() == "string")
     {
-      fConstructor = _jsx.global[fConstructor];
+      fSuper = _jsx.global[fSuper];
     }
 
     var t = typeof fConstructor;
@@ -3057,18 +3056,25 @@ Function.prototype.extend = (function () {
       return null;
     }
 
-    this.prototype = _jsx_object.inheritFrom(fConstructor.prototype);
+    var super_proto = fSuper.prototype;
+    this.prototype = _jsx_object.inheritFrom(super_proto);
 
     if (oProtoProps)
     {
       for (var p in oProtoProps)
       {
-        this.prototype[p] = oProtoProps[p];
+        var prop = this.prototype[p] = oProtoProps[p];
+
+        if (typeof prop == "function"
+            && typeof super_proto[p] == "function")
+        {
+          prop._super = super_proto[p];
+        }
       }
     }
 
-    this._super = fConstructor;
-    this.prototype._super = fConstructor.prototype;
+    this._super = fSuper;
+    this.prototype._super = super_proto;
     this.prototype.constructor = this;
     this._userDefined = true;
 
@@ -3105,7 +3111,7 @@ Function.prototype.extend = (function () {
         },
         function (e) {
           _jsx.warn(_jsx_object.getFunctionName(me) + ".extend("
-            + _jsx_object.getFunctionName(fConstructor) + ", "
+            + _jsx_object.getFunctionName(fSuper) + ", "
             + oProtoProps + "): " + e.name + ': ' + e.message);
         });
     }
