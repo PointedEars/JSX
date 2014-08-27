@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<rimpfd>
-    <destination path="/LCARS/scripts"/>
-    <options createDirectoryStructure="false" createSelectedOnly="true" descriptionFilePath="/LCARS/scripts/scripts.rimpfd" overWriteExistingFiles="false" saveSettings="true"/>
-    <source path="PE-Mobil.PointedEars.de:/home/mw3020/f001/scripts"/>
-    <selectedElements>
-        <file path="/home/mw3020/f001/scripts/style.css"/>
-    </selectedElements>
-</rimpfd>
