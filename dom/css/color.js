@@ -7,7 +7,7 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2011-2013 Thomas Lahn &lt;js@PointedEars.de>
+ *   (C) 2011-2014 Thomas Lahn &lt;js@PointedEars.de>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -89,7 +89,7 @@ jsx.dom.css.Color.MAX_VALUE = 255;
  *
  * @param {jsx.dom.css.Color|String} color1
  * @param {jsx.dom.css.Color|String} color2
- * @returns {red, green, blue, opacity}
+ * @return {Object} {red, green, blue, opacity}
  * @see jsx.dom.css.Color.prototype.diff()
  */
 jsx.dom.css.Color.diff = function (color1, color2) {
@@ -558,14 +558,9 @@ jsx.dom.css.Color.extend(null, {
     }
     else
     {
-      if (lightness <= 0.5)
-      {
-        saturation = (max - min) / (max + min);
-      }
-      else
-      {
-        saturation = (max - min) / (2 - max - min);
-      }
+      saturation = (lightness <= 0.5)
+        ? (max - min) / (max + min)
+        : (max - min) / (2 - max - min);
     }
 
     var delta = max - min;
@@ -636,14 +631,9 @@ jsx.dom.css.Color.extend(null, {
       hue += 360;
     }
 
-    if (max == 0)
-    {
-      saturation = 0;
-    }
-    else
-    {
-      saturation = 100 * (delta / max);
-    }
+    saturation = (max == 0)
+      ? 0
+      : 100 * (delta / max);
 
     value = 100 * max;
 
