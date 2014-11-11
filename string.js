@@ -59,6 +59,7 @@ jsx.string = (/** @constructor */ function () {
   var _jsx_object = _jsx.object;
   var _getClass = _jsx_object.getClass;
   var _hasOwnProperty = _jsx_object._hasOwnProperty;
+  var _isString = _jsx_object.isString;
 
   /* Private variables */
   var _path = "http://pointedears.de/scripts/";
@@ -84,7 +85,7 @@ jsx.string = (/** @constructor */ function () {
 
   var _pad = function (s, n, c, bRight, iStart) {
     var constr;
-    if ((constr = this.constructor) && constr == String
+    if ((constr = this && this.constructor) && constr == String
         && typeof s != "string")
     {
       s = this;
@@ -190,28 +191,28 @@ jsx.string = (/** @constructor */ function () {
     },
 
     /**
-     * Adds backslashes to escape " and ' in strings.
+     * Escapes a <code>String</code> so that it can be used as part
+     * of a string literal in source code.
      *
-     * @author Copyright (c) 2003
-     *   Martin Honnen &lt;Martin.Honnen@gmx.de&gt;,
-     *   Thomas Lahn &lt;string.js@PointedEars.de&gt;
-     * @param {string} s (optional)
-     *   String where " and ' should be escaped.  Ignored if
-     *   the function is called as a method of a String object.
+     * @author
+     *   Copyright (c) 2003 Martin Honnen &lt;Martin.Honnen@gmx.de&gt;,
+     *   (c) 2003, 2014 Thomas Lahn &lt;js@PointedEars.de&gt;
+     * @param {String} s (optional)
+     *   String in which \, ", ', \n, \r, and \t should be escaped.
+     *   Ignored if the function is called as a method of a String.
      * @return {string}
-     *   The replaced string if String.replace(...)
+     *   The replaced string if String.prototype.replace(...)
      *   is supported, the original string otherwise.
      */
     addSlashes: function (s) {
-      var c;
-      if ((c = this.constructor) && c == String && typeof s != "string")
-      {
-        s = this;
-      }
+      s = _isString(this) ? this : String(s);
 
-      if (s.replace)
+      if (typeof s.replace == "function")
       {
-        s = s.replace(/["']/g, "\\$&");
+        s = s.replace(/[\\"']/g, "\\$&")
+             .replace(/\n/g, "\\n")
+             .replace(/\r/g, "\\r")
+             .replace(/\t/g, "\\t");
       }
 
       return s;
@@ -874,7 +875,7 @@ jsx.string = (/** @constructor */ function () {
       var result = NaN;
 
       /* to use this method for String objects */
-      if (typeof this.constructor != "undefined"
+      if (this && typeof this.constructor != "undefined"
           && this.constructor == String
           && !s)
       {
@@ -1008,7 +1009,7 @@ jsx.string = (/** @constructor */ function () {
      *   #strToCodeArray() java2:String#hashCode()
      */
     hashCode: function (s) {
-      if (!s && this.charCodeAt)
+      if (!s && this && this.charCodeAt)
       {
         s = this;
       }
@@ -1044,7 +1045,7 @@ jsx.string = (/** @constructor */ function () {
      * @return {string}
      */
     leadingCaps: function (s) {
-      if (!s && this.charAt)
+      if (!s && this && this.charAt)
       {
         s = this;
       }
@@ -1072,7 +1073,7 @@ jsx.string = (/** @constructor */ function () {
      */
     leadingZero: function (s, n) {
       var c;
-      if ((c = this.constructor) && c == String && typeof s != "string")
+      if ((c = this && this.constructor) && c == String && typeof s != "string")
       {
         s = this;
       }
@@ -1308,62 +1309,63 @@ jsx.string = (/** @constructor */ function () {
      * @param {boolean} bForceLoop
      * @return {string}
      */
-    replaceText: function (sText, sReplaced, sReplacement, bForceLoop) {
-      var result = "";
+    replaceText:
+      function jsx_string_replaceText (sText, sReplaced, sReplacement, bForceLoop) {
+        var result = "";
 
-      if (!sText && this.constructor == String)
-      {
-        sText = this;
-      }
-
-      var sNewText = sText;
-      // alert(sText);
-      if (sText && sReplaced && sReplacement)
-      {
-        if (sText.replace && !bForceLoop)
+        if (!sText && this && this.constructor == String)
         {
-          sReplaced = sReplaced.replace(/\\/g, "\\\\");
-          /*
-           * Version 1.23.2002.4 bugfix: allows to replace \ with other
-           * strings, required for proper rxReplaced;
-           * Example (no quotes, no escaping):
-           *    sReplaced (provided)                     "\\"
-           *    sReplaced (evaluated)                     \
-           *    sReplaced (replaced as formulated above) "\\\\"
-           *    sReplaced (esc. in RegExp constructor)   "\\\\"
-           *    sReplaced (ev. in RegExp constructor)     \\
-           *    rxReplaced (with RegExp escaping)        /\\/g
-           *    rxReplaced (evaluated)                   all occurr. of \
-           */
-          var rxReplaced = new RegExp(sReplaced, "g");
-          sText = sText.replace(rxReplaced, sReplacement);
-
-          result = sText;
-        }
-        else if (sText.split
-                 && (a = sText.split(sReplaced))
-                 && a.join)
-        {
-          return a.join(sReplacement);
+          sText = this;
         }
 
-        var i = sText.indexOf(sReplaced);
-
-        if (i > -1)
+        var sNewText = sText;
+        // alert(sText);
+        if (sText && sReplaced && sReplacement)
         {
-          sNewText = sText.substring(0, i);
-          sNewText += sReplacement
-            + replaceText(
-              sText.substring(i + sReplaced.length),
-              sReplaced,
-              sReplacement);
+          if (sText.replace && !bForceLoop)
+          {
+            sReplaced = sReplaced.replace(/\\/g, "\\\\");
+            /*
+             * Version 1.23.2002.4 bugfix: allows to replace \ with other
+             * strings, required for proper rxReplaced;
+             * Example (no quotes, no escaping):
+             *    sReplaced (provided)                     "\\"
+             *    sReplaced (evaluated)                     \
+             *    sReplaced (replaced as formulated above) "\\\\"
+             *    sReplaced (esc. in RegExp constructor)   "\\\\"
+             *    sReplaced (ev. in RegExp constructor)     \\
+             *    rxReplaced (with RegExp escaping)        /\\/g
+             *    rxReplaced (evaluated)                   all occurr. of \
+             */
+            var rxReplaced = new RegExp(sReplaced, "g");
+            sText = sText.replace(rxReplaced, sReplacement);
+
+            result = sText;
+          }
+          else if (sText.split
+                   && (a = sText.split(sReplaced))
+                   && a.join)
+          {
+            return a.join(sReplacement);
+          }
+
+          var i = sText.indexOf(sReplaced);
+
+          if (i > -1)
+          {
+            sNewText = sText.substring(0, i);
+            sNewText += sReplacement
+              + replaceText(
+                sText.substring(i + sReplaced.length),
+                sReplaced,
+                sReplacement);
+          }
+
+          result = sNewText;
         }
 
-        result = sNewText;
-      }
-
-      return result;
-    },
+        return result;
+      },
 
     /**
      * @param {Object} o
@@ -1487,12 +1489,12 @@ jsx.string = (/** @constructor */ function () {
     count: function (s, substr, bCaseSensitive) {
       var result = 0;
 
-      if ((!s && !this.toLowerCase) || !substr)
+      if ((!s && !(this && this.toLowerCase)) || !substr)
       {
         return -1;
       }
 
-      if (s && this.toLowerCase)
+      if (s && this && this.toLowerCase)
       {
         s = this;
       }
@@ -1552,7 +1554,7 @@ jsx.string = (/** @constructor */ function () {
      *   <code>true</code> if the strings are equal, <code>false</code> otherwise
      */
     equals: function (s1, s2, compositeAware) {
-      if (this.constructor == String)
+      if (this && this.constructor == String)
       {
         compositeAware = s2;
         s2 = s1;
@@ -1791,7 +1793,7 @@ jsx.string = (/** @constructor */ function () {
      */
     repeat: function (s, n) {
       var c;
-      if ((c = this.constructor) && c == String && typeof s != "string")
+      if ((c = this && this.constructor) && c == String && typeof s != "string")
       {
         s = this;
         n = !isNaN(s) ? s : 0;
@@ -1828,7 +1830,7 @@ jsx.string = (/** @constructor */ function () {
      */
     strToArray: function (s) {
       var c;
-      if (!s && (c = this.constructor) && c == String)
+      if (!s && (c = this && this.constructor) && c == String)
       {
         s = this;
       }
@@ -1898,7 +1900,7 @@ jsx.string = (/** @constructor */ function () {
      * @see String.prototype#split()
      */
     strToCodeArray: function (s) {
-      if (!s && this.charCodeAt)
+      if (!s && this && this.charCodeAt)
       {
         s = this;
       }
@@ -1936,7 +1938,7 @@ jsx.string = (/** @constructor */ function () {
      * @see #trimLeft(), #trimRight()
      */
     trim: function (s) {
-      if (!s && this.charAt)
+      if (!s && this && this.charAt)
       {
         s = this;
       }
@@ -1963,7 +1965,7 @@ jsx.string = (/** @constructor */ function () {
      * @return {string}
      */
     trimLeft: function (s) {
-      if (!s && this.charAt)
+      if (!s && this && this.charAt)
       {
         s = this;
       }
@@ -1997,7 +1999,7 @@ jsx.string = (/** @constructor */ function () {
      * @return {string}
      */
     trimRight: function (s) {
-      if (!s && this.charAt)
+      if (!s && this && this.charAt)
       {
         s = this;
       }
@@ -2175,6 +2177,7 @@ if (jsx.options.augmentBuiltins)
       /**
        * @memberOf String.prototype
        */
+      addSlashes: jsx.string.addSlashes,
       equals: jsx.string.compare,
 
       format: jsx.string.format,
@@ -2184,7 +2187,6 @@ if (jsx.options.augmentBuiltins)
 //      repeat     : strRepeat,
 //      pad:         jsx.string.pad,
 //      replaceText: replaceText,
-      addSlashes : addSlashes,
 //      strCount   : strCount,
 //      stripTags  : stripTags,
 //      maskMarkup : maskMarkup,
