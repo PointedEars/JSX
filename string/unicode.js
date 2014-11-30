@@ -19,11 +19,10 @@
  * in ECMAScript because they are not considered by ECMAScript's
  * string-related algorithms.  For example, for a string value that
  * contains only one character but that has a code point beyond
- * the multilingual plane (non-BMP character), the specified length
- * and the value of the <code>length</code> property is
- * <code>2</code>.  Retrieving the (code point of the) first
- * character from a string with
- * <code>{@link String.prototype.charAt}(0)</code>.
+ * the BMP (“non-BMP character”), the specified length and the value
+ * of the <code>length</code> property is <code>2</code>.
+ * Retrieving the (code point of the) first character from a string
+ * with <code>{@link String.prototype.charAt}(0)</code>.
  * where the character has a code point beyond the multilingual
  * plane, returns the (code point of the) (non-)character for its
  * <em>lead surrogate</em>.  Retrieving with
@@ -46,7 +45,7 @@
  * It also replaces by default the values of certain built-in
  * properties of the <code>String</code> constructor and
  * <code>String</code> prototype such as the ones mentioned
- * above, and add others to the String prototype, so as to
+ * above, and adds others to the String prototype, so as to
  * support non-BMP characters as well in implementations of those
  * ECMAScript Editions almost seamlessly.  However, non-callable
  * built-in own and inherited properties of <code>String</code>
@@ -58,8 +57,9 @@
  *
  * Your feedback is appreciated.
  *
- * <em>NOTE: Due to {@link Array} limitations, the maximum
- * supported string length is 2³²−1 characters.</em>
+ * <em>NOTE: The maximum supported string length is limited by
+ * the maximum supported {@link Array} length, which is 2³²−1
+ * at the time of writing.</em>
  *
  * @section {Copyright & Disclaimer}
  *
@@ -100,7 +100,25 @@ jsx.string.unicode = (/** @constructor */ function () {
 
   /* Handles characters in UTF-16 encoding from U+0000 to U+10FFFF */
   var _rx_wide_string = /[\uD800-\uDBFF][\uDC00-\uDFFF]/;
-  var _rx_string = /[\uD800-\uDBFF][\uDC00-\uDFFF]|[\S\s]/g;
+  var _rx_comb_dia = /\u0300-\u036F/;
+  var _rx_comb_dia_ext = /\u1AB0-\u1ABE/;
+  var _rx_comb_dia_supp = /\u1DC0-\u1DF5\u1DFC-\u1DFF/;
+  var _rx_comb_dia_sym = /\u20D0-\u20F0/;
+  var _rx_comb_half = /\uFE20-\uFE2D/;
+  var _rx_combining = new RegExp("["
+    + _rx_comb_dia.source
+    + _rx_comb_dia_ext.source
+    + _rx_comb_dia_supp.source
+    + _rx_comb_dia_sym.source
+    + _rx_comb_half.source
+    + "]");
+  var _rx_string = new RegExp(
+    "(" + _rx_wide_string.source
+        + "|"
+        + /[\S\s]/.source + ")"
+        + _rx_combining.source + "*",
+    "g");
+  var _BigArray = jsx.object.getFeature(jsx, "array", "BigArray");
 
   /**
    * @private
@@ -110,7 +128,19 @@ jsx.string.unicode = (/** @constructor */ function () {
    */
   function _toCharArray (s)
   {
+    if (_BigArray)
+    {
+      return (s
+        ? _BigArray.fromChars(s, _rx_string)
+        : new _BigArray());
+    }
+
     return (s ? (String(s).match(_rx_string) || []) : []);
+  }
+
+  function _getCharAt (a, index)
+  {
+    return _BigArray ? a.get(index) : a[index];
   }
 
   /**
@@ -131,10 +161,10 @@ jsx.string.unicode = (/** @constructor */ function () {
    * (implicitly called in string context, like concatenation)
    * to convert it back to a <code>String</code> value.
    * </p><p>
-   * <em>NOTE: Due to <code>Array</code> limitations, a
-   * <code>WideString</code> may not contain more than
-   * 2³²−1 Unicode characters.  Also note that normalization
-   * is <strong>not</strong> performed at the moment.</em>
+   *  * <em>NOTE: The maximum supported string length is limited by
+   * the maximum supported {@link Array} length, which is 2³²−1
+   * at the time of writing.  Also note that normalization
+   * is <strong>not</strong> performed.</em>
    * </p>
    * @extends String
    * @constructor
@@ -212,8 +242,8 @@ jsx.string.unicode = (/** @constructor */ function () {
       var chars = this.getChars();
       position = (position < 0 ? Math.ceil(position) : Math.floor(position));
       return (position < 0
-        ? chars[chars.length + position]
-        : chars[position]);
+        ? _getCharAt(chars, chars.length + position)
+        : _getCharAt(chars, position));
     },
 
     /**
@@ -369,6 +399,11 @@ jsx.string.unicode = (/** @constructor */ function () {
 
     /**
      * Returns a slice (substring) of this string.
+     *
+     * <em>WARNING: Because slices observe element order, returning
+     * big slices of strings with many characters can take a
+     * considerable amount of time.  Avoid running such code in the
+     * main thread.</em>
      *
      * @param {int} start
      *   Position of the Unicode character from where to start slicing.
