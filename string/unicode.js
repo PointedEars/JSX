@@ -143,6 +143,29 @@ jsx.string.unicode = (/** @constructor */ function () {
     return _BigArray ? a.get(index) : a[index];
   }
 
+  function _charCodeAt (position)
+  {
+    var ch = this.charAt(position);
+    if (typeof ch == "undefined")
+    {
+      return NaN;
+    }
+
+    if (new RegExp("^" + _rx_wide_string.source).test(ch))
+    {
+      var leadSurrogate = String_prototype_charCodeAt.call(ch, 0);
+      var trailSurrogate = String_prototype_charCodeAt.call(ch, 1);
+
+      var leadBits = (leadSurrogate - 0xD800) << 10;
+      var trailBits = trailSurrogate - 0xDC00;
+      var bmpOffset = 0x10000;
+
+      return leadBits + trailBits + bmpOffset;
+    }
+
+    return String_prototype_charCodeAt.call(ch, 0);
+  }
+
   /**
    * Converts a {@link String} value to a wide string.
    * <p>
@@ -251,7 +274,9 @@ jsx.string.unicode = (/** @constructor */ function () {
      * in this object at the specified position.
      *
      * <em>NOTE: A single Unicode character may be composed out of
-     * several other characters.  Normalization is not performed.</em>
+     * several other characters.  Normalization is not performed.
+     * If you need the code points of combining marks as well,
+     * use {@link #codePointsAt()}.</em>
      *
      * @memberOf jsx.string.unicode.WideString.prototype
      * @param {Number} position
@@ -273,26 +298,30 @@ jsx.string.unicode = (/** @constructor */ function () {
      *   <strong>not defined</strong>.
      * @see #charAt()
      */
-    charCodeAt: function (position) {
-      var ch = this.charAt(position);
-      if (typeof ch == "undefined")
+    charCodeAt: _charCodeAt,
+    codePointAt: _charCodeAt,
+
+    /**
+     * Returns the Unicode code point values of the character
+     * in this object at the specified position, followed by
+     * those of optional combining marks.
+     *
+     * @param {Number} position
+     *   If not an integer, replaced with the closest integer.
+     * @return {Array[number]}
+     */
+    codePointsAt: function (position) {
+      var first_code_point = this.codePointAt(position);
+      var result = [first_code_point];
+      var _char = this.charAt(position);
+      var m;
+      var rx_combining_global = new RegExp(_rx_combining.source, "g");
+      while ((m = rx_combining_global.exec(_char)))
       {
-        return NaN;
+        result.push(m[0].charCodeAt(0));
       }
 
-      if (/^[\uD800-\uDBFF]/.test(ch))
-      {
-        var leadSurrogate = String_prototype_charCodeAt.call(ch, 0);
-        var trailSurrogate = String_prototype_charCodeAt.call(ch, 1);
-
-        var leadBits = (leadSurrogate - 0xD800) << 10;
-        var trailBits = trailSurrogate - 0xDC00;
-        var bmpOffset = 0x10000;
-
-        return leadBits + trailBits + bmpOffset;
-      }
-
-      return String_prototype_charCodeAt.call(ch, 0);
+      return result;
     },
 
     /**
@@ -537,7 +566,14 @@ jsx.string.unicode = (/** @constructor */ function () {
           ch = String_fromCharCode(arg);
         }
 
-        chars.push(ch);
+        if (_rx_combining.test(ch))
+        {
+          chars[chars.length - 1] += ch;
+        }
+        else
+        {
+          chars.push(ch);
+        }
       }
 
       return new _WideString(chars);
