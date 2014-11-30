@@ -63,6 +63,7 @@ function runTests()
           assertArrayEquals(["x"], new WideString("x").getChars());
           assertArrayEquals(["x", "\uD834\uDD1E"], new WideString("x\uD834\uDD1E").getChars());
           assertArrayEquals(["x", "\uD834\uDD1E", "y"], new WideString("x\uD834\uDD1Ey").getChars());
+          assertArrayEquals(["x\u0308", "y"], new WideString("x\u0308y").getChars());
         }
       },
       {
