@@ -148,7 +148,7 @@ class ResourceBuilder
    */
   protected $_resolve = false;
 
-  public function __construct ()
+  public function __construct (array $options = array())
   {
     if (isset($_GET['src']))
     {
@@ -165,17 +165,16 @@ class ResourceBuilder
 
       foreach ($params as $property => $param)
       {
-        if (isset($_GET[$param]))
+        $value = isset($options[$param])
+          ? $options[$param]
+          : (isset($_GET[$param]) ? $_GET[$param] : null);
+        
+        if (is_int($property))
         {
-          $value = $_GET[$param];
-
-          if (is_int($property))
-          {
-            $property = $param;
-          }
-
-          $this->$property = $value;
+          $property = $param;
         }
+
+        $this->$property = $value;
       }
 
       $this->commentCount = 0;
