@@ -250,11 +250,11 @@ jsx.array = (/** @constructor */ function () {
       {
         if (index < 0)
         {
-          propertyName = target.length + index;
+          propertyName = this.length + index;
         }
       }
 
-      return target[propertyName];
+      return this[propertyName];
     },
 
     "set": function (propertyName, value) {
@@ -263,11 +263,11 @@ jsx.array = (/** @constructor */ function () {
       {
         if (index < 0)
         {
-          propertyName = target.length + index;
+          propertyName = this.length + index;
         }
       }
 
-      return (target[propertyName] = value);
+      return (this[propertyName] = value);
     }
   });
 
