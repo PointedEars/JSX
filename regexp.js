@@ -1252,12 +1252,18 @@ jsx.regexp = (/** @constructor */ function () {
           g: "global",
           i: "ignoreCase",
           m: "multiline",
-          y: "sticky"
+          y: "sticky",
+          s: "dotAll",
+          x: "extended",
+          u: "unicodeMode"
         },
         g: false,
         i: false,
         m: false,
         y: false,
+        s: false,
+        x: false,
+        u: false,
 
         setFromTemplate: function (template) {
           var flags = this.flags;
@@ -1290,11 +1296,17 @@ jsx.regexp = (/** @constructor */ function () {
       };
 
       var regexp2str = jsx.regexp.toString2;
+      var partIsExtended = false;
 
       if (_getClass(this) == "RegExp")
       {
         aParts.push(regexp2str(this));
         oFlags.setFromTemplate(this);
+
+        if (!partIsExtended)
+        {
+          partIsExtended = _RegExp2.isInstance(this);
+        }
       }
 
       for (var i = 0, iArgnum = arguments.length; i < iArgnum; i++)
@@ -1302,6 +1314,11 @@ jsx.regexp = (/** @constructor */ function () {
         var a = arguments[i];
         if (_getClass(a) == "RegExp")
         {
+          if (!partIsExtended)
+          {
+            partIsExtended = _RegExp2.isInstance(a);
+          }
+
           aParts.push(regexp2str(a));
           oFlags.setFromTemplate(a);
         }
@@ -1311,7 +1328,9 @@ jsx.regexp = (/** @constructor */ function () {
         }
       }
 
-      return new RegExp(aParts.join(""), oFlags.toString());
+      var C = partIsExtended ? _RegExp2 : RegExp;
+
+      return new C(aParts.join(""), oFlags.toString());
     },
 
     /**
