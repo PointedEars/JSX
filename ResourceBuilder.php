@@ -387,7 +387,7 @@ class ResourceBuilder
   protected function stripJSdoc ($s)
   {
     $s = preg_replace_callback(
-      '#[\\t ]*/\\*\\*(?:[^*]|\\*[^/])*\\*/(?:\\r?\\n|\\r)?#',
+      '#[\\t ]*/\\*\\*(?:\\*[^/]|[^*])*\\*/(?:\\r?\\n|\\r)?#',
       array('self', 'commentReplacer'),
       $s);
 
