@@ -120,24 +120,24 @@ function _EngineInfo ()
      */
     var _majorVersion =
       typeof ScriptEngineMajorVersion == "function"
-      ? ScriptEngineMajorVersion()
-      : 'x';
+        ? ScriptEngineMajorVersion()
+        : 'x';
 
     /**
      * @type string
      */
     var _minorVersion =
       typeof ScriptEngineMinorVersion == "function"
-      ? ScriptEngineMinorVersion()
-      : 'xx';
+        ? ScriptEngineMinorVersion()
+        : 'x';
 
     /**
      * @type string
      */
     var _buildVersion =
       typeof ScriptEngineBuildVersion == "function"
-      ? ScriptEngineBuildVersion()
-      : 'xxxx';
+        ? ScriptEngineBuildVersion()
+        : 'x';
 
     /**
      * @type string
@@ -145,9 +145,9 @@ function _EngineInfo ()
     var _version =
       (_majorVersion != 'x'
         ? _majorVersion
-            + (_minorVersion != 'xx'
+            + (_minorVersion != 'x'
                 ? '.' + _minorVersion
-                  + (_buildVersion != 'xxxx' ? '.' + _buildVersion : '')
+                  + (_buildVersion != 'x' ? '.' + _buildVersion : '')
                 : '')
         : '');
   }
