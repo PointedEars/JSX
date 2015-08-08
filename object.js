@@ -2186,6 +2186,20 @@ if (jsx.options.augmentBuiltins)
 
     Object.keys._emulated = true;
   }
+  
+  if (typeof Object.values != "function")
+  {
+    /**
+     * @param {Object} obj
+     */
+    Object.values = function (obj) {
+      return Object.keys(obj).map(function (key) {
+        return this[key];
+      }, obj);
+    };
+
+    Object.values._emulated = true;
+  }
 }
 
 /**
