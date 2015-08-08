@@ -2458,6 +2458,314 @@ jsx.object.extend(jsx, {
 }, jsx.object.ADD_OVERWRITE);
 
 /**
+ * @namespace
+ */
+jsx.array = (function (jsx_object) {
+  var _isMethod = jsx_object.isMethod;
+
+  /**
+   * Returns <code>true</code> if a value can be used
+   * as array index.
+   *
+   * @return {boolean}
+   *   <code>true</code> if a value can be used
+   *   as array index, i.e. can be converted to an integer
+   *   (may be out of ES 5.1 index range);
+   *   <code>false</code> otherwise.
+   */
+  function jsx_array_isIndex (index)
+  {
+    /* Exclude NaN and non-integers */
+    index = +index;
+    return ((index == index) && (index % 1 == 0));
+  }
+
+  return {
+    /**
+     * @memberOf jsx.array
+     */
+    version: jsx.object.version,
+
+    /**
+     * Maps elements of an <code>Array</code>-like object
+     * to named properties of another object.
+     *
+     * <p>NOTE: Equivalent to Array destructuring (JavaScript 1.7+):</p>
+     * <pre><code>var o = jsx.array.destructure(["bar", "foo"], ["foo", "bar"]);</code></pre>
+     * is equivalent to
+     * <pre><code>var o = {};
+     * [o.foo, o.bar] = ["bar", "foo"];</code></pre>
+     *
+     * @param {Object} a
+     *   <code>Array</code>-like object whose elements should be mapped.
+     * @param {Array} properties
+     *   Names of the properties that array elements should be mapped to.
+     *   If an element of this <code>Array</code> is <code>undefined</code>
+     *   or <code>null</code> (the former can be facilitated with
+     *   omitting the element value in an <code>Array</code> initialiser
+     *   when not the last element of this <code>Array</code>,
+     *   for backwards compatibility), the corresponding element of
+     *   <var>a</var> is not mapped.
+     * @param {Object} oTarget
+     *   Target object.  If a false-value, a new <code>Object</code>
+     *   instance is being created.
+     * @return {Object}
+     *   <var>oTarget</var> or a new <code>Object</code> instance
+     *   augmented with the specified properties and values.
+     */
+    destructure: function (a, properties, oTarget) {
+      var o = oTarget || jsx_object.getDataObject();
+
+      /* More efficient with sparse arrays */
+      var keys = jsx_object.getKeys(properties);
+
+      for (var i = 0, len = keys.length; i < len; ++i)
+      {
+        var index = keys[i];
+        if (jsx_array_isIndex(index))
+        {
+          var propertyName = properties[index];
+          if (propertyName != null)
+          {
+            o[propertyName] = a[i];
+          }
+        }
+      }
+
+      return o;
+    },
+
+    isIndex: jsx_array_isIndex,
+
+    /**
+    * Maps one array to another
+    *
+    * @return {Array}
+    *   <var>array</var> with <var>callback</var> applied to each element.
+    * @see ECMAScript Language Specification, Edition 5.1, section 15.4.4.19
+    * @param {Array} array
+    *   Array to be mapped
+    * @param {Callable} callback
+    * @param {Object} oThis (optional)
+    */
+    map: function (array, callback, oThis) {
+      if (!_isMethod(callback))
+      {
+        return jsx.throwThis("TypeError",
+          (_isMethod(callback, "toSource") ? callback.toSource() : callback)
+            + " is not callable",
+          this + ".map");
+      }
+
+      var
+        array_length = +array.length,
+        res = [];
+
+      /* More efficient with sparse arrays */
+      var keys = jsx_object.getKeys(array);
+      keys.sort(function (a, b) { return a - b; });
+
+      /* Start with highest index to reduce .length updates */
+      for (var i = keys.length; i--;)
+      {
+        var index = keys[i];
+        if (jsx_array_isIndex(index) && index < array_length)
+        {
+          res[index] = callback.call(oThis, array[index], index, array);
+        }
+      }
+
+      return res;
+    }
+  };
+}(jsx.object));
+
+/**
+ * Returns an <code>Array</code> created from mapping items
+ * of an Array-like object.
+ *
+ * @param {Object} iterable
+ *   <code>Array</code>-like object
+ * @param {Function} builder (optional)
+ *   Mapping function whose return value specifies the
+ *   mapped value in the new <code>Array</code>.
+ *   Pass <code>null</code> for no mapping.
+ * @param {Object} oThis (optional)
+ *   <code>this</code> value in the mapping function
+ * @return {Array}
+ * @see Array.prototype#map
+ */
+jsx.array.from = function (iterable, builder, oThis) {
+  if (arguments.length < 2)
+  {
+    builder = null;
+  }
+
+  if (arguments.length > 1 && builder && typeof builder != "function")
+  {
+    return jsx.throwThis("TypeError",
+      (_isMethod(builder, "toSource") ? builder.toSource() : builder)
+        + " is not callable",
+      this + ".map");
+  }
+
+  if (arguments.length < 3)
+  {
+    oThis = iterable;
+  }
+
+  var
+    len = iterable.length >>> 0,
+    res = [];
+
+  for (var i = 0; i < len; ++i)
+  {
+    res[i] = (builder
+      ? builder.call(oThis, iterable[i], i, iterable)
+      : oThis[i]);
+  }
+
+  return res;
+};
+
+/**
+ * @param {Array} a
+ * @param {Number} index
+ * @param {Boolean} bThrow
+ *   if <code>true</code>, throws an exception on invalid index
+ */
+jsx.array.getRealIndex = function (a, index, bThrow) {
+  if (isNaN(index) && bThrow)
+  {
+    return jsx.throwThis(jsx.InvalidArgumentError, ["",
+      "(" + typeof a + ", " + typeof index + ")",
+      "(object[Array], number)"]);
+  }
+
+  index = +index;
+
+  if (index >= 0)
+  {
+    return index;
+  }
+
+  return a.length + index;
+};
+
+/**
+ * Retrieves an {@link Array} element as if by the expression
+ * <code><var>a</var>.slice(<var>index</var>,
+ * <var>index</var> + 1)[0]</code>.
+ *
+ * If <var>index</var> is negative, its absolute is counted
+ * from the end of <var>a</var>.
+ *
+ * @param {Array} a
+ * @param {Number} index
+ * @return {any}
+ */
+jsx.array.get = function (a, index) {
+  index = jsx.array.getRealIndex(a, index, true);
+  return a[index];
+};
+
+/**
+ * Sets an {@link Array} element as if by the expression
+ * <code><var>a</var>[(<var>index</var> &lt; 0) ? (index + a.length)
+ * : <var>index</var>] = <var>value</var></code>.
+ *
+ * If <var>index</var> is negative, its absolute is counted
+ * from the end of <var>a</var>.
+ *
+ * @param {Array} a
+ * @param {Number} index
+ * @return {any}
+ */
+jsx.array.set = function (a, index, value) {
+  index = jsx.array.getRealIndex(a, index, true);
+  return (a[index] = value);
+};
+
+if (jsx.options.augmentBuiltins)
+{
+  /* Defines Array.isArray() if not already defined */
+  jsx.object.extend(Array, {
+    destructure: jsx.array.destructure,
+    from: jsx.array.from,
+    get: jsx.array.get,
+    set: jsx.array.set,
+    isArray: jsx.object.isArray
+  });
+
+  Object.observe = (typeof Object.observe == "function")
+    ? (function () {
+        var _observe = Object.observe;
+
+        return function (obj, callback) {
+          _observe(obj, callback);
+          return obj;
+        };
+      }())
+    : function (obj, callback) {
+        var proxy;
+
+        var handler = {
+          "set": function (obj, prop, value) {
+            var type = "update";
+
+            if (jsx.object._hasOwnProperty(obj, prop))
+            {
+              var oldValue = obj[prop];
+            }
+            else
+            {
+              type = "add";
+            }
+
+            obj[prop] = value;
+
+            if (type == "update")
+            {
+              if (obj[prop] !== oldValue)
+              {
+                callback(prop, obj, type, oldValue);
+              }
+            }
+            else
+            {
+              callback(prop, obj, type);
+            }
+          },
+          "deleteProperty": function (obj, prop) {
+            var hadOwnProperty = jsx.object._hasOwnProperty(obj, prop);
+            var deleted = delete obj[prop];
+
+            if (hadOwnProperty && deleted)
+            {
+              callback(prop, obj, "delete");
+            }
+          }
+        };
+
+        jsx.tryThis(
+          function () {
+            proxy = new Proxy(obj, handler);
+          },
+          function () {
+            jsx.tryThis(
+              function () {
+                proxy = Proxy.create(obj, handler);
+              },
+              function () {
+                jsx.warn("Cannot observe object, Proxy is not implemented");
+              });
+          });
+
+        return proxy;
+      };
+}
+
+/**
  * Returns the absolute path for a URI-reference
  *
  * @param {string} relativePath
@@ -3364,215 +3672,61 @@ Function.prototype.extend = (function () {
 }());
 
 /**
- * @namespace
+ * General exception
+ *
+ * @constructor
+ * @extends Error
+ * @param {string} sMsg
  */
-jsx.array = {
-  version: jsx.object.version,
+jsx.Error = function jsx_Error (sMsg) {
+  var msg = (sMsg || "Unspecified error");
+  var _super = jsx_Error._super;
+  var e = null;
 
-  /**
-   * Maps elements of an <code>Array</code>-like object
-   * to named properties of another object.
-   *
-   * <p>NOTE: Equivalent to Array destructuring (JavaScript 1.7+):</p>
-   * <pre><code>var o = jsx.array.destructure(["bar", "foo"], ["foo", "bar"]);</code></pre>
-   * is equivalent to
-   * <pre><code>var o = {};
-   * [o.foo, o.bar] = ["bar", "foo"];</code></pre>
-   *
-   * @param {Object} a
-   *   <code>Array</code>-like object whose elements should be mapped.
-   * @param {Array} properties
-   *   Names of the properties that array elements should be mapped to.
-   *   If an element of this <code>Array</code> is <code>undefined</code>
-   *   or <code>null</code> (the former can be facilitated with
-   *   simply omitting the element value in an <code>Array</code>
-   *   Initialiser when not the last element of this <code>Array</code>),
-   *   the corresponding element of <var>a</var> is not mapped.
-   * @param {Object} oTarget
-   *   Target object.  If a false-value, a new <code>Object</code>
-   *   instance is being created.
-   * @returns {Object}
-   *   <var>oTarget</var> or a new <code>Object</code> instance
-   *   augmented with the specified properties and values.
-   */
-  destructure: function (a, properties, oTarget) {
-    var o = oTarget || {};
+  if (typeof _super == "function")
+  {
+    _super.call(this, msg);
 
-    for (var i = 0, len = properties.length; i < len; ++i)
-    {
-      var propertyName = properties[i];
-      if (propertyName != null)
-      {
-        o[propertyName] = a[i];
-      }
-    }
+    jsx.tryThis(function () { e = new _super(); });
+  }
 
-    return o;
-  },
-
-  /**
-   * Maps one array to another
-   *
-   * @function
-   * @return {Array}
-   *   <var>array</var> with <var>callback</var> applied to each element.
-   * @see ECMAScript Language Specification, Edition 5.1, section 15.4.4.19
-   */
-  map: (function () {
-    var _isMethod = jsx.object.isMethod;
-
+  if (!this.message)
+  {
     /**
-     * @param {Array} array
-     *   Array to be mapped
-     * @param {Callable} callback
-     * @param {Object} oThis (optional)
+     * @type string
      */
-    function _map (array, callback, oThis)
-    {
-      if (!_isMethod(callback))
-      {
-        return jsx.throwThis("TypeError",
-          (_isMethod(callback, "toSource") ? callback.toSource() : callback)
-            + " is not callable",
-          this + ".map");
-      }
+    this.message = msg;
+  }
 
-      var
-        len = array.length >>> 0,
-        res = [];
+  if (!this.lineNumber && e)
+  {
+    /**
+     * @type number
+     */
+    this.lineNumber = e.lineNumber || e.line;
+  }
 
-      for (var i = 0; i < len; ++i)
-      {
-        if (i in array)
-        {
-          res[i] = callback.call(oThis, array[i], i, array);
-        }
-      }
-
-      return res;
-    }
-
-    return _map;
-  }())
+  if (!this.stack && e && e.stack)
+  {
+    var stack = String(e.stack).split(/\r?\n|\r/).slice(2);
+    this.stack = stack.join("\n");
+  }
 };
 
-/**
- * Returns an <code>Array</code> created from mapping items
- * of an Array-like object.
- *
- * @param {Object} iterable
- *   <code>Array</code>-like object
- * @param {Function} builder (optional)
- *   Mapping function whose return value specifies the
- *   mapped value in the new <code>Array</code>.
- *   Pass <code>null</code> for no mapping.
- * @param {Object} oThis (optional)
- *   <code>this</code> value in the mapping function
- * @return {Array}
- * @see Array.prototype#map
- */
-jsx.array.from = function (iterable, builder, oThis) {
-  if (arguments.length < 2)
+jsx.Error.extend(
+  (typeof Error != "undefined" && Error !== null ? Error : function () {}),
   {
-    builder = null;
+    /**
+     * @memberOf jsx.Error.prototype
+     */
+    name: "jsx.Error",
+    getMessage: function () { return this.message; },
+    getStackTrace: function () { return this.stack; },
+    printStackTrace: function () {
+      var s = this.getStackTrace();
+      jsx.dmsg(s) || window.alert(s);
   }
-
-  if (arguments.length > 1 && builder && typeof builder != "function")
-  {
-    return jsx.throwThis("TypeError",
-      (_isMethod(builder, "toSource") ? builder.toSource() : builder)
-        + " is not callable",
-      this + ".map");
-  }
-
-  if (arguments.length < 3)
-  {
-    oThis = iterable;
-  }
-
-  var
-    len = iterable.length >>> 0,
-    res = [];
-
-  for (var i = 0; i < len; ++i)
-  {
-    res[i] = (builder
-      ? builder.call(oThis, iterable[i], i, iterable)
-      : oThis[i]);
-  }
-
-  return res;
-};
-
-/**
- * @param {Array} a
- * @param {Number} index
- * @param {Boolean} bThrow
- *   if <code>true</code>, throws an exception on invalid index
- */
-jsx.array.getRealIndex = function (a, index, bThrow) {
-  if (isNaN(index) && bThrow)
-  {
-    return jsx.throwThis(jsx.InvalidArgumentError, ["",
-      "(" + typeof a + ", " + typeof index + ")",
-      "(object[Array], number)"]);
-  }
-
-  index = +index;
-
-  if (index >= 0)
-  {
-    return index;
-  }
-
-  return a.length + index;
-};
-
-/**
- * Retrieves an {@link Array} element as if by the expression
- * <code><var>a</var>.slice(<var>index</var>,
- * <var>index</var> + 1)[0]</code>.
- *
- * If <var>index</var> is negative, its absolute is counted
- * from the end of <var>a</var>.
- *
- * @param {Array} a
- * @param {Number} index
- * @return {any}
- */
-jsx.array.get = function (a, index) {
-  index = jsx.array.getRealIndex(a, index, true);
-  return a[index];
-};
-
-/**
- * Retrieves an {@link Array} element as if by the expression
- * <code><var>a</var>.slice(<var>index</var>,
- * <var>index</var> + 1)[0]</code>.
- *
- * If <var>index</var> is negative, its absolute is counted
- * from the end of <var>a</var>.
- *
- * @param {Array} a
- * @param {Number} index
- * @return {any}
- */
-jsx.array.set = function (a, index, value) {
-  index = jsx.array.getRealIndex(a, index, true);
-  return (a[index] = value);
-};
-
-if (jsx.options.augmentBuiltins)
-{
-  /* Defines Array.isArray() if not already defined */
-  jsx.object.extend(Array, {
-    destructure: jsx.array.destructure,
-    from: jsx.array.from,
-    get: jsx.array.get,
-    set: jsx.array.set,
-    isArray: jsx.object.isArray
-  });
-}
+});
 
 if (jsx.options.augmentPrototypes)
 {
@@ -3709,63 +3863,6 @@ if (jsx.options.augmentPrototypes)
     }
   });
 }
-
-/**
- * General exception
- *
- * @constructor
- * @extends Error
- * @param {string} sMsg
- */
-jsx.Error = function jsx_Error (sMsg) {
-  var msg = (sMsg || "Unspecified error");
-  var _super = jsx_Error._super;
-  var e = null;
-
-  if (typeof _super == "function")
-  {
-    _super.call(this, msg);
-
-    jsx.tryThis(function () { e = new _super(); });
-  }
-
-  if (!this.message)
-  {
-    /**
-     * @type string
-     */
-    this.message = msg;
-  }
-
-  if (!this.lineNumber && e)
-  {
-    /**
-     * @type number
-     */
-    this.lineNumber = e.lineNumber || e.line;
-  }
-
-  if (!this.stack && e && e.stack)
-  {
-    var stack = String(e.stack).split(/\r?\n|\r/).slice(2);
-    this.stack = stack.join("\n");
-  }
-};
-
-jsx.Error.extend(
-  (typeof Error != "undefined" && Error !== null ? Error : function () {}),
-  {
-    /**
-     * @memberOf jsx.Error.prototype
-     */
-    name: "jsx.Error",
-    getMessage: function () { return this.message; },
-    getStackTrace: function () { return this.stack; },
-    printStackTrace: function () {
-      var s = this.getStackTrace();
-      jsx.dmsg(s) || window.alert(s);
-  }
-});
 
 /**
  * Formats a value for debug output
