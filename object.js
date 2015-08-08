@@ -2748,10 +2748,15 @@ jsx.importOnce = (function () {
 /**
  * Executes a function if and once its dependencies are met.
  *
+ * If the required HTML5 features are not supported, the code
+ * is executed immediately.  Any dependencies have to be
+ * resolved manually then.
+ *
  * @function
  */
 jsx.require = (function () {
   var _jsx = jsx;
+  var _map = _jsx.array.map;
   var _importOnce = _jsx.importOnce;
   var _jsx_object = _jsx.object;
   var _getFeature = _jsx_object.getFeature;
@@ -2773,6 +2778,26 @@ jsx.require = (function () {
     {
       dependencies = [dependencies];
     }
+
+    dependencies = _map(dependencies, function (urn) {
+      var m;
+      if ((m = urn.match(/^([^:]+):([^\/]|\/[^\/])/)))
+      {
+        var scheme = m[1];
+        var uri = (jsx_require.urnPrefixes || jsx.object.getDataObject())[scheme];
+        if (typeof uri != "undefined")
+        {
+          urn = urn.replace(m[0], uri + m[2]);
+        }
+        else
+        {
+          jsx.warn('jsx.require.urnPrefixes["' + scheme + '"] is not defined.'
+            + ' Leaving it unchanged.\nDid you mean "' + scheme + '://..."?');
+        }
+      }
+
+      return urn;
+    });
 
     var script = document.createElement("script");
 
