@@ -2846,12 +2846,19 @@ jsx.require = (function () {
 
     if (listenerSupported)
     {
+      _addEventListener(script, "error", function (e) {
+        jsx.error(e);
+      });
+
       script.src = dependencies[0];
       (document.head || document.getElementsByTagName("head")[0])
         .appendChild(script);
     }
     else
     {
+      jsx.warn('The "load" event is not supported on "script" elements.'
+        + ' Attempting to resolve dependencies using synchronous XHR (blocking).');
+
       for (var i = 0, len = dependencies.length; i < len; ++i)
       {
         if (!_importOnce(dependencies[i]))
