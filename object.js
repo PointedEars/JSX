@@ -2200,6 +2200,166 @@ if (jsx.options.augmentBuiltins)
 
     Object.values._emulated = true;
   }
+
+  if (typeof Object.forKeys != "function")
+  {
+    /**
+     * Executes a callback for all keys of an object
+     *
+     * @param {Object} obj
+     * @param {Object} callback
+     * @param {Object} thisValue
+     */
+    Object.forKeys = function (obj, callback, thisValue) {
+      return Object.keys(obj).forEach(function (key) {
+        return callback.call(thisValue || this, this[key], key, thisValue || this);
+      }, obj);
+    };
+
+    Object.forKeys._emulated = true;
+  }
+
+  if (typeof Object.assign != "function")
+  {
+    /**
+     * Copy the values of all of the enumerable own properties
+     * from one or more source objects to a target object.
+     *
+     * @param {Object} target
+     * @params {Object} sources
+     * @return {Object}
+     * @see http://ecma-international.org/ecma-262/6.0/index.html#sec-object.assign
+     */
+    Object.assign = function (target) {
+      function toObject (o)
+      {
+        if (o == null)
+        {
+          throw new TypeError("Cannot convert to object: " + o + " : " + jsx.object.getClass(o) || typeof o);
+        }
+
+        return new Object(o);
+      }
+
+      target = toObject(target);
+
+      for (var i = 1, len = arguments.length; i < len; ++i)
+      {
+        var source = arguments[i];
+        if (source)
+        {
+          Object.forKeys(source, function (value, key) {
+            var desc = Object.getOwnPropertyDescriptor(this.source, key);
+
+            if (typeof desc != "undefined" && desc.enumerable)
+            {
+              Object.defineProperty(this.target, key, desc);
+            }
+          }, {target: target, source: source});
+        }
+      }
+
+      return target;
+    };
+  }
+
+  if (typeof Object.extend != "function")
+  {
+    /**
+     * Extends an object with properties from other objects.
+     *
+     * Different to {@link Object.assign} and {@link Object.merge},
+     * existing property values are overwritten, unless the property
+     * value is an {@link Array}, in which case the values of the
+     * corresponding properties of the sources are appended.
+     *
+     * @param {Object} obj
+     * @params {Object} sources
+     */
+    Object.extend = function (obj) {
+      for (var i = 1, len = arguments.length; i < len; ++i)
+      {
+        var source = arguments[i];
+
+        Object.forKeys(source, function (value, key, source) {
+          if (!(jsx.object._hasOwnProperty(obj, key)))
+          {
+            var desc = (typeof Object.getOwnPropertyDescriptor == "function")
+              && Object.getOwnPropertyDescriptor(source, key);
+            if (desc && "value" in desc)
+            {
+              desc.value = value;
+              Object.defineProperty(obj, key, desc);
+            }
+            else
+            {
+              obj[key] = value;
+            }
+          }
+          else
+          {
+            if (Array.isArray(obj))
+            {
+              if (!Array.isArray(source))
+              {
+                source = Object.values(source);
+              }
+
+              obj.splice.apply(obj, [obj.length, 0].concat(source));
+            }
+            else
+            {
+              Object.extend(obj[key], value);
+            }
+          }
+        }, source);
+
+        return obj;
+      }
+    };
+
+    Object.extend._emulated = true;
+  }
+
+  if (typeof Object.merge != "function")
+  {
+    /**
+     * Merges the properties of one or more objects with
+     * the <var>target</var> object.
+     *
+     * @param target
+     * @return Object
+     */
+    Object.merge = function (target) {
+      var clone = Object.clone(target, true);
+
+      for (var i = 1, len = arguments.length; i < len; ++i)
+      {
+        var arg = arguments[i];
+
+        Object.getOwnPropertyNames(target).forEach(function (name) {
+          var sourceValue = this.source[name];
+
+          if (name in this.clone)
+          {
+            if (!Array.isArray(this.clone[name]))
+            {
+              this.target[name] = [this.target[name]];
+            }
+
+            this.target[name].push(sourceValue);
+          }
+          else
+          {
+            this.target[name] = sourceValue;
+          }
+
+        }, {target: clone, source: arg});
+      }
+
+      return clone;
+    };
+  }
 }
 
 /**
