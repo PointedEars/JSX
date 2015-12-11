@@ -965,7 +965,9 @@ jsx.dom.css.RuleList.extend(jsx.Collection, {
    * @return {CSSStyleRule|Null}
    */
   findBySimpleSelector: function (sSelector) {
-    var i = this.iterator();
+    var
+      i = this.iterator(),
+      s;
     while ((s = i.next()) != null)
     {
       if ((new RegExp("(^|\\s)" + sSelector + "([+>\\s]|$)")).test(s.value.selectorText))
@@ -1066,12 +1068,13 @@ jsx.dom.css.getElemByClassName = jsx.dom.css.gEBCN = (function () {
       classNames = !Array.isArray(sClassNames)
         ? String(sClassNames || "").split(rxWhiteSpace)
         : sClassNames,
-      classNameSet = {};
+      classNameSet = {},
+      i;
 
     if (classNames.length > 0)
     {
       /* Remove duplicates */
-      for (var i = classNames.length; i--;)
+      for (i = classNames.length; i--;)
       {
         classNameSet[classNames[i]] = true;
       }
@@ -1101,7 +1104,8 @@ jsx.dom.css.getElemByClassName = jsx.dom.css.gEBCN = (function () {
        * NOTE: There are many more elements than potential class names, so loop
        * through those only once
        */
-      outer: for (var i = 0, len = aElements.length; i < len; ++i)
+      var len;
+      outer: for (i = 0, len = aElements.length; i < len; ++i)
       {
         var element = aElements[i];
         var elementClassName = element.className;
