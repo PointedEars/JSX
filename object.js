@@ -3568,7 +3568,7 @@ Function.prototype.extend = (function () {
       fSuper = _jsx.global[fSuper];
     }
 
-    var t = typeof fConstructor;
+    var t = typeof fSuper;
     if (t != "function")
     {
       _jsx.throwThis("TypeError",
