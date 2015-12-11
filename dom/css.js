@@ -48,12 +48,6 @@ if (typeof jsx.dom == "undefined")
   }
 }
 
-/* for JSDT only */
-/**
- * @namespace
- */
-jsx.dom.css = {};
-
 /**
  * @type jsx.dom.css
  * @memberOf __jsx.dom.css
