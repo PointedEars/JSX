@@ -798,7 +798,8 @@ jsx.dom.visibility = jsx.dom.visible = function (oElement, bVisible) {
 
 /**
  * @param {Number|String} imgID
- * @param {Number} state (optional)
+ * @param {boolean} state (optional)
+ *   A true-value for the mouseover effect, the mouseout effect otherwise.
  * @return {boolean}
  *   The return value of {@link #setStyleProperty} for setting the
  *   borderColor of the image
@@ -813,7 +814,7 @@ jsx.dom.hoverImg = function (imgID, state) {
 
   var me = arguments.callee;
   return jsx.dom.css.setStyleProperty(img, "borderColor",
-    (state == 0 ? me.clMouseout : me.clMouseover));
+    (state ? me.clMouseover : me.clMouseout));
 };
 jsx.dom.hoverImg.clMouseout = "#000";
 jsx.dom.hoverImg.clMouseover = "#fff";
