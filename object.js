@@ -426,7 +426,7 @@ jsx.object = (/** @constructor */ function () {
         "jsx.object.getKeys() called on non-object");
     }
 
-    var names = new Array();
+    var names = [];
 
     for (var p in obj)
     {
@@ -463,8 +463,10 @@ jsx.object = (/** @constructor */ function () {
 
     if (typeof obj == "object" && obj == null)
     {
-      var result = new Object();
+      var result = {};
+      /*jshint -W103*/
       result.__proto__ = null;
+      /*jshint +W103*/
       return result;
     }
 
@@ -585,7 +587,9 @@ jsx.object = (/** @constructor */ function () {
       return Object.getPrototypeOf(o);
     }
 
+    /*jshint -W103*/
     return o.__proto__ || (o.constructor && o.constructor.prototype);
+    /*jshint +W103*/
   }
 
   function _createTypedObject (oOriginal)
@@ -2108,7 +2112,7 @@ jsx.object.extend(jsx.options, {
    * </p>
    * @type boolean
    */
-  emulate: true,
+  emulate: true
 });
 
 if (jsx.options.emulate)
@@ -2186,7 +2190,7 @@ if (jsx.options.augmentBuiltins)
 
     Object.keys._emulated = true;
   }
-  
+
   if (typeof Object.values != "function")
   {
     /**
@@ -3082,6 +3086,8 @@ jsx.require = (function () {
    *   <code>undefined</code> otherwise.
    */
   return function jsx_require (dependencies, callback) {
+    var success;
+
     if (!_isArray(dependencies))
     {
       dependencies = [dependencies];
@@ -3239,7 +3245,7 @@ if (jsx.options.augmentBuiltins)
           {
             o[p] = thisArg || this;
 
-            var a = new Array();
+            var a = [];
             for (var i = 0, len = argArray.length; i < len; i++)
             {
               a[i] = "argArray[" + i + "]";
@@ -3264,7 +3270,7 @@ if (jsx.options.augmentBuiltins)
        *   Arguments for the object.
        */
       call: function (thisArg) {
-        var a = new Array();
+        var a = [];
 
         for (var i = 1, len = arguments.length; i < len; i++)
         {
@@ -3406,7 +3412,7 @@ if (jsx.options.augmentBuiltins)
      * @return {Date} Reference to the new instance
      */
     construct: function (argArray) {
-      var a = new Array();
+      var a = [];
       for (var i = 0, len = argArray.length; i < len; ++i)
       {
         a[i] = "argArray[" + i + "]";
@@ -3469,7 +3475,7 @@ Function.prototype.extend = (function () {
       _jsx.warn("for (var p in o.iterator()) { f(); } is inefficient,"
         + " consider using o.forEach(f, ...) instead");
 
-      var o = new Object();
+      var o = {};
 
       for (var p2 in this)
       {
@@ -3772,7 +3778,6 @@ if (jsx.options.augmentPrototypes)
      * @see ECMAScript Language Specification, 5.1 Edition, section 15.4.4.14
      */
     indexOf: function (searchElement, fromIndex) {
-      "use strict";
       if (this === void 0 || this === null)
       {
         throw new TypeError();
