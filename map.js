@@ -320,7 +320,7 @@ jsx.map = {
         /* Allows to use this as a factory */
         if (!this || this.constructor != _Map)
         {
-          return new Map(map);
+          return new _Map(map);
         }
 
         var _items = _getDataObject();
