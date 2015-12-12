@@ -313,7 +313,7 @@ jsx.python = (/** @constructor */ function () {
           else
           {
             /* comparisons(n) = (n^2 - n)/2 ~ O(n^2) */
-            for (var i = 0, len = result.length; i < len; ++i)
+            for (i = 0, len = result.length; i < len; ++i)
             {
               for (var j = i + 1; j < len; ++j)
               {
