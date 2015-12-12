@@ -416,7 +416,7 @@ function playSound( sSoundFile, Loop, sAttrib ) {
     return(EInvalidArgNum( "Level 2: playSound", 2 ));
   if( document.all ) {
     var sAdjacent = "<bgsound ";
-    if( (arguments.length == 3) && (sAttrib.length != "") ) {
+    if( (arguments.length == 3) && (sAttrib.length != 0) ) {
       sAdjacent += sAttrib;
       sAdjacent += " ";
     }
