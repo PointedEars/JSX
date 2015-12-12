@@ -1824,9 +1824,10 @@ de.pointedears.jsx = jsx;
         fHandler = jsx_clearErrorHandler;
       }
 
-      if (typeof assertFalse == "function")
+      var _assertFalse = jsx_object.getFeature(jsx, "test", "assertFalse");
+      if (typeof _assertFalse == "function")
       {
-        assertFalse(typeof fHandler == "undefined", false,
+        _assertFalse(typeof fHandler == "undefined", false,
           "jsx.setErrorHandler(fHandler)");
       }
 
