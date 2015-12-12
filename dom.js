@@ -296,7 +296,7 @@ jsx.dom = (/** @constructor */ function () {
       };
     }
 
-    if (_hasDocumentAll && isMethod(document.all, "tags"))
+    if (_hasDocumentAll && _isMethod(document.all, "tags"))
     {
       /**
        * @param {string} sTagName
@@ -354,7 +354,7 @@ jsx.dom = (/** @constructor */ function () {
        * @return Element|Null|Undefined
        */
       return function (index) {
-        return (result = document.getElementsByTagName('*')[index]);
+        return document.getElementsByTagName('*')[index];
       };
     }
 
@@ -452,7 +452,7 @@ jsx.dom = (/** @constructor */ function () {
     if (o && sAttrName)
     {
       /* camel-case specific attribute names */
-      if (typeof attrMap[sAttrName] != "undefined")
+      if (typeof _attrMap[sAttrName] != "undefined")
       {
         sAttrName = _attrMap[sAttrName];
       }
@@ -610,7 +610,7 @@ jsx.dom = (/** @constructor */ function () {
     {
       var keys = _getKeys(attributes);
 
-      for (var i = 0, len = keys.length; i < len; ++i)
+      for (i = 0, len = keys.length; i < len; ++i)
       {
         var attrName = keys[i];
         el.setAttribute(attrName, attributes[attrName]);
@@ -639,9 +639,9 @@ jsx.dom = (/** @constructor */ function () {
           else
           {
             var styleKeys = _getKeys(style);
-            for (var i = 0, len = styleKeys.length; i < len; ++i)
+            for (var j = 0, len2 = styleKeys.length; j < len2; ++j)
             {
-              var stylePropName = styleKeys[i];
+              var stylePropName = styleKeys[j];
               _setStyleProperty(el, stylePropName, style[stylePropName]);
             }
           }
@@ -654,7 +654,7 @@ jsx.dom = (/** @constructor */ function () {
     }
 
     var nodes = data.childNodes;
-    for (var i = 0, len = nodes && nodes.length; i < len; ++i)
+    for (i = 0, len = nodes && nodes.length; i < len; ++i)
     {
       el.appendChild(me(nodes[i]));
     }
@@ -881,7 +881,8 @@ jsx.dom = (/** @constructor */ function () {
       }
     }
 
-    for (var i = 0, childNodes = contextNode.childNodes, len = childNodes && childNodes.length;
+    var childNodes;
+    for (i = 0, childNodes = contextNode.childNodes, len = childNodes && childNodes.length;
          i < len;
          ++i)
     {
@@ -1048,7 +1049,7 @@ jsx.dom = (/** @constructor */ function () {
 
       jsx.setErrorHandler();
       var stackTrace =
-        _isMethod(_global, "Error") && (new Error()).stack || "";
+        _isMethod(jsx.global, "Error") && (new Error()).stack || "";
 
       jsx.clearErrorHandler();
 
@@ -1300,7 +1301,7 @@ jsx.dom = (/** @constructor */ function () {
      * @todo Duplicate of getCont(..., false)?
      */
     getContent: function (oNode, bGetHTML) {
-      var text = "";
+      var text;
 
       if (oNode)
       {
@@ -1332,6 +1333,11 @@ jsx.dom = (/** @constructor */ function () {
         else if (typeof oNode.innerText != "undefined")
         {
           text = oNode.innerText;
+        }
+
+        if (typeof text == "undefined" && bGetHTML)
+        {
+          text = oNode.innerHTML;
         }
       }
 
@@ -1621,7 +1627,7 @@ jsx.dom = (/** @constructor */ function () {
       {
         var keys = _getKeys(attributes);
 
-        for (var i = 0, len = keys.length; i < len; ++i)
+        for (i = 0, len = keys.length; i < len; ++i)
         {
           var attrName = keys[i];
           el.push(" " + attrName + '="' + me(attributes[attrName]) + '"');
@@ -1646,9 +1652,9 @@ jsx.dom = (/** @constructor */ function () {
               || function (s) { return s; };
 
             var styleKeys = _getKeys(style);
-            for (var i = 0, len = styleKeys.length; i < len; ++i)
+            for (var j = 0, len2 = styleKeys.length; j < len2; ++j)
             {
-              var stylePropName = styleKeys[i];
+              var stylePropName = styleKeys[j];
               el.push(" " + me(_uncamelize(stylePropName)) + ": " + me(style[stylePropName]));
             }
           }
@@ -1668,7 +1674,7 @@ jsx.dom = (/** @constructor */ function () {
 
       el.push(">");
 
-      for (var i = 0, len = nodes && nodes.length; i < len; ++i)
+      for (i = 0, len = nodes && nodes.length; i < len; ++i)
       {
         el.push(me(nodes[i], bXML));
       }
@@ -1903,9 +1909,7 @@ jsx.dom = (/** @constructor */ function () {
           );
         }
 
-        var text = (typeof this.text != "undefined"
-          ? this.text
-          : text);
+        if (typeof text == "undefined") text = this.text;
 
         var rxAttributes = /\s+((\w+):)?(\w+)(\s*=\s*("[^"]*"|'[^']*'|([^\s\/>]|\/[^>])+))?/g;
         var sMarkup = /[^<]+|<(\/?)(((\w+):)?(\w+))?/.source
@@ -2028,8 +2032,8 @@ jsx.dom = (/** @constructor */ function () {
           }
           else
           {
-            var text = _unescape(m[0]);
-            node.appendChild(document.createTextNode(text));
+            var text_content = _unescape(m[0]);
+            node.appendChild(document.createTextNode(text_content));
           }
         }
 
