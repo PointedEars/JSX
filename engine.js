@@ -2,7 +2,7 @@
  * <title>Script Engine Detection Library</title>
  * @file $Id$
  *
- * @author (C) 2004, 2013 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
+ * @author (C) 2004, 2015 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -19,6 +19,9 @@
  * You should have received a copy of the GNU General Public License
  * along with JSX.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/* Use Object constructor for backwards compatibility */
+/*jshint -W010*/
 
 if (typeof jsx == "undefined")
 {
