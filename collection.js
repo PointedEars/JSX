@@ -1,13 +1,13 @@
 /**
  * <title>PointedEars' Collection Library</title>
  * @requires object.js
- * 
+ *
  * @section Copyright & Disclaimer
- * 
+ *
  * @author (C) 2002-2011  Thomas Lahn &lt;js@PointedEars.de&gt;
- * 
+ *
  * @partof PointedEars' JavaScript Extensions (JSX)
- * 
+ *
  * JSX is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -24,7 +24,7 @@
 
 /**
  * @section Abstract
- * 
+ *
  * A collection in ECMAScript and its implementations is an object
  * which has indexed items like an {@link Array} object.
  * Unlike an <code>Array</code> object, it also has named items
@@ -39,16 +39,16 @@
  * By internal references it is ensured that an operation on
  * an item is performed on both the indexed item and its named
  * counterpart.
- * 
+ *
  * You could compare this behavior to an associative array in PHP,
  * only that ECMAScript has no built-in concept of associative arrays.
- * 
+ *
  * @TODO Inherit from jsx.map.Map, remove duplicate methods
  */
 
 /**
  * Creates and initializes a <code>Collection</code> object.
- * 
+ *
  * @param o : optional Object
  *   reference used to fill the collection.
  * @constructor
@@ -70,7 +70,7 @@ jsx.Collection.extend(Array);
 
 /**
  * Adds an item to a {@link Collection}.
- * 
+ *
  * @param val
  * @param name : optional string
  *   Reference to an object used to fill the collection.
@@ -104,30 +104,30 @@ jsx.Collection.prototype.addItems = function (o) {
       result = this.add(o[i], i);
     }
   }
-  
+
   return result;
 };
 
 /**
  * Removes all items from the {@link Collection}.
- * 
+ *
  * @type Array
  */
 jsx.Collection.prototype.clear = function () {
   this.items = [];
-  
+
   if (typeof this.items.map != "function")
   {
     this.items.map = function (callback, thisObj) {
       var a = this;
-      
+
       if (typeof callback == "function")
       {
         if (!thisObj)
         {
           thisObj = this;
         }
-        
+
         a = [];
         for (var i = 0, len = this.length; i < len; i++)
         {
@@ -136,12 +136,10 @@ jsx.Collection.prototype.clear = function () {
       }
       else
       {
-        (function() {
-           eval("throw new TypeError('Collection.prototype.items.map(callback, thisObj):'"
-             + "+ ' expected function, got ' + typeof thisObj)");
-         }());
+        jsx.throwThis("TypeError", "Collection.prototype.items.map(callback, thisObj):"
+          + " expected function, got " + typeof thisObj);
       }
-  
+
       return a;
     };
   }
@@ -151,12 +149,12 @@ jsx.Collection.prototype.clear = function () {
 
 jsx.Collection.prototype.keys = function () {
   var a = [], o = this.items;
-  
+
   for (var k in o)
   {
     a.push(o[k]);
   }
-  
+
   return a;
 };
 
@@ -166,7 +164,7 @@ jsx.Collection.prototype.values = function () {
 
 /**
  * Returns a reference to a new {@link Iterator} for the {@link Collection}.
- * 
+ *
  * @return Iterator
  */
 jsx.Collection.prototype.iterator = function () {
@@ -185,7 +183,7 @@ jsx.Collection.prototype.set = function (o) {
 /**
  * Creates and initializes a <code>ValueCollection</code> object,
  * which is a special {@link Collection} that can hold a value.
- * 
+ *
  * @param o : Object
  *   reference used to fill the collection
  * @param val
@@ -199,7 +197,7 @@ jsx.ValueCollection.extend(jsx.Collection);
 
 /**
  * Creates and initializes a <code>CollectionItem</code> object.
- * 
+ *
  * @param val
  *   Value of the item
  */
@@ -211,7 +209,7 @@ jsx.CollectionItem = function(val) {
  * Creates an initializes an <code>Iterator</code> object.
  * An iterator iterates over a {@link Collection} such that
  * each item of that collection is visited only once.
- * 
+ *
  * @param o : Collection
  *   Iteration target
  */
@@ -226,7 +224,7 @@ jsx.Iterator = function(o) {
 /* prototype methods */
 /**
  * Returns the item previously visited in the iteration.
- * 
+ *
  * @return CollectionItem
  *   The item previously visited in the iteration.
  */
@@ -248,11 +246,11 @@ jsx.Iterator.prototype.prev = function () {
       {
         this.currItem = t.length;
       }
-      
+
       this.nextItem = this.currItem;
-      
+
       var i = this.currItem;
-      
+
       /* start from next possible item */
       /* run through only one time */
       while (--i > -1 && typeof t[i] == "undefined")
@@ -267,15 +265,15 @@ jsx.Iterator.prototype.prev = function () {
       }
     }
   }
-  
+
   this.prevItem = -1;
-    
+
   return result;
 };
 
 /**
  * Returns the item that will next be visited in the iteration.
- * 
+ *
  * @return CollectionItem
  *   The item that will next be visited in the iteration.
  */
@@ -299,11 +297,11 @@ jsx.Iterator.prototype.next = function () {
       {
         this.currItem = -1;
       }
-      
+
       this.prevItem = this.currItem;
-      
+
       var i = this.currItem;
-    
+
       /* start from next possible item */
       /* run through only one time */
       while (++i < t.length && typeof t[i] == "undefined")
@@ -323,7 +321,7 @@ jsx.Iterator.prototype.next = function () {
       }
     }
   }
-  
+
   this.nextItem = -1;
 
   return result;
@@ -334,7 +332,7 @@ jsx.Iterator.prototype.next = function () {
  * in the iteration, i.e. if the current item is not the
  * first item and the collection consists of more than
  * one item.  Returns <code>false</code> otherwise.
- * 
+ *
  * @return boolean
  *   <code>true</code> if there is a previous item
  *   in the iteration, <code>false</code> otherwise.
@@ -354,7 +352,7 @@ jsx.Iterator.prototype.hasPrev = function () {
 
     /* start from next possible item */
     var i = this.currItem;
-          
+
     /* run through only one time */
     while (--i > -1 && typeof t[i] == "undefined")
     {
@@ -367,7 +365,7 @@ jsx.Iterator.prototype.hasPrev = function () {
       result = true;
     }
   }
-  
+
   return result;
 };
 
@@ -376,7 +374,7 @@ jsx.Iterator.prototype.hasPrev = function () {
  * in the iteration, i.e. if the current item is not the
  * last item and the collection consists of more than
  * one item.  Returns <code>false</code> otherwise.
- * 
+ *
  * @return boolean
  *   <code>true</code> if there is a next item
  *   in the iteration, <code>false</code> otherwise.
@@ -396,7 +394,7 @@ jsx.Iterator.prototype.hasNext = function () {
 
     /* start from next possible item */
     var i = this.currItem;
-    
+
     /* run through only one time */
     while (++i < t.length && typeof t[i] == "undefined")
     {
@@ -409,13 +407,13 @@ jsx.Iterator.prototype.hasNext = function () {
       result = true;
     }
   }
-  
+
   return result;
 };
 
 /**
  * Removes the current item from the collection.
- * 
+ *
  * @type mixed
  * @return the next item, <code>undefined</code> if there is none.
  */
