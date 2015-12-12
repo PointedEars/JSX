@@ -1,4 +1,3 @@
-"use strict";
 /**
  * @fileOverview <title>Pythonic functions for ECMAScript implementations</title>
  * @file $Id$
@@ -30,19 +29,10 @@ if (typeof jsx == "undefined")
   var jsx = {};
 }
 
-/* for JSDT only */
-if (typeof jsx.python == "undefined")
-{
-  /** @namespace */
-  jsx.python = {};
-}
+/** @namespace */
+jsx.python = (function () {
+  "use strict";
 
-/**
- * @type jsx.python
- * @memberOf __jsx.python
- * @namespace
- */
-jsx.python = (/** @constructor */ function () {
   var _jsx_object = jsx.object;
   var _getKeys = _jsx_object.getKeys;
   var _isArray = _jsx_object.isArray;
