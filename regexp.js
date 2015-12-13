@@ -272,6 +272,7 @@ if (typeof jsx != "object")
               + "|" + sPropertyEscapes + "",
             rxEscapes = new RegExp(sEscapes, "gi"),
 
+            /*jshint -W072*/
             fEscapeMapper = function (match, classRanges, p2, p3, p4, p5, p6, p7,
                                        standalonePropSpec, standaloneClass) {
               propertyClasses = _RegExp2.propertyClasses;
@@ -434,6 +435,7 @@ if (typeof jsx != "object")
 
               return result;
             };
+            /*jshint +W072*/
 
           /**
            * Creates and returns an extended {@link RegExp} object.
@@ -662,7 +664,7 @@ if (typeof jsx != "object")
 
               if (sFlags.indexOf("u") > -1)
               {
-                unicodeMode = true;
+                  unicodeMode = true;
               }
 
               sFlags = sFlags.replace(/[xsu]/g, "");
@@ -674,6 +676,7 @@ if (typeof jsx != "object")
             var names = _getDataObject();
             var patternGroups = [expression];
 
+            /*jshint -W072*/
             expression = expression.replace(
               /(\\\()/.concat(
                 "|",
@@ -796,6 +799,7 @@ if (typeof jsx != "object")
 
                 return match;
               });
+            /*jshint +W072*/
 
             groups.length = groupCount;
 
