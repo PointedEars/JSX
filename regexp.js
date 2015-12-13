@@ -249,7 +249,7 @@ if (typeof jsx != "object")
                   reduced = "";
                 }
 
-                if (reduced != "")
+                if (reduced !== "")
                 {
                   jsx.warn(
                     "jsx.regexp.RegExp: Combined negative escapes in character classes"
@@ -1424,7 +1424,7 @@ if (typeof jsx != "object")
        * @return {string}
        */
       escape: function (s) {
-        if (arguments.length == 0 && _isString(this.constructor))
+        if (arguments.length === 0 && _isString(this.constructor))
         {
           s = this;
         }
