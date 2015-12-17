@@ -664,7 +664,7 @@ if (typeof jsx != "object")
 
               if (sFlags.indexOf("u") > -1)
               {
-                  unicodeMode = true;
+                unicodeMode = true;
               }
 
               sFlags = sFlags.replace(/[xsu]/g, "");
