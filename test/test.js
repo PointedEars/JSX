@@ -893,6 +893,7 @@ jsx.test = (/** @constructor */ function () {
       run: function (spec) {
         var hasSetUp = false;
         var hasTearDown = false;
+        var tests;
 
         if (spec)
         {
@@ -911,14 +912,13 @@ jsx.test = (/** @constructor */ function () {
             this._tearDown = spec.tearDown;
           }
 
-          var tests = spec.tests;
-          if (tests)
+          if (spec.tests)
           {
-            this.setTests(tests);
+            this.setTests(spec.tests);
           }
         }
 
-        var tests = this._tests;
+        tests = this._tests;
         if (tests.length == 0)
         {
           return this._printMsg("No tests defined.", "info");
