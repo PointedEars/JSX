@@ -401,7 +401,7 @@ jsx.test = (/** @constructor */ function () {
 
           for (var i = len; i--;)
           {
-            var recursive = (typeof depth == "number" && depth != 0);
+            recursive = (typeof depth == "number" && depth != 0);
             var expected = expecteds[i];
             var actual = actuals[i];
 
