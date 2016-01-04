@@ -172,6 +172,7 @@ jsx.test = (/** @constructor */ function () {
       var origX = x;
       if (typeof x == "string")
       {
+        /*jshint -W061*/
         x = eval(x);
       }
 
@@ -209,6 +210,7 @@ jsx.test = (/** @constructor */ function () {
       var origX = x;
       if (typeof x == "string")
       {
+        /*jshint -W061*/
         x = eval(x);
       }
 
@@ -253,6 +255,7 @@ jsx.test = (/** @constructor */ function () {
       var origX = x;
       if (typeof x == "string")
       {
+        /*jshint -W061*/
         x = eval(x);
       }
 
@@ -303,6 +306,7 @@ jsx.test = (/** @constructor */ function () {
       var origX = x;
       if (typeof x == "string")
       {
+        /*jshint -W061*/
         x = eval(x);
       }
 
@@ -372,6 +376,7 @@ jsx.test = (/** @constructor */ function () {
 
           if (typeof expecteds == "string")
           {
+            /*jshint -W061*/
             expecteds = eval(expecteds);
           }
 
@@ -459,6 +464,7 @@ jsx.test = (/** @constructor */ function () {
 
         if (typeof expecteds == "string")
         {
+          /*jshint -W061*/
           expecteds = eval(expecteds);
         }
 
