@@ -424,7 +424,7 @@ jsx.test = (/** @constructor */ function () {
     /**
      * Asserts that two objects are equal.  If they are not,
      * an {@link #AssertionError} is thrown with a default message.
-     * Two object are considered equal only if their keys are
+     * Two objects are considered equal only if their keys are
      * strictly equal (shallow strict comparison).
      *
      * @function
@@ -441,7 +441,7 @@ jsx.test = (/** @constructor */ function () {
       function _thrower (expecteds, actuals)
       {
         return _throwThis(_AssertionError,
-          "assertObjectEquals(expecteds, actuals)");
+          "assertObjectEquals(" + expecteds + ", " + actuals + ")");
       }
 
       /**
@@ -482,6 +482,16 @@ jsx.test = (/** @constructor */ function () {
         for (var i = keys.length; i--;)
         {
           var key = keys[i];
+          if (expecteds[key] !== actuals[key])
+          {
+            return _thrower(expecteds, actuals);
+          }
+        }
+
+        keys = jsx.object.getKeys(actuals);
+        for (i = keys.length; i--;)
+        {
+          key = keys[i];
           if (expecteds[key] !== actuals[key])
           {
             return _thrower(expecteds, actuals);
