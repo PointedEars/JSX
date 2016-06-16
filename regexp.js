@@ -7,7 +7,7 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2005-2013  Thomas Lahn &lt;js@PointedEars.de&gt;
+ *   (C) 2005-2016  Thomas Lahn &lt;js@PointedEars.de&gt;
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -414,7 +414,7 @@ if (typeof jsx != "object")
                     });
                 };
 
-              /* We can handle standalone class references … */
+              /* We can handle standalone class references â¦ */
               if (standaloneClass)
               {
                 var result = _getRanges(standaloneClass);
@@ -422,7 +422,7 @@ if (typeof jsx != "object")
               }
               else
               {
-                /* … and class references in character classes */
+                /* â¦ and class references in character classes */
                 result = _normalizeCharClass(classRanges);
 
                 result = result.replace(
@@ -451,23 +451,23 @@ if (typeof jsx != "object")
            * <ul>
            *   <li>Flags:
            *     <ul>
-           *       <li><tt>s</tt> (PCRE_DOTALL) – the <tt>.</tt> metacharacter
+           *       <li><tt>s</tt> (PCRE_DOTALL) â the <tt>.</tt> metacharacter
            *         matches newline as well.</li>
-           *       <li><tt>u</tt> (Unicode mode) – the meaning of
+           *       <li><tt>u</tt> (Unicode mode) â the meaning of
            *         character class escape sequences <tt>\b</tt>, <tt>\w</tt>,
            *         and <tt>\W</tt> is extended to include Unicode character
            *         properties.</li>
-           *       <li><tt>x</tt> (PCRE_EXTENDED) – whitespace within
+           *       <li><tt>x</tt> (PCRE_EXTENDED) â whitespace within
            *         the pattern is ignored, so that it is easier
            *         human-readable.</li>
            *     </ul><p>
            *     Flags except for Unicode mode can be set and unset for
            *     parts of the expression outside of character classes using
-           *     the <tt>(?…)</tt> and <tt>(?-…)</tt> notations.
+           *     the <tt>(?â¦)</tt> and <tt>(?-â¦)</tt> notations.
            *   </li>
-           *   <li>Unicode property classes using e.g. the \p{…} notation</li>
+           *   <li>Unicode property classes using e.g. the \p{â¦} notation</li>
            *   <li>Named capturing groups by passing strings with the
-           *       <tt>(?P&lt;name>…)</tt> or <tt>(?P'name'…)</tt> notation,
+           *       <tt>(?P&lt;name>â¦)</tt> or <tt>(?P'name'â¦)</tt> notation,
            *       where the <tt>P</tt> is optional, respectively.</li>
            * </ul><p>
            * This is facilitated through the following steps:
@@ -498,7 +498,7 @@ if (typeof jsx != "object")
            *             properties are set accordingly.  They are used in an
            *             overwritten <code>exec()</code> method and when matching
            *             against a <code>jsx.regexp.String</code> using its
-           *             <tt>match(…)</tt> method.</p>
+           *             <tt>match(â¦)</tt> method.</p>
            *             <p style="margin-bottom: 0">
            *               Pattern-match modifiers are set and unset as they
            *               are scanned.  The corresponding substrings are
@@ -529,7 +529,7 @@ if (typeof jsx != "object")
            *                   corresponding uses of character classes and negative
            *                   lookahead.
            *             </ol></li>
-           *         <li style="margin-top: 1em">The <tt>\p{…}</tt> and <tt>\P{…}</tt>
+           *         <li style="margin-top: 1em">The <tt>\p{â¦}</tt> and <tt>\P{â¦}</tt>
            *           escape sequences are replaced with the corresponding
            *           character classes.</li>
            *       </ol></li>
