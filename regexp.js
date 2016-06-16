@@ -7,7 +7,7 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2005-2013  Thomas Lahn &lt;js@PointedEars.de&gt;
+ *   (C) 2005-2016  Thomas Lahn &lt;js@PointedEars.de&gt;
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -880,7 +880,7 @@ if (typeof jsx != "object")
             rx._patternGroups = patternGroups;
             rx.groups = groups;
             rx.names = names;
-            rx.flags = flags;
+            rx._flags = flags;
             rx.dotAll = !!originalDotAll;
             rx.extended = !!originalExtended;
             rx.unicodeMode = unicodeMode;
