@@ -2,7 +2,7 @@
  * @fileOverview <title>Basic Object Library</title>
  * @file $Id$
  *
- * @author (C) 2004-2014 Thomas Lahn <js@PointedEars.de>
+ * @author (C) 2004-2016 Thomas Lahn <js@PointedEars.de>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -2504,8 +2504,9 @@ de.pointedears.jsx = jsx;
      */
     function jsx_array_isIndex (index)
     {
-      /* Exclude NaN and non-integers */
+      /* Exclude NaN (not equal to itself) and non-integers */
       index = +index;
+
       return ((index == index) && (index % 1 === 0));
     }
 
@@ -2556,7 +2557,7 @@ de.pointedears.jsx = jsx;
             var propertyName = properties[index];
             if (propertyName != null)
             {
-              o[propertyName] = a[i];
+              o[propertyName] = a[index];
             }
           }
         }
