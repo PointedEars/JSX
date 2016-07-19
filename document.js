@@ -106,7 +106,7 @@ function docCheck(bRaiseException)
     return true;
   }
 
-  if (arguments.length == 1 && bRaiseException == true)
+  if (arguments.length == 1 && bRaiseException)
   {
     ENoDocument(docCheck.caller);
   }
@@ -150,7 +150,7 @@ function HTMLdocOpen(sDTD, bReplace)
    */
 
   // if( HTMLdoc.location.href != "" ) HTMLdoc.close();
-  if (arguments.length == 2 && bReplace == true)
+  if (arguments.length == 2 && bReplace)
   {
     HTMLdoc.open("text/html", "replace");
   }
