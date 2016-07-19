@@ -50,131 +50,125 @@ if (typeof de.pointedears == "undefined")
  */
 de.pointedears.jsx = jsx;
 
-/**
- * Wrapper for a safer <code>try</code>...<code>catch</code>.
- *
- * Attempts to evaluate a value as a <i>StatementList</i>, and attempts
- * to evaluate another value as a <i>StatementList</i> if an exception
- * is thrown in the process.  The following words may be used within:
- *
- * <table>
- *   <thead>
- *     <tr>
- *       <th align="left">Word</th>
- *       <th align="left">Refers to</th>
- *     </tr>
- *   </thead>
- *   <tbody>
- *     <tr valign="top">
- *       <td><code>statements</code><br>
- *           <code>errorHandler</code></td>
- *       <td>the passed values</td>
- *     </tr>
- *     <tr valign="top">
- *       <td>code</td>
- *       <td>the entire constructed <code>try</code>...<code>catch</code>
- *           string that is evaluated as a <i>Program</i></td>
- *     </tr>
- *     <tr valign="top">
- *       <td>e</td>
- *       <td>Only within <var>errorHandler</var>:
- *           the value thrown in case of an exception</td>
- *     </tr>
- *     <tr valign="top">
- *       <td>result</td>
- *       <td>Only within <var>finalizer</var>:
- *           the previous evaluation value</td>
- *     </tr>
- *   </tbody>
- * </table>
- *
- * NOTE: This method has previously been provided by {@link exception.js};
- * optimizations in code reuse moved it here.
- *
- * @function
- * @param {Function|string|any} statements
- *   Value to be evaluated as a <i>StatementList</i>.
- *   Called if a <code>Function</code>, used as-is otherwise.
- * @param {Function|string|any} errorHandler
- *   Value to be evaluated as a <i>StatementList</i> in case of an
- *   exception.  Called if a <code>Function</code>,
- *   used as-is otherwise.
- * @param {Function|string|any} finalizer
- *   Value to be evaluated as a <i>StatementList</i> in any case,
- *   after the statements and error handler.  Called if a
- *   <code>Function</code>, used as-is otherwise.
- * @return {any}
- *   The result of <code>statements</code>, or the result
- *   of <code>errorHandlers</code> if an error occurred,
- *   unless <var>finalizer</var> is provided; if it is,
- *   the evaluation result of <var>finalizer</var>.
- */
-jsx.tryThis =
-//  (function () {
-//  /**
-//   * @param s Value to be stringified
-//   * @param {String} sCall
-//   *   CallStatement that should be used instead of the value
-//   * @return {string} Stringified version of <code>s</code>
-//   */
-//  function stringify(s, sCall)
-//  {
-//    if (typeof s == "function")
-//    {
-//      s = sCall;
-//    }
-//    else if (typeof s == "undefined")
-//    {
-//      s = "";
-//    }
-//
-//    return s;
-//  }
-
-  /*return*/ function (statements, errorHandler, finalizer) {
-    /*
-     * Replaced because eval() performs magnitudes worse;
-     * TODO: Backwards compatibility (branching for NN4 & friends?)
-     */
-//    var sStatements = stringify(statements, "statements();");
-//    var sErrorHandlers = stringify(errorHandlers, "errorHandlers(e);");
-//
-//    var code = 'try {\n  ' + sStatements + '\n}\n'
-//             + 'catch (e) {\n  ' + sErrorHandlers + '\n}';
-//
-//    return eval(code);
-    var t = typeof statements;
-    var result;
-    try
-    {
-      result = (t == "function"
-        ? statements()
-        : eval(statements));
-    }
-    catch (e)
-    {
-      t = typeof errorHandler;
-      result = (t == "function"
-        ? errorHandler(e)
-        : eval(errorHandler));
-    }
-    finally
-    {
-      if (finalizer != null)
-      {
-        t = typeof finalizer;
-        result = (t == "function"
-          ? finalizer()
-          : eval(finalizer));
-      }
-    }
-
-    return result;
-  };
-//}());
-
-(function () {
+(function (global) {
   "use strict";
+
+  /**
+   * Wrapper for a safer <code>try</code>...<code>catch</code>.
+   *
+   * Attempts to evaluate a value as a <i>StatementList</i>, and attempts
+   * to evaluate another value as a <i>StatementList</i> if an exception
+   * is thrown in the process.  The following words may be used within:
+   *
+   * <table>
+   *   <thead>
+   *     <tr>
+   *       <th align="left">Word</th>
+   *       <th align="left">Refers to</th>
+   *     </tr>
+   *   </thead>
+   *   <tbody>
+   *     <tr valign="top">
+   *       <td><code>statements</code><br>
+   *           <code>errorHandler</code></td>
+   *       <td>the passed values</td>
+   *     </tr>
+   *     <tr valign="top">
+   *       <td>code</td>
+   *       <td>the entire constructed <code>try</code>...<code>catch</code>
+   *           string that is evaluated as a <i>Program</i></td>
+   *     </tr>
+   *     <tr valign="top">
+   *       <td>e</td>
+   *       <td>Only within <var>errorHandler</var>:
+   *           the value thrown in case of an exception</td>
+   *     </tr>
+   *     <tr valign="top">
+   *       <td>result</td>
+   *       <td>Only within <var>finalizer</var>:
+   *           the previous evaluation value</td>
+   *     </tr>
+   *   </tbody>
+   * </table>
+   *
+   * NOTE: This method has previously been provided by {@link exception.js};
+   * optimizations in code reuse moved it here.
+   *
+   * @function
+   * @param {Function|string|any} statements
+   *   Value to be evaluated as a <i>StatementList</i>.
+   *   Called if a <code>Function</code>, used as-is otherwise.
+   * @param {Function|string|any} errorHandler
+   *   Value to be evaluated as a <i>StatementList</i> in case of an
+   *   exception.  Called if a <code>Function</code>,
+   *   used as-is otherwise.
+   * @param {Function|string|any} finalizer
+   *   Value to be evaluated as a <i>StatementList</i> in any case,
+   *   after the statements and error handler.  Called if a
+   *   <code>Function</code>, used as-is otherwise.
+   * @return {any}
+   *   The result of <code>statements</code>, or the result
+   *   of <code>errorHandlers</code> if an error occurred,
+   *   unless <var>finalizer</var> is provided; if it is,
+   *   the evaluation result of <var>finalizer</var>.
+   */
+  jsx.tryThis =
+  //  (function () {
+  //  /**
+  //   * @param s Value to be stringified
+  //   * @param {String} sCall
+  //   *   CallStatement that should be used instead of the value
+  //   * @return {string} Stringified version of <code>s</code>
+  //   */
+  //  function stringify(s, sCall)
+  //  {
+  //    if (typeof s == "function")
+  //    {
+  //      s = sCall;
+  //    }
+  //    else if (typeof s == "undefined")
+  //    {
+  //      s = "";
+  //    }
+  //
+  //    return s;
+  //  }
+
+    /*return*/ function (statements, errorHandler, finalizer) {
+      /*
+       * Replaced because eval() performs magnitudes worse;
+       * TODO: Backwards compatibility (branching for NN4 & friends?)
+       */
+  //    var sStatements = stringify(statements, "statements();");
+  //    var sErrorHandlers = stringify(errorHandlers, "errorHandlers(e);");
+  //
+  //    var code = 'try {\n  ' + sStatements + '\n}\n'
+  //             + 'catch (e) {\n  ' + sErrorHandlers + '\n}';
+  //
+  //    return eval(code);
+      var t = typeof statements;
+      var result;
+      try
+      {
+        result = (t == "function" ? statements() : eval(statements));
+      }
+      catch (e)
+      {
+        t = typeof errorHandler;
+        result = (t == "function" ? errorHandler(e) : eval(errorHandler));
+      }
+      finally
+      {
+        if (finalizer != null)
+        {
+          t = typeof finalizer;
+          result = (t == "function" ? finalizer() : eval(finalizer));
+        }
+      }
+
+      return result;
+    };
+  //}());
 
   /**
    * @namespace
@@ -1850,125 +1844,123 @@ jsx.tryThis =
               && window.onerror == fHandler);
     };
   }());
-}(this));
-
-/**
- * Throws an exception, including an execution context hint if provided,
- * followed by an error message.
- *
- * NOTE: This method has previously been provided by {@link exception.js};
- * optimizations in code reuse moved it here.
- *
- * @function
- * @author
- *   Copyright (c) 2008, 2013 Thomas 'PointedEars' Lahn <cljs@PointedEars.de>.
- *   Distributed under the GNU GPL v3 and later.
- * @partof JSX:object.js
- */
-jsx.throwThis = (function () {
-  var
-    _jsx_object = jsx.object,
-    _addslashes = function (e) {
-      return (typeof e == "string"
-        ? e.replace(/["'\\]/g, "\\$&").replace(/\r?\n|\r/g, "\\n")
-        : e);
-    };
 
   /**
-   * @param {string|Function|Error} errorType
-   *   Expression for the constructor of the error type, or a reference
-   *   to an object inheriting from <code>Error.prototype</code>.
-   *   Use a false-value (e.g., <code>""</code> or  <code>null</code>)
-   *   to throw an unqualified exception.
-   * @param {string|Array} message
-   *   Error message to be displayed.  If an <code>Array</code>,
-   *   it is passed as argument list to the constructor for the error type
-   * @param {Callable|string} context
-   *   Optional callable object to specify the context
-   *   where the exception occurred.  Ignored if <var>message</var>
-   *   is an <code>Array</code>.
+   * Throws an exception, including an execution context hint if provided,
+   * followed by an error message.
+   *
+   * NOTE: This method has previously been provided by {@link exception.js};
+   * optimizations in code reuse moved it here.
+   *
+   * @function
+   * @author
+   *   Copyright (c) 2008, 2013 Thomas 'PointedEars' Lahn <cljs@PointedEars.de>.
+   *   Distributed under the GNU GPL v3 and later.
+   * @partof JSX:object.js
    */
-  return function (errorType, message, context) {
-    var sErrorType = errorType;
-    var isError = false;
-    var messageIsArray = _jsx_object.isArray(message);
+  jsx.throwThis = (function () {
+    var
+      _jsx_object = jsx.object,
+      _addslashes = function (e) {
+        return (typeof e == "string"
+          ? e.replace(/["'\\]/g, "\\$&").replace(/\r?\n|\r/g, "\\n")
+          : e);
+      };
 
-    if (typeof Error == "function"
-        && Error.prototype.isPrototypeOf(errorType))
-    {
-      isError = true;
-      sErrorType = "errorType";
-    }
-    else
-    {
-      var t = typeof errorType;
+    /**
+     * @param {string|Function|Error} errorType
+     *   Expression for the constructor of the error type, or a reference
+     *   to an object inheriting from <code>Error.prototype</code>.
+     *   Use a false-value (e.g., <code>""</code> or  <code>null</code>)
+     *   to throw an unqualified exception.
+     * @param {string|Array} message
+     *   Error message to be displayed.  If an <code>Array</code>,
+     *   it is passed as argument list to the constructor for the error type
+     * @param {Callable|string} context
+     *   Optional callable object to specify the context
+     *   where the exception occurred.  Ignored if <var>message</var>
+     *   is an <code>Array</code>.
+     */
+    return function (errorType, message, context) {
+      var sErrorType = errorType;
+      var isError = false;
+      var messageIsArray = _jsx_object.isArray(message);
 
-      if (t == "function" || t == "string")
+      if (typeof Error == "function"
+          && Error.prototype.isPrototypeOf(errorType))
       {
-        if (t == "function")
-        {
-          sErrorType = "errorType";
-        }
-        else if (t == "string")
-        {
-          sErrorType = errorType;
-        }
+        isError = true;
+        sErrorType = "errorType";
+      }
+      else
+      {
+        var t = typeof errorType;
 
-        if (!messageIsArray)
+        if (t == "function" || t == "string")
         {
-          sErrorType = "new " + sErrorType;
+          if (t == "function")
+          {
+            sErrorType = "errorType";
+          }
+          else if (t == "string")
+          {
+            sErrorType = errorType;
+          }
+
+          if (!messageIsArray)
+          {
+            sErrorType = "new " + sErrorType;
+          }
         }
       }
-    }
 
-    if (!messageIsArray)
-    {
-      var sContext = "";
-
-      var stack = jsx.getStackTrace();
-      if (stack)
+      if (!messageIsArray)
       {
-        sContext = "\n\n" + stack;
-      }
+        var sContext = "";
 
-      /* DEBUG: set breakpoint here */
-      if (!sContext)
-      {
-        if (_jsx_object.isMethod(context))
+        var stack = jsx.getStackTrace();
+        if (stack)
         {
-          sContext = (String(context).match(/^\s*(function.+\))/)
-            || [, null])[1];
-          sContext = (sContext ? sContext + ': ' : '');
+          sContext = "\n\n" + stack;
         }
+
+        /* DEBUG: set breakpoint here */
+        if (!sContext)
+        {
+          if (_jsx_object.isMethod(context))
+          {
+            sContext = (String(context).match(/^\s*(function.+\))/)
+              || [, null])[1];
+            sContext = (sContext ? sContext + ': ' : '');
+          }
+        }
+
+        message = (message || "") + (sContext || "");
+        message = '"' + _addslashes(message) + '"';
       }
 
-      message = (message || "") + (sContext || "");
-      message = '"' + _addslashes(message) + '"';
-    }
+      /* DEBUG */
+      var throwStmt = 'throw ' + (sErrorType ? sErrorType : '')
+                    + (isError
+                        ? ''
+                        : (messageIsArray
+                            ? '.construct(message)'
+                            : '(' + (message || '') + ')'))
+                    + ';';
 
-    /* DEBUG */
-    var throwStmt = 'throw ' + (sErrorType ? sErrorType : '')
-                  + (isError
-                      ? ''
-                      : (messageIsArray
-                          ? '.construct(message)'
-                          : '(' + (message || '') + ')'))
-                  + ';';
+      eval(throwStmt);
+    };
+  }());
 
-    eval(throwStmt);
+  /**
+   * Rethrows arbitrary exceptions
+   *
+   * @param {Error} exception
+   */
+  jsx.rethrowThis = function (exception) {
+    eval("throw exception");
   };
-}());
 
-/**
- * Rethrows arbitrary exceptions
- *
- * @param {Error} exception
- */
-jsx.rethrowThis = function (exception) {
-  eval("throw exception");
-};
-
-(function (global) {
   jsx.object.extend(jsx, {
     /**
      * Holds the runtime options for JSX.
@@ -3861,17 +3853,14 @@ jsx.rethrowThis = function (exception) {
         {
           if ((k in this))
           {
-            if ((k in this))
-            {
-              a[n] = this[k];
-            }
-
-            ++k;
-            ++n;
+            a[n] = this[k];
           }
 
-          return a;
+          ++k;
+          ++n;
         }
+
+        return a;
       }
     });
   }
