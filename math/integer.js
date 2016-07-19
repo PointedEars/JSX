@@ -207,7 +207,7 @@ Math.fac = function(n) {
     {
       result = 0;
       // [Exception] <- [MathErrorException] <- [OverflowException] }
-      throwException(new Math.OverflowError("fac"));
+      jsx.throwThis(new Math.OverflowError("fac"));
       break;
     }
   }
@@ -279,14 +279,14 @@ Math.power = function(nBase, nExponent) {
       {
         result = Number.NaN;
         /* [Exception]<- [Math.MathError] <- [Math.InvalidArgumentError] */
-        throwException(new Math.InvalidArgumentError(
+        jsx.throwThis(new Math.InvalidArgumentError(
           "power(" + nBase + ", " + nExponent + ")"));
       }
     }
     else if (nBase == 0 && nExponent == 0)
     {
       result = 0;
-      throwException(new Math.InvalidArgumentError(
+      jsx.throwThis(new Math.InvalidArgumentError(
         "power(" + nBase + ", " + nExponent + ")"));
     }
   }
