@@ -1585,10 +1585,13 @@ de.pointedears.jsx = jsx;
        * Returns the name of a function
        *
        * @param {Function|String} aFunction
+       * @param {boolean} bNoStackTrace
+       *   If <code>true</code>, do not attempt to generate a stack trace when
+       *   issuing warnings.  Used internally to prevent infinite recursion.
        * @return {string}
        *   The name of a function if it has one; the empty string otherwise.
        */
-      getFunctionName: function (aFunction) {
+      getFunctionName: function (aFunction, bNoStackTrace) {
         /* TODO: Cache expression */
         var rx, _RegExp;
 
@@ -1599,18 +1602,18 @@ de.pointedears.jsx = jsx;
               rx = new _RegExp("^\\s*function\\s+(" + _srxIdentifierName + ")");
             },
             function (e) {
-              jsx.warn("Could not use Unicode character properties: " + e.message);
+              jsx.warn("Could not use Unicode character properties: " + e.message, bNoStackTrace);
             }
           );
         }
         else
         {
-          jsx.warn("jsx.regexp.RegExp not loaded.");
+          jsx.warn("jsx.regexp.RegExp not loaded.", bNoStackTrace);
         }
 
         if (!rx)
         {
-          jsx.warn("Non-ASCII identifiers cannot be parsed.");
+          jsx.warn("Non-ASCII identifiers cannot be parsed.", bNoStackTrace);
           rx = /^\s*function\s+([A-Za-z_]\w*)/;
         }
 
@@ -1700,11 +1703,14 @@ de.pointedears.jsx = jsx;
      *   <code>"log"</code> (default), <code>"info"</code>, <code>"warn"</code>,
      *   and <code>"debug"</code>.  If a script console does not support
      *   a message type, the default value is used.
+     * @param {boolean} bNoStackTrace
+     *   If <code>true</code>, do not attempt to generate a stack trace.
+     *   Used internally to prevent infinite recursion.
      * @return {boolean}
      *   <code>true</code> if it was possible to cause the message to be printed;
      *   <code>false</code> otherwise.
      */
-    return function (sMsg, sType) {
+    return function (sMsg, sType, bNoStackTrace) {
       /* Firebug 0.4+ and others */
       if (typeof console != "undefined")
       {
@@ -1714,7 +1720,7 @@ de.pointedears.jsx = jsx;
           sType = "log";
         }
 
-        if (sType != "info")
+        if (sType != "info" && !bNoStackTrace)
         {
           sMsg += "\n" + jsx.getStackTrace();
         }
@@ -1753,10 +1759,13 @@ de.pointedears.jsx = jsx;
    *
    * @param {String} sMsg
    *   Message
+   * @param {boolean} bNoStackTrace
+   *   If <code>true</code>, do not attempt to generate a stack trace.
+   *   Used internally to prevent infinite recursion.
    * @see jsx#dmsg
    */
-  jsx.warn = function (sMsg) {
-    return jsx.dmsg(sMsg, jsx.MSG_WARN);
+  jsx.warn = function (sMsg, bNoStackTrace) {
+    return jsx.dmsg(sMsg, jsx.MSG_WARN, bNoStackTrace);
   };
 
   /**
@@ -2381,7 +2390,7 @@ de.pointedears.jsx = jsx;
    * @return {string}
    *   The stack trace of the calling execution context, if available.
    */
-  jsx.getStackTrace = function () {
+  jsx.getStackTrace = function jsx_getStackTrace () {
     /**
      * @private
      * @param {Error} excp
@@ -2420,18 +2429,24 @@ de.pointedears.jsx = jsx;
 
     var result = '';
 
-    if (jsx.object.hasOwnProperty(arguments, "caller") && arguments.caller)
+    var caller =
+      (jsx.object._hasOwnProperty(jsx_getStackTrace, "caller") && jsx_getStackTrace.caller)
+      || (jsx.object._hasOwnProperty(arguments, "caller") && arguments.caller);
+
+    if (caller)
     {
       /* JScript and older JavaScript */
-      for (var a = arguments.caller; a != null; a = a.caller)
+      while (caller != null)
       {
-        result += '> ' + (jsx.object.getFunctionName(a.callee) || "anonymous")
+        result += '> ' + (jsx.object.getFunctionName(caller, true) || "anonymous")
           + '\n';
-        if (a.caller == a)
+        if (caller.caller == caller)
         {
           result += '*';
           break;
         }
+
+        caller = caller.caller;
       }
     }
     else
