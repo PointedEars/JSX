@@ -62,8 +62,7 @@ function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter) {
    <a href="..." ... onclick="return enlargeImg(...);">
 */
 
-  var ident = enlargeImg;
-  var argnum = ident.arguments.length;
+  var argnum = arguments.length;
   var wImage = false;
   if (sImageURL.charAt(0) != "/") {
     // Version 1.17.2002.2 bugfix:
@@ -92,7 +91,7 @@ function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter) {
                + parseInt(screen.height/2
                           - (((argnum > 3) && !isNaN(iHeight))?(iHeight/2):0));
 
-  var wImage = window.open(null, "wndZoom", sOptions);
+  wImage = window.open(null, "wndZoom", sOptions);
 
   if (wImage)
   {
@@ -136,6 +135,7 @@ function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter) {
       '<\/html>'
     );
 
+    var s = a.join();
     dImage.write(s);
     dImage.close();
     wImage.focus();
@@ -146,7 +146,7 @@ function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter) {
 // Enlarge(...) call redirects to enlargeImg(...) for compatibility with previous versions
 
 function Enlarge(sImageURL, sCaption, iWidth, iHeight) {
-  switch(Enlarge.arguments.length) {
+  switch(arguments.length) {
     case 0: { enlargeImg(); break; }
     case 1: { enlargeImg(sImageURL); break; }
     case 2: { enlargeImg(sImageURL, sCaption); break; }
@@ -264,7 +264,7 @@ function getDateFmt(dDate, sFormat, oDateNames) {
   TT     Timezone offset to GMT as two-digit minutes (with leading zero)
   T      Timezone offset to GMT in minutes.
 */
-  var iArgNum = getDateFmt.arguments.length;
+  var iArgNum = arguments.length;
   if (iArgNum < 1)
     return false;
   if ((iArgNum < 2) || (sFormat.length == 0))
@@ -315,10 +315,9 @@ function getDateFmt(dDate, sFormat, oDateNames) {
   var sHours = String(dDate.getHours());
   var sMins = String(dDate.getMinutes());
   var sSecs = String(dDate.getSeconds());
-  if (dDate.getMilliseconds)
-    var sSecs1000 = String(dDate.getMilliseconds());
-  else
-    var sSecs1000 = "0";
+  var sSecs1000 = (dDate.getMilliseconds)
+    ? String(dDate.getMilliseconds())
+    : "0";
   var sTZmins = String(-dDate.getTimezoneOffset());
   var iTZhours = Math.floor(-dDate.getTimezoneOffset() / 60);
   var iTZmins = ((-dDate.getTimezoneOffset() / 60) + iTZhours) * 60;
@@ -413,11 +412,11 @@ var oDateNames_de = new TDateNames(
 
 
 function playSound( sSoundFile, Loop, sAttrib ) {
-  if( playSound.arguments.length < 2 )
+  if(arguments.length < 2 )
     return(EInvalidArgNum( "Level 2: playSound", 2 ));
   if( document.all ) {
     var sAdjacent = "<bgsound ";
-    if( (playSound.arguments.length == 3) && (sAttrib.length != "") ) {
+    if( (arguments.length == 3) && (sAttrib.length != "") ) {
       sAdjacent += sAttrib;
       sAdjacent += " ";
     }
