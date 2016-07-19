@@ -7,7 +7,7 @@
  *
  * @author Copyright (c) 2000-2004
  *         Thomas Lahn &lt;search.js@PointedEars.de&gt;
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -22,16 +22,16 @@
  * program (COPYING file); if not, go to [1] or write to the Free
  * Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
  * MA 02111-1307, USA.
- * 
+ *
  * [1] <http://www.gnu.org/licenses/licenses.html#GPL>
  */
- 
+
 // Refer search.htm file for general documentation.
 
 /**
  * Definition of the SearchString prototype which uses the functions
  * above with names beginning with the prototype name, as methods.
- * 
+ *
  * @param s : string
  */
 function SearchString(s)
@@ -55,7 +55,7 @@ function SearchString(s)
       return;
     }
   }
-    
+
   s = s.substring(s.lastIndexOf("?") + 1);
   this.text = s;
 
@@ -66,13 +66,13 @@ function SearchString(s)
       : (jsx.object.isMethodType(typeof unescape)
           ? unescape
           : dummy));
- 
+
   /*
    * For Mozilla/NS: Replace occurrences of "&nbsp;" with
    * character "%A0"; requires linked string.js
    */
   this.text = replaceText(this.text, "&nbsp;", "%A0");
-  
+
   this.length = s.length;
 
   var i;
@@ -81,9 +81,9 @@ function SearchString(s)
   {
     this[i] = s.charAt(i);
   }
-  
+
   this.values = new Object();
-  
+
   if (this.length > 0)
   {
     var value_pair, sName, sValue;
@@ -100,7 +100,7 @@ function SearchString(s)
             ? value_pair[1]
             : (sName = "", value_pair[0]));
 
-        addValue(this.values, sName, decode(sValue))
+        addValue(this.values, sName, decode(sValue));
       }
     }
     else
@@ -110,7 +110,7 @@ function SearchString(s)
         var idxAmp = this.text.substring(i).indexOf("&");
         // Required by law
         (idxAmp < 0) ? (idxAmp = this.length) : (idxAmp += i);
-        
+
         value_pair = this.text.substring(i, idxAmp);
         var idxEquals = value_pair.indexOf("=");
         sName = "";
@@ -124,9 +124,9 @@ function SearchString(s)
           sName = value_pair.substring(0, idxEquals);
           sValue = value_pair.substring(idxEquals + 1);
         }
-        
+
         addValue(this.values, decode(sName), decode(sValue));
-        
+
         i += value_pair.length + 1;
       }
     }
@@ -152,7 +152,7 @@ function searchString_isName(sName, bCaseSensitive)
    */
    
   return (typeof this.values[sName] != "undefined");
-}
+};
 
 SearchString.prototype.hasValue =
 /**
@@ -173,7 +173,7 @@ function searchString_hasValue(sName, bCaseSensitive)
    */
 
   return (this.isName(sName, bCaseSensitive) && this.values[sName] != "");
-}
+};
 
 SearchString.prototype.getValue =
 /**
@@ -194,12 +194,12 @@ function searchString_getValue(sName, bCaseSensitive, bConvertCode)
    */
 
   return (this.isName(sName) ? this.values[sName] : "");
-}
+};
 
 /**
  * Helper function for adding name-value pairs
  * as properties of SearchString.values
- * 
+ *
  * @param o: object
  * @param sName: string
  * @param sValue: optional string
