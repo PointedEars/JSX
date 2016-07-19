@@ -2608,7 +2608,7 @@ jsx.array.from = function (iterable, builder, oThis) {
   if (arguments.length > 1 && builder && typeof builder != "function")
   {
     return jsx.throwThis("TypeError",
-      (_isMethod(builder, "toSource") ? builder.toSource() : builder)
+      (jsx.object.isMethod(builder, "toSource") ? builder.toSource() : builder)
         + " is not callable",
       this + ".map");
   }
@@ -3849,11 +3849,11 @@ if (jsx.options.augmentPrototypes)
       var relativeEnd = (typeof end == "undefined"
                       ? len
                       : parseInt(end, 10));
-      var final = (relativeEnd < 0
+      var _final = (relativeEnd < 0
                  ? Math.max(len + relativeEnd, 0)
                  : Math.min(relativeEnd, len));
       var n = 0;
-      while (k < final)
+      while (k < _final)
       {
         if ((k in this))
         {
