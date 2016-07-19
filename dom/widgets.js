@@ -1605,6 +1605,9 @@ jsx.dom.widgets = (/** @constructor */ function () {
     }
   ).extend(_Widget, {
     filterColumns: [],
+    filterRows: null,
+    sortColumns: [],
+    sortRows: null,
 
     /**
      * (non-JSdoc)
@@ -1619,7 +1622,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
         var id2title = {};
         var rxSpace = /[ \t\n\x0C\r]+/;
 
-        for (var rows = this.getTarget().tBodies[0].rows, i = rows.length; i--;)
+        for (var rows = this.filterRows || this.getTarget().tBodies[0].rows, i = rows.length; i--;)
         {
           var row = rows[i];
           for (var cells = row.cells, j = cells.length; j--;)
@@ -1694,7 +1697,7 @@ jsx.dom.widgets = (/** @constructor */ function () {
 
         var expressions = [];
 
-        for (var rows = this.getTarget().tBodies[0].rows, i = rows.length; i--;)
+        for (var rows = filterRows || this.getTarget().tBodies[0].rows, i = rows.length; i--;)
         {
           var row = rows[i];
           row.style.display = "none";
@@ -1740,7 +1743,11 @@ jsx.dom.widgets = (/** @constructor */ function () {
       }
 
       return _applyFilter;
-    }())
+    }()),
+
+    applySort: function () {
+      return false;
+    }
   });
 
   /**
