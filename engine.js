@@ -2,7 +2,7 @@
  * <title>Script Engine Detection Library</title>
  * @file $Id$
  *
- * @author (C) 2004, 2015 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
+ * @author (C) 2004, 2016 <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -181,15 +181,25 @@ function _EngineInfo ()
         {
           if (ua.indexOf("Chrome") > -1)
           {
-            m = ua.match(/\bChrome\/(\d+\.\d+(\.\d+)?)\b/);
+            m = ua.match(/\bChrome\/((\d+\.\d+)(\.\d+)?)\b/);
 
             _vendor = "Google";
             _name = "V8 JavaScript";
 
             if (m)
             {
-              var _minVersion = true;
-              var s = _inferVersion(m[1],
+              var
+                numVersion = +m[2],
+                s;
+
+              if (numVersion > 40)
+              {
+                s = numVersion / 10;
+              }
+              else
+              {
+                var _minVersion = true;
+                s = _inferVersion(m[1],
                   [
                     [ "2.0", "0.4"],
                     [ "3.0", "1.2"],
@@ -229,13 +239,10 @@ function _EngineInfo ()
                     ["37.0", "3.27"],
                     ["38.0", "3.28"],
                     ["39.0", "3.29"],
-                    ["40.0", "3.30"],
-                    ["41.0", "4.1"],
-                    ["42.0", "4.2"],
-                    ["43.0", "4.3"],
-                    ["44.0", "4.4"]
+                    ["40.0", "3.30"]
                   ],
                   "0.3");
+              }
 
               if (s)
               {
