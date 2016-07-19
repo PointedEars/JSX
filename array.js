@@ -928,7 +928,7 @@ jsx.array = (/** @constructor */ function () {
     {
       var key = keys[i];
 
-      if (key % 1 == 0)
+      if (key % 1 === 0)
       {
         if (!bStrict || (key > -1 && key < _MAX_ARRAY_LENGTH - 1))
         {
@@ -1620,7 +1620,7 @@ jsx.array = (/** @constructor */ function () {
             }
 
             /* avoid dupes */
-            if (aAncestors.length == 0
+            if (aAncestors.length === 0
                 || aAncestors[aAncestors.length - 1] != aHaystack)
             {
               _array_push(aAncestors, aHaystack);
@@ -1661,17 +1661,19 @@ jsx.array = (/** @constructor */ function () {
           {
             if (bStrict)
             {
-              eval(
-                  'if (aHaystack[i] === needle) {'
-                + '  result = i;'
-                + '  break;'
-                + '}');
+              if (aHaystack[i] === needle)
+              {
+                result = i;
+                break;
+              }
             }
-
-            if (aHaystack[i] == needle)
+            else
             {
-              result = i;
-              break;
+              if (aHaystack[i] == needle)
+              {
+                result = i;
+                break;
+              }
             }
           }
         }
@@ -1680,22 +1682,24 @@ jsx.array = (/** @constructor */ function () {
       {
         if (bStrict)
         {
-          eval(
-              'if (aHaystack === needle) {'
-            + '  if (bDeepSearch) {'
-            + '    aResultVector[iLevel - 1] = index;'
-            + '  }'
-            + '  result = index;'
-            + '}');
-        }
-
-        if (aHaystack == needle)
-        {
-          if (bDeepSearch)
+          if (aHaystack === needle)
           {
-            aResultVector[iLevel - 1] = index;
+            if (bDeepSearch) {
+              aResultVector[iLevel - 1] = index;
+            }
+            result = index;
           }
-          result = index;
+        }
+        else
+        {
+          if (aHaystack == needle)
+          {
+            if (bDeepSearch)
+            {
+              aResultVector[iLevel - 1] = index;
+            }
+            result = index;
+          }
         }
       }
 
