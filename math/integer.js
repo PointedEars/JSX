@@ -364,7 +364,7 @@ Math.primes = function (upperBounds) {
   var not_prime = Object.create(null);
   var prime = Object.create(null);
   var i = 2;
-  var upperLimit = Math.sqrt(upperLimit);
+  var upperLimit = Math.sqrt(upperBounds);
 
   while (i < upperLimit)
   {
@@ -375,10 +375,7 @@ Math.primes = function (upperBounds) {
       not_prime[mult] = true;
     }
 
-    while (not_prime[++i])
-    {
-      ;
-    }
+    while (not_prime[++i]);
   }
 
   for (; i < upperBounds; ++i)
