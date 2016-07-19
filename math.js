@@ -110,7 +110,7 @@ jsx.math = (/** @constructor */ function () {
    */
   function _isInteger (n)
   {
-    return n % 1 == 0;
+    return n % 1 === 0;
   }
 
   return {
