@@ -57,7 +57,9 @@ if (typeof jsx.document == "undefined")
     write: function(s) {
       return jsx.tryThis(
         function() {
+          /*jshint -W060*/
           document.write(s);
+          /*jshint +W060*/
 
           /* fix circular reference */
           s = null;
@@ -115,6 +117,7 @@ function docCheck(bRaiseException)
 }
 
 /* Document Type Definitions and HTML 4.0 Tag Policy URLs */
+/*jshint -W098*/
 
 /* DTD for HTML 2.0 documents */
 var dtdHTML2        = '"-//W3C//DTD HTML 2.0//EN"';
@@ -139,6 +142,8 @@ var dtdURL_HTML4frm = '\n "http://www.w3.org/TR/html4/frameset.dtd"';
 
 /* URL of DTD for documents that use strict HTML 4.01 syntax */
 var dtdURL_HTML4str = '\n "http://www.w3.org/TR/html4/strict.dtd"';
+
+/*jshint +W098*/
 
 function HTMLdocOpen(sDTD, bReplace)
 {
@@ -299,14 +304,17 @@ function HTMLwriteMeta(sName, sHTTPequiv, sContent)
   }
 }
 
+/*jshint -W098*/
 function HTMLwriteLinkFavIcon(sURL)
 {
+  /*jshint +W098*/
   if (sURL.length > 0)
   {
     HTMLdoc.HTMLwriteTag("link", 'rel="shortcut icon" href="' + sURL + '"');
   }
 }
 
+/*jshint +W098*/
 var HTMLscriptCount = 0;
 
 function HTMLwriteScript(sLang, sSrc, sType, sContent)
@@ -522,7 +530,9 @@ function DocumentList()
   this.remove = DocumentListRemove;
 }
 
+/*jshint -W098*/
 var docList = new DocumentList();
+/*jshint +W098*/
 
 /* General OOP support: Methods, global counter variable and class */
 
