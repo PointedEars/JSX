@@ -148,6 +148,7 @@ de.pointedears.jsx = jsx;
   //    return eval(code);
       var t = typeof statements;
       var result;
+      /*jshint -W061*/
       try
       {
         result = (t == "function" ? statements() : eval(statements));
@@ -165,6 +166,7 @@ de.pointedears.jsx = jsx;
           result = (t == "function" ? finalizer() : eval(finalizer));
         }
       }
+      /*jshint +W061*/
 
       return result;
     };
@@ -342,11 +344,13 @@ de.pointedears.jsx = jsx;
      *   <code>true</code> if all arguments refer to methods,
      *   <code>false</code> otherwise.
      */
+    /*jshint -W098*/
     function _isNativeMethod (obj, prop)
     {
       /* NOTE: Thread-safe, argument-safe code reuse -- `this' is our ID */
       return _isMethod.apply(_isNativeMethod, arguments);
     }
+    /*jshint +W098*/
 
     /**
      * Determines if an object has a (non-inherited) property.
@@ -1949,7 +1953,9 @@ de.pointedears.jsx = jsx;
                             : '(' + (message || '') + ')'))
                     + ';';
 
+      /*jshint -W061*/
       eval(throwStmt);
+      /*jshint +W061*/
     };
   }());
 
@@ -1958,9 +1964,13 @@ de.pointedears.jsx = jsx;
    *
    * @param {Error} exception
    */
+  /*jshint -W098*/
   jsx.rethrowThis = function (exception) {
+    /*jshint -W061*/
     eval("throw exception");
+    /*jshint +W061*/
   };
+  /*jshint +W098*/
 
   jsx.object.extend(jsx, {
     /**
@@ -3248,7 +3258,9 @@ de.pointedears.jsx = jsx;
                 a[i] = "argArray[" + i + "]";
               }
 
+              /*jshint -W061*/
               eval("o[p](" + a + ")");
+              /*jshint +W061*/
 
               delete o[p];
             }
@@ -3286,7 +3298,9 @@ de.pointedears.jsx = jsx;
           if (p)
           {
             o[p] = this;
+            /*jshint -W061*/
             eval("o[p](" + a + ")");
+            /*jshint +W061*/
             delete o[p];
             o = null;
           }
@@ -3415,7 +3429,9 @@ de.pointedears.jsx = jsx;
           a[i] = "argArray[" + i + "]";
         }
 
+        /*jshint -W061*/
         return eval("new this(" + a + ")");
+        /*jshint +W061*/
       }
     }, jsx.object.ADD_OVERWRITE);
   }
