@@ -2478,7 +2478,7 @@ de.pointedears.jsx = jsx;
     {
       /* Exclude NaN and non-integers */
       index = +index;
-      return ((index == index) && (index % 1 == 0));
+      return ((index == index) && (index % 1 === 0));
     }
 
     return {
@@ -3140,7 +3140,7 @@ de.pointedears.jsx = jsx;
           function () {
             dependencies.shift();
 
-            if (dependencies.length == 0)
+            if (dependencies.length === 0)
             {
               /* All dependencies loaded successfully */
               if (typeof callback == "function")
