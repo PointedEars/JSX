@@ -253,10 +253,7 @@ jsx.Iterator.prototype.prev = function () {
 
       /* start from next possible item */
       /* run through only one time */
-      while (--i > -1 && typeof t[i] == "undefined")
-      {
-        ;
-      }
+      while (--i > -1 && typeof t[i] == "undefined");
 
       if (typeof t[i] != "undefined")
       {
@@ -304,10 +301,7 @@ jsx.Iterator.prototype.next = function () {
 
       /* start from next possible item */
       /* run through only one time */
-      while (++i < t.length && typeof t[i] == "undefined")
-      {
-        ;
-      }
+      while (++i < t.length && typeof t[i] == "undefined");
 
       if (typeof t[i] != "undefined")
       {
@@ -354,10 +348,7 @@ jsx.Iterator.prototype.hasPrev = function () {
     var i = this.currItem;
 
     /* run through only one time */
-    while (--i > -1 && typeof t[i] == "undefined")
-    {
-      ;
-    }
+    while (--i > -1 && typeof t[i] == "undefined");
 
     if (typeof t[i] != "undefined")
     {
@@ -396,10 +387,7 @@ jsx.Iterator.prototype.hasNext = function () {
     var i = this.currItem;
 
     /* run through only one time */
-    while (++i < t.length && typeof t[i] == "undefined")
-    {
-      ;
-    }
+    while (++i < t.length && typeof t[i] == "undefined");
 
     if (typeof t[i] != "undefined")
     {
