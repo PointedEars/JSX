@@ -514,7 +514,7 @@ var jsx;
               {
                 if (_Bucket.isInstance(prevValue))
                 {
-                  var prevValue = prevValue.remove(key);
+                  prevValue = prevValue.remove(key);
                   if (_ValueContainer.isInstance(prevValue))
                   {
                     --_size;
