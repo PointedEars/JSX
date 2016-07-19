@@ -2429,40 +2429,43 @@ de.pointedears.jsx = jsx;
 
     var result = '';
 
-    var caller =
-      (jsx.object._hasOwnProperty(jsx_getStackTrace, "caller") && jsx_getStackTrace.caller)
-      || (jsx.object._hasOwnProperty(arguments, "caller") && arguments.caller);
-
-    if (caller)
+    if (typeof Error == "function")
     {
-      /* JScript and older JavaScript */
-      while (caller != null)
-      {
-        result += '> ' + (jsx.object.getFunctionName(caller, true) || "anonymous")
-          + '\n';
-        if (caller.caller == caller)
-        {
-          result += '*';
-          break;
-        }
-
-        caller = caller.caller;
-      }
-    }
-    else
-    {
-      /* other */
-      if (typeof Error != "function")
-      {
-        return result;
-      }
-
       var stack = parseErrorStack(new Error());
       result = stack.slice(2).join("\n");
   //    for (var i = 1; i < stack.length; i++)
   //    {
   //      result += '> ' + stack[i] + '\n';
   //    }
+    }
+
+    /*
+     * Avoid strict violation; implementations with Error should also have
+     * the “stack” property
+     */
+    /* FIXME: Use local strict mode declaration only */
+    if (!stack)
+    {
+      /* JScript and older JavaScript */
+      var caller =
+        (jsx.object._hasOwnProperty(jsx_getStackTrace, "caller") && jsx_getStackTrace.caller)
+        || (jsx.object._hasOwnProperty(arguments, "caller") && arguments.caller);
+
+      if (caller)
+      {
+        while (caller != null)
+        {
+          result += '> ' + (jsx.object.getFunctionName(caller, true) || "anonymous")
+          + '\n';
+          if (caller.caller == caller)
+          {
+            result += '*';
+            break;
+          }
+
+          caller = caller.caller;
+        }
+      }
     }
 
     return result;
