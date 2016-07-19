@@ -58,16 +58,16 @@ if (typeof jsx.document == "undefined")
       return jsx.tryThis(
         function() {
           document.write(s);
-          
+
           /* fix circular reference */
           s = null;
-          
+
           return true;
         },
         function() {
           /* try without namespaces first (presumably HTML or loose XHTML) */
           var scripts = document.getElementsByTagName("script");
-          
+
           if (!scripts || !scripts.length)
           {
             /* try with namespace (presumably strict XHTML) */
@@ -75,7 +75,7 @@ if (typeof jsx.document == "undefined")
               document.documentElement.getAttribute("xmlns"),
               "script");
           }
-          
+
           /* Can we locate ourselves at all? */
           if (scripts && scripts.length)
           {
@@ -84,10 +84,10 @@ if (typeof jsx.document == "undefined")
               document.createTextNode(s),
               thisScript);
           }
-          
+
           /* fix circular reference */
           s = null;
-          
+
           return node;
         }) || false;
     }
@@ -105,12 +105,12 @@ function docCheck(bRaiseException)
   {
     return true;
   }
-  
-  if (arguments.length = 1 && bRaiseException == true)
+
+  if (arguments.length == 1 && bRaiseException == true)
   {
     ENoDocument(docCheck.caller);
   }
-  
+
   return false;
 }
 
@@ -143,12 +143,12 @@ var dtdURL_HTML4str = '\n "http://www.w3.org/TR/html4/strict.dtd"';
 function HTMLdocOpen(sDTD, bReplace)
 {
   if (!docCheck(true)) return;
-  
+
   /*
    * version 1.08.2000.3 bugfix, formerly: ...length = 2(!)
    * and separated sections
    */
-  
+
   // if( HTMLdoc.location.href != "" ) HTMLdoc.close();
   if (arguments.length == 2 && bReplace == true)
   {
@@ -158,7 +158,7 @@ function HTMLdocOpen(sDTD, bReplace)
   {
     HTMLdoc.open("text/html");
   }
-  
+
   if (arguments.length < 1)
   {
     sDTD = "";
@@ -172,7 +172,7 @@ function HTMLdocClose()
   {
     return;
   }
-  
+
   HTMLdoc.writeln("</html>");
   HTMLdoc.close();
 }
@@ -183,7 +183,7 @@ function docWrite(s)
   {
     return;
   }
-  
+
   HTMLdoc.write(s);
 }
 
@@ -193,7 +193,7 @@ function docWriteLn(s)
   {
     return;
   }
-  
+
   HTMLdoc.writeln(s);
 }
 
@@ -202,43 +202,43 @@ var HTMLtagCount = 0;
 function HTMLwriteTag(sTag, sAttrib, sContent)
 {
   var sWrite = "";
-  
+
   if (!docCheck(true))
   {
     return;
   }
-  
+
   if (arguments.length < 1 || sTag == "")
   {
     EInvalidArgNum("HTMLwriteTag", 1);
     return;
   }
-  
+
   /* for better document compression rates */
-  
+
   sTag = sTag.toLowerCase();
-  
+
   if (arguments.length < 2)
   {
     /* use default value if argument missing */
     sAttrib = "";
   }
-  
+
   if (arguments.length < 3)
   {
     /* use default value if argument missing */
     sContent = "";
   }
-  
+
   sWrite = "<" + sTag;
-  
+
   if (sAttrib != "" )
   {
     sWrite += " " + sAttrib;
   }
-  
+
   sWrite += ">";
-  
+
   if (sContent != "")
   {
     sWrite +=
@@ -248,13 +248,13 @@ function HTMLwriteTag(sTag, sAttrib, sContent)
       sWrite += arguments[i];
     }
   }
-  
+
   HTMLdoc.write(sWrite);
   HTMLtagCount++;
-  
+
   /* OOP extension */
   HTMLinstance.tagCount = HTMLtagCount;
-  
+
   /*
    * TODO Bug: Text is written twice into the document when the function
    * result is used as argument. Workaround required to uncomment
@@ -272,27 +272,27 @@ function HTMLwriteMeta(sName, sHTTPequiv, sContent)
     EInvalidArgNum("HTMLwriteMeta", 3);
     return;
   }
-  
+
   if (! docCheck(true))
   {
     return;
   }
-  
+
   if (sName.toLowerCase() != "generator")
   {
     HTMLdoc.write("<meta ");
-    
+
     if (sName != "")
     {
       HTMLdoc.write('name="', sName, '" ');
     }
-    
+
     if (sHTTPequiv != "")
     {
       HTMLdoc.write('http-equiv="', sHTTPequiv, '" ');
       HTMLdoc.writeln('content="', sContent, '">');
       HTMLmetaCount++;
-      
+
       /* OOP extension */
       HTMLinstance.metaCount = HTMLmetaCount;
     }
@@ -316,54 +316,54 @@ function HTMLwriteScript(sLang, sSrc, sType, sContent)
     EInvalidArgNum("HTMLwriteScript", 4);
     return;
   }
-  
+
   if (!docCheck(true))
   {
     return;
   }
-  
+
   if (arguments.length == 0 || sLang == "")
   {
     sLang = "JavaScript";
   }
-  
+
   HTMLdoc.write('<script language="', sLang, '"');
-  
+
   if (arguments.length < 2)
   {
     sSrc = "";
   }
-  
+
   if (sSrc != "")
   {
     HTMLdoc.write(' src="', sSrc, '"');
   }
-  
+
   if (arguments.length < 3 || sType == "")
   {
     sType = "text/javascript";
   }
-  
+
   if (sType != "")
   {
     HTMLdoc.write( ' type="', sType, '"' );
   }
-  
+
   HTMLdoc.write('>');
-  
+
   if (arguments.length < 4)
   {
     sContent = "";
   }
-  
+
   if (sSrc == "" && sContent != "")
   {
     HTMLdoc.write('<!--\n', sContent, '\n//-->');
   }
-  
+
   HTMLdoc.write('</script>\n');
   HTMLscriptCount++;
-  
+
   /* OOP extension */
   HTMLinstance.scriptCount = HTMLscriptCount;
 }
@@ -377,24 +377,24 @@ function HTMLwriteStyle(sType, sAttrib, sContent)
     EInvalidArgNum("HTMLwriteStyle", 3);
     return;
   }
-  
+
   if (!docCheck(true))
   {
     return;
   }
-  
+
   if (sType == "")
   {
     sType = "text/css";
   }
-  
+
   HTMLdoc.write('<style type="', sType, '"');
-  
+
   if (sAttrib != "")
   {
     HTMLdoc.write( ' ', sAttrib );
   }
-  
+
   HTMLdoc.write('><!--\n', sContent, '\n//--></style>\n');
   HTMLstyleCount++;
   /* OOP extension */
@@ -404,7 +404,7 @@ function HTMLwriteStyle(sType, sAttrib, sContent)
 function HTMLheadOpen(sTitle)
 {
   if (!docCheck(true)) return;
-  
+
   HTMLdoc.writeln(
     "<head>\n\n<title>",
     sTitle,
@@ -452,37 +452,37 @@ function HTMLbodyOpen()
     return;
   }
   HTMLdoc.write( "<body" );
-  
+
   if (clBodyBg != "")
   {
     HTMLdoc.write(' bgcolor="', clBodyBg, '"');
   }
-  
+
   if (clBodyText != "")
   {
     HTMLdoc.write(' text="', clBodyText, '"');
   }
-  
+
   if (clBodyLink != "")
   {
     HTMLdoc.write(' link="', clBodyLink, '"');
   }
-  
+
   if (clBodyVLink != "")
   {
     HTMLdoc.write(' vlink="', clBodyVLink, '"');
   }
-  
+
   if (clBodyALink != "")
   {
     HTMLdoc.write(' alink="', clBodyALink, '"');
   }
-  
+
   if (imgBody != "")
   {
     HTMLdoc.write(' background="', imgBody, '"');
   }
-  
+
   if (bBodyBgFixed)
   {
     HTMLdoc.write(' bgproperties="fixed"');
@@ -496,7 +496,7 @@ function HTMLbodyClose()
   {
     return;
   }
-  
+
   HTMLdoc.writeln('\n</body>\n');
 }
 
@@ -516,7 +516,7 @@ function DocumentList()
 {
   /* Properties */
   this.items = new Array();
-  
+
   /* Methods */
   this.add = DocumentListAdd;
   this.remove = DocumentListRemove;
@@ -549,35 +549,35 @@ function HTMLDocumentShowProperties()
     (HTMLDocumentShowProperties.caller != null
      ? "Caller: \n\n" + HTMLDocumentShowProperties.caller + "\n"
      : "");
-  
+
   var sResult =
       sCopyright
     + "Current properties of the HTMLDocument instance named \""
     + this.name
     + "\";\nUsed HTMLDocument.showProperties() method:\n\n";
-  
+
   for (var Property in this)
   {
     var isNotMethod =
       (String(this[Property]).toLowerCase().substr(0, 9) != "function ");
-    
+
     var isNotNameProp =
       (String(Property).toLowerCase().substr(0, 4) != "name");
-    
+
     if (isNotMethod && isNotNameProp)
     {
       var isString =
         (isNaN(this[Property]) || String(this[Property]) == "");
-      
+
       var bDblQuote =
         (isString
           ? '"'
           : "");
-      
+
       var sProp = String(this[Property]);
-      
+
       if (sProp == "[object]") bDblQuote = "";
-      
+
       sResult +=
           Property
         + " = "
@@ -587,7 +587,7 @@ function HTMLDocumentShowProperties()
         + "\n";
     }
   }
-  
+
   sResult += "\nCreator URL: \"" + document.URL + "\"\n\n" + sCaller;
   alert(sResult);
 }
@@ -613,7 +613,7 @@ function _HTMLDocument(aTarget, sDTD, bReplace, sName)
       HTMLtagCount = 0;
       HTMLmetaCount = 0;
       HTMLscriptCount = 0;
-      
+
       /* Open doc. automatically on more arg. */
       if (arguments.length > 1)
       {
@@ -627,45 +627,45 @@ function _HTMLDocument(aTarget, sDTD, bReplace, sName)
       return;
     }
   }
-  
+
   /* "" is v1.08.2000.3 bugfix, formerly used colors of last activated object */
-  
+
   /** background color */
   this.clBodyBg = "";
-  
+
   /** text color */
   this.clBodyText = "";
-  
+
   /** color for an unvisited link */
   this.clBodyLink = "";
-  
+
   /** color for a visited link */
   this.clBodyVLink = "";
-  
+
   /** color for a selected link */
   this.clBodyALink = "";
-  
+
   /** URL of the background image */
   this.imgBody = "";
-  
+
   /** Default: background image is no watermark */
   this.bBodyBgFixed = false;
-  
+
   /** HTML tags written by writeTag(...) method */
   this.tagCount = 0;
-  
+
   /** &lt;meta&gt; tags written except "generator" */
   this.metaCount = 0;
-  
+
   /** &lt;script&gt;&lt;/script&gt; sections written */
   this.scriptCount = 0;
-  
+
   /** &lt;style&gt;&lt;/style&gt; sections written */
   this.styleCount = 0;
-  
+
   /* Increase the number of created _HTMLDocument instances for auto-naming */
   HTMLDocumentCount++;
-  
+
   if (arguments.length >= 4)
   {
     /* Recommended to name the object for debug purposes */
@@ -675,10 +675,10 @@ function _HTMLDocument(aTarget, sDTD, bReplace, sName)
   {
     this.name = "_HTMLDocument_" + String(HTMLDocumentCount);
   }
-  
+
   /* Methods */
   this.activate = HTMLDocumentActivate;
-  
+
   /* DEBUG */
   this.showProperties = HTMLDocumentShowProperties;
   this.checkTarget = docCheck;
