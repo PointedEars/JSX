@@ -86,8 +86,7 @@ if (typeof jsx != "object")
      */
     var _RegExp2 = jsx.object.extend(
       (
-        /** @constructor */
-        function jsx_regexp_RegExp () {
+        function () {
           var
             _destructure = jsx.array.destructure,
             _WideString = _jsx_object.getFeature(
@@ -327,7 +326,7 @@ if (typeof jsx != "object")
                 items: [],
 
                 indexOf: function (item) {
-                  var item = this.seen[item];
+                  item = this.seen[item];
                   return (item ? item.index : -1);
                 },
 
@@ -603,6 +602,7 @@ if (typeof jsx != "object")
            * The returned {@link RegExp} has additional properties to
            * accomodate syntax extensions in the pattern string:
            *
+           * @constructor
            * @param {String|RegExp} expression
            *   A regular expression pattern string that may use the features
            *   described above.  If it is a {@link RegExp}, its
@@ -1139,7 +1139,7 @@ if (typeof jsx != "object")
                 {
                   matches.groups = _getDataObject();
 
-                  for (var i = 0, len = matches.length; i < len; ++i)
+                  for (i = 0, len = matches.length; i < len; ++i)
                   {
                     if (rx.unicodeMode)
                     {
@@ -1454,18 +1454,6 @@ if (typeof jsx != "object")
 
   // jsx.regexp.docURL = jsx.regexp.path + "regexp.htm";
 
-  /** @deprecated */
-  var regexp2str = jsx.regexp.toString2;
-
-  /** @deprecated */
-  var regexp_concat = jsx.regexp.concat;
-
-  /** @deprecated */
-  var regexp_intersect = jsx.regexp.intersect;
-
-  /** @deprecated */
-  var strRegExpEscape = jsx.regexp.escape;
-
   if (jsx.options.augmentPrototypes)
   {
     jsx.object.extend(RegExp.prototype, {
@@ -1485,3 +1473,17 @@ if (typeof jsx != "object")
     });
   }
 }());
+
+/*jshint -W098*/
+
+/** @deprecated */
+var regexp2str = jsx.regexp.toString2;
+
+/** @deprecated */
+var regexp_concat = jsx.regexp.concat;
+
+/** @deprecated */
+var regexp_intersect = jsx.regexp.intersect;
+
+/** @deprecated */
+var strRegExpEscape = jsx.regexp.escape;
