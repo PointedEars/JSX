@@ -194,7 +194,7 @@ Math.lcm = function(a, b) {
  * @throws Math#OverflowError
  */
 Math.fac = function(n) {
-  if (n % 1)
+  if (n % 1 != 0)
   {
     n = Math.floor(n);
   }
@@ -268,7 +268,7 @@ Math.power = function(nBase, nExponent) {
     result = Math.exp(nExponent * Math.log(Math.abs(nBase)));
     if (nBase < 0)
     {
-      if (!(nExponent % 1))
+      if (nExponent % 1 == 0)
       {
         if (Math.floor(nExponent) % 2)
         {
