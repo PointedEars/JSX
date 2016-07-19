@@ -15,7 +15,7 @@
 */
 
 var enhanced2Version   = "1.23.20080120";
-var enhanced2Copyright = "Copyright � 2000-2008";
+var enhanced2Copyright = "Copyright © 2000-2008";
 var enhanced2Author    = "Thomas Lahn";
 var enhanced2Email     = "PointedEars@gmx.de";
 var enhanced2DocURL    = "http://www.tu-ilmenau.de/~thla-in/scripts/enhancd2.htm";
@@ -91,14 +91,14 @@ function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter) {
                + ",top="
                + parseInt(screen.height/2
                           - (((argnum > 3) && !isNaN(iHeight))?(iHeight/2):0));
-  
+
   var wImage = window.open(null, "wndZoom", sOptions);
-    
+
   if (wImage)
   {
     var dImage = wImage.document;
     dImage.open("text/html");
-    
+
     var a = new Array(
       '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">',
       '<html>',
@@ -108,7 +108,7 @@ function enlargeImg(sImageURL, sCaption, iWidth, iHeight, bCenter) {
       + enhanced2Version + '}:enlargeImg(...) ' + enhanced2Copyright
       + '  ' + enhanced2Author + ' &lt;' + enhanced2Email + '&gt;">',
       '    <title>' + ((argnum > 1 && sCaption != "") ? sCaption : sImageURL),
-    
+
       // temporary script and updated inline code to fix BUG_Enlarge:ALWAYS_FIT-TO-IMAGE
       '    <\/title>',
       '    <script type="text/javascript">',
@@ -204,10 +204,10 @@ function TDateNames(
     aMedMonthNames
     aLongMonthNames
     aTZdescr
-    
+
   Methods:
     getTZdescr(...)
-  
+
   Pass arrays containing the respective strings as arguments
   to set properties on creation of object.
 */
@@ -219,7 +219,7 @@ function TDateNames(
   this.aMedMonthNames     = aaMedMonthNames     || new Array(12);
   this.aLongMonthNames    = aaLongMonthNames    || new Array(12);
   this.aTZdescr           = aaTZdescr           || new Array();
-  
+
   this.getTZdescr = TDateNames_getTZdescr;
 }
 
@@ -396,11 +396,11 @@ var oDateNames_de = new TDateNames(
     "Sep", "Okt", "Nov", "Dez"
   ),
   new Array(
-    "Jan", "Feb", "M�r", "Apr", "Mai", "Jun", "Jul", "Aug",
+    "Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug",
     "Sep", "Okt", "Nov", "Dez"
   ),
   new Array(
-    "Januar", "Februar", "M�rz", "April", "Mai", "Juni",
+    "Januar", "Februar", "März", "April", "Mai", "Juni",
     "Juli", "August", "September", "Oktober", "November", "Dezember"
   ),
   new Array(
