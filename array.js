@@ -94,7 +94,7 @@ jsx.array = (/** @constructor */ function () {
     if (!_isArray(a) && _isArray(this))
     {
       bConvertNonStrings = bUppercase;
-      bUpperCase = a;
+      bUppercase = a;
       a = this;
     }
 
@@ -121,6 +121,221 @@ jsx.array = (/** @constructor */ function () {
     return [];
   }
 
+  function _contains (value, a, bExactMatch, bDeepSearch)
+  {
+    var result = null;
+
+    if (bDeepSearch)
+    {
+      result = !!_search(value, a, bExactMatch, true);
+    }
+    else
+    {
+      result = _search(value, a, bExactMatch, false) > -1;
+    }
+
+    return result;
+  }
+
+  /**
+   * Searches an array for a given value and returns
+   * the corresponding index or vector if successful.
+   *
+   * @param needle
+   *   Value to be searched for.
+   * @param {Array} aHaystack
+   *   <code>Array</code> to be searched for.  Is used instead of
+   *   the calling <code>Array</code> object.
+   * @param {boolean} bStrict (optional)
+   *   If <code>true</code> then the function will also check the
+   *   types of the <code>needle</code> in the <code>aHaystack</code>.
+   * @param {boolean} bDeepSearch (optional)
+   *   If <code>true</code>, a deep search, if necessary, will be
+   *   performed, i.e. also elements of the array are searched if
+   *   they refer to <code>Array</code> objects.  (Note that this
+   *   method pays attention to the possibility that an element may
+   *   refer to one of its parents, so that infinite recursion is
+   *   not performed in this case.  However, this additional check
+   *   reduces efficiency as another {@link jsx.array#search()}
+   *   must be invoked for every ancestor relationship.  Also
+   *   note that this compares only references, not content.
+   *   If <code>needle</code> is a reference to an <code>Array</code>
+   *   object, it is compared as reference with every single
+   *   element, not its content with the content of elements
+   *   [that refer to <code>Array</code> objects].)
+   * @param {Array} aAncestors (optional)
+   *   Used internally by {@linkplain (bDeepSearch) deep search} to refer
+   *   to an <code>Array</code> object storing the ancestors of a
+   *   "child" array element that refers to an <code>Array</code>
+   *   object itself.  Usage prevents infinite recursion, see
+   *   <code>bDeepSearch</code>.
+   * @param {Array} aResultVector (optional)
+   *   Used internally by {@linkplain (bDeepSearch) deep search}
+   *   to refer to an <code>Array</code> object storing the
+   *   vector of a matching array element that refers to an
+   *   <code>Array</code> object itself.
+   * @param {number} iLevel (optional)
+   *   Used internally by {@linkplain (bDeepSearch) deep search}
+   *   to specify the level for index of the coordinate of
+   *   <code>aResultVector</code> if there is a match.  The default
+   *   level (also used for non-deep searches) is 0 for the
+   *   first coordinate of <code>aResultVector</code>.
+   * @param {number} index (optional)
+   *   Used internally by {@linkplain (bDeepSearch) deep search}
+   *   to specify the current index for the coordinate of
+   *   <code>aResultVector</code> if there is a match.
+   * @return {number}
+   *   Without {@linkplain (bDeepSearch) deep search}:
+   *     The zero-based index of the first matching element
+   *       if <code>needle</code> is found in the array,
+   *     -1
+   *       otherwise.
+   *
+   *   With {@linkplain (bDeepSearch) deep search}:
+   *     A reference to an Array object indicating the vector of
+   *     the first matching element (i.e. its coordinates)
+   *       if <code>needle</code> is found in the array,
+   *     <code>null</code>
+   *       otherwise.
+   *
+   *   If neither the calling object is an <code>Array</code>
+   *   object nor <code>aHaystack</code> is a reference to such:
+   *     0 or <code>index</code>
+   *       if <code>needle</code> is equal to <code>aHaystack</code>
+   *       (<code>bStrict</code> is noted),
+   *    -1
+   *       otherwise.
+   */
+  function _search (needle, aHaystack, bStrict, bDeepSearch,
+      aAncestors, aResultVector, iLevel, index)
+  {
+    var result = -1;
+
+    if (typeof index == "undefined" || index < 0)
+    {
+      index = 0;
+    }
+
+  /*
+   _search(4, [[1, 2, 3], [4, 5, 6], [7, 8, 9]], true, true);
+
+   {0: {0: 1,
+        1: 2,
+        2: 3},
+    1: {0: 4,
+        1: 5,
+        2: 6},
+    2: {0: 7,
+        1: 8,
+        2: 9}}
+
+   _search(4, [[1, 2, 3], [4, 5, 6], [7, 8, 9]], true, true) == [1, 0]
+   _search(4, [1, 2, 3], true, true) == null
+   _search(4, [4, 5, 6], true, true) == 0
+   _search(4, [7, 8, 9], true, true) == null
+  */
+
+    if (_isArray(aHaystack))
+    {
+      for (var i = 0; i < aHaystack.length; i++)
+      {
+        if (bDeepSearch)
+        {
+          result = null;
+
+          if (!aAncestors)
+          {
+            aAncestors = [];
+          }
+
+          /* avoid dupes */
+          if (aAncestors.length === 0
+              || aAncestors[aAncestors.length - 1] != aHaystack)
+          {
+            _array_push(aAncestors, aHaystack);
+          }
+
+          if (!aResultVector)
+          {
+            aResultVector = [];
+          }
+
+          if (typeof iLevel == "undefined")
+          {
+            iLevel = 0;
+          }
+
+          /* avoid inf. recursion */
+          if (!_contains(aHaystack[i], aAncestors, false))
+          {
+            var res =
+              _search(
+                needle,
+                aHaystack[i],
+                bStrict,
+                bDeepSearch,
+                aAncestors,
+                aResultVector,
+                iLevel + 1,
+                i);
+
+            if (res != null && res > -1)
+            {
+              result = aResultVector;
+              break;
+            }
+          }
+        }
+        else
+        {
+          if (bStrict)
+          {
+            if (aHaystack[i] === needle)
+            {
+              result = i;
+              break;
+            }
+          }
+          else
+          {
+            if (aHaystack[i] == needle)
+            {
+              result = i;
+              break;
+            }
+          }
+        }
+      }
+    }
+    else
+    {
+      if (bStrict)
+      {
+        if (aHaystack === needle)
+        {
+          if (bDeepSearch)
+          {
+            aResultVector[iLevel - 1] = index;
+          }
+          result = index;
+        }
+      }
+      else
+      {
+        if (aHaystack == needle)
+        {
+          if (bDeepSearch)
+          {
+            aResultVector[iLevel - 1] = index;
+          }
+          result = index;
+        }
+      }
+    }
+
+    return result;
+  }
+
   /**
    * Array index out of range
    *
@@ -129,9 +344,11 @@ jsx.array = (/** @constructor */ function () {
    * @constructor
    */
   var _RangeError = (
+    /*jshint -W098*/
     function (sReason, sGot, sExpected) {
       _jsx.InvalidArgumentError.apply(this, arguments);
     }
+    /*jshint +W098*/
   ).extend(
     typeof RangeError == "function"
       ? RangeError
@@ -772,7 +989,7 @@ jsx.array = (/** @constructor */ function () {
 
       var actualStart = (relativeStart < 0
         ? Math.max(len + relativeStart, 0)
-        : min(relativeStart, len));
+        : Math.min(relativeStart, len));
 
       var actualDeleteCount = Math.min(
         Math.max(_toInteger(deleteCount), 0),
@@ -1369,7 +1586,7 @@ jsx.array = (/** @constructor */ function () {
             }
 
             filter_keys = _getKeys(filter);
-            for (var i = 0, len = filter_keys.length; i < len; ++i)
+            for (i = 0, len = filter_keys.length; i < len; ++i)
             {
               var object_key = filter_keys[i];
               var object_value = item[object_key];
@@ -1509,202 +1726,8 @@ jsx.array = (/** @constructor */ function () {
       return result;
     },
 
-    /**
-     * Searches an array for a given value and returns
-     * the corresponding index or vector if successful.
-     *
-     * @param needle
-     *   Value to be searched for.
-     * @param {Array} aHaystack
-     *   <code>Array</code> to be searched for.  Is used instead of
-     *   the calling <code>Array</code> object.
-     * @param {boolean} bStrict (optional)
-     *   If <code>true</code> then the function will also check the
-     *   types of the <code>needle</code> in the <code>aHaystack</code>.
-     * @param {boolean} bDeepSearch (optional)
-     *   If <code>true</code>, a deep search, if necessary, will be
-     *   performed, i.e. also elements of the array are searched if
-     *   they refer to <code>Array</code> objects.  (Note that this
-     *   method pays attention to the possibility that an element may
-     *   refer to one of its parents, so that infinite recursion is
-     *   not performed in this case.  However, this additional check
-     *   reduces efficiency as another {@link jsx.array#search()}
-     *   must be invoked for every ancestor relationship.  Also
-     *   note that this compares only references, not content.
-     *   If <code>needle</code> is a reference to an <code>Array</code>
-     *   object, it is compared as reference with every single
-     *   element, not its content with the content of elements
-     *   [that refer to <code>Array</code> objects].)
-     * @param {Array} aAncestors (optional)
-     *   Used internally by {@linkplain (bDeepSearch) deep search} to refer
-     *   to an <code>Array</code> object storing the ancestors of a
-     *   "child" array element that refers to an <code>Array</code>
-     *   object itself.  Usage prevents infinite recursion, see
-     *   <code>bDeepSearch</code>.
-     * @param {Array} aResultVector (optional)
-     *   Used internally by {@linkplain (bDeepSearch) deep search}
-     *   to refer to an <code>Array</code> object storing the
-     *   vector of a matching array element that refers to an
-     *   <code>Array</code> object itself.
-     * @param {number} iLevel (optional)
-     *   Used internally by {@linkplain (bDeepSearch) deep search}
-     *   to specify the level for index of the coordinate of
-     *   <code>aResultVector</code> if there is a match.  The default
-     *   level (also used for non-deep searches) is 0 for the
-     *   first coordinate of <code>aResultVector</code>.
-     * @param {number} index (optional)
-     *   Used internally by {@linkplain (bDeepSearch) deep search}
-     *   to specify the current index for the coordinate of
-     *   <code>aResultVector</code> if there is a match.
-     * @return {number}
-     *   Without {@linkplain (bDeepSearch) deep search}:
-     *     The zero-based index of the first matching element
-     *       if <code>needle</code> is found in the array,
-     *     -1
-     *       otherwise.
-     *
-     *   With {@linkplain (bDeepSearch) deep search}:
-     *     A reference to an Array object indicating the vector of
-     *     the first matching element (i.e. its coordinates)
-     *       if <code>needle</code> is found in the array,
-     *     <code>null</code>
-     *       otherwise.
-     *
-     *   If neither the calling object is an <code>Array</code>
-     *   object nor <code>aHaystack</code> is a reference to such:
-     *     0 or <code>index</code>
-     *       if <code>needle</code> is equal to <code>aHaystack</code>
-     *       (<code>bStrict</code> is noted),
-     *    -1
-     *       otherwise.
-     */
-    search: function array_search (needle, aHaystack, bStrict, bDeepSearch,
-      aAncestors, aResultVector, iLevel, index) {
-      var result = -1;
 
-      if (typeof index == "undefined" || index < 0)
-      {
-        index = 0;
-      }
-
-    /*
-     array_search(4, [[1, 2, 3], [4, 5, 6], [7, 8, 9]], true, true);
-
-     {0: {0: 1,
-          1: 2,
-          2: 3},
-      1: {0: 4,
-          1: 5,
-          2: 6},
-      2: {0: 7,
-          1: 8,
-          2: 9}}
-
-     array_search(4, [[1, 2, 3], [4, 5, 6], [7, 8, 9]], true, true) == [1, 0]
-     array_search(4, [1, 2, 3], true, true) == null
-     array_search(4, [4, 5, 6], true, true) == 0
-     array_search(4, [7, 8, 9], true, true) == null
-    */
-
-      if (_isArray(aHaystack))
-      {
-        for (var i = 0; i < aHaystack.length; i++)
-        {
-          if (bDeepSearch)
-          {
-            result = null;
-
-            if (!aAncestors)
-            {
-              aAncestors = [];
-            }
-
-            /* avoid dupes */
-            if (aAncestors.length === 0
-                || aAncestors[aAncestors.length - 1] != aHaystack)
-            {
-              _array_push(aAncestors, aHaystack);
-            }
-
-            if (!aResultVector)
-            {
-              aResultVector = [];
-            }
-
-            if (typeof iLevel == "undefined")
-            {
-              iLevel = 0;
-            }
-
-            /* avoid inf. recursion */
-            if (!inArray(aHaystack[i], aAncestors, false))
-            {
-              var res =
-                array_search(
-                  needle,
-                  aHaystack[i],
-                  bStrict,
-                  bDeepSearch,
-                  aAncestors,
-                  aResultVector,
-                  iLevel + 1,
-                  i);
-
-              if (res != null && res > -1)
-              {
-                result = aResultVector;
-                break;
-              }
-            }
-          }
-          else
-          {
-            if (bStrict)
-            {
-              if (aHaystack[i] === needle)
-              {
-                result = i;
-                break;
-              }
-            }
-            else
-            {
-              if (aHaystack[i] == needle)
-              {
-                result = i;
-                break;
-              }
-            }
-          }
-        }
-      }
-      else
-      {
-        if (bStrict)
-        {
-          if (aHaystack === needle)
-          {
-            if (bDeepSearch) {
-              aResultVector[iLevel - 1] = index;
-            }
-            result = index;
-          }
-        }
-        else
-        {
-          if (aHaystack == needle)
-          {
-            if (bDeepSearch)
-            {
-              aResultVector[iLevel - 1] = index;
-            }
-            result = index;
-          }
-        }
-      }
-
-      return result;
-    },
+    search: _search,
 
     /**
      * @param value
@@ -1716,26 +1739,13 @@ jsx.array = (/** @constructor */ function () {
      *   types of the <code>needle</code> in the <code>aHaystack</code>
      *   (optional).
      * @param {boolean} bDeepSearch = false
-     *   If <code>true</code>, a {@linkplain #array_search(bDeepSearch)
+     *   If <code>true</code>, a {@linkplain jsx.array#search(bDeepSearch)
      *   deep search}, if necessary, will be performed.
      * @return {boolean}
      *   <code>true</code> if <code>value</code> is an element of
      *   <code>a</code>, <code>false</code> otherwise.
      */
-    contains: function (value, a, bExactMatch, bDeepSearch) {
-      var result = null;
-
-      if (bDeepSearch)
-      {
-        result = !!array_search(value, a, bExactMatch, true);
-      }
-      else
-      {
-        result = array_search(value, a, bExactMatch, false) > -1;
-      }
-
-      return result;
-    },
+    contains: _contains,
 
     /**
      * @function
