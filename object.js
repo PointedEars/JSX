@@ -2609,7 +2609,6 @@ de.pointedears.jsx = jsx;
       }
     };
   }(jsx.object));
-
   /**
    * Returns an <code>Array</code> created from mapping items
    * of an Array-like object.
