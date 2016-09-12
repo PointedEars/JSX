@@ -638,7 +638,8 @@ if (jsx.object.getFeature(jsx, "dom", "widgets"))
                     }
                   }
 
-                  if (beep.ended)
+                  if (beep.ended
+                      || this.hasAttribute("data-sound-immediate"))
                   {
                     clickAction();
                   }
