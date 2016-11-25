@@ -226,8 +226,9 @@ jsx.dom.css = (/** @constructor */ function () {
         var prefix = " ", suffix = "";
 
         cache = _jsx_object.getDataObject();
-        cache.get = function (s) {
-          return _jsx_object.getProperty(this, prefix + s + suffix, false);
+        cache.get = function (s, aDefault) {
+          return _jsx_object.getProperty(this, prefix + s + suffix,
+            arguments.length > 1 ? aDefault : false);
         };
 
         cache.put = function (s, v) {
@@ -274,8 +275,9 @@ jsx.dom.css = (/** @constructor */ function () {
         var prefix = " ", suffix = "";
 
         cache = _jsx_object.getDataObject();
-        cache.get = function (s) {
-          return _jsx_object.getProperty(this, prefix + s + suffix, false);
+        cache.get = function (s, aDefault) {
+          return _jsx_object.getProperty(this, prefix + s + suffix,
+            arguments.length > 1 ? aDefault : false);
         };
 
         cache.put = function (s, v) {
@@ -1099,23 +1101,31 @@ jsx.dom.css.getElemByClassName = jsx.dom.css.gEBCN = (function () {
       var aElements = _getElemByTagName("*", -1, contextNode || document);
     }
 
-    if (aElements)
+    var len;
+    if (aElements && (len = aElements.length) > 0)
     {
+      var regexp_cache = jsx.object.getDataObject();
+
       /*
        * NOTE: There are many more elements than potential class names, so loop
        * through those only once
        */
-      var len;
-      outer: for (i = 0, len = aElements.length; i < len; ++i)
+      outer: for (i = 0; i < len; ++i)
       {
         var element = aElements[i];
         var elementClassName = element.className;
 
         for (var j = classNames.length; j--;)
         {
-          if (!new RegExp("(^|" + sWhiteSpace + ")" + classNames[j]
-                           + "($|" + sWhiteSpace + ")")
-               .test(elementClassName))
+          className = classNames[j];
+          var rx = (
+            regexp_cache[className]
+            || (regexp_cache[className] = new RegExp(
+                  "(^|" + sWhiteSpace + ")" + className + "($|" + sWhiteSpace
+                        + ")"))
+          );
+
+          if (!rx.test(elementClassName))
           {
             continue outer;
           }
