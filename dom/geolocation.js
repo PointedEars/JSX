@@ -90,6 +90,48 @@ jsx.dom.geolocation = {
   },
 
   /**
+   * @return {PositionError}
+   *   The <code>PositionError</code> stored in this object.
+   */
+  getPositionError: function () {
+    return this._positionError;
+  },
+
+  /**
+   * Sets the {PositionError} stored in this object.
+   *
+   * Automatically called from {@link #runAsync()}.
+   *
+   * @param {PositionError} value
+   * @return {jsx.dom.geolocation}
+   */
+  setPositionError: function (value) {
+    this._positionError = value;
+    return this;
+  },
+
+  /**
+   * @return {PositionOptions}
+   *   The <code>PositionOptions</code> stored in this object.
+   */
+  getPositionOptions: function () {
+    return this._positionOptions;
+  },
+
+  /**
+   * Sets the {PositionOptions} stored in this object.
+   *
+   * Automatically called from {@link #runAsync()}.
+   *
+   * @param {PositionOptions} value
+   * @return {jsx.dom.geolocation}
+   */
+  setPositionOptions: function (value) {
+    this._positionOptions = value;
+    return this;
+  },
+
+  /**
    * @return {boolean}
    *   <code>true</code> if geolocation is available,
    *   <code>false</code> otherwise.
@@ -101,26 +143,39 @@ jsx.dom.geolocation = {
   /**
    * Runs geolocation asynchronously.
    *
-   * @param {Callable} callback
+   * @param {Callable} successCallback
    *   Called when geolocation was completed
+   * @param {Callable} errorCallback
+   *   Called when geolocation was unsuccessful
+   * @param {PositionOptions} options
+   *   Options for the Geolocation API
    * @return {boolean}
    *   <code>true</code> if geolocation is supported,
    *   <code>false</code> otherwise.
    */
-  runAsync: function (callback) {
-    if (this.isAvailable())
-    {
-      var me = this;
-      navigator.geolocation.getCurrentPosition(function (position) {
+  runAsync: function (successCallback, errorCallback, options) {
+    if (!this.isAvailable()) return false;
+    if (!options && options !== null) options = null;
+
+    this.setPositionOptions(options);
+
+    var me = this;
+    navigator.geolocation.getCurrentPosition(
+      function (position) {
         me.setPosition(position);
+        me.setPositionError(null);
         me = null;
-        callback(position);
-      });
+        successCallback(position);
+      },
+      function (positionError) {
+        me.setPositionError(positionError);
+        me = null;
+        if (typeof errorCallback =="function") errorCallback(positionError);
+      },
+      options
+    );
 
-      return true;
-    }
-
-    return false;
+    return true;
   },
 
   /**
