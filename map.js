@@ -128,12 +128,12 @@ var jsx;
               + (typeof unsafeKey.nodeName != "undefined"
                   ? unsafeKey.nodeName
                   : "")
+              + (typeof unsafeKey.className != "undefined"
+                && /\S/.test(unsafeKey.className)
+                  ? "." + unsafeKey.className.replace(/^\s+|\s+$/g, "").replace(/\s+/, ".")
+                  : "")
               + (typeof unsafeKey.id != "undefined"
                   ? "#" + unsafeKey.id
-                  : "")
-              + (typeof unsafeKey.className != "undefined"
-                  && /\S/.test(unsafeKey.className)
-                  ? "." + unsafeKey.className.replace(/\s+/, ".")
                   : "");
           }
 
