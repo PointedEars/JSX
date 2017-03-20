@@ -150,6 +150,20 @@ class ResourceBuilder
 
   public function __construct (array $options = array())
   {
+    if (!isset($options['src']) && !isset($_GET['src'])
+        && isset($_SERVER['QUERY_STRING']))
+    {
+      $query = $_SERVER['QUERY_STRING'];
+      $count = 1;
+      $components = explode('&', str_replace('?', '', $query, $count));
+      array_walk(
+        $components,
+        function ($element) use (&$options) {
+          list ($key, $value) = explode('=', $element);
+          $options[rawurldecode($key)] = rawurldecode($value);
+        });
+    }
+
     if (isset($options['src']) || isset($_GET['src']))
     {
       $params = array(
@@ -168,7 +182,7 @@ class ResourceBuilder
         $value = isset($options[$param])
           ? $options[$param]
           : (isset($_GET[$param]) ? $_GET[$param] : null);
-        
+
         if (is_int($property))
         {
           $property = $param;
@@ -270,12 +284,12 @@ class ResourceBuilder
           ? '.' . $this->typeMap[$contentType]
           : '');
     }
-    
+
     $that = $this;
     $this->sources = array_map(function ($source) use ($that) {
       return $that->prefix . $source . $that->suffix;
     }, $value);
-    
+
     return $this;
   }
 
@@ -486,7 +500,7 @@ class ResourceBuilder
       $totalSize = 0;
       $totalCompactedSize = 0;
     }
-    
+
 //     var_dump($this->sources);
     foreach ($this->sources as $index => $file)
     {
@@ -535,13 +549,13 @@ class ResourceBuilder
       {
         /* Pass 1: Remove all single-line comments (i.e., disabled code) */
         $content = $this->uncomment($content);
-        
+
         /*
          * Pass 2: Remove all JSdoc comments but the first one
          * (i.e., the copyright section)
          */
         $content = $this->stripJSdoc($content);
-        
+
         /* Pass 3: Minimize (removes multi-line comments and extra whitespace) */
       }
 
@@ -604,7 +618,7 @@ class ResourceBuilder
       echo $zipped;
     }
   }
-  
+
   public function getResourceURIs ()
   {
     if ($this->contentType === self::SCRIPT_CONTENT_TYPE
@@ -613,10 +627,10 @@ class ResourceBuilder
       $this->sources = $this->resolveDeps($this->sources);
       $this->resolve = false;
     }
-    
+
     return $this->sources;
   }
-  
+
   public function printScriptElements ()
   {
     $code = array_map(
@@ -624,7 +638,7 @@ class ResourceBuilder
         return '<script type="text/javascript" src="' . $uri . '"></script>';
       },
       $this->getResourceURIs());
-    
+
     echo implode("\n", $code);
   }
 
@@ -635,7 +649,7 @@ class ResourceBuilder
         return '<link rel="stylesheet" type="text/css" src="' . $uri . '" />';
       },
       $this->getResourceURIs());
-    
+
     echo implode("\n", $code);
   }
 }
