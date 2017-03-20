@@ -919,6 +919,53 @@ de.pointedears.jsx = jsx;
     }());
 
     /**
+     * Returns a new object that can serve as data container.
+     *
+     * Returns a reference to a new object that, if supported,
+     * does not inherit or have any properties other than those
+     * provided by the keys of <var>oSource</var>.  This is
+     * accomplished by either cutting off its existing prototype
+     * chain or not creating one for it in the first place.
+     *
+     * Different to {@link Object.create()}, properties from
+     * <var>oSource</var> are created with the attributes
+     * <code>[[Writable]]</code>, <code>[[Enumerable]]</code>
+     * and <code>[[Configurable]]</code>.  Attributes of the
+     * properties of <var>oSource</var> are <em>not</em> copied.
+     * Property values of the resulting object are a shallow copy
+     * of the property values of <var>oSource</var> unless
+     * specified otherwise with <var>iFlags</var>.
+     *
+     * @param {Object} oSource (optional)
+     * @param {Number} iFlags (optional)
+     *   See {@link #clone()}.
+     * @return {Object}
+     * @see Object.create()
+     * @see jsx.object.clone()
+     */
+    function _createDataObject (oSource, iFlags)
+    {
+      var obj = _inheritFrom(null);
+
+      if (_isObject(oSource))
+      {
+        for (var i = 0, keys = _getKeys(oSource), len = keys.length;
+             i < len; ++i)
+        {
+          var name = keys[i];
+          var value = oSource[name];
+
+          /* NOTE: formerly, numeric flags was first argument of _clone() */
+          obj[name] = (typeof value != "number"
+            ? _clone(value, iFlags)
+            : value);
+        }
+      }
+
+      return obj;
+    }
+
+    /**
      * Adds/replaces properties of an object.
      *
      * <p>
@@ -959,6 +1006,11 @@ de.pointedears.jsx = jsx;
             oTarget[p] = (cloneLevel
               ? _clone(oSource[p], cloneLevel)
               : oSource[p]);
+
+            /*
+             * FIXME: Throws a caught exception on primitive oTarget[p].
+             * Do we _really_ need this?
+             */
             oTarget[p]._userDefined = true;
           });
         }
@@ -1468,51 +1520,10 @@ de.pointedears.jsx = jsx;
         return "";
       },
 
-      /**
-       * Returns a new object that can serve as data container.
-       *
-       * Returns a reference to a new object that, if supported,
-       * does not inherit or have any properties other than those
-       * provided by the keys of <var>oSource</var>.  This is
-       * accomplished by either cutting off its existing prototype
-       * chain or not creating one for it in the first place.
-       *
-       * Different to {@link Object.create()}, properties from
-       * <var>oSource</var> are created with the attributes
-       * <code>[[Writable]]</code>, <code>[[Enumerable]]</code>
-       * and <code>[[Configurable]]</code>.  Attributes of the
-       * properties of <var>oSource</var> are <em>not</em> copied.
-       * Property values of the resulting object are a shallow copy
-       * of the property values of <var>oSource</var> unless
-       * specified otherwise with <var>iFlags</var>.
-       *
-       * @param {Object} oSource (optional)
-       * @param {Number} iFlags (optional)
-       *   See {@link #clone()}.
-       * @return {Object}
-       * @see Object.create()
-       * @see jsx.object.clone()
-       */
-      getDataObject: function (oSource, iFlags) {
-        var obj = _inheritFrom(null);
+      createDataObject: _createDataObject,
 
-        if (_isObject(oSource))
-        {
-          for (var i = 0, keys = _getKeys(oSource), len = keys.length;
-               i < len; ++i)
-          {
-            var name = keys[i];
-            var value = oSource[name];
-
-            /* NOTE: formerly, numeric flags was first argument of _clone() */
-            obj[name] = (typeof value != "number"
-              ? _clone(value, iFlags)
-              : value);
-          }
-        }
-
-        return obj;
-      },
+      /** @deprecated in favor of #createDataObject */
+      getDataObject: _createDataObject,
 
       getFeature: _getFeature,
 
