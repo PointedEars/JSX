@@ -176,7 +176,7 @@ de.pointedears.jsx = jsx;
    * @namespace
    */
   jsx.object = (/** @constructor */ function () {
-    var _MAX_ARRAY_LENGTH = Math.pow(2, 32) - 1;
+    var MAX_ARRAY_LENGTH = Math.pow(2, 32) - 1;
 
     var
       rxUnknown = /^unknown$/,
@@ -1270,7 +1270,7 @@ de.pointedears.jsx = jsx;
               }
             }
 
-            if (flipped.length == _MAX_ARRAY_LENGTH && !_BigArray)
+            if (flipped.length == MAX_ARRAY_LENGTH && !_BigArray)
             {
               jsx.warn("Possible information loss due to Array limits."
                 + " Provide jsx.array.BigArray to avoid.");
