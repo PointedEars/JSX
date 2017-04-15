@@ -1,0 +1,66 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "This file is @generated automatically"
+    ],
+    "hash": "bd7fb97e23278ae5a770768c9517c62d",
+    "content-hash": "a0fdf901d582f566428320d190949232",
+    "packages": [
+        {
+            "name": "rvdv/nntp",
+            "version": "v0.7.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/robinvdvleuten/php-nntp.git",
+                "reference": "4c70a1b162b929d1cc044b938639dced94426148"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/robinvdvleuten/php-nntp/zipball/4c70a1b162b929d1cc044b938639dced94426148",
+                "reference": "4c70a1b162b929d1cc044b938639dced94426148",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^5.5|^7.0"
+            },
+            "require-dev": {
+                "fabpot/php-cs-fixer": "^1.10",
+                "phpunit/phpunit": "^4.8",
+                "scrutinizer/ocular": "^1.1"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Rvdv\\Nntp\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Robin van der Vleuten",
+                    "email": "robinvdvleuten@gmail.com"
+                }
+            ],
+            "description": "Client for communicating with servers throught the Network News Transfer Protocol (NNTP) protocol.",
+            "homepage": "https://github.com/robinvdvleuten/php-nntp",
+            "time": "2016-02-15 11:43:55"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": []
+}

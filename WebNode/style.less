@@ -1,0 +1,20 @@
+.tree, .tree ul {
+    list-style-type: none;
+}
+
+.tree {
+  padding-left: 0;
+  position: relative;
+
+  input[type="checkbox"] {
+    float: left;
+  }
+
+  input[type="checkbox"] + ul {
+    display: none;
+  }
+
+  input[type="checkbox"]:checked + ul {
+    display: block;
+  }
+}
