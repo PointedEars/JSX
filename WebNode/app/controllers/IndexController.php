@@ -1,6 +1,6 @@
 <?php
 
-require_once 'views/IndexView.php';
+// require_once 'views/IndexView.php';
 
 class IndexController extends \PointedEars\PHPX\Controller
 {
@@ -16,33 +16,33 @@ class IndexController extends \PointedEars\PHPX\Controller
 
   public function indexAction ()
   {
-    require_once '../data.inc';
-
-    $min_percentage = 100;
-    $min_series = null;
-
-    $data = array(
-        'urns' => array(
-            'wiki' => 'http://de.wikipedia.org/wiki/'
-        )
-    );
-
-    $serien = SeriesMapper::getInstance()->getList($serien);
-
-    foreach ($serien as $key => &$serie)
-    {
-      if ($serie->total > 0)
-      {
-        if (!$serie->ignore && $serie->percentage < $min_percentage)
-        {
-          $min_percentage = $serie->percentage;
-          $min_series = $key;
-        }
-      }
-    }
-
-    $this->assign('serien', $serien);
-    $this->assign('min_series', $min_series);
     $this->render();
+  }
+
+  public function groupsAction ()
+  {
+    /* TODO: Move this to GroupsController for XHR */
+    error_reporting(E_ALL);
+    ini_set('display_errors', true);
+    $loader = require '../vendor/autoload.php';
+    $connection = new Rvdv\Nntp\Connection\Connection('news.solani.org', 119, false, 30);
+    $client = new Rvdv\Nntp\Client($connection);
+    $client->connectAndAuthenticate('PointedEars', 'BDnTV7wa');
+    require '../pointedears/nntp/src/Command/ListCommand.php';
+    $groups = $client->sendCommand(new PointedEars\Nntp\Command\ListCommand())->getResult();
+    $this->assign('groups', $groups);
+    /* end move */
+
+    $this->render('layouts/index/groups.phtml');
+  }
+
+  public function threadsAction ()
+  {
+    $this->render('layouts/index/threads.phtml');
+  }
+
+  public function postingAction ()
+  {
+    $this->render('layouts/index/posting.phtml');
   }
 }

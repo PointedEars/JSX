@@ -51,8 +51,15 @@ class ListCommand extends \Rvdv\Nntp\Command\Command implements \Rvdv\Nntp\Comma
 
     public function onListReceived(\Rvdv\Nntp\Response\MultiLineResponse $response)
     {
-        $message = $response->getMessage();
-        $this->result = array_combine(['group', 'high', 'low', 'status'], explode(' ', $message));
+        $lines = $response->getLines()->toArray();
+        $this->result = array_map(
+          function ($groupInfo) {
+            return array_combine(
+              ['name', 'high', 'low', 'status'],
+              explode(' ', $groupInfo));
+          },
+          $lines);
+        // var_dump($this->result);
     }
 
     public function onNoSuchGroup(Response $response)
