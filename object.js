@@ -176,7 +176,7 @@ de.pointedears.jsx = jsx;
    * @namespace
    */
   jsx.object = (/** @constructor */ function () {
-    var _MAX_ARRAY_LENGTH = Math.pow(2, 32) - 1;
+    var MAX_ARRAY_LENGTH = Math.pow(2, 32) - 1;
 
     var
       rxUnknown = /^unknown$/,
@@ -919,6 +919,53 @@ de.pointedears.jsx = jsx;
     }());
 
     /**
+     * Returns a new object that can serve as data container.
+     *
+     * Returns a reference to a new object that, if supported,
+     * does not inherit or have any properties other than those
+     * provided by the keys of <var>oSource</var>.  This is
+     * accomplished by either cutting off its existing prototype
+     * chain or not creating one for it in the first place.
+     *
+     * Different to {@link Object.create()}, properties from
+     * <var>oSource</var> are created with the attributes
+     * <code>[[Writable]]</code>, <code>[[Enumerable]]</code>
+     * and <code>[[Configurable]]</code>.  Attributes of the
+     * properties of <var>oSource</var> are <em>not</em> copied.
+     * Property values of the resulting object are a shallow copy
+     * of the property values of <var>oSource</var> unless
+     * specified otherwise with <var>iFlags</var>.
+     *
+     * @param {Object} oSource (optional)
+     * @param {Number} iFlags (optional)
+     *   See {@link #clone()}.
+     * @return {Object}
+     * @see Object.create()
+     * @see jsx.object.clone()
+     */
+    function _createDataObject (oSource, iFlags)
+    {
+      var obj = _inheritFrom(null);
+
+      if (_isObject(oSource))
+      {
+        for (var i = 0, keys = _getKeys(oSource), len = keys.length;
+             i < len; ++i)
+        {
+          var name = keys[i];
+          var value = oSource[name];
+
+          /* NOTE: formerly, numeric flags was first argument of _clone() */
+          obj[name] = (typeof value != "number"
+            ? _clone(value, iFlags)
+            : value);
+        }
+      }
+
+      return obj;
+    }
+
+    /**
      * Adds/replaces properties of an object.
      *
      * <p>
@@ -959,6 +1006,11 @@ de.pointedears.jsx = jsx;
             oTarget[p] = (cloneLevel
               ? _clone(oSource[p], cloneLevel)
               : oSource[p]);
+
+            /*
+             * FIXME: Throws a caught exception on primitive oTarget[p].
+             * Do we _really_ need this?
+             */
             oTarget[p]._userDefined = true;
           });
         }
@@ -1218,7 +1270,7 @@ de.pointedears.jsx = jsx;
               }
             }
 
-            if (flipped.length == _MAX_ARRAY_LENGTH && !_BigArray)
+            if (flipped.length == MAX_ARRAY_LENGTH && !_BigArray)
             {
               jsx.warn("Possible information loss due to Array limits."
                 + " Provide jsx.array.BigArray to avoid.");
@@ -1468,51 +1520,10 @@ de.pointedears.jsx = jsx;
         return "";
       },
 
-      /**
-       * Returns a new object that can serve as data container.
-       *
-       * Returns a reference to a new object that, if supported,
-       * does not inherit or have any properties other than those
-       * provided by the keys of <var>oSource</var>.  This is
-       * accomplished by either cutting off its existing prototype
-       * chain or not creating one for it in the first place.
-       *
-       * Different to {@link Object.create()}, properties from
-       * <var>oSource</var> are created with the attributes
-       * <code>[[Writable]]</code>, <code>[[Enumerable]]</code>
-       * and <code>[[Configurable]]</code>.  Attributes of the
-       * properties of <var>oSource</var> are <em>not</em> copied.
-       * Property values of the resulting object are a shallow copy
-       * of the property values of <var>oSource</var> unless
-       * specified otherwise with <var>iFlags</var>.
-       *
-       * @param {Object} oSource (optional)
-       * @param {Number} iFlags (optional)
-       *   See {@link #clone()}.
-       * @return {Object}
-       * @see Object.create()
-       * @see jsx.object.clone()
-       */
-      getDataObject: function (oSource, iFlags) {
-        var obj = _inheritFrom(null);
+      createDataObject: _createDataObject,
 
-        if (_isObject(oSource))
-        {
-          for (var i = 0, keys = _getKeys(oSource), len = keys.length;
-               i < len; ++i)
-          {
-            var name = keys[i];
-            var value = oSource[name];
-
-            /* NOTE: formerly, numeric flags was first argument of _clone() */
-            obj[name] = (typeof value != "number"
-              ? _clone(value, iFlags)
-              : value);
-          }
-        }
-
-        return obj;
-      },
+      /** @deprecated in favor of #createDataObject */
+      getDataObject: _createDataObject,
 
       getFeature: _getFeature,
 
@@ -1621,6 +1632,10 @@ de.pointedears.jsx = jsx;
         return (aFunction != null
                  && typeof aFunction.name != "undefined" && aFunction.name)
           || (String(aFunction).match(rx) || [, ""])[1];
+      },
+
+      getFunctionParams: function (aFunction) {
+        return (String(aFunction).match(/\(([^\)]*)\)/) || [, ""])[1].match(/[^,]+/g) || "";
       },
 
       /**
@@ -2221,23 +2236,50 @@ de.pointedears.jsx = jsx;
       Object.values._emulated = true;
     }
 
-    if (typeof Object.forKeys != "function")
+    if (typeof Object.forEach != "function")
     {
       /**
-       * Executes a callback for all keys of an object
+       * Executes a callback for properties of an object
        *
        * @param {Object} obj
        * @param {Object} callback
-       * @param {Object} thisValue
+       *   Callback to be applied to each named property.
+       * @param {Array} propertyNames = Object.keys(obj)
+       *   Property names to consider.  The default, which can be triggered
+       *   by any false-value, are <var>obj</var>’s keys (names of own
+       *   enumerable properties).
+       * @param {Object} thisValue = obj
+       *   <code>this</code> value in the callback.  The default is <var>obj</var>.
        */
-      Object.forKeys = function (obj, callback, thisValue) {
-        return Object.keys(obj).forEach(function (key) {
-          return callback.call(thisValue || this, this[key], key, thisValue || this);
+      Object.forEach = function (obj, callback, propertyNames, thisValue) {
+        if (!propertyNames) propertyNames = Object.keys(obj);
+        if (arguments.length < 4) thisValue = obj;
+
+        return propertyNames.forEach(function (name) {
+          return callback.call(thisValue || this, obj[name], name, obj);
         }, obj);
       };
 
-      Object.forKeys._emulated = true;
+      Object.forEach._emulated = true;
     }
+
+    Object.map = function (obj, mapper, propertyNames, thisValue) {
+      if (!propertyNames) propertyNames = Object.keys(obj);
+      if (arguments.length < 4) thisValue = obj;
+
+      var propertiesDesc = Object.create(null);
+      propertyNames.forEach(function (name) {
+        var propertyDesc = Object.getOwnPropertyDescriptor(obj, name);
+        if ("value" in propertyDesc)
+        {
+          propertyDesc.value = mapper.call(thisValue, propertyDesc.value, name, obj);
+        }
+
+        this[name] = propertyDesc;
+      }, propertiesDesc);
+      var mapped = Array.isArray(obj) ? [] : Object.create(Object.getPrototypeOf(obj));
+      return Object.defineProperties(mapped, propertiesDesc);
+    };
 
     if (typeof Object.assign != "function")
     {
@@ -2268,14 +2310,14 @@ de.pointedears.jsx = jsx;
           var source = arguments[i];
           if (source)
           {
-            Object.forKeys(source, function (value, key) {
+            Object.forEach(source, function (value, key) {
               var desc = Object.getOwnPropertyDescriptor(this.source, key);
 
               if (typeof desc != "undefined" && desc.enumerable)
               {
                 Object.defineProperty(this.target, key, desc);
               }
-            }, {target: target, source: source});
+            }, null, {target: target, source: source});
           }
         }
 
@@ -2301,7 +2343,7 @@ de.pointedears.jsx = jsx;
         {
           var source = arguments[i];
 
-          Object.forKeys(source, function (value, key, source) {
+          Object.forEach(source, function (value, key, source) {
             if (!(jsx.object._hasOwnProperty(obj, key)))
             {
               var desc = (typeof Object.getOwnPropertyDescriptor == "function")
@@ -2332,7 +2374,7 @@ de.pointedears.jsx = jsx;
                 Object.extend(obj[key], value);
               }
             }
-          }, source);
+          }, null, source);
 
           return obj;
         }
@@ -2609,7 +2651,6 @@ de.pointedears.jsx = jsx;
       }
     };
   }(jsx.object));
-
   /**
    * Returns an <code>Array</code> created from mapping items
    * of an Array-like object.
@@ -2726,6 +2767,11 @@ de.pointedears.jsx = jsx;
       set: jsx.array.set,
       isArray: jsx.object.isArray
     });
+
+    if (typeof Object.getClass != "function")
+    {
+      Object.getClass = jsx.object.getClass;
+    }
 
     Object.observe = (typeof Object.observe == "function")
       ? (function () {
