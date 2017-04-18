@@ -11,21 +11,17 @@
       .full-height { height: 100%; }
       .full-width { width: 100%; }
     </style>
-    <script type="text/javascript">
-      function openGroupList ()
-      {
-        var w = window.open("?controller=groups", "wGroups", "width=800,height=600");
-        if (w) w.focus();
-      }
-    </script>
   </head>
 
   <body>
     <form class="absolute full-width full-height">
-      <h1><label for="group-select"><u>N</u>ewsgroup:</label></h1>
+      <h1><label for="group-select"><u>N</u>ewsgroup:</lsbel></h1>
       <select name="group" id="group-select" class="full-width" size="30">
+      <?php foreach ($this->groups as $group): ?>
+        <option value="<?= $group['name'] ?>"><?= $group['name'] ?></option>
+      <?php endforeach; ?>
       </select>
-      <input type="button" value="Subscribe…" onclick="openGroupList()">
+      <input type="button" value="Subscribe…">
       <input type="button" value="Unsubscribe…">
     </form>
   </body>
