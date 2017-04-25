@@ -52,13 +52,19 @@ class ListCommand extends \Rvdv\Nntp\Command\Command implements \Rvdv\Nntp\Comma
     public function onListReceived(\Rvdv\Nntp\Response\MultiLineResponse $response)
     {
         $lines = $response->getLines()->toArray();
-        $this->result = array_map(
+        $a = array_map(
           function ($groupInfo) {
             return array_combine(
               ['name', 'high', 'low', 'status'],
               explode(' ', $groupInfo));
           },
           $lines);
+        uasort($a, function ($a, $b) {
+          $a = $a['name'];
+          $b = $b['name'];
+          return ($a < $b ? -1 : ($a > $b ? 1 : 0));
+        });
+        $this->result = $a;
         // var_dump($this->result);
     }
 
