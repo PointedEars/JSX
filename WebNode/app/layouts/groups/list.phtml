@@ -2,27 +2,29 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <title>Newsgroups — WebNode</title>
-    <style>
-      .absolute { position: absolute; }
-      .no-margin { margin: 0; }
-      .absolute.full-width { left: 0; right: 0; }
-      .absolute.full-height { top: 0;bottom: 0; }
-      .full-height { height: 100%; }
-      .full-width { width: 100%; }
-    </style>
+    <title>Subscribe/Unsubscribe — WebNode</title>
+    <link rel="stylesheet" href="app/layouts/style.css">
   </head>
 
-  <body>
-    <form class="absolute full-width full-height">
-      <h1><label for="group-select"><u>N</u>ewsgroup:</lsbel></h1>
-      <select name="group" id="group-select" class="full-width" size="30">
-      <?php foreach ($this->groups as $group): ?>
-        <option value="<?= $group['name'] ?>"><?= $group['name'] ?></option>
-      <?php endforeach; ?>
-      </select>
-      <input type="button" value="Subscribe…">
-      <input type="button" value="Unsubscribe…">
+  <body class="absolute full-width full-height no-margin">
+    <form class="flexbox-container flexbox-vertical full-width">
+      <h1><label for="group-select"><u>N</u>ewsgroups</label></h1>
+      <div class="flexbox-fill flexbox-container flexbox-horizontal">
+        <select name="group" id="group-select" class="flexbox-fill" size="30" multiple>
+        <?php foreach ($this->groups as $group): ?>
+          <option value="<?= $group['name'] ?>"><?= $group['name'] ?></option>
+        <?php endforeach; ?>
+        </select>
+        <div class="flexbox-container flexbox-vertical">
+          <input type="button" value=">>"><br>
+          <input type="button" value="<<">
+        </div>
+        <select name="group" id="group-select" class="flexbox-fill" size="30" multiple>
+        <?php // foreach ($this->subscribedGroups as $group): ?>
+          <!-- <option value="<?= $group['name'] ?>"><?= $group['name'] ?></option> -->
+        <?php // endforeach; ?>
+        </select>
+      </div>
     </form>
   </body>
 </html>

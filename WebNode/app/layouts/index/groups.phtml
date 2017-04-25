@@ -3,14 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <title>Newsgroups — WebNode</title>
-    <style>
-      .absolute { position: absolute; }
-      .no-margin { margin: 0; }
-      .absolute.full-width { left: 0; right: 0; }
-      .absolute.full-height { top: 0;bottom: 0; }
-      .full-height { height: 100%; }
-      .full-width { width: 100%; }
-    </style>
+    <link rel="stylesheet" href="app/layouts/style.css">
     <script type="text/javascript">
       function openGroupList ()
       {
@@ -20,13 +13,21 @@
     </script>
   </head>
 
-  <body>
-    <form class="absolute full-width full-height">
-      <h1><label for="group-select"><u>N</u>ewsgroup:</label></h1>
-      <select name="group" id="group-select" class="full-width" size="30">
+  <body class="absolute full-width full-height no-margin">
+    <form class="flexbox-container flexbox-vertical full-height">
+      <h1 class="hidden"><label for="group-select"><u>N</u>ewsgroup:</label></h1>
+      <div class="flexbox-container flexbox-horizontal">
+        <input type="button" class="flexbox-fill" value="Subscribe…" onclick="openGroupList()">
+        <input type="button" class="flexbox-fill" value="Unsubscribe…">
+      </div>
+      <select name="group" id="group-select" class="flexbox-fill" size="7" multiple>
+        <optgroup label="news.solani.org">
+          <option value="news.solani.org/comp.lang.javascript">comp.lang.javascript</option>
+        </optgroup>
+        <optgroup label="news6.open-news-network.org">
+          <option value="news6.open-news-network.org/sci.physics.relativity">sci.physics.relativity</option>
+        </optgroup>
       </select>
-      <input type="button" value="Subscribe…" onclick="openGroupList()">
-      <input type="button" value="Unsubscribe…">
     </form>
   </body>
 </html>
