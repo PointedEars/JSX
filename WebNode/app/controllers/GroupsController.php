@@ -25,7 +25,6 @@ class GroupsController extends \PointedEars\PHPX\Controller
     require '../pointedears/nntp/src/Command/ListCommand.php';
     $groups = $client->sendCommand(new PointedEars\Nntp\Command\ListCommand())->getResult();
     $this->assign('groups', $groups);
-    /* end move */
 
     $this->render('layouts/groups/list.phtml');
   }
