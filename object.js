@@ -2402,9 +2402,9 @@ de.pointedears.jsx = jsx;
           Object.getOwnPropertyNames(target).forEach(function (name) {
             var sourceValue = this.source[name];
 
-            if (name in this.clone)
+            if (name in this.target)
             {
-              if (!Array.isArray(this.clone[name]))
+              if (!Array.isArray(this.target[name]))
               {
                 this.target[name] = [this.target[name]];
               }
