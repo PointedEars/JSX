@@ -2256,6 +2256,7 @@ jsx.dom = (/** @constructor */ function () {
      * @return {boolean}
      *   <code>false</code> if the script could not be loaded,
      *   <code>true</code> otherwise.
+     * @todo Merge with object.js:jsx.loadScript()
      */
     loadScript: function jsx_dom_loadScript (sURI, sType, sLanguage, bReload) {
       var

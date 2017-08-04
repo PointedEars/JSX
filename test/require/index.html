@@ -1,17 +1,14 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>require.js test</title>
-    <script type="text/javascript" src="../../object.js"></script>
-    <script type="text/javascript">
-    jsx.urnPrefixes = {
-      require: "/scripts/test/require/"
-    };
-    </script>
-    <script type="text/javascript" src="require.js"></script>
-  </head>
-  <body>
-
-  </body>
-</html>
+<title>jsx.define() and jsx.require() Test Case</title>
+<script src="../../object.js"></script>
+<script>
+  window.onload = function () {
+    jsx.loadScript("foo.js");
+    // jsx.require("../../object", function () {
+    //   console.log(42);
+    // });
+  };
+</script>
+<body>
+  <h1><a href="object.js"><kbd>jsx.define()</kbd> and <kbd>jsx.require()</kbd></a> Test Case</h1>
+</body>
