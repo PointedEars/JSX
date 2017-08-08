@@ -1903,6 +1903,38 @@ jsx.array = (/** @constructor */ function () {
     },
 
     /**
+     * Return this Array shuffled using the Fisher-Yates shuffle.
+     *
+     * @return {Array} this Array shuffled using the Fisher-Yates shuffle
+     */
+    shuffle: function () {
+      var shuffled = this.slice();
+
+      for (var i = this.length; --i;)
+      {
+        var j = Math.floor(i * Math.random());
+        var tmp = shuffled[i];
+        shuffled[i] = shuffled[j];
+        shuffled[j] = tmp;
+      }
+
+      return shuffled;
+    },
+
+    /**
+     * Shuffle this array in place using the Fisher-Yates shuffle
+     */
+    shuffleInPlace: function () {
+      for (var i = this.length; --i;)
+      {
+        var j = Math.floor(i * Math.random());
+        var tmp = this[i];
+        this[i] = this[j];
+        this[j] = tmp;
+      }
+    },
+
+    /**
      * Returns an {@link Array} from which all duplicates
      * have been removed.
      *
@@ -2099,8 +2131,7 @@ jsx.array = (/** @constructor */ function () {
      *   </table>
      * @return {Function}
      */
-    createComparator: function (aKeys, options)
-    {
+    createComparator: function (aKeys, options) {
       if (aKeys == null || !_isArray(aKeys))
       {
         aKeys = [aKeys];
