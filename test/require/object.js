@@ -74,11 +74,13 @@ var jsx = (function () {
 
     script.src = uri;
 
+    /* NOTE: _head and _body are cached per global context; cannot access method cross-frame */
     if (!_head && !_body) _head = document.head || document.getElementsByTagName("head")[0];
     if (!_head && !_body) _body = document.body;
     if (!((options && options.parentNode) || _head || _body)) return false;
 
     ((options && options.parentNode) || _head || _body).appendChild(script);
+    return true;
   }
 
   function _ModuleRegistry () {}

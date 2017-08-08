@@ -4,9 +4,9 @@
 <script>
   window.onload = function () {
     jsx.loadScript("foo.js");
-    // jsx.require("../../object", function () {
-    //   console.log(42);
-    // });
+    jsx.require("blurb", function () {
+      console.log(42);
+    });
   };
 </script>
 <body>

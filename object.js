@@ -3319,7 +3319,6 @@ de.pointedears.jsx = jsx;
 
       Object.assign(module, {
         loaded: false,
-
         executed: false
       });
 
@@ -3350,7 +3349,21 @@ de.pointedears.jsx = jsx;
 
       module.uri = uri;
 
-      if (!_loadScript(uri)) failedDeps.push(dependency);
+      if (!_loadScript(uri, {
+            onload: function () {
+              if (!module.loaded) {
+                /*
+                 * Dependency was not a module [jsx.define() sets .loaded=true],
+                 * consider it resolved already if loaded (may fail)
+                 */
+                module.loaded = module.executed = true;
+                _modules.get(uuid || dependent).resolve();
+              }
+            }
+          }))
+      {
+        failedDeps.push(dependency);
+      }
     });
 
     return failedDeps;
