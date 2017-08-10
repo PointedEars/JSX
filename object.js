@@ -172,185 +172,273 @@ de.pointedears.jsx = jsx;
     };
   //}());
 
+  var
+    rxUnknown = /^unknown$/,
+    rxMethod = /^(function|object)$/;
+
+  /**
+  * Determines whether an object is, or several objects are,
+  * likely to be callable.
+  *
+  * @author (C) 2003-2010  <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
+  * @param {Object} obj
+  *   Object which should be tested for a method, or checked
+  *   for being a method if no further arguments are provided.
+  *   <p>
+  *   <em>NOTE: If you pass a primitive value for this argument,
+  *   the properties of the object created from that value are considered.
+  *   In particular, if you pass a string value containing
+  *   a <i>MemberExpression</i>, the properties of the corresponding
+  *   <code>String</code> instance are considered, not of the object that
+  *   the <i>MemberExpression</i> might refer to.  If you need to use such
+  *   a string to refer to an object (e.g., if you do not know whether it
+  *   is safe to refer to the object), use the return value of
+  *   {@link jsx#tryThis jsx.tryThis("<var>MemberExpression</var>")}
+  *   as argument to this method instead.</em>
+  *   </p>
+  * @param {string|Array} prop (optional)
+  *   Path of the property to be determined a method, i.e. a reference to
+  *   a callable object assigned as property of another object.
+  *   Use a string argument for each component of the path, e.g.
+  *   the argument list <code>(o, "foo", "bar")</code> for testing whether
+  *   <code>o.foo.bar</code> is a method.
+  *   If the last argument is an {@link Array}, all elements of
+  *   this array are used for property names; e.g.
+  *   <code>(o, "foo", ["bar", "baz"])</code>.  This allows for testing
+  *   several properties of the same object with one call.
+  * @return {boolean}
+  *   <code>true</code> if all arguments refer to methods,
+  *   <code>false</code> otherwise.
+  */
+  function _isMethod (obj, prop)
+  {
+    var len = arguments.length;
+    if (len < 1)
+    {
+      jsx.throwThis("jsx.InvalidArgumentError",
+      ["Not enough arguments", "saw 0", "(obj : Object[, prop : string])"]);
+      return false;
+    }
+
+    /*
+    * Determine if we were apply'd by jsx.object.isNativeMethod;
+    */
+    var checkNative = (this == _isNativeMethod);
+
+    var t = typeof obj;
+
+    /* When no property names are provided, test if the first argument is a method */
+    if (len < 2)
+    {
+      if (checkNative)
+      {
+        return t == "function" && obj && true || false;
+      }
+
+      return rxUnknown.test(t) || rxMethod.test(t) && obj && true || false;
+    }
+
+    /* otherwise the first argument must refer to a suitable object */
+    /* FIXME: Does not recognize the zero-length string as convertible */
+    if (rxUnknown.test(t) || !obj)
+    {
+      return false;
+    }
+
+    for (var i = 1; i < len; i++)
+    {
+      prop = arguments[i];
+
+      /* NOTE: Handle null _and_ undefined */
+      if (prop == null)
+      {
+        return false;
+      }
+
+      var isLastSeg = (i == len - 1);
+      if (isLastSeg)
+      {
+        if (typeof prop.valueOf() == "string")
+        {
+          prop = [prop];
+        }
+
+        var aProp = prop;
+      }
+
+      for (var j = (isLastSeg && aProp.length || 1); j--;)
+      {
+        if (isLastSeg)
+        {
+          prop = aProp[j];
+        }
+
+        t = typeof obj[prop];
+
+        /*
+        * NOTE: Test for "unknown" required in any case;
+        * this order speeds up evaluation
+        */
+        if (rxUnknown.test(t) || (rxMethod.test(t) && obj[prop]))
+        {
+          if (i < len - 1)
+          {
+            obj = obj[prop];
+            if (!(rxUnknown.test(typeof obj) || obj))
+            {
+              return false;
+            }
+          }
+          else if (checkNative && t != "function")
+          {
+            return false;
+          }
+        }
+        else
+        {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Determines whether an object is, or several objects are,
+   * likely to be a native method.
+   *
+   * @author (C) 2011  <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
+   * @param {Object} obj
+   *   Object which should be tested for a method, or checked
+   *   for being a method if no further arguments are provided.
+   *   <p>
+   *   <em>NOTE: If you pass a primitive value for this argument,
+   *   the properties of the object created from that value are considered.
+   *   In particular, if you pass a string value containing
+   *   a <i>MemberExpression</i>, the properties of the corresponding
+   *   <code>String</code> instance are considered, not of the object that
+   *   the <i>MemberExpression</i> might refer to.  If you need to use such
+   *   a string to refer to an object (e.g., if you do not know whether it
+   *   is safe to refer to the object), use the return value of
+   *   {@link jsx#tryThis jsx.tryThis("<var>MemberExpression</var>")}
+   *   as argument to this method instead.</em>
+   *   </p>
+   * @param {string|Array} prop (optional)
+   *   Path of the property to be determined a method, i.e. a reference to
+   *   a callable object assigned as property of another object.
+   *   Use a string argument for each component of the path, e.g.
+   *   the argument list <code>(o, "foo", "bar")</code> for testing whether
+   *   <code>o.foo.bar</code> is a method.
+   *   If the last argument is an {@link Array}, all elements of
+   *   this array are used for property names; e.g.
+   *   <code>(o, "foo", ["bar", "baz"])</code>.  This allows for testing
+   *   several properties of the same object with one call.
+   * @return {boolean}
+   *   <code>true</code> if all arguments refer to methods,
+   *   <code>false</code> otherwise.
+   */
+  /*jshint -W098*/
+  function _isNativeMethod (obj, prop)
+  {
+    /* NOTE: Thread-safe, argument-safe code reuse -- `this' is our ID */
+    return _isMethod.apply(_isNativeMethod, arguments);
+  }
+  /*jshint +W098*/
+  
+  /**
+   * Determines if a value refers to an {@link Array}.
+   * <p>
+   * Returns <code>true</code> if the value is a reference to an object
+   * whose <code>[[Class]]</code> internal property is <code>"Array"</code>;
+   * <code>false</code> otherwise.
+   * </p>
+   *
+   * @param a
+   *   Potential <code>Array</code>
+   * @return {boolean}
+   */
+  function _isArray (a)
+  {
+    return (typeof Array.isArray == "function" && !Array.isArray._emulated
+      ? Array.isArray(a)
+      : (a && a.constructor == Array) || _getClass(a) == "Array");
+  }
+
   /**
    * @namespace
    */
   jsx.object = (/** @constructor */ function () {
     var MAX_ARRAY_LENGTH = Math.pow(2, 32) - 1;
 
-    var
-      rxUnknown = /^unknown$/,
-      rxMethod = /^(function|object)$/;
-
     /**
-     * Determines whether an object is, or several objects are,
-     * likely to be callable.
+     * Calls a property if it is likely to be callable, and
+     * returns its result.
      *
-     * @author (C) 2003-2010  <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
-     * @param {Object} obj
-     *   Object which should be tested for a method, or checked
-     *   for being a method if no further arguments are provided.
-     *   <p>
-     *   <em>NOTE: If you pass a primitive value for this argument,
-     *   the properties of the object created from that value are considered.
-     *   In particular, if you pass a string value containing
-     *   a <i>MemberExpression</i>, the properties of the corresponding
-     *   <code>String</code> instance are considered, not of the object that
-     *   the <i>MemberExpression</i> might refer to.  If you need to use such
-     *   a string to refer to an object (e.g., if you do not know whether it
-     *   is safe to refer to the object), use the return value of
-     *   {@link jsx#tryThis jsx.tryThis("<var>MemberExpression</var>")}
-     *   as argument to this method instead.</em>
-     *   </p>
-     * @param {string|Array} prop (optional)
-     *   Path of the property to be determined a method, i.e. a reference to
-     *   a callable object assigned as property of another object.
-     *   Use a string argument for each component of the path, e.g.
-     *   the argument list <code>(o, "foo", "bar")</code> for testing whether
-     *   <code>o.foo.bar</code> is a method.
-     *   If the last argument is an {@link Array}, all elements of
-     *   this array are used for property names; e.g.
-     *   <code>(o, "foo", ["bar", "baz"])</code>.  This allows for testing
-     *   several properties of the same object with one call.
-     * @return {boolean}
-     *   <code>true</code> if all arguments refer to methods,
-     *   <code>false</code> otherwise.
+     * @param {Array} aPath
+     *   Argument list for <code><var>fTester</var></code>
+     * @param {Array} aArguments
+     *   Argument list for the method call
+     * @param {Function} fTester
+     *   Testing method. Recommended values include
+     *   {@link #isNativeMethod()} and {@link #isHostMethod()}.
+     *   The default is {@link #isMethod()}.
+     * @return {Object}
+     *   <code>{returnValue: <var>value</var>}</code> if the method
+     *   could be called, where <code><var>value</var></code> is
+     *   the return value of the method;
+     *   <code>null</code> otherwise.
      */
-    function _isMethod (obj, prop)
+    function _callIfMethod (aPath, aArguments, fTester)
     {
-      var len = arguments.length;
-      if (len < 1)
-      {
-        jsx.throwThis("jsx.InvalidArgumentError",
-          ["Not enough arguments", "saw 0", "(obj : Object[, prop : string])"]);
-        return false;
-      }
+       if (!fTester)
+       {
+         fTester = _isMethod;
+       }
 
-      /*
-       * Determine if we were apply'd by jsx.object.isNativeMethod;
-       */
-      var checkNative = (this == _isNativeMethod);
+       if (fTester.apply(this, aPath))
+       {
+         var method = _getFeature.apply(this, aPath);
+         var returnValue = method.apply(aPath[0], aArguments);
+         return {returnValue: returnValue};
+       }
 
-      var t = typeof obj;
+       return null;
+     }
 
-      /* When no property names are provided, test if the first argument is a method */
-      if (len < 2)
-      {
-        if (checkNative)
-        {
-          return t == "function" && obj && true || false;
-        }
-
-        return rxUnknown.test(t) || rxMethod.test(t) && obj && true || false;
-      }
-
-      /* otherwise the first argument must refer to a suitable object */
-      /* FIXME: Does not recognize the zero-length string as convertible */
-      if (rxUnknown.test(t) || !obj)
-      {
-        return false;
-      }
-
-      for (var i = 1; i < len; i++)
-      {
-        prop = arguments[i];
-
-        /* NOTE: Handle null _and_ undefined */
-        if (prop == null)
-        {
-          return false;
-        }
-
-        var isLastSeg = (i == len - 1);
-        if (isLastSeg)
-        {
-          if (typeof prop.valueOf() == "string")
-          {
-            prop = [prop];
-          }
-
-          var aProp = prop;
-        }
-
-        for (var j = (isLastSeg && aProp.length || 1); j--;)
-        {
-          if (isLastSeg)
-          {
-            prop = aProp[j];
-          }
-
-          t = typeof obj[prop];
-
-          /*
-           * NOTE: Test for "unknown" required in any case;
-           * this order speeds up evaluation
-           */
-          if (rxUnknown.test(t) || (rxMethod.test(t) && obj[prop]))
-          {
-            if (i < len - 1)
-            {
-              obj = obj[prop];
-              if (!(rxUnknown.test(typeof obj) || obj))
-              {
-                return false;
-              }
-            }
-            else if (checkNative && t != "function")
-            {
-              return false;
-            }
-          }
-          else
-          {
-            return false;
-          }
-        }
-      }
-
-      return true;
-    }
-
-    /**
-     * Determines whether an object is, or several objects are,
-     * likely to be a native method.
-     *
-     * @author (C) 2011  <a href="mailto:js@PointedEars.de">Thomas Lahn</a>
-     * @param {Object} obj
-     *   Object which should be tested for a method, or checked
-     *   for being a method if no further arguments are provided.
-     *   <p>
-     *   <em>NOTE: If you pass a primitive value for this argument,
-     *   the properties of the object created from that value are considered.
-     *   In particular, if you pass a string value containing
-     *   a <i>MemberExpression</i>, the properties of the corresponding
-     *   <code>String</code> instance are considered, not of the object that
-     *   the <i>MemberExpression</i> might refer to.  If you need to use such
-     *   a string to refer to an object (e.g., if you do not know whether it
-     *   is safe to refer to the object), use the return value of
-     *   {@link jsx#tryThis jsx.tryThis("<var>MemberExpression</var>")}
-     *   as argument to this method instead.</em>
-     *   </p>
-     * @param {string|Array} prop (optional)
-     *   Path of the property to be determined a method, i.e. a reference to
-     *   a callable object assigned as property of another object.
-     *   Use a string argument for each component of the path, e.g.
-     *   the argument list <code>(o, "foo", "bar")</code> for testing whether
-     *   <code>o.foo.bar</code> is a method.
-     *   If the last argument is an {@link Array}, all elements of
-     *   this array are used for property names; e.g.
-     *   <code>(o, "foo", ["bar", "baz"])</code>.  This allows for testing
-     *   several properties of the same object with one call.
-     * @return {boolean}
-     *   <code>true</code> if all arguments refer to methods,
-     *   <code>false</code> otherwise.
-     */
-    /*jshint -W098*/
-    function _isNativeMethod (obj, prop)
-    {
-      /* NOTE: Thread-safe, argument-safe code reuse -- `this' is our ID */
-      return _isMethod.apply(_isNativeMethod, arguments);
-    }
-    /*jshint +W098*/
+     /**
+      * Determines if the passed value could be the result of
+      * <code>typeof <var>callable</var></code>.
+      * <p>
+      * NOTE: This method has previously been provided by {@link types.js};
+      * optimizations in code reuse moved it here.
+      * </p>
+      * @param {string} s
+      *   String to be determined a method type, i.e.
+      *   <code>"object"</code> or <code>"unknown"</code> in MSHTML,
+      *   <code>"function"</code> otherwise.  The type must have been
+      *   retrieved with the <code>typeof<code> operator.  Note that
+      *   this method may also return <code>true</code> if the value
+      *   of the <code>typeof</code> operand is <code>null</code>;
+      *   to be sure that the operand is a method reference, you
+      *   have to <code>&&</code> (AND)-combine the
+      *   <code>isMethodType(...)</code> expression with the method
+      *   reference identifier unless <code>typeof</code> yielded
+      *   <code>"unknown"</code> for <var>s</var>.
+      * @return {boolean}
+      *   <code>true</code> if <var>s</var> is a method type,
+      *   <code>false</code> otherwise.
+      * @author
+      *   (C) 2003-2008  Thomas Lahn &lt;types.js@PointedEars.de&gt;.
+      *   Distributed under the GNU GPL v3 and later.
+      * @partof http://pointedears.de/scripts/types.js
+      * @deprecated since version 0.1.5a.2009070204
+      *   in favor of {@link #isMethod(Object)}
+      */
+     function _isMethodType (s)
+     {
+       return /^\s*(function|object|unknown)\s*$/i.test(s);
+     }
 
     /**
      * Determines if an object has a (non-inherited) property.
@@ -402,6 +490,11 @@ de.pointedears.jsx = jsx;
               || (t != "undefined" && t != "boolean"
                   && t != "number" && t != "string")
             && a !== null);
+    }
+
+    function _isString (s)
+    {
+      return ((typeof s == "string") || jsx.object.isInstanceOf(s, String));
     }
 
     /**
@@ -512,25 +605,6 @@ de.pointedears.jsx = jsx;
       return getClass;
     }());
 
-    /**
-     * Determines if a value refers to an {@link Array}.
-     * <p>
-     * Returns <code>true</code> if the value is a reference to an object
-     * whose <code>[[Class]]</code> internal property is <code>"Array"</code>;
-     * <code>false</code> otherwise.
-     * </p>
-     *
-     * @param a
-     *   Potential <code>Array</code>
-     * @return {boolean}
-     */
-    function _isArray (a)
-    {
-      return (typeof Array.isArray == "function" && !Array.isArray._emulated
-        ? Array.isArray(a)
-        : (a && a.constructor == Array) || _getClass(a) == "Array");
-    }
-
     var _rxPrimitive = /^(boolean|function|number|object|string)$/;
 
     /**
@@ -553,6 +627,124 @@ de.pointedears.jsx = jsx;
             || (typeof Math != "undefined" && value == Math)
             || (typeof JSON != "undefined" && value == JSON))
       );
+    }
+
+    function _isHostObject (value)
+    {
+      return !_isNativeObject(value);
+    }
+
+    /**
+     * Exchanges an objects keys and their values and returns
+     * the new object.
+     *
+     * @param {Object} obj
+     *   The object to be flipped.
+     * @param {boolean} bAccumulate (optional)
+     *   If <code>true</code> and different keys have the same
+     *   value, the key-values are accumulated in an {@link Array}
+     *   (a {@link jsx.array.BigArray} if possible) in the resulting
+     *   object.  Otherwise key-values will be overwritten, so that
+     *   the value-key has the last matching key as its value.
+     * @param {Function} flipper (optional)
+     *   Function that should be called to determine whether
+     *   the property should be flipped.  Is passed the key as
+     *   argument and the object as <code>this</code> value.
+     *   The property is flipped only if <var>flipper</var>
+     *   returns a true-value.
+     * @return {Object}
+     *   A new object (a {@link jsx.map.Map} if possible) with
+     *   the original object's keys and values exchanged.
+     */
+    function _flip (obj, bAccumulate, flipper)
+    {
+      if (flipper && typeof flipper != "function")
+      {
+        return jsx.throwThis(jsx.InvalidArgumentError,
+          ["", typeof flipper, "Function"]);
+      }
+
+      var _Map = _getFeature(jsx, "map", "Map");
+      var flipped = _Map ? new _Map() : _createTypedObject(obj);
+      var keys = _getKeys(obj);
+      var _BigArray = _getFeature(jsx, "array", "BigArray");
+      var _Array = _BigArray || Array;
+
+      for (var i = 0, len = keys.length; i < len; ++i)
+      {
+        var key = keys[i];
+
+        if (flipper && !flipper.call(obj, key))
+        {
+          continue;
+        }
+
+        var value = obj[key];
+
+        var value_is_object = _isObject(value);
+        if (value_is_object && !_Map)
+        {
+          jsx.warn("Information loss because value is an object."
+            + " Load jsx.map.Map to avoid.");
+        }
+
+        var has_value_key = _Map
+          ? flipped.hasKey(value)
+          : _hasOwnProperty(flipped, value);
+
+        var key_value = _Map
+          ? flipped.get(value)
+          : flipped[value];
+
+        if (has_value_key && bAccumulate)
+        {
+          if (!_isArray(key_value))
+          {
+            var a = new _Array();
+            a.push(key_value);
+
+            if (_Map)
+            {
+              flipped.put(value, a);
+            }
+            else
+            {
+              flipped[value] = a;
+            }
+          }
+
+          if (flipped.length == MAX_ARRAY_LENGTH && !_BigArray)
+          {
+            jsx.warn("Possible information loss due to Array limits."
+              + " Provide jsx.array.BigArray to avoid.");
+          }
+
+          key_value = _Map
+            ? flipped.get(value)
+            : flipped[value];
+
+          key_value.push(key);
+        }
+        else
+        {
+          if (has_value_key)
+          {
+            jsx.warn("Information loss due to same value."
+              + " Pass bAccumulate === true to avoid.");
+          }
+
+          if (_Map)
+          {
+            flipped.put(value, key);
+          }
+          else
+          {
+            flipped[value] = key;
+          }
+        }
+      }
+
+      return flipped;
     }
 
     /**
@@ -854,116 +1046,109 @@ de.pointedears.jsx = jsx;
       }
 
       /**
-       * @function
-       */
-      var _defineProperty = _extend(
-        /**
-         * @param {Object} o
-         * @param {Object} descriptor (optional)
-         *   Property descriptor, a reference to an object that defines
-         *   the attributes of the property.   Must be of the form
-         * <code><pre>{
-         *   propertyName: {
-         *     configurable: …,
-         *     enumerable: …,
-         *     value: …,
-         *     writable: …,
-         *     get: function () {…},
-         *     set: function (newValue) {…}
-         *   },
-         *   …
-         * }
-         *   </pre></code> as specified in the ECMAScript Language Specification,
-         *   Edition 5 Final, section 15.2.3.7.  Note that the
-         *   <code>[[Configurable]]</code> and <code>[[Enumerable]]</code>
-         *   attributes cannot be emulated.  The [[Writable]] attribute,
-         *   and getter and setter can only be emulated if the
-         *   <code>__defineGetter__()</code> and <code>__defineSetter__()</code>
-         *   methods are available, respectively.
-         * @param {string} sContext (optional)
-         *   The context in which the property definition was attempted.
-         *   Included in the info message in case getters and setters
-         *   could not be defined.
-         */
-        function (o, propertyName, descriptor, sContext) {
-          var done = false;
+      * @param {Object} o
+      * @param {Object} descriptor (optional)
+      *   Property descriptor, a reference to an object that defines
+      *   the attributes of the property.   Must be of the form
+      * <code><pre>{
+      *   propertyName: {
+      *     configurable: …,
+      *     enumerable: …,
+      *     value: …,
+      *     writable: …,
+      *     get: function () {…},
+      *     set: function (newValue) {…}
+      *   },
+      *   …
+      * }
+      *   </pre></code> as specified in the ECMAScript Language Specification,
+      *   Edition 5 Final, section 15.2.3.7.  Note that the
+      *   <code>[[Configurable]]</code> and <code>[[Enumerable]]</code>
+      *   attributes cannot be emulated.  The [[Writable]] attribute,
+      *   and getter and setter can only be emulated if the
+      *   <code>__defineGetter__()</code> and <code>__defineSetter__()</code>
+      *   methods are available, respectively.
+      * @param {string} sContext (optional)
+      *   The context in which the property definition was attempted.
+      *   Included in the info message in case getters and setters
+      *   could not be defined.
+      */
+      function _defineProperty (o, propertyName, descriptor, sContext)
+      {
+        var done = false;
 
-          if (typeof Object.defineProperty == "function"
-              && !Object.defineProperty._emulated)
-          {
-            jsx.tryThis(function () {
-              Object.defineProperty(o, propertyName, descriptor);
-              done = true;
-            });
-          }
-
-          if (!done)
-          {
-            if (!/^(object|function)$/.test(typeof o) || !o)
-            {
-              return jsx.throwThis("TypeError", "Object expected");
-            }
-
-            var name = String(propertyName);
-            var desc = _toPropertyDescriptor(descriptor);
-            _defineOwnProperty(o, name, desc, true, sContext);
-          }
-
-          return o;
-        },
+        if (typeof Object.defineProperty == "function"
+            && !Object.defineProperty._emulated)
         {
-          _emulated: true
-        });
+          jsx.tryThis(function () {
+            Object.defineProperty(o, propertyName, descriptor);
+            done = true;
+          });
+        }
+
+        if (!done)
+        {
+          if (!/^(object|function)$/.test(typeof o) || !o)
+          {
+            return jsx.throwThis("TypeError", "Object expected");
+          }
+
+          var name = String(propertyName);
+          var desc = _toPropertyDescriptor(descriptor);
+          _defineOwnProperty(o, name, desc, true, sContext);
+        }
+
+        return o;
+      }
+      _defineProperty._emulated = true;
 
       return _defineProperty;
     }());
 
     /**
-     * Returns a new object that can serve as data container.
+     * Defines properties of an object, if possible.
      *
-     * Returns a reference to a new object that, if supported,
-     * does not inherit or have any properties other than those
-     * provided by the keys of <var>oSource</var>.  This is
-     * accomplished by either cutting off its existing prototype
-     * chain or not creating one for it in the first place.
+     * Emulation of the Object.defineProperties() method from ES 5.1,
+     * section 15.2.3.7.
      *
-     * Different to {@link Object.create()}, properties from
-     * <var>oSource</var> are created with the attributes
-     * <code>[[Writable]]</code>, <code>[[Enumerable]]</code>
-     * and <code>[[Configurable]]</code>.  Attributes of the
-     * properties of <var>oSource</var> are <em>not</em> copied.
-     * Property values of the resulting object are a shallow copy
-     * of the property values of <var>oSource</var> unless
-     * specified otherwise with <var>iFlags</var>.
-     *
-     * @param {Object} oSource (optional)
-     * @param {Number} iFlags (optional)
-     *   See {@link #clone()}.
-     * @return {Object}
-     * @see Object.create()
-     * @see jsx.object.clone()
+     * @function
+     * @param {Object} o
+     *   The object for which properties getters and setters should be defined.
+     * @param {Object} descriptor (optional)
+     *   Properties descriptor, where each own property name
+     *   is a property name of the new object, and each corresponding
+     *   property value is a reference to an object that defines the
+     *   attributes of that property.
+     * @return {Object} Reference to the object
+     * @see #defineProperty
      */
-    function _createDataObject (oSource, iFlags)
+    function _defineProperties (o, descriptor, sContext)
     {
-      var obj = _inheritFrom(null);
+      var done = false;
 
-      if (_isObject(oSource))
+      if (typeof Object.defineProperties == "function"
+          && !Object.defineProperties._emulated)
       {
-        for (var i = 0, keys = _getKeys(oSource), len = keys.length;
-             i < len; ++i)
-        {
-          var name = keys[i];
-          var value = oSource[name];
+        jsx.tryThis(function () {
+          Object.defineProperties(o, descriptor);
+          done = true;
+        });
+      }
 
-          /* NOTE: formerly, numeric flags was first argument of _clone() */
-          obj[name] = (typeof value != "number"
-            ? _clone(value, iFlags)
-            : value);
+      if (!done)
+      {
+        for (var i = 0, keys = _getKeys(descriptor), len = keys.length;
+              i < len; ++i)
+        {
+          var propertyName = keys[i];
+          _defineProperty(o, propertyName, descriptor[propertyName],
+            sContext);
         }
       }
 
-      return obj;
+      return o;
     }
+    _defineProperties._emulated = true;
 
     /**
      * Adds/replaces properties of an object.
@@ -1020,6 +1205,216 @@ de.pointedears.jsx = jsx;
     }
 
     /**
+     * Determines if a (non-inherited) property of an object is enumerable
+     *
+     * @param {Object} obj (optional)
+     *   Object which property should be checked for enumerability.
+     * @param {string} sProperty
+     *   Name of the property to check.
+     * @return {boolean}
+     *   <code>true</code> if there is such a property;
+     *   <code>false</code> otherwise.
+     */
+    function _propertyIsEnumerable (obj, sProperty)
+    {
+      if (arguments.length < 2 && obj)
+      {
+        sProperty = obj;
+        obj = jsx_object;
+      }
+
+      if (_isMethod(obj, "propertyIsEnumerable"))
+      {
+        return obj.propertyIsEnumerable(sProperty);
+      }
+
+      for (var propertyName in obj)
+      {
+        if (propertyName == name && _hasOwnProperty(obj, propertyName))
+        {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    /**
+     * Determines if an object, or the objects it refers to,
+     * has an enumerable property with a certain value
+     *
+     * @param {Object} obj
+     * @param needle
+     *   The value to be searched for
+     * @param {Object} params
+     *   Search parameters.  The following properties are supported:
+     *   <table>
+     *     <thead>
+     *       <tr>
+     *         <th>Property</th>
+     *         <th>Type</th>
+     *         <th>Meaning</th>
+     *       </tr>
+     *     </thead>
+     *     <tbody>
+     *       <tr>
+     *         <th><code><var>exclude</var></code></th>
+     *         <td><code>Array</code></td>
+     *         <td>Names of the properties that should not be searched</td>
+     *       </tr>
+     *       <tr>
+     *         <th><code><var>recursive</var></code></th>
+     *         <td><code>boolean</code></td>
+     *         <td>If a true-value, search recursively.</td>
+     *       </tr>
+     *       <tr>
+     *         <th><code><var>strict</var></code></th>
+     *         <td><code>boolean</code></td>
+     *         <td>If a true-value, perform a strict comparison
+     *             without type conversion.</td>
+     *       </tr>
+     *     </tbody>
+     *   </table>
+     */
+    function _hasPropertyValue (obj, needle, params)
+    {
+      for (var property in obj)
+      {
+        if (params && params.exclude && params.exclude.indexOf(property) > -1)
+        {
+          continue;
+        }
+
+        var propertyValue = obj[property];
+        if (params && params.recursive)
+        {
+          if (typeof propertyValue == "object" && propertyValue !== null)
+          {
+            if (_hasPropertyValue(propertyValue, needle, params))
+            {
+              return true;
+            }
+          }
+        }
+
+        if (params && params.strict)
+        {
+          if (propertyValue === needle)
+          {
+            return true;
+          }
+        }
+        else
+        {
+          /* Switch operands because of JScript quirk */
+          if (needle == propertyValue)
+          {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    }
+
+    /**
+     * Returns the name of an unused property for an object.
+     *
+     * @param {Object} obj
+     * @param {Number} iLength
+     *   Maximum property name length up to which an unused name
+     *   is searched.  The default is 256.
+     * @return {string}
+     *   The name of a non-existing property of <code>o</code> if
+     *   {@link Object#prototype.hasOwnProperty()} is supported, or
+     *   the name of a property with value <code>undefined</code>
+     *   if it is not supported; the empty string
+     *   if there is no such property.
+     */
+    function _findNewProperty (obj, iLength)
+    {
+      if (!obj)
+      {
+        obj = jsx_object;
+      }
+
+      if (arguments.length < 2)
+      {
+        iLength = 256;
+      }
+      else
+      {
+        iLength = parseInt(iLength, 10);
+      }
+
+      var prefix = "";
+
+      while (prefix.length < iLength)
+      {
+        for (var i = "a".charCodeAt(0), max = "z".charCodeAt(0); i <= max; ++i)
+        {
+          var ch = String.fromCharCode(i);
+          var newName = prefix + ch + "_";
+          if (!_hasOwnProperty(obj, newName))
+          {
+            return newName;
+          }
+        }
+
+        prefix += "a";
+      }
+
+      return "";
+    }
+
+    /**
+     * Returns a new object that can serve as data container.
+     *
+     * Returns a reference to a new object that, if supported,
+     * does not inherit or have any properties other than those
+     * provided by the keys of <var>oSource</var>.  This is
+     * accomplished by either cutting off its existing prototype
+     * chain or not creating one for it in the first place.
+     *
+     * Different to {@link Object.create()}, properties from
+     * <var>oSource</var> are created with the attributes
+     * <code>[[Writable]]</code>, <code>[[Enumerable]]</code>
+     * and <code>[[Configurable]]</code>.  Attributes of the
+     * properties of <var>oSource</var> are <em>not</em> copied.
+     * Property values of the resulting object are a shallow copy
+     * of the property values of <var>oSource</var> unless
+     * specified otherwise with <var>iFlags</var>.
+     *
+     * @param {Object} oSource (optional)
+     * @param {Number} iFlags (optional)
+     *   See {@link #clone()}.
+     * @return {Object}
+     * @see Object.create()
+     * @see jsx.object.clone()
+     */
+    function _createDataObject (oSource, iFlags)
+    {
+      var obj = _inheritFrom(null);
+
+      if (_isObject(oSource))
+      {
+        for (var i = 0, keys = _getKeys(oSource), len = keys.length;
+             i < len; ++i)
+        {
+          var name = keys[i];
+          var value = oSource[name];
+
+          /* NOTE: formerly, numeric flags was first argument of _clone() */
+          obj[name] = (typeof value != "number"
+            ? _clone(value, iFlags)
+            : value);
+        }
+      }
+
+      return obj;
+    }
+
+    /**
      * Returns a feature of an object
      *
      * @param {Object} obj
@@ -1066,6 +1461,72 @@ de.pointedears.jsx = jsx;
       return obj;
     }
 
+    /**
+     * Emulates the <code>instanceof</code> operator
+     * of ECMAScript Edition 3 and later.
+     *
+     * Uses <code>Object.getPrototypeOf</code> (ECMAScript Ed. 3 and later)
+     * or the proprietary <code>__proto__</code> property (JavaScript 1.3
+     * and later, and compatible implementations).
+     *
+     * Example:
+     * <pre><code>
+     *   var o = new Object();
+     *   o instanceof Object; // yields `true'
+     *
+     *   function Foo() {}
+     *   var o = new Foo();
+     *   o instanceof Object;     // yields `true'
+     *   o instanceof Foo;        // yields `true' also
+     *
+     *   var _isInstanceOf = jsx.object.isInstanceOf;
+     *   _isInstanceOf(o, Object); // returns `true'
+     *   _isInstanceOf(o, Foo);    // returns `true' also
+     *   _isInstanceOf(o, function () {});    // returns `false'
+     * </code></pre>
+     *
+     * NOTE: This method has previously been provided by {@link types.js};
+     * optimizations in code reuse moved it here.
+     *
+     * @author (C) 2003, 2011, 2013, 2014  Thomas Lahn &lt;js@PointedEars.de&gt;
+     * @param {Object} obj
+     *   Value to be determined an instance of <code>Constructor</code>
+     *   or inheriting from the constructor of <code>Constructor.prototype</code>
+     *   or an object in its prototype chain.
+     * @param {Function} Constructor
+     *   Object to be determined the constructor associated with an
+     *   object in the prototype chain of <var>obj</var>.
+     * @return {boolean}
+     *   <code>true</code> if <code>obj</code> is an object constructed
+     *   with <var>Constructor</var>, <code>false</code> otherwise.
+     */
+    function _isInstanceOf (obj, Constructor)
+    {
+      if (!_isObject(obj))
+      {
+        return false;
+      }
+
+      var proto = Constructor.prototype;
+
+      if (!_isObject(proto))
+      {
+        return jsx.throwThis("TypeError",
+          ["Expecting a function in instanceof check, but got " + Constructor],
+          _isInstanceOf);
+      }
+
+      while ((obj = _getProto(obj)))
+      {
+        if (proto == obj)
+        {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
     /* For getFunctionName from JSdoc; TODO: Use ES parser library */
     var _srxUnicodeLetter = "\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}";
     var _srxUnicodeEscapeSequence = "\\\\u[\\da-fA-F]{4}";
@@ -1079,6 +1540,93 @@ de.pointedears.jsx = jsx;
       + _srxUnicodeDigit
       + _srxUnicodeConnectorPunctuation;
     var _srxIdentifierName = "[" + _srxIdentifierStart + "][" + _srxIdentifierPart + "]*";
+
+    /**
+     * Returns the name of a function
+     *
+     * @param {Function|String} aFunction
+     * @param {boolean} bNoStackTrace
+     *   If <code>true</code>, do not attempt to generate a stack trace when
+     *   issuing warnings.  Used internally to prevent infinite recursion.
+     * @return {string}
+     *   The name of a function if it has one; the empty string otherwise.
+     */
+    function _getFunctionName (aFunction, bNoStackTrace)
+    {
+      /* TODO: Cache expression */
+      var rx, _RegExp;
+
+      if ((_RegExp = _getFeature(jsx, "regexp", "RegExp")))
+      {
+        jsx.tryThis(
+          function () {
+            rx = new _RegExp("^\\s*function\\s+(" + _srxIdentifierName + ")");
+          },
+          function (e) {
+            jsx.warn("Could not use Unicode character properties: " + e.message, bNoStackTrace);
+          }
+        );
+      }
+      else
+      {
+        jsx.warn("jsx.regexp.RegExp not loaded.", bNoStackTrace);
+      }
+
+      if (!rx)
+      {
+        jsx.warn("Non-ASCII identifiers cannot be parsed.", bNoStackTrace);
+        rx = /^\s*function\s+([A-Za-z_]\w*)/;
+      }
+
+      /* Return the empty string for null or undefined */
+      return (aFunction != null
+               && typeof aFunction.name != "undefined" && aFunction.name)
+        || (String(aFunction).match(rx) || [, ""])[1];
+    }
+
+    function _getFunctionParams (aFunction)
+    {
+      return (String(aFunction).match(/\(([^\)]*)\)/) || [, ""])[1].match(/[^,]+/g) || "";
+    }
+
+    /**
+     * Returns minimum documentation for a function
+     *
+     * @param {Function|String} aFunction
+     * @return {string}
+     */
+    function _getDoc (aFunction)
+    {
+      return (String(aFunction).match(
+        /^\s*(function(\s+[A-Za-z_]\w*)?\s*\([^\)]*\))/) || [, ""])[1];
+    }
+
+    /**
+     * Retrieves the value of a property of an object
+     *
+     * @param {Object} obj
+     * @param {string} sProperty
+     * @param aDefault
+     * @return {any}
+     * @throws {@link #PropertyError} if the property
+     *   does not exist or has the <code>undefined</code> value, and
+     *   <var>aDefault</var> was not provided
+     */
+    function _getProperty (obj, sProperty, aDefault)
+    {
+      if (typeof obj[sProperty] != "undefined")
+      {
+        return obj[sProperty];
+      }
+
+      /* default value not passed */
+      if (arguments.length < 3)
+      {
+        return jsx.throwThis("jsx.object.PropertyError", sProperty);
+      }
+
+      return aDefault;
+    }
 
     var jsx_object = {
       /**
@@ -1105,420 +1653,38 @@ de.pointedears.jsx = jsx;
 
       isNativeMethod: _isNativeMethod,
       areNativeMethods: _isNativeMethod,
-
-      /**
-       * Calls a property if it is likely to be callable, and
-       * returns its result.
-       *
-       * @param {Array} aPath
-       *   Argument list for <code><var>fTester</var></code>
-       * @param {Array} aArguments
-       *   Argument list for the method call
-       * @param {Function} fTester
-       *   Testing method. Recommended values include
-       *   {@link #isNativeMethod()} and {@link #isHostMethod()}.
-       *   The default is {@link #isMethod()}.
-       * @return {Object}
-       *   <code>{returnValue: <var>value</var>}</code> if the method
-       *   could be called, where <code><var>value</var></code> is
-       *   the return value of the method;
-       *   <code>null</code> otherwise.
-       */
-      callIfMethod: function (aPath, aArguments, fTester) {
-        if (!fTester)
-        {
-          fTester = _isMethod;
-        }
-
-        if (fTester.apply(this, aPath))
-        {
-          var method = _getFeature.apply(this, aPath);
-          var returnValue = method.apply(aPath[0], aArguments);
-          return {returnValue: returnValue};
-        }
-
-        return null;
-      },
-
-      /**
-       * Determines if the passed value could be the result of
-       * <code>typeof <var>callable</var></code>.
-       * <p>
-       * NOTE: This method has previously been provided by {@link types.js};
-       * optimizations in code reuse moved it here.
-       * </p>
-       * @param {string} s
-       *   String to be determined a method type, i.e.
-       *   <code>"object"</code> or <code>"unknown"</code> in MSHTML,
-       *   <code>"function"</code> otherwise.  The type must have been
-       *   retrieved with the <code>typeof<code> operator.  Note that
-       *   this method may also return <code>true</code> if the value
-       *   of the <code>typeof</code> operand is <code>null</code>;
-       *   to be sure that the operand is a method reference, you
-       *   have to <code>&&</code> (AND)-combine the
-       *   <code>isMethodType(...)</code> expression with the method
-       *   reference identifier unless <code>typeof</code> yielded
-       *   <code>"unknown"</code> for <var>s</var>.
-       * @return {boolean}
-       *   <code>true</code> if <var>s</var> is a method type,
-       *   <code>false</code> otherwise.
-       * @author
-       *   (C) 2003-2008  Thomas Lahn &lt;types.js@PointedEars.de&gt;.
-       *   Distributed under the GNU GPL v3 and later.
-       * @partof http://pointedears.de/scripts/types.js
-       * @deprecated since version 0.1.5a.2009070204
-       *   in favor of {@link #isMethod(Object)}
-       */
-      isMethodType: function (s) {
-        return /^\s*(function|object|unknown)\s*$/i.test(s);
-      },
+      callIfMethod: _callIfMethod,
+      isMethodType: _isMethodType,
 
       _hasOwnProperty: _hasOwnProperty,
-      isObject: _isObject,
 
-      isString: function (s) {
-        return ((typeof s == "string") || jsx.object.isInstanceOf(s, String));
-      },
+      isObject: _isObject,
+      isString: _isString,
 
       getKeys: _getKeys,
       inheritFrom: _inheritFrom,
+
       getClass: _getClass,
       isArray: _isArray,
       isNativeObject: _isNativeObject,
-
-      isHostObject: function (value) {
-        return !_isNativeObject(value);
-      },
+      isHostObject: _isHostObject,
 
       clone: _clone,
 
-      /**
-       * Exchanges an objects keys and their values and returns
-       * the new object.
-       *
-       * @param {Object} obj
-       *   The object to be flipped.
-       * @param {boolean} bAccumulate (optional)
-       *   If <code>true</code> and different keys have the same
-       *   value, the key-values are accumulated in an {@link Array}
-       *   (a {@link jsx.array.BigArray} if possible) in the resulting
-       *   object.  Otherwise key-values will be overwritten, so that
-       *   the value-key has the last matching key as its value.
-       * @param {Function} flipper (optional)
-       *   Function that should be called to determine whether
-       *   the property should be flipped.  Is passed the key as
-       *   argument and the object as <code>this</code> value.
-       *   The property is flipped only if <var>flipper</var>
-       *   returns a true-value.
-       * @return {Object}
-       *   A new object (a {@link jsx.map.Map} if possible) with
-       *   the original object's keys and values exchanged.
-       */
-      flip: function (obj, bAccumulate, flipper) {
-        if (flipper && typeof flipper != "function")
-        {
-          return jsx.throwThis(jsx.InvalidArgumentError,
-            ["", typeof flipper, "Function"]);
-        }
-
-        var _Map = _getFeature(jsx, "map", "Map");
-        var flipped = _Map ? new _Map() : _createTypedObject(obj);
-        var keys = _getKeys(obj);
-        var _BigArray = _getFeature(jsx, "array", "BigArray");
-        var _Array = _BigArray || Array;
-
-        for (var i = 0, len = keys.length; i < len; ++i)
-        {
-          var key = keys[i];
-
-          if (flipper && !flipper.call(obj, key))
-          {
-            continue;
-          }
-
-          var value = obj[key];
-
-          var value_is_object = _isObject(value);
-          if (value_is_object && !_Map)
-          {
-            jsx.warn("Information loss because value is an object."
-              + " Load jsx.map.Map to avoid.");
-          }
-
-          var has_value_key = _Map
-            ? flipped.hasKey(value)
-            : _hasOwnProperty(flipped, value);
-
-          var key_value = _Map
-            ? flipped.get(value)
-            : flipped[value];
-
-          if (has_value_key && bAccumulate)
-          {
-            if (!_isArray(key_value))
-            {
-              var a = new _Array();
-              a.push(key_value);
-
-              if (_Map)
-              {
-                flipped.put(value, a);
-              }
-              else
-              {
-                flipped[value] = a;
-              }
-            }
-
-            if (flipped.length == MAX_ARRAY_LENGTH && !_BigArray)
-            {
-              jsx.warn("Possible information loss due to Array limits."
-                + " Provide jsx.array.BigArray to avoid.");
-            }
-
-            key_value = _Map
-              ? flipped.get(value)
-              : flipped[value];
-
-            key_value.push(key);
-          }
-          else
-          {
-            if (has_value_key)
-            {
-              jsx.warn("Information loss due to same value."
-                + " Pass bAccumulate === true to avoid.");
-            }
-
-            if (_Map)
-            {
-              flipped.put(value, key);
-            }
-            else
-            {
-              flipped[value] = key;
-            }
-          }
-        }
-
-        return flipped;
-      },
+      flip: _flip,
 
       /**
        * @deprecated in favor of {@link #extend}
        */
       setProperties: _extend,
 
-      extend: _extend,
       defineProperty: _defineProperty,
+      defineProperties: _defineProperties,
+      extend: _extend,
 
-      /**
-       * Defines properties of an object, if possible.
-       *
-       * Emulation of the Object.defineProperties() method from ES 5.1,
-       * section 15.2.3.7.
-       *
-       * @function
-       * @param {Object} o
-       *   The object for which properties getters and setters should be defined.
-       * @param {Object} descriptor (optional)
-       *   Properties descriptor, where each own property name
-       *   is a property name of the new object, and each corresponding
-       *   property value is a reference to an object that defines the
-       *   attributes of that property.
-       * @return {Object} Reference to the object
-       * @see #defineProperty
-       */
-      defineProperties: _extend(
-        function (o, descriptor, sContext) {
-          var done = false;
-
-          if (typeof Object.defineProperties == "function"
-              && !Object.defineProperties._emulated)
-          {
-            jsx.tryThis(function () {
-              Object.defineProperties(o, descriptor);
-              done = true;
-            });
-          }
-
-          if (!done)
-          {
-            for (var i = 0, keys = _getKeys(descriptor), len = keys.length;
-                  i < len; ++i)
-            {
-              var propertyName = keys[i];
-              _defineProperty(o, propertyName, descriptor[propertyName],
-                sContext);
-            }
-          }
-
-          return o;
-        },
-        {
-          _emulated: true
-        }),
-
-      /**
-       * Determines if a (non-inherited) property of an object is enumerable
-       *
-       * @param {Object} obj (optional)
-       *   Object which property should be checked for enumerability.
-       * @param {string} sProperty
-       *   Name of the property to check.
-       * @return {boolean}
-       *   <code>true</code> if there is such a property;
-       *   <code>false</code> otherwise.
-       */
-      _propertyIsEnumerable: function (obj, sProperty) {
-        if (arguments.length < 2 && obj)
-        {
-          sProperty = obj;
-          obj = jsx_object;
-        }
-
-        if (_isMethod(obj, "propertyIsEnumerable"))
-        {
-          return obj.propertyIsEnumerable(sProperty);
-        }
-
-        for (var propertyName in obj)
-        {
-          if (propertyName == name && _hasOwnProperty(obj, propertyName))
-          {
-            return true;
-          }
-        }
-
-        return false;
-      },
-
-      /**
-       * Determines if an object, or the objects it refers to,
-       * has an enumerable property with a certain value
-       *
-       * @param {Object} obj
-       * @param needle
-       *   The value to be searched for
-       * @param {Object} params
-       *   Search parameters.  The following properties are supported:
-       *   <table>
-       *     <thead>
-       *       <tr>
-       *         <th>Property</th>
-       *         <th>Type</th>
-       *         <th>Meaning</th>
-       *       </tr>
-       *     </thead>
-       *     <tbody>
-       *       <tr>
-       *         <th><code><var>exclude</var></code></th>
-       *         <td><code>Array</code></td>
-       *         <td>Names of the properties that should not be searched</td>
-       *       </tr>
-       *       <tr>
-       *         <th><code><var>recursive</var></code></th>
-       *         <td><code>boolean</code></td>
-       *         <td>If a true-value, search recursively.</td>
-       *       </tr>
-       *       <tr>
-       *         <th><code><var>strict</var></code></th>
-       *         <td><code>boolean</code></td>
-       *         <td>If a true-value, perform a strict comparison
-       *             without type conversion.</td>
-       *       </tr>
-       *     </tbody>
-       *   </table>
-       */
-      hasPropertyValue:
-        function jsx_object_hasPropertyValue (obj, needle, params) {
-          for (var property in obj)
-          {
-            if (params && params.exclude && params.exclude.indexOf(property) > -1)
-            {
-              continue;
-            }
-
-            var propertyValue = obj[property];
-            if (params && params.recursive)
-            {
-              if (typeof propertyValue == "object" && propertyValue !== null)
-              {
-                if (jsx_object_hasPropertyValue(propertyValue, needle, params))
-                {
-                  return true;
-                }
-              }
-            }
-
-            if (params && params.strict)
-            {
-              if (propertyValue === needle)
-              {
-                return true;
-              }
-            }
-            else
-            {
-              /* Switch operands because of JScript quirk */
-              if (needle == propertyValue)
-              {
-                return true;
-              }
-            }
-          }
-
-          return false;
-        },
-
-      /**
-       * Returns the name of an unused property for an object.
-       *
-       * @param {Object} obj
-       * @param {Number} iLength
-       *   Maximum property name length up to which an unused name
-       *   is searched.  The default is 256.
-       * @return {string}
-       *   The name of a non-existing property of <code>o</code> if
-       *   {@link Object#prototype.hasOwnProperty()} is supported, or
-       *   the name of a property with value <code>undefined</code>
-       *   if it is not supported; the empty string
-       *   if there is no such property.
-       */
-      findNewProperty: function (obj, iLength) {
-        if (!obj)
-        {
-          obj = jsx_object;
-        }
-
-        if (arguments.length < 2)
-        {
-          iLength = 256;
-        }
-        else
-        {
-          iLength = parseInt(iLength, 10);
-        }
-
-        var prefix = "";
-
-        while (prefix.length < iLength)
-        {
-          for (var i = "a".charCodeAt(0), max = "z".charCodeAt(0); i <= max; ++i)
-          {
-            var ch = String.fromCharCode(i);
-            var newName = prefix + ch + "_";
-            if (!_hasOwnProperty(obj, newName))
-            {
-              return newName;
-            }
-          }
-
-          prefix += "a";
-        }
-
-        return "";
-      },
+      _propertyIsEnumerable: _propertyIsEnumerable,
+      hasPropertyValue: _hasPropertyValue,
+      findNewProperty: _findNewProperty,
 
       createDataObject: _createDataObject,
 
@@ -1527,153 +1693,13 @@ de.pointedears.jsx = jsx;
 
       getFeature: _getFeature,
 
-      /**
-       * Emulates the <code>instanceof</code> operator
-       * of ECMAScript Edition 3 and later.
-       *
-       * Uses <code>Object.getPrototypeOf</code> (ECMAScript Ed. 3 and later)
-       * or the proprietary <code>__proto__</code> property (JavaScript 1.3
-       * and later, and compatible implementations).
-       *
-       * Example:
-       * <pre><code>
-       *   var o = new Object();
-       *   o instanceof Object; // yields `true'
-       *
-       *   function Foo() {}
-       *   var o = new Foo();
-       *   o instanceof Object;     // yields `true'
-       *   o instanceof Foo;        // yields `true' also
-       *
-       *   var _isInstanceOf = jsx.object.isInstanceOf;
-       *   _isInstanceOf(o, Object); // returns `true'
-       *   _isInstanceOf(o, Foo);    // returns `true' also
-       *   _isInstanceOf(o, function () {});    // returns `false'
-       * </code></pre>
-       *
-       * NOTE: This method has previously been provided by {@link types.js};
-       * optimizations in code reuse moved it here.
-       *
-       * @author (C) 2003, 2011, 2013, 2014  Thomas Lahn &lt;js@PointedEars.de&gt;
-       * @param {Object} obj
-       *   Value to be determined an instance of <code>Constructor</code>
-       *   or inheriting from the constructor of <code>Constructor.prototype</code>
-       *   or an object in its prototype chain.
-       * @param {Function} Constructor
-       *   Object to be determined the constructor associated with an
-       *   object in the prototype chain of <var>obj</var>.
-       * @return {boolean}
-       *   <code>true</code> if <code>obj</code> is an object constructed
-       *   with <var>Constructor</var>, <code>false</code> otherwise.
-       */
-      isInstanceOf: function jsx_object_isInstanceOf (obj, Constructor) {
-        if (!_isObject(obj))
-        {
-          return false;
-        }
+      isInstanceOf: _isInstanceOf,
 
-        var proto = Constructor.prototype;
+      getFunctionName: _getFunctionName,
+      getFunctionParams: _getFunctionParams,
+      getDoc: _getDoc,
 
-        if (!_isObject(proto))
-        {
-          return jsx.throwThis("TypeError",
-            ["Expecting a function in instanceof check, but got " + Constructor],
-            jsx_object_isInstanceOf);
-        }
-
-        while ((obj = _getProto(obj)))
-        {
-          if (proto == obj)
-          {
-            return true;
-          }
-        }
-
-        return false;
-      },
-
-      /**
-       * Returns the name of a function
-       *
-       * @param {Function|String} aFunction
-       * @param {boolean} bNoStackTrace
-       *   If <code>true</code>, do not attempt to generate a stack trace when
-       *   issuing warnings.  Used internally to prevent infinite recursion.
-       * @return {string}
-       *   The name of a function if it has one; the empty string otherwise.
-       */
-      getFunctionName: function (aFunction, bNoStackTrace) {
-        /* TODO: Cache expression */
-        var rx, _RegExp;
-
-        if ((_RegExp = _getFeature(jsx, "regexp", "RegExp")))
-        {
-          jsx.tryThis(
-            function () {
-              rx = new _RegExp("^\\s*function\\s+(" + _srxIdentifierName + ")");
-            },
-            function (e) {
-              jsx.warn("Could not use Unicode character properties: " + e.message, bNoStackTrace);
-            }
-          );
-        }
-        else
-        {
-          jsx.warn("jsx.regexp.RegExp not loaded.", bNoStackTrace);
-        }
-
-        if (!rx)
-        {
-          jsx.warn("Non-ASCII identifiers cannot be parsed.", bNoStackTrace);
-          rx = /^\s*function\s+([A-Za-z_]\w*)/;
-        }
-
-        /* Return the empty string for null or undefined */
-        return (aFunction != null
-                 && typeof aFunction.name != "undefined" && aFunction.name)
-          || (String(aFunction).match(rx) || [, ""])[1];
-      },
-
-      getFunctionParams: function (aFunction) {
-        return (String(aFunction).match(/\(([^\)]*)\)/) || [, ""])[1].match(/[^,]+/g) || "";
-      },
-
-      /**
-       * Returns minimum documentation for a function
-       *
-       * @param {Function|String} aFunction
-       * @return {string}
-       */
-      getDoc: function (aFunction) {
-        return (String(aFunction).match(
-          /^\s*(function(\s+[A-Za-z_]\w*)?\s*\([^\)]*\))/) || [, ""])[1];
-      },
-
-      /**
-       * Retrieves the value of a property of an object
-       *
-       * @param {Object} obj
-       * @param {string} sProperty
-       * @param aDefault
-       * @return {any}
-       * @throws {@link #PropertyError} if the property
-       *   does not exist or has the <code>undefined</code> value, and
-       *   <var>aDefault</var> was not provided
-       */
-      getProperty: function (obj, sProperty, aDefault) {
-        if (typeof obj[sProperty] != "undefined")
-        {
-          return obj[sProperty];
-        }
-
-        /* default value not passed */
-        if (arguments.length < 3)
-        {
-          return jsx.throwThis("jsx.object.PropertyError", sProperty);
-        }
-
-        return aDefault;
-      }
+      getProperty: _getProperty
     };
 
     return jsx_object;
@@ -1690,7 +1716,6 @@ de.pointedears.jsx = jsx;
    */
   jsx.dmsg = (function () {
     var
-      _isMethod = jsx.object.isMethod,
       msgMap = {
         data: {
           info: "INFO",
@@ -1800,13 +1825,9 @@ de.pointedears.jsx = jsx;
    * optimizations in code reuse moved it here.
    *
    * @return {boolean} <code>true</code>
+   * @see #setErrorHandler()
    */
-  /*
-   * NOTE: Initialization must come before the initialization of
-   *       setErrorHandler() as it is used in a closure there,
-   *       see Message-ID <2152411.FhMhkbZ0Pk@PointedEars.de>
-   */
-  jsx.clearErrorHandler = function () {
+  var _clearErrorHandler = jsx.clearErrorHandler = function () {
     if (typeof window != "undefined" && window !== null)
     {
       /*
@@ -1825,54 +1846,45 @@ de.pointedears.jsx = jsx;
    * NOTE: This method has previously been provided by {@link debug.js};
    * and {@link types.js}; optimizations in code reuse moved it here.
    *
-   * @function
+   * @param {Callable} fHandler
+   * @return {boolean}
+   *   <code>true</code> if the error handler could be assigned to
+   *   successfully, <code>false</code> otherwise.  Note that one reason
+   *   for failure can be that an event handler is no longer supported
+   *   by the UA's DOM due to efforts towards adherence to Web standards.
    */
-  jsx.setErrorHandler = (function () {
-    var
-      jsx_object = jsx.object,
-      jsx_clearErrorHandler = jsx.clearErrorHandler;
-
-    /**
-     * @param {Callable} fHandler
-     * @return {boolean}
-     *   <code>true</code> if the error handler could be assigned to
-     *   successfully, <code>false</code> otherwise.  Note that one reason
-     *   for failure can be that an event handler is no longer supported
-     *   by the UA's DOM due to efforts towards adherence to Web standards.
+  jsx.setErrorHandler = function (fHandler) {
+    /*
+     * NOTE: There is no deadlock here because even if `fHandler' is a string,
+     * `isMethod(fHandler)' will call `setErrorHandler()' without arguments;
+     * so fHandler in that call will be `undefined' and `setErrorHandler()'
+     * is not called again.
      */
-    return function (fHandler) {
+    if (!_isMethod(fHandler))
+    {
+      fHandler = _clearErrorHandler;
+    }
+
+    var _assertFalse = _getFeature(jsx, "test", "assertFalse");
+    if (typeof _assertFalse == "function")
+    {
+      _assertFalse(typeof fHandler == "undefined", false,
+        "jsx.setErrorHandler(fHandler)");
+    }
+
+    if (typeof window != "undefined" && window !== null
+        && typeof fHandler != "undefined")
+    {
       /*
-       * NOTE: There is no deadlock here because even if `fHandler' is a string,
-       * `isMethod(fHandler)' will call `setErrorHandler()' without arguments;
-       * so fHandler in that call will be `undefined' and `setErrorHandler()'
-       * is not called again.
+       * debug.js 0.99.5.2006041101 BUGFIX:
+       * onerror is defined as a property of window, not of the Global Object
        */
-      if (!jsx_object.isMethod(fHandler))
-      {
-        fHandler = jsx_clearErrorHandler;
-      }
+      window.onerror = fHandler;
+    }
 
-      var _assertFalse = jsx_object.getFeature(jsx, "test", "assertFalse");
-      if (typeof _assertFalse == "function")
-      {
-        _assertFalse(typeof fHandler == "undefined", false,
-          "jsx.setErrorHandler(fHandler)");
-      }
-
-      if (typeof window != "undefined" && window !== null
-          && typeof fHandler != "undefined")
-      {
-        /*
-         * debug.js 0.99.5.2006041101 BUGFIX:
-         * onerror is defined as a property of window, not of the Global Object
-         */
-        window.onerror = fHandler;
-      }
-
-      return (typeof window.onerror != "undefined"
-              && window.onerror == fHandler);
-    };
-  }());
+    return (typeof window.onerror != "undefined"
+            && window.onerror == fHandler);
+  };
 
   /**
    * Throws an exception, including an execution context hint if provided,
@@ -1889,7 +1901,6 @@ de.pointedears.jsx = jsx;
    */
   jsx.throwThis = (function () {
     var
-      _jsx_object = jsx.object,
       _addslashes = function (e) {
         return (typeof e == "string"
           ? e.replace(/["'\\]/g, "\\$&").replace(/\r?\n|\r/g, "\\n")
@@ -1913,7 +1924,7 @@ de.pointedears.jsx = jsx;
     return function (errorType, message, context) {
       var sErrorType = errorType;
       var isError = false;
-      var messageIsArray = _jsx_object.isArray(message);
+      var messageIsArray = _isArray(message);
 
       if (typeof Error == "function"
           && Error.prototype.isPrototypeOf(errorType))
