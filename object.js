@@ -172,6 +172,86 @@ de.pointedears.jsx = jsx;
     };
   //}());
 
+  /**
+   * Returns a new object that can serve as data container.
+   *
+   * Returns a reference to a new object that, if supported,
+   * does not inherit or have any properties other than those
+   * provided by the keys of <var>oSource</var>.  This is
+   * accomplished by either cutting off its existing prototype
+   * chain or not creating one for it in the first place.
+   *
+   * Different to {@link Object.create()}, properties from
+   * <var>oSource</var> are created with the attributes
+   * <code>[[Writable]]</code>, <code>[[Enumerable]]</code>
+   * and <code>[[Configurable]]</code>.  Attributes of the
+   * properties of <var>oSource</var> are <em>not</em> copied.
+   * Property values of the resulting object are a shallow copy
+   * of the property values of <var>oSource</var> unless
+   * specified otherwise with <var>iFlags</var>.
+   *
+   * @param {Object} oSource (optional)
+   * @param {Number} iFlags (optional)
+   *   See {@link #clone()}.
+   * @return {Object}
+   * @see Object.create()
+   * @see jsx.object.clone()
+   */
+  function _createDataObject (oSource, iFlags)
+  {
+    var obj = _inheritFrom(null);
+
+    if (_isObject(oSource))
+    {
+      for (var i = 0, keys = _getKeys(oSource), len = keys.length;
+           i < len; ++i)
+      {
+        var name = keys[i];
+        var value = oSource[name];
+
+        /* NOTE: formerly, numeric flags was first argument of _clone() */
+        obj[name] = (typeof value != "number"
+          ? _clone(value, iFlags)
+          : value);
+      }
+    }
+
+    return obj;
+  }
+
+  /**
+   * Lets one object inherit from another
+   *
+   * @param {Object} obj = Object.prototype
+   *   Object from which to inherit.  The default is
+   *   <code>Object.prototype</code>.
+   * @return {Object}
+   *   Inheriting (child) object
+   */
+  function _inheritFrom (obj)
+  {
+    var prototype = (typeof obj == "undefined"
+      ? Object.prototype
+      : (obj || null));
+
+    if (typeof Object.create == "function" && !Object.create._emulated)
+    {
+      return Object.create(prototype);
+    }
+
+    if (typeof obj == "object" && obj == null)
+    {
+      var result = {};
+      /*jshint -W103*/
+      result.__proto__ = null;
+      /*jshint +W103*/
+      return result;
+    }
+
+    Dummy.prototype = prototype;
+    return new Dummy();
+  }
+
   var
     rxUnknown = /^unknown$/,
     rxMethod = /^(function|object)$/;
@@ -345,7 +425,7 @@ de.pointedears.jsx = jsx;
     return _isMethod.apply(_isNativeMethod, arguments);
   }
   /*jshint +W098*/
-  
+
   /**
    * Determines if a value refers to an {@link Array}.
    * <p>
@@ -363,6 +443,29 @@ de.pointedears.jsx = jsx;
     return (typeof Array.isArray == "function" && !Array.isArray._emulated
       ? Array.isArray(a)
       : (a && a.constructor == Array) || _getClass(a) == "Array");
+  }
+
+  /**
+   * Determines if a value refers to an object.
+   *
+   * <p>Returns <code>true</code> if the value is a reference
+   * to an object; <code>false</code> otherwise.</p>
+   *
+   * <p>A value "is an object" if it is a function,
+   * <code>typeof "object"</code> or a host object
+   * (not a primitive value), but not <code>null</code>.
+   *
+   * @return {boolean}
+   */
+  function _isObject (a)
+  {
+    var t = typeof a;
+
+    return t == "function"
+      || (t == "object"
+            || (t != "undefined" && t != "boolean"
+                && t != "number" && t != "string")
+          && a !== null);
   }
 
   /**
@@ -469,29 +572,6 @@ de.pointedears.jsx = jsx;
                      && typeof proto[sProperty] == "undefined"))));
     }
 
-    /**
-     * Determines if a value refers to an object.
-     *
-     * <p>Returns <code>true</code> if the value is a reference
-     * to an object; <code>false</code> otherwise.</p>
-     *
-     * <p>A value "is an object" if it is a function,
-     * <code>typeof "object"</code> or a host object
-     * (not a primitive value), but not <code>null</code>.
-     *
-     * @return {boolean}
-     */
-    function _isObject (a)
-    {
-      var t = typeof a;
-
-      return t == "function"
-        || (t == "object"
-              || (t != "undefined" && t != "boolean"
-                  && t != "number" && t != "string")
-            && a !== null);
-    }
-
     function _isString (s)
     {
       return ((typeof s == "string") || jsx.object.isInstanceOf(s, String));
@@ -533,39 +613,6 @@ de.pointedears.jsx = jsx;
     }
 
     function Dummy () {}
-
-    /**
-     * Lets one object inherit from another
-     *
-     * @param {Object} obj = Object.prototype
-     *   Object from which to inherit.  The default is
-     *   <code>Object.prototype</code>.
-     * @return {Object}
-     *   Inheriting (child) object
-     */
-    function _inheritFrom (obj)
-    {
-      var prototype = (typeof obj == "undefined"
-        ? Object.prototype
-        : (obj || null));
-
-      if (typeof Object.create == "function" && !Object.create._emulated)
-      {
-        return Object.create(prototype);
-      }
-
-      if (typeof obj == "object" && obj == null)
-      {
-        var result = {};
-        /*jshint -W103*/
-        result.__proto__ = null;
-        /*jshint +W103*/
-        return result;
-      }
-
-      Dummy.prototype = prototype;
-      return new Dummy();
-    }
 
     /**
      * Returns the value of an object's internal <code>[[Class]]</code>
@@ -1365,53 +1412,6 @@ de.pointedears.jsx = jsx;
       }
 
       return "";
-    }
-
-    /**
-     * Returns a new object that can serve as data container.
-     *
-     * Returns a reference to a new object that, if supported,
-     * does not inherit or have any properties other than those
-     * provided by the keys of <var>oSource</var>.  This is
-     * accomplished by either cutting off its existing prototype
-     * chain or not creating one for it in the first place.
-     *
-     * Different to {@link Object.create()}, properties from
-     * <var>oSource</var> are created with the attributes
-     * <code>[[Writable]]</code>, <code>[[Enumerable]]</code>
-     * and <code>[[Configurable]]</code>.  Attributes of the
-     * properties of <var>oSource</var> are <em>not</em> copied.
-     * Property values of the resulting object are a shallow copy
-     * of the property values of <var>oSource</var> unless
-     * specified otherwise with <var>iFlags</var>.
-     *
-     * @param {Object} oSource (optional)
-     * @param {Number} iFlags (optional)
-     *   See {@link #clone()}.
-     * @return {Object}
-     * @see Object.create()
-     * @see jsx.object.clone()
-     */
-    function _createDataObject (oSource, iFlags)
-    {
-      var obj = _inheritFrom(null);
-
-      if (_isObject(oSource))
-      {
-        for (var i = 0, keys = _getKeys(oSource), len = keys.length;
-             i < len; ++i)
-        {
-          var name = keys[i];
-          var value = oSource[name];
-
-          /* NOTE: formerly, numeric flags was first argument of _clone() */
-          obj[name] = (typeof value != "number"
-            ? _clone(value, iFlags)
-            : value);
-        }
-      }
-
-      return obj;
     }
 
     /**
@@ -3779,6 +3779,8 @@ de.pointedears.jsx = jsx;
    *   Function to be called, or module ID of the module to be executed
    * @return {Array[string]}
    *   List of the module IDs of failed dependencies
+   * @see #define() for defining a module dependency
+   * @see #loadScript()
    */
   var _require = jsx.require = function _require (dependencies, dependent) {
     if (!Array.isArray(dependencies)) dependencies = [dependencies];
@@ -3880,7 +3882,7 @@ de.pointedears.jsx = jsx;
    *   Module code
    * @return {Array[string]}
    *   List of the module IDs of failed dependencies
-   * @see #require()
+   * @see #require() for loading a module
    */
   jsx.define = function (id, dependencies, code) {
     if (!dependencies) dependencies = [];
