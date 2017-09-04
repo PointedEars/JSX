@@ -1781,6 +1781,83 @@ jsx.array = (/** @constructor */ function () {
     },
 
     /**
+     * Returns an <code>Object</code> instance with keys and values based
+     * on an <code>Array</code>.
+     *
+     * Returns an <code>Object</code> instance whose keys are the values of a
+     * property of an object that is referred as the element of an
+     * <code>Array</code> instance: it maps an <code>Array</code> to
+     * an <code>Object</code>.
+     *
+     * Example: <code>
+     *
+     *   var a = [
+     *     {name: "John Doe", age: 39},
+     *     {name: "Jane Doe", age: 25},
+     *     {name: "Jane Doe", age: 31}
+     *   ];
+     *
+     *   // {"John Doe": [
+     *   //    {name: "John Doe", age: 39}}
+     *   //  ]
+     *   //  "Jane Doe": [
+     *   //    {name: "Jane Doe", age: 25},
+     *   //    {name: "Jane Doe", age: 31}
+     *   //  ]
+     *   // }
+     *   var o = jsx.array.toObject(name, {keepDupes: true}, a);
+     *
+     *   // 31
+     *   o["Jane Doe"].age
+     *
+     * </code>
+     *
+     * @param  {string} key
+     * @param  {Object} options
+     *   Options for the conversion can be specified using the keys of this
+     *   parameter.  Supported keys include:
+     *     | {boolean} keepDupes | \
+     *         If a true-value, keys create an <code>Array</code>
+     *         of object references as value for the new key,
+     *         so that no information is lost if there are duplicate
+     *         key values in the array.
+     *         Otherwise the values of the created object are
+     *         references to the objects themselves.
+     *     | {Array} thisObject | \
+     *         Array to be mapped to an object.
+     *         The default is the calling object. |
+     * @return {Object}
+     */
+    toObject: function (key, options) {
+      var obj = _createDataObject();
+
+      if (!options || !options.thisObject) thisObject = this;
+
+      for (var i = 0, len = thisObject.length; i < len; ++i)
+      {
+        var value = el[key];
+
+        if (options && options.keepDupes)
+        {
+          if (value in obj)
+          {
+            obj[value].push(el);
+          }
+          else
+          {
+            obj[value] = [el];
+          }
+        }
+        else
+        {
+          obj[value] = el;
+        }
+      }
+
+      return obj;
+    }
+
+    /**
      * Takes input array <code>a</code> or the Array object it is
      * applied to as method and returns a new Array object with all
      * string elements (optionally all elements regardless of their
