@@ -2247,6 +2247,23 @@ de.pointedears.jsx = jsx;
       Object.values._emulated = true;
     }
 
+    if (typeof Object.entries != "function")
+    {
+      /**
+      * Returns the keys and values of an object as an <code>Array</code>
+      * of <code>Array</code>s
+       * @param {Object} obj
+       * @see ECMAScript 2017, § 19.1.2.5
+       */
+      Object.entries = function (obj) {
+        return Object.keys(obj).map(function (key) {
+          return [key, this[key]];
+        }, obj);
+      };
+
+      Object.entries._emulated = true;
+    }
+
     if (typeof Object.forEach != "function")
     {
       /**
