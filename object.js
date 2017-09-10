@@ -1214,10 +1214,15 @@ de.pointedears.jsx = jsx;
      * @param {Number} iFlags = 0
      *   Flags for the modification, see {@link #ADD_OVERWRITE}
      *   and {@link #COPY_ENUM jsx.object.COPY_*}.
+     * @param {Function} condition
+     *   If a <code>Function</code>, the object is only extended
+     *   with the property if that function, when called with
+     *   the property name and the target object as arguments,
+     *   returns a true-value.
      * @return {Object}
      *   The extended object
      */
-    function _extend (oTarget, oSource, iFlags)
+    function _extend (oTarget, oSource, iFlags, condition)
     {
       if (typeof iFlags == "undefined")
       {
@@ -1225,13 +1230,15 @@ de.pointedears.jsx = jsx;
       }
 
       var cloneLevel = (iFlags & (_COPY_ENUM_DEEP | _COPY_INHERIT));
+      var conditionIsFunction = (typeof condition == "function");
 
       for (var i = 0, keys = _getKeys(oSource), len = keys.length;
            i < len; ++i)
       {
         var p = keys[i];
 
-        if (typeof oTarget[p] == "undefined" || (iFlags & _ADD_OVERWRITE))
+        if ((conditionIsFunction && condition(p, oTarget))
+            || (!conditionIsFunction && typeof oTarget[p] == "undefined" || (iFlags & _ADD_OVERWRITE)))
         {
           jsx.tryThis(function () {
             /* TODO: Support cloning of property attributes */
