@@ -3742,7 +3742,7 @@ de.pointedears.jsx = jsx;
     }
   });
 
-  var _modules = new _ModuleRegistry();
+  var _modules = jsx.modules = new _ModuleRegistry();
 
   var _Module = (function (properties) {
     properties && Object.keys(properties).forEach(function (key) {
@@ -3877,6 +3877,9 @@ de.pointedears.jsx = jsx;
 
     return failedDeps;
   }
+  jsx.require.urnPrefixes = Object.assign(Object.create(null),  {
+    JSX: "/scripts/"
+  });
 
   /**
    * Defines a module with dependencies
@@ -3893,6 +3896,7 @@ de.pointedears.jsx = jsx;
    */
   jsx.define = function (id, dependencies, code) {
     if (!dependencies) dependencies = [];
+    if (!Array.isArray(dependencies)) dependencies = [dependencies];
 
     if (!(_modules.has(id))) _modules.add(id);
 
