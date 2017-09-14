@@ -16,6 +16,17 @@ jsx.define("JSX:inspect", ["JSX:object"], function () {
       return chain;
     }
 
+    function _getValueInfo (value)
+    {
+      return Object.assign(Object.create(null), {
+        name: name,
+        value: value,
+        type: typeof value,
+        "class": jsx.object.getClass(value),
+        constructor: value && value.constructor
+      });
+    }
+
     function _getOwnPropertyInfo (obj, propertyNames)
     {
       if (!propertyNames)
@@ -30,12 +41,8 @@ jsx.define("JSX:inspect", ["JSX:object"], function () {
       return propertyNames.map(function (name) {
         var value = this[name];
 
-        return Object.assign(Object.create(null), {
-          name: name,
-          value: value,
-          type: typeof value,
-          "class": jsx.object.getClass(value),
-          constructor: value && value.constructor,
+        return Object.assign(_getValueInfo(value), {
+          owner: obj,
           descriptor: Object.getOwnPropertyDescriptor(this, name)
         });
       }, obj);
@@ -43,7 +50,8 @@ jsx.define("JSX:inspect", ["JSX:object"], function () {
 
     return {
       getPrototypeChain: _getPrototypeChain,
-      getOwnPropertyInfo: _getOwnPropertyInfo
+      getOwnPropertyInfo: _getOwnPropertyInfo,
+      getValueInfo: _getValueInfo
     };
   }());
 });
