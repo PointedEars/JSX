@@ -114,6 +114,7 @@ if (typeof jsx != "object")
                       return entry;
                     });
 
+                  /* FIXME: Sometimes \p{Space} etc. are in not in RegExp class range order */
                   lines.sort(function (a, b) {
                     if (a.propertyClass < b.propertyClass)
                     {
@@ -303,24 +304,23 @@ if (typeof jsx != "object")
                   /* parse the text version of the UCD */
                   _parseUCDText();
                 }
-
-                /*
-                 * Define property classes required for Unicode mode
-                 * if not already defined (not available from text version
-                 * of UCD)
-                 */
-                _jsx_object.extend(propertyClasses, {
-                  L:  "\\p{Ll}\\p{Lm}\\p{Lo}\\p{Lt}\\p{Lu}",
-                  M:  "\\p{Mc}\\p{Me}\\p{Mn}",
-                  N:  "\\p{Nd}\\p{Nl}\\p{No}",
-                  Digit: "\\p{Nd}",
-                  Space: "\u0009\u000a\u000c\u000d\u0020\u0085\u00a0"
-                    + "\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005"
-                    + "\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f"
-                    + "\u205f\u3000",
-                  Word: "\\p{L}\\p{M}\\p{N}\\p{Pc}"
-                });
               }
+
+              /*
+               * Define property classes required for Unicode mode
+               * if not already defined
+               */
+              _jsx_object.extend(propertyClasses, {
+                L:  "\\p{Ll}\\p{Lm}\\p{Lo}\\p{Lt}\\p{Lu}",
+                M:  "\\p{Mc}\\p{Me}\\p{Mn}",
+                N:  "\\p{Nd}\\p{Nl}\\p{No}",
+                Digit: "\\p{Nd}",
+                Space: "\u0009\u000a\u000c\u000d\u0020\u0085\u00a0"
+                + "\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005"
+                + "\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f"
+                + "\u205f\u3000",
+                Word: "\\p{L}\\p{M}\\p{N}\\p{Pc}"
+              });
 
               var _rangesStack = _getDataObject({
                 seen: _getDataObject(),

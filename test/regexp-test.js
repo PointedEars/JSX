@@ -570,7 +570,10 @@ function runTests ()
           code: function () {
             assert(typeof RegExp2.propertyClasses != "undefined");
 
-            var rx = new RegExp2("\\p{Zp}");
+            /* Make sure basic Unicode property classes are available */
+            var rx = new RegExp2(/\d\s\w/, "u");
+
+            rx = new RegExp2("\\p{Zp}", "u");
             assert(rx.source == "[\u2029]");
 
             if (!jsx.info(rx))
@@ -586,7 +589,10 @@ function runTests ()
             delete RegExp2.propertyClasses;
             assert(typeof RegExp2.propertyClasses == "undefined");
 
-            var rx = new RegExp2("\\p{Zp}");
+            /* Make sure basic Unicode property classes are available */
+            var rx = new RegExp2(/\d\s\w/, "u");
+
+            rx = new RegExp2("\\p{Zp}", "u");
             assert(rx.source == "[\u2029]");
 
             if (!jsx.info(rx))
@@ -611,7 +617,10 @@ function runTests ()
               var rx;
               jsx.tryThis(
                 function () {
-                  rx = new RegExp2("\\p{Ll}");
+                  /* Make sure basic Unicode property classes are available */
+                  rx = new RegExp2(/\d\s\w/, "u");
+
+                  rx = new RegExp2("\\p{Ll}", "u");
                 },
                 function (e) {
                   jsx.error(e);
@@ -635,7 +644,7 @@ function runTests ()
             var thrown = false;
             jsx.tryThis(
               function () {
-                var rx = new RegExp2("\\p{Zp}");
+                var rx = new RegExp2("\\p{Zp}", "u");
                 if (!jsx.info(rx))
                 {
                   out.push(rx);
