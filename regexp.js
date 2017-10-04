@@ -627,6 +627,17 @@ if (typeof jsx != "object")
           {
             if (expression && _getClass(expression) == "RegExp")
             {
+              if (expression.global || expression.ignoreCase
+                  || expression.multiline || expression.sticky)
+              {
+                jsx.warn(jsx.object.getDoc(jsx_regexp_RegExp)
+                  + ": expression is a RegExp that has one or more known flags"
+                  + " set. In order to support removal of flags, those will"
+                  + " not automatically be carried over to the new RegExp."
+                  + " If you want to preserve flags, consider adding them to"
+                  + " sFlags.");
+              }
+
               expression = expression.source;
             }
 
