@@ -161,13 +161,11 @@ if (typeof jsx != "object")
                       {
                         if (startRange)
                         {
-                          propertyClasses[prevClass] +=
-                            "-" + _fromCharCode(prevCodePoint);
+                          propertyClasses[prevClass] += ("-" + _fromCharCode(prevCodePoint));
                         }
                       }
 
-                      propertyClasses[propertyClass] =
-                        _fromCharCode(codePoint);
+                      propertyClasses[propertyClass] = _fromCharCode(codePoint);
 
                       var startRange = false;
                     }
@@ -177,14 +175,12 @@ if (typeof jsx != "object")
                       {
                         if (startRange)
                         {
-                          propertyClasses[prevClass] +=
-                            "-" + _fromCharCode(prevCodePoint);
+                          propertyClasses[prevClass] += ("-" + _fromCharCode(prevCodePoint));
 
                           startRange = false;
                         }
 
-                        propertyClasses[propertyClass] +=
-                          _fromCharCode(codePoint);
+                        propertyClasses[propertyClass] += _fromCharCode(codePoint);
                       }
                       else
                       {
@@ -198,16 +194,14 @@ if (typeof jsx != "object")
 
                   if (startRange)
                   {
-                    propertyClasses[prevClass] +=
-                      "-" + _fromCharCode(prevCodePoint);
+                    propertyClasses[prevClass] += ("-" + _fromCharCode(prevCodePoint));
                   }
                 }
               )).send();
             },
 
             sPropertyEscapes = "\\\\(p)\\{([^\\}]+)\\}",
-            rxNegEscape = new RegExp(sPropertyEscapes.toUpperCase()
-              + "|\\\\([DSW])", "g"),
+            rxNegEscape = new RegExp(sPropertyEscapes.toUpperCase() + "|\\\\([DSW])", "g"),
 
             /**
              * @param {String} charClassContent
@@ -293,8 +287,7 @@ if (typeof jsx != "object")
                 /* if this failed */
                 if (!propertyClasses)
                 {
-                  if (!jsx.net || !jsx.net.http
-                      || typeof jsx.net.http.Request != "function")
+                  if (!jsx.net || !jsx.net.http || typeof jsx.net.http.Request != "function")
                   {
                     jsx.throwThis("jsx.regexp.UCDLoadError",
                       ['"' + _RegExp2.ucdScriptPath + '" (jsx.regexp.RegExp.ucdScriptPath)',
@@ -316,9 +309,9 @@ if (typeof jsx != "object")
                 N:  "\\p{Nd}\\p{Nl}\\p{No}",
                 Digit: "\\p{Nd}",
                 Space: "\u0009\u000a\u000c\u000d\u0020\u0085\u00a0"
-                + "\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005"
-                + "\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f"
-                + "\u205f\u3000",
+                  + "\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005"
+                  + "\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f"
+                  + "\u205f\u3000",
                 Word: "\\p{L}\\p{M}\\p{N}\\p{Pc}"
               });
 
@@ -426,11 +419,11 @@ if (typeof jsx != "object")
                 result = _normalizeCharClass(classRanges);
 
                 result = result.replace(
-                    rxPropertyEscapes,
-                    function (match, propertySpecifier, propertyClass) {
-                      var ranges = _getRanges(propertyClass);
-                      return ranges;
-                    });
+                  rxPropertyEscapes,
+                  function (match, propertySpecifier, propertyClass) {
+                    var ranges = _getRanges(propertyClass);
+                    return ranges;
+                  });
               }
 
               return result;
