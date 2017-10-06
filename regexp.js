@@ -1014,6 +1014,9 @@ if (typeof jsx != "object")
       email:     "js@PointedEars.de",
       path:      "http://pointedears.de/scripts/",
 
+      SINGLE_QUOTED_STRING: /'([^\\']|\\.)'/,
+      DOUBLE_QUOTED_STRING: /"([^\\"]|\\.)"/,
+
       /**
        * Exception thrown if a character property class is referenced,
        * but the Unicode Character Database (UCD) cannot be loaded
