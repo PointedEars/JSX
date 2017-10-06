@@ -41,6 +41,8 @@ if (typeof jsx != "object")
    */
   jsx.regexp = (/** @constructor */ function () {
     var _jsx_object = jsx.object;
+    var _ADD_OVERWRITE = _jsx_object.ADD_OVERWRITE;
+    var _extend = _jsx_object.extend;
     var _getClass = _jsx_object.getClass;
     var _getDataObject = _jsx_object.getDataObject;
     var _isString = _jsx_object.isString;
@@ -618,24 +620,31 @@ if (typeof jsx != "object")
            */
           function jsx_regexp_RegExp (expression, sFlags)
           {
+            var flags = _getDataObject();
+            var flagsMap = _getDataObject({
+              g: "global",
+              i: "ignoreCase",
+              m: "multiline",
+              y: "sticky"
+            });
+            var flagsMapKeys = _getKeys(flagsMap);
+
             if (expression && _getClass(expression) == "RegExp")
             {
-              if (expression.global || expression.ignoreCase
-                  || expression.multiline || expression.sticky)
-              {
-                jsx.warn(jsx.object.getDoc(jsx_regexp_RegExp)
-                  + ": expression is a RegExp that has one or more known flags"
-                  + " set. In order to support removal of flags, those will"
-                  + " not automatically be carried over to the new RegExp."
-                  + " If you want to preserve flags, consider adding them to"
-                  + " sFlags.");
-              }
-
               expression = expression.source;
+          var sExpressionFlags = "";
+
+          if (expression && _getClass(expression) == "RegExp")
+          {
+            for (var i = 0, len = flagsMapKeys.length; i < len; ++i)
+            {
+              var key = flagsMapKeys[i];
+              var expressionFlag = !!expression[flagsMap[key]];
+              flags[flagsMap[key]] = expressionFlag;
+              if (expressionFlag) sExpressionFlags += key;
             }
 
-            var t = typeof expression;
-            if (t != "string")
+            expression = expression.source;
             {
               if (arguments.length < 1)
               {
@@ -648,18 +657,30 @@ if (typeof jsx != "object")
             }
 
             var pattern = expression;
-            var flags = sFlags || "";
+            /* FIXME: If RegExp, we had set sFlags = "" before */
+            if (typeof sFlags != "undefined")
+            {
+              for (i = 0, len = flagsMapKeys.length; i < len; ++i)
+              {
+                flags[flagsMap[flagsMapKeys[i]]] = (sFlags.indexOf(flagsMapKeys[i]) > -1);
+              }
+            }
 
             var extended = false;
             var dotAll = false;
             var unicodeMode = false;
 
-            if (sFlags)
+          if (typeof sFlags == "undefined")
+          {
+            sFlags = sExpressionFlags;
+          }
+          else
+          {
+            for (i = 0, len = flagsMapKeys.length; i < len; ++i)
             {
-              if (sFlags.indexOf("x") > -1)
-              {
-                var originalExtended = extended = true;
-              }
+              flags[flagsMap[flagsMapKeys[i]]] = (sFlags.indexOf(flagsMapKeys[i]) > -1);
+            }
+          }
 
               if (sFlags.indexOf("s") > -1)
               {
@@ -673,6 +694,12 @@ if (typeof jsx != "object")
 
               sFlags = sFlags.replace(/[xsu]/g, "");
             }
+
+            _extend(flags, {
+              extended: !!originalExtended,
+              dotAll: !!originalDotAll,
+              unicodeMode: unicodeMode
+            }, _ADD_OVERWRITE);
 
             /* Support for capturing and special groups */
             var groupCount = 0;
