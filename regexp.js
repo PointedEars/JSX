@@ -123,26 +123,10 @@ if (typeof jsx != "object")
                   });
 
                 lines.sort(function (a, b) {
-                  if (a.propertyClass < b.propertyClass)
-                  {
-                    return -1;
-                  }
-
-                  if (a.propertyClass > b.propertyClass)
-                  {
-                    return 1;
-                  }
-
-                  if (a.codePoint < b.codePoint)
-                  {
-                    return -1;
-                  }
-
-                  if (a.codePoint > b.codePoint)
-                  {
-                    return 1;
-                  }
-
+                  if (a.propertyClass < b.propertyClass) return -1;
+                  if (a.propertyClass > b.propertyClass) return 1;
+                  if (a.codePoint < b.codePoint) return -1;
+                  if (a.codePoint > b.codePoint) return 1;
                   return 0;
                 });
 
@@ -208,8 +192,8 @@ if (typeof jsx != "object")
             )).send();
           },
 
-          sPropertyEscapes = "\\\\(p)\\{([^\\}]+)\\}",
-          rxNegEscape = new RegExp(sPropertyEscapes.toUpperCase() + "|\\\\([DSW])", "g"),
+          sPropertyEscapes = /\\(p)\{([^\}]+)\}/.source,
+          rxNegEscape = new RegExp(sPropertyEscapes.toUpperCase() + /|\\([DSW])/.source, "g"),
 
           /**
            * @param {String} charClassContent
@@ -219,15 +203,8 @@ if (typeof jsx != "object")
           _normalizeCharClass = function (charClassContent, bUnicodeMode) {
             var negEscapes = [];
 
-            if (charClassContent == "")
-            {
-              return "[]";
-            }
-
-            if (charClassContent == "^")
-            {
-              return "[^]";
-            }
+            if (charClassContent == "") return "[]";
+            if (charClassContent == "^") return "[^]";
 
             var reduced = charClassContent.replace(
               rxNegEscape,
@@ -268,7 +245,7 @@ if (typeof jsx != "object")
           },
 
           rxPropertyEscapes = new RegExp(sPropertyEscapes, "gi"),
-          sNonPropEscInRange = "([^\\]\\\\]|\\\\[^p])*",
+          sNonPropEscInRange = /([^\]\\]|\\[^p])*/.source,
           sEscapes =
             "\\[(\\^?(" + sNonPropEscInRange + "(" + sPropertyEscapes
             + ")+" + sNonPropEscInRange + ")+)\\]"
@@ -747,10 +724,7 @@ if (typeof jsx != "object")
               if (group)
               {
                 var capturingGroup = (!nonCapturingGroup && !(modifierGroup && emptyGroup));
-                if (capturingGroup)
-                {
-                  ++groupCount;
-                }
+                if (capturingGroup) ++groupCount;
 
                 if (positiveModifiers)
                 {
@@ -815,36 +789,24 @@ if (typeof jsx != "object")
                   return "(";
                 }
 
-                return emptyGroup ? "" : "(?" + nonCapturingGroup;
+                return (emptyGroup ? "" : "(?" + nonCapturingGroup);
               }
 
               /* PCRE_EXTENDED */
               if (extended)
               {
                 /* Remove comments */
-                if (comment)
-                {
-                  return "";
-                }
+                if (comment) return "";
 
                 /* Keep escaped whitespace, remove escape */
-                if (escapedWS)
-                {
-                  return escapedWS;
-                }
+                if (escapedWS) return escapedWS;
 
                 /* Remove unescaped whitespace */
-                if (whitespace)
-                {
-                  return "";
-                }
+                if (whitespace) return "";
               }
 
               /* PCRE_DOTALL */
-              if (dotAll && plainDot)
-              {
-                return "[\\S\\s]";
-              }
+              if (dotAll && plainDot) return "[\\S\\s]";
 
               return match;
             });
@@ -975,10 +937,7 @@ if (typeof jsx != "object")
         function _exec (s, rx)
         {
           /* NOTE: Use passed expression only when called statically */
-          if (_getClass(this) == "RegExp")
-          {
-            rx = this;
-          }
+          if (_getClass(this) == "RegExp") rx = this;
 
           rx._realExec = (rx._oldExec || rx.exec);
 
@@ -1121,10 +1080,7 @@ if (typeof jsx != "object")
   }.extend(String, (function () {
     var _replace = String.prototype.replace;
 
-    function _toString ()
-    {
-      return this.value;
-    }
+    function _toString () { return this.value; }
 
     return {
       /**
@@ -1223,7 +1179,7 @@ if (typeof jsx != "object")
           var groups = expression.groups;
           var len = groups.length;
 
-          if ((typeof replacement) == "function")
+          if (typeof replacement == "function")
           {
             var me = this;
             return _replace.call(this, expression, function () {
@@ -1307,10 +1263,7 @@ if (typeof jsx != "object")
         var flags = this.flags;
         for (var flag in flags)
         {
-          if (!this[flag] && template[flags[flag]])
-          {
-            this[flag] = true;
-          }
+          if (!this[flag] && template[flags[flag]]) this[flag] = true;
         }
       },
 
@@ -1323,10 +1276,7 @@ if (typeof jsx != "object")
 
           for (var flag in this.flags)
           {
-            if (this[flag] === true)
-            {
-              a.push(flag);
-            }
+            if (this[flag] === true) a.push(flag);
           }
 
           return a.join("");
@@ -1341,10 +1291,7 @@ if (typeof jsx != "object")
       aParts.push(regexp2str(this));
       oFlags.setFromTemplate(this);
 
-      if (!partIsExtended)
-      {
-        partIsExtended = _RegExp2.isInstance(this);
-      }
+      if (!partIsExtended) partIsExtended = _RegExp2.isInstance(this);
     }
 
     for (var i = 0, iArgnum = arguments.length; i < iArgnum; i++)
@@ -1352,10 +1299,7 @@ if (typeof jsx != "object")
       var a = arguments[i];
       if (_getClass(a) == "RegExp")
       {
-        if (!partIsExtended)
-        {
-          partIsExtended = _RegExp2.isInstance(a);
-        }
+        if (!partIsExtended) partIsExtended = _RegExp2.isInstance(a);
 
         aParts.push(regexp2str(a));
         oFlags.setFromTemplate(a);
@@ -1387,21 +1331,13 @@ if (typeof jsx != "object")
   {
     if (!pattern1 || _getClass(pattern1) != "RegExp")
     {
-      if (_getClass(this) == "RegExp")
-      {
-        pattern1 = this;
-      }
-      else
-      {
-        return null;
-      }
+      if (_getClass(this) != "RegExp") return null;
+
+      pattern1 = this;
     }
 
     /* Rule out invalid values */
-    if (!pattern2 || _getClass(pattern2) != "RegExp")
-    {
-      return null;
-    }
+    if (!pattern2 || _getClass(pattern2) != "RegExp") return null;
 
     /* Remove outer parentheses */
     var
@@ -1444,10 +1380,7 @@ if (typeof jsx != "object")
     a = [];
     for (var p in o)
     {
-      if (hasOwnProperty(o2, p))
-      {
-        a.push(p);
-      }
+      if (hasOwnProperty(o2, p)) a.push(p);
     }
 
     return new RegExp("(" + a.join("|") + ")");
@@ -1463,10 +1396,7 @@ if (typeof jsx != "object")
    */
   function _escape (s)
   {
-    if (arguments.length === 0 && _isString(this.constructor))
-    {
-      s = this;
-    }
+    if (arguments.length === 0 && _isString(this.constructor)) s = this;
 
     return s.replace(/[\]\\^$*+?.(){}|[]/g, "\\$&");
   }
@@ -1482,10 +1412,7 @@ if (typeof jsx != "object")
   function _toString2 (rx)
   {
     // return rx.toString().replace(/[^\/]*\/((\\\/|[^\/])+)\/[^\/]*/, "$1");
-    if (!rx)
-    {
-      rx = this;
-    }
+    if (!rx) rx = this;
 
     return rx.source || rx.toString().replace(/[^\/]*\/(.+)\/[^\/]*/, "$1");
   }
