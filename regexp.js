@@ -102,6 +102,15 @@ if (typeof jsx != "object")
           propertyClasses,
           ucdFields = ["codePoint",, "propertyClass"],
 
+          _beyondBMPsupport = jsx.tryThis(
+            function () {
+              new RegExp("", "u");
+              return true;
+            },
+            function () {
+              return false;
+            }
+          ),
           _parseUCDText = function () {
             (new jsx.net.http.Request(
               _RegExp2.ucdTextPath, "GET", false,
@@ -113,7 +122,6 @@ if (typeof jsx != "object")
                     return entry;
                   });
 
-                /* FIXME: Sometimes \p{Space} etc. are in not in RegExp class range order */
                 lines.sort(function (a, b) {
                   if (a.propertyClass < b.propertyClass)
                   {
@@ -149,7 +157,8 @@ if (typeof jsx != "object")
                     codePoint = line.codePoint,
                     prevCodePoint;
 
-                  if (isNaN(codePoint) || (codePoint > 0xFFFF && !_WideString))
+                  if (isNaN(codePoint)
+                      || (codePoint > 0xFFFF && (!_WideString || !_beyondBMPsupport)))
                   {
                     continue;
                   }
@@ -696,7 +705,12 @@ if (typeof jsx != "object")
               unicodeMode = true;
             }
 
-            sFlags = sFlags.replace(/[xsu]/g, "");
+            sFlags = sFlags.replace(/[xs]/g, "");
+
+            if (unicodeMode && !_beyondBMPsupport)
+            {
+              sFlags = sFlags.replace(/u/g, "");
+            }
           }
 
           _extend(flags, {
