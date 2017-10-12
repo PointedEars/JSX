@@ -519,12 +519,7 @@ if (typeof jsx != "object")
          *   <li>The created {@link RegExp} instance is augmented with
          *       properties and returned.</li>
          * </ol><p>
-         * Thus, a typical run may look as follows:
-         * </p><ol start="0">
-         *  <li><code>(?'foo'(?s)bar.baz(?-s).bla)</code></li>
-         *  <li><code>(bar[\S\s]baz.bla)</code></li>
-         *  <li><code>(bar[\S\s]baz)</code></li>
-         * </ol><p>There are the following possibilities to make Unicode property
+         * There are the following possibilities to make Unicode property
          * classes known to this constructor:
          * </p><ol>
          *   <li>Provide the Unicode Character Database, or parts thereof,
