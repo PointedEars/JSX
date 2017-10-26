@@ -473,28 +473,38 @@ if (typeof jsx != "object")
          *         <li><p>Capturing groups and pattern-match modifiers in the
          *             pattern are matched and replaced.
          *             <p>Capturing groups are replaced with the opening
-         *             parenthesis if they were assigned a name.  The
-         *             extended {@link RegExp}'s <code>groups</code>,
+         *             parenthesis if they were assigned a name:
+         *             <pre>
+         *   <code>(?'foo'(?s)bar.baz(?-s)(?x) .\ bla) # blubb</code>
+         * → <code>((?s)bar.baz(?-s) .\ bla) # blubb</code></pre>
+         *
+         *             The extended {@link RegExp}'s <code>groups</code>,
          *             <code>names</code>, and <code>_patternGroups</code>
-         *             properties are set accordingly.  They are used in an
-         *             overwritten <code>exec()</code> method and when matching
-         *             against a <code>jsx.regexp.String</code> using its
-         *             <tt>match(…)</tt> method.</p>
+         *             properties are set accordingly.  They are used in
+         *             an overwritten <code>exec()</code> method
+         *             and when matching against a <code>jsx.regexp.String</code>
+         *             using its <tt>match(…)</tt> method.</p>
          *             <p style="margin-bottom: 0">
          *               Pattern-match modifiers are set and unset as they
          *               are scanned.  The corresponding substrings are
-         *               removed from the pattern.  If the group is otherwise
+         *               removed from the pattern.  <mark>If the group is otherwise
          *               empty, and therefore is not a group at all,
-         *               the entire pseudo-group is removed.</p>
+         *               the entire pseudo-group is removed.</mark><sup>[why?]</sup></p>
          *             <ol style="margin-top: 0; list-style-type: lower-latin">
          *               <li>With PCRE_EXTENDED set, single-line
          *                   comments starting with <tt>#</tt> and unescaped
          *                   whitespace are removed from the pattern.  The backslash
          *                   is removed from the pattern when in front of
-         *                   whitespace.</li>
+         *                   whitespace:
+         *                   <pre>
+         *   <code>((?s)bar.baz(?-s)(?x) .\ bla) # blubb</code>
+         * → <code>((?s)bar.baz(?-s). bla)</code></pre></li>
          *               <li>With PCRE_DOTALL set, unescaped <tt>.</tt>
          *                   (period) characters are replaced with the character class
-         *                   <tt>[\S\s]</tt> which matches all Unicode characters.</li>
+         *                   <tt>[\S\s]</tt> which matches all Unicode characters:
+         *                   <pre>
+         *   <code>((?s)bar.baz(?-s). bla)</code>
+         * → <code>(bar[\S\s]baz.bla)</code></pre></li>
          *             </ol>
          *             <p><em>NOTE: Unlike in Perl and PCRE, a pattern-match
          *                modifier affects all of the pattern that follows,
@@ -504,8 +514,18 @@ if (typeof jsx != "object")
          *         <li>When in Unicode mode,
          *             <ol style="list-style-type: lower-latin">
          *               <li>in the second pass, character class escape sequences
-         *                   <tt>\w</tt> and <tt>\W</tt> are replaced with
-         *                   corresponding uses of <tt>\p{Word}</tt>.</li>
+         *                   are replaced as follows:
+         *                   <table>
+         *                     <tr><th><code>\d</code></th><td><code>\p{Digit}</code></td></tr>
+         *                     <tr><th><code>\D</code></th><td><mark><code>\P{Digit}]</code></mark><sup>[really?]</sup></td></tr>
+         *                     <tr><th><code>\s</code></th><td><code>\p{Space}</code></td></tr>
+         *                     <tr><th><code>\S</code></th><td><mark><code>\P{Space}]</code></mark></td></tr>
+         *                     <tr><th><code>\w</code></th><td><code>\p{Word}</code></td></tr>
+         *                     <tr><th><code>\W</code></th><td><mark><code>\P{Word}]</code></mark></td></tr>
+         *                   </table>
+         *                   <pre>
+         *   <code>(bar[\S\s]baz.bla)</code>
+         * → <code>(bar[\P{Space}\p{Space}]baz.bla)</code></pre></li>
          *               <li>in the third pass, <tt>\b</tt> is replaced with
          *                   corresponding uses of character classes and negative
          *                   lookahead.
@@ -519,12 +539,7 @@ if (typeof jsx != "object")
          *   <li>The created {@link RegExp} instance is augmented with
          *       properties and returned.</li>
          * </ol><p>
-         * Thus, a typical run may look as follows:
-         * </p><ol start="0">
-         *  <li><code>(?'foo'(?s)bar.baz(?-s).bla)</code></li>
-         *  <li><code>(bar[\S\s]baz.bla)</code></li>
-         *  <li><code>(bar[\S\s]baz)</code></li>
-         * </ol><p>There are the following possibilities to make Unicode property
+         * There are the following possibilities to make Unicode property
          * classes known to this constructor:
          * </p><ol>
          *   <li>Provide the Unicode Character Database, or parts thereof,
