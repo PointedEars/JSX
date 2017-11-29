@@ -301,25 +301,25 @@ if (typeof jsx != "object")
             });
 
             var _rangesStack = _getDataObject({
-              seen: _getDataObject(),
+              seenAt: _getDataObject(),
               items: [],
 
               indexOf: function (item) {
-                item = this.seen[item];
-                return (item ? item.index : -1);
+                var index = this.seenAt[item];
+                return (typeof index != "undefined" ? index : -1);
               },
 
               pop: function () {
                 var items = this.items;
                 var last = items.pop();
-                delete this.seen[last];
+                delete this.seenAt[last];
                 this.length = items.length;
                 return last;
               },
 
               push: function (item) {
                 var items = this.items;
-                this.seen[item] = _getDataObject({index: items.length});
+                this.seenAt[item] = items.length;
                 items.push(item);
                 this.length = items.length;
               },
