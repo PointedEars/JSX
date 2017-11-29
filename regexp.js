@@ -355,6 +355,7 @@ if (typeof jsx != "object")
               function (propertyClass) {
                 return jsx.tryThis(
                   function () {
+                    /* FIXME: _rangesStack should handle this on push() */
                     if (_rangesStack.indexOf(propertyClass) > -1)
                     {
                       jsx.throwThis("jsx.regexp.InvalidPropertyClassError",
@@ -884,6 +885,7 @@ if (typeof jsx != "object")
                 if (wordBorder)
                 {
                   /* Handle \b in leading groups properly */
+                  /* FIXME: Breaks \b in subsequent groups in Unicode mode */
                   if (index > afterFirstGroup)
                   {
                     return "(?!" + wordEscape + ")";
