@@ -1087,8 +1087,7 @@ if (typeof jsx != "object")
   var _String = function jsx_regexp_String (s) {
     if (this.constructor != jsx_regexp_String)
     {
-      jsx.throwThis("jsx.Error", "Must be called as constructor",
-        "jsx.regexp.String");
+      return jsx_regexp_String.construct(arguments);
     }
 
     this.value = String(s);
