@@ -1186,18 +1186,34 @@ if (typeof jsx != "object")
        * @memberOf jsx.regexp.String.prototype
        * @param {jsx.regexp.RegExp|RegExp|String} expression
        * @param {String|Function} replacement
+       * @param {boolean} evaluate
+       *   If <var>replacement</var> is a {@link String}, backreferences
+       *   in it are replaced, the result is executed as a program, and
+       *   the match(es) is/are replaced with the result of that program.
+       *   For example, <pre><code>
+       *     jsx.regexp.String("foo41").replace(/(\d+)/, '$1 + 1', true)
+       *   </code></pre>
+       *   is equivalent to <pre><code>
+       *     jsx.regexp.String("foo41").replace(/(\d+)/, function (m, p1) {
+       *       return (+p1) + 1;
+       *     });
+       *   </code></pre>
+       *   (both return <code>"foo42"</code>).
+       *   NOTE: The backreferences <code>"$`"</code> and <code>"$'"</code>
+       *   are <em>not</em> supported, but <code>"$0"</code> is equivalent
+       *   to <code>"$&"</code>.
        * @return {string}
        * @see String.prototype.replace
        */
-      replace: function (expression, replacement) {
+      replace: function (expression, replacement, evaluate) {
+        var groups = expression.groups;
+        var me = this;
         if (jsx.regexp.RegExp.isInstance(expression))
         {
-          var groups = expression.groups;
           var len = groups.length;
 
           if (typeof replacement == "function")
           {
-            var me = this;
             return _replace.call(this, expression, function () {
               me.groups = _getDataObject();
               for (var i = 1; i <= len; ++i)
@@ -1217,6 +1233,29 @@ if (typeof jsx != "object")
               new RegExp("\\$\\{" + groups[i] + "\\}", "g"),
               "$" + i);
           }
+        }
+
+        /* Replace each match with result of eval() of replacement */
+        if (evaluate && _isString(replacement))
+        {
+          replacement = function (match) {
+            var args = arguments;
+            var localReplacement = replacement.replace(
+              /\\\$|\$(\d*\d)|\$\{([^}]+)\}\$([\$&])/g,
+              function (m, index, name, dollarOrAmp) {
+                if (index) return args[index];
+                if (name) return me.groups[name];
+
+                if (dollarOrAmp)
+                {
+                  if (m == "$$") return "$";
+                  return match;
+                }
+
+                return m;
+              });
+            return eval(localReplacement);
+          };
         }
 
         return _replace.call(this, expression, replacement);
