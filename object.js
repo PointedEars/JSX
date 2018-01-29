@@ -54,6 +54,24 @@ de.pointedears.jsx = jsx;
   "use strict";
 
   /**
+   * Used by {@link #extend()} and {@link #clone()}
+   * to make a shallow copy of all enumerable properties (default).
+   */
+  var _COPY_ENUM = 0;
+
+  /**
+   * Used by {@link #extend()} and {@link #clone()}
+   * to make a deep copy of all enumerable properties.
+   */
+  var _COPY_ENUM_DEEP = 2;
+
+  /**
+   * Used by {@link #extend()} and {@link #clone()}
+   * to copy a property by inheritance.
+   */
+  var _COPY_INHERIT = 4;
+
+  /**
    * Wrapper for a safer <code>try</code>...<code>catch</code>.
    *
    * Attempts to evaluate a value as a <i>StatementList</i>, and attempts
@@ -171,6 +189,185 @@ de.pointedears.jsx = jsx;
       return result;
     };
   //}());
+
+  /**
+   * Determines if an object has a (non-inherited) property.
+   *
+   * @param {Object} obj (optional)
+   *   Object which property should be checked for existence.
+   * @param {string} sProperty
+   *   Name of the property to check.
+   * @return {boolean}
+   *   <code>true</code> if there is such a property;
+   *   <code>false</code> otherwise.
+   */
+  function _hasOwnProperty (obj, sProperty)
+  {
+    if (arguments.length < 2 && obj)
+    {
+      sProperty = obj;
+      obj = jsx_object;
+    }
+
+    var proto;
+
+    return (_isMethod(obj, "hasOwnProperty")
+      ? obj.hasOwnProperty(sProperty)
+      : (typeof obj[sProperty] != "undefined"
+          && (null == obj.constructor
+              || ((proto = obj.constructor.prototype)
+                   && typeof proto[sProperty] == "undefined"))));
+  }
+
+  /**
+   * Returns the own enumerable properties of an object
+   *
+   * @param {Object} obj
+   *   Object from which to get the keys
+   * @return {Array}
+   *   Own enumerable properties of <var>obj</var>
+   * @see Object#keys
+   */
+  function _getKeys (obj)
+  {
+    if (typeof Object.keys == "function" && !Object.keys._emulated)
+    {
+      return Object.keys(obj);
+    }
+
+    if (!_isObject(obj))
+    {
+      return jsx.throwThis("TypeError",
+        "jsx.object.getKeys() called on non-object");
+    }
+
+    var names = [];
+
+    for (var p in obj)
+    {
+      if (_hasOwnProperty(obj, p))
+      {
+        names.push(p);
+      }
+    }
+
+    return names;
+  }
+
+  function _getProto (o)
+  {
+    if (typeof Object.getPrototypeOf == "function"
+        && !Object.getPrototypeOf._emulated)
+    {
+      return Object.getPrototypeOf(o);
+    }
+
+    /*jshint -W103*/
+    return o.__proto__ || (o.constructor && o.constructor.prototype);
+    /*jshint +W103*/
+  }
+
+  function _createTypedObject (oOriginal)
+  {
+    var prototype = _getProto(oOriginal);
+    return (prototype ? _inheritFrom(prototype) : _inheritFrom());
+  }
+
+  /**
+   * Creates a duplicate (clone) of an object
+   *
+   * @param {Object} oSource (optional)
+   *   Object to be cloned.  If omitted or <code>null</code>,
+   *   the calling object is cloned.
+   * @param {Number} iLevel (optional)
+   *   Use the {@link #COPY_ENUM jsx.object.COPY_*}
+   *   properties to specify the level of cloning.
+   *   The default is {@link #COPY_ENUM}.
+   * @return {Object}
+   *   A reference to the clone.
+   */
+  function _clone (oSource, iLevel)
+  {
+    if (typeof oSource == "number")
+    {
+      var tmp = oSource;
+      oSource = iLevel;
+      iLevel = tmp;
+    }
+
+    if (!oSource)
+    {
+      oSource = jsx_object;
+    }
+
+    if (typeof iLevel == "undefined")
+    {
+      iLevel = _COPY_ENUM;
+    }
+
+    if (iLevel & _COPY_INHERIT)
+    {
+      return _inheritFrom(oSource);
+    }
+
+    var me = _clone;
+
+    /*
+     * NOTE: For objects, valueOf() only copies the object reference,
+     *       so we are creating an instance that inherits from the
+     *       original's prototype, if possible.
+     */
+    var o2 = (typeof oSource == "object" && oSource
+           ? _createTypedObject(oSource)
+           : oSource.valueOf());
+
+    for (var p in oSource)
+    {
+      if (_hasOwnProperty(oSource, p))
+      {
+        if (iLevel && _isObject(oSource[p]))
+        {
+          jsx.tryThis(function () {
+            o2[p] = me(oSource[p], iLevel);
+          });
+        }
+        else
+        {
+          jsx.tryThis(function () {
+            o2[p] = oSource[p];
+          });
+        }
+      }
+    }
+
+    /*
+     * "var p in ..." might not have copied (all) the array elements
+     * (NN < 4.8 or user-defined non-enumerable elements only)
+     */
+    if (_isArray(o2))
+    {
+      for (var i = oSource.length; i--;)
+      {
+        if (_hasOwnProperty(oSource, i) && !_hasOwnProperty(o2, i))
+        {
+          if (iLevel && _isObject(oSource[i]))
+          {
+            jsx.tryThis(function () {
+              o2[i] = me(oSource[i], iLevel);
+            });
+          }
+          else
+          {
+            jsx.tryThis(function () {
+              o2[i] = oSource[i];
+            });
+          }
+        }
+      }
+    }
+
+    return o2;
+  }
 
   /**
    * Returns a new object that can serve as data container.
@@ -543,73 +740,9 @@ de.pointedears.jsx = jsx;
        return /^\s*(function|object|unknown)\s*$/i.test(s);
      }
 
-    /**
-     * Determines if an object has a (non-inherited) property.
-     *
-     * @param {Object} obj (optional)
-     *   Object which property should be checked for existence.
-     * @param {string} sProperty
-     *   Name of the property to check.
-     * @return {boolean}
-     *   <code>true</code> if there is such a property;
-     *   <code>false</code> otherwise.
-     */
-    function _hasOwnProperty (obj, sProperty)
-    {
-      if (arguments.length < 2 && obj)
-      {
-        sProperty = obj;
-        obj = jsx_object;
-      }
-
-      var proto;
-
-      return (_isMethod(obj, "hasOwnProperty")
-        ? obj.hasOwnProperty(sProperty)
-        : (typeof obj[sProperty] != "undefined"
-            && (null == obj.constructor
-                || ((proto = obj.constructor.prototype)
-                     && typeof proto[sProperty] == "undefined"))));
-    }
-
     function _isString (s)
     {
       return ((typeof s == "string") || jsx.object.isInstanceOf(s, String));
-    }
-
-    /**
-     * Returns the own enumerable properties of an object
-     *
-     * @param {Object} obj
-     *   Object from which to get the keys
-     * @return {Array}
-     *   Own enumerable properties of <var>obj</var>
-     * @see Object#keys
-     */
-    function _getKeys (obj)
-    {
-      if (typeof Object.keys == "function" && !Object.keys._emulated)
-      {
-        return Object.keys(obj);
-      }
-
-      if (!_isObject(obj))
-      {
-        return jsx.throwThis("TypeError",
-          "jsx.object.getKeys() called on non-object");
-      }
-
-      var names = [];
-
-      for (var p in obj)
-      {
-        if (_hasOwnProperty(obj, p))
-        {
-          names.push(p);
-        }
-      }
-
-      return names;
     }
 
     function Dummy () {}
@@ -799,139 +932,6 @@ de.pointedears.jsx = jsx;
      * to overwrite existing properties.
      */
     var _ADD_OVERWRITE = 1;
-
-    /**
-     * Used by {@link #extend()} and {@link #clone()}
-     * to make a shallow copy of all enumerable properties (default).
-     */
-    var _COPY_ENUM = 0;
-
-    /**
-     * Used by {@link #extend()} and {@link #clone()}
-     * to make a deep copy of all enumerable properties.
-     */
-    var _COPY_ENUM_DEEP = 2;
-
-    /**
-     * Used by {@link #extend()} and {@link #clone()}
-     * to copy a property by inheritance.
-     */
-    var _COPY_INHERIT = 4;
-
-    function _getProto (o)
-    {
-      if (typeof Object.getPrototypeOf == "function"
-          && !Object.getPrototypeOf._emulated)
-      {
-        return Object.getPrototypeOf(o);
-      }
-
-      /*jshint -W103*/
-      return o.__proto__ || (o.constructor && o.constructor.prototype);
-      /*jshint +W103*/
-    }
-
-    function _createTypedObject (oOriginal)
-    {
-      var prototype = _getProto(oOriginal);
-      return (prototype ? _inheritFrom(prototype) : _inheritFrom());
-    }
-
-    /**
-     * Creates a duplicate (clone) of an object
-     *
-     * @param {Object} oSource (optional)
-     *   Object to be cloned.  If omitted or <code>null</code>,
-     *   the calling object is cloned.
-     * @param {Number} iLevel (optional)
-     *   Use the {@link #COPY_ENUM jsx.object.COPY_*}
-     *   properties to specify the level of cloning.
-     *   The default is {@link #COPY_ENUM}.
-     * @return {Object}
-     *   A reference to the clone.
-     */
-    function _clone (oSource, iLevel)
-    {
-      if (typeof oSource == "number")
-      {
-        var tmp = oSource;
-        oSource = iLevel;
-        iLevel = tmp;
-      }
-
-      if (!oSource)
-      {
-        oSource = jsx_object;
-      }
-
-      if (typeof iLevel == "undefined")
-      {
-        iLevel = _COPY_ENUM;
-      }
-
-      if (iLevel & _COPY_INHERIT)
-      {
-        return _inheritFrom(oSource);
-      }
-
-      var me = _clone;
-
-      /*
-       * NOTE: For objects, valueOf() only copies the object reference,
-       *       so we are creating an instance that inherits from the
-       *       original's prototype, if possible.
-       */
-      var o2 = (typeof oSource == "object" && oSource
-             ? _createTypedObject(oSource)
-             : oSource.valueOf());
-
-      for (var p in oSource)
-      {
-        if (_hasOwnProperty(oSource, p))
-        {
-          if (iLevel && _isObject(oSource[p]))
-          {
-            jsx.tryThis(function () {
-              o2[p] = me(oSource[p], iLevel);
-            });
-          }
-          else
-          {
-            jsx.tryThis(function () {
-              o2[p] = oSource[p];
-            });
-          }
-        }
-      }
-
-      /*
-       * "var p in ..." might not have copied (all) the array elements
-       * (NN < 4.8 or user-defined non-enumerable elements only)
-       */
-      if (_isArray(o2))
-      {
-        for (var i = oSource.length; i--;)
-        {
-          if (_hasOwnProperty(oSource, i) && !_hasOwnProperty(o2, i))
-          {
-            if (iLevel && _isObject(oSource[i]))
-            {
-              jsx.tryThis(function () {
-                o2[i] = me(oSource[i], iLevel);
-              });
-            }
-            else
-            {
-              jsx.tryThis(function () {
-                o2[i] = oSource[i];
-              });
-            }
-          }
-        }
-      }
-
-      return o2;
-    }
 
     /**
      * Defines a property of an object.
