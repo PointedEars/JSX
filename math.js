@@ -247,6 +247,16 @@ jsx.math = (/** @constructor */ function () {
     op: _op,
 
     /**
+     * General absolute value
+     *
+     * @param value
+     * @return {any}
+     */
+    abs: function (value) {
+      return _op("abs", [value]);
+    },
+
+    /**
      * General natural logarithm
      *
      * @param base
