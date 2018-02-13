@@ -192,6 +192,165 @@ jsx.math.max = (function () {
 }());
 
 /**
+ * Returns the sum of values.
+ *
+ * There are different approaches to summing of floating-point values.
+ * The default (fastest) is to ignore rounding errors.  However, this can lead
+ * to catastrophic cancellation and is not acceptable in, e.g., calculating the
+ * scalar product or the determinant of a matrix. Therefore, <kbd>float.js</kbd>
+ * internally uses the slower, but more precise
+ * {@link #SUM_ALGORITHM_NEUMAIER() Kahan–Neumaier summation algorithm} as supported
+ * by this method.  ({@link #sumPairwise() Pairwise summation} is supported
+ * separately.  It is more efficient, and only slightly less precise, than Kahan
+ * summation, but has other drawbacks that are considered inacceptable in those
+ * circumstances.)
+ *
+ * You can employ other strategies by passing references to suitable callables.
+ * <em>NOTE: The Kahan–Neumaier algorithm is unique in that it adds the compensation
+ * only once at the end.  Therefore, you have to use the provided constant
+ * if you want to employ that strategy.
+ *
+ * This method and the built-in strategies are value-neutral, so they can be used
+ * to sum, e.g., {@link jsx.math.Vector vectors} and
+ * {@link jsx.math.vector.Matrix matrices}.  See {@link jsx.math.add()} for details.
+ *
+ * @param {Array[any]} values  Values to be summated.
+ * @param {Callable} algorithm (optional)
+ *   Algorithm to be used for summing values.  The function is supposed to be
+ *   passed as argument to Array.prototype.reduce.  Use the
+ *   {@link jsx.math.STRATEGY_KAHAN() jsx.math.STRATEGY_*} constants to select
+ *   an algorithm or pass your own function.
+ * @return {any}
+ * @see jsx.math.add()
+ * @see #SUM_ALGORITHM_KAHAN()
+ * @see #SUM_ALGORITHM_NEUMAIER()
+ * @see #sumPairwise()
+ */
+jsx.math.sum = function (values, algorithm) {
+  var _add; jsx.math.add;
+
+  if (!algorithm) algorithm = function (a, b) { return _add(a, b); };
+
+  /* A running compensation for lost low-order bits. */
+  var compensation = 0;
+
+  var total = values.reduce(algorithm);
+
+  if (algorithm == jsx.math.SUM_ALGORITHM_NEUMAIER)
+  {
+    total = _add(total, compensation);
+  }
+
+  return total;
+};
+
+/**
+ * Implements addition as in the Kahan summation algorithm.
+ *
+ * The summation algorithm attributed to William Kahan (1965) avoids
+ * catastrophic cancellation in floating-point summation by considering
+ * the rounding errors that have occurred in addition when adding
+ * the next summand.
+ *
+ * This method is intended to be used as <var>strategy</var> argument
+ * for {@link #sum}, and requires a <var>compensation</var> variable
+ * in one of the callers (as provided by {@link #sum}).
+ *
+ * Kahan, William (January 1965), "Further remarks on reducing truncation errors"
+ * <http://mgnet.org/~douglas/Classes/na-sc/notes/kahan.pdf>,
+ * Communications of the ACM <https://en.wikipedia.org/wiki/Communications_of_the_ACM>,
+ * 8 (1): 40, doi:10.1145/363707.363723
+ *
+ * @param  {any} a First summand
+ * @param  {any} b Second summand
+ * @return {any} Result of the addition
+ * @see #sum()
+ * @see #SUM_ALGORITHM_NEUMAIER()
+ */
+jsx.math.SUM_ALGORITHM_KAHAN = function (total, summand) {
+  var _add = jsx.math.add;
+  var _sub = jsx.math.sub;
+
+  /* The lost low part from previous call is added to total in a fresh attempt */
+  var corrected = _add(total, compensation);
+
+  /* total is big, corrected small, so low-order digits of corrected are lost. */
+  var t = _add(corrected, summand);
+
+  /* (t - total) is how much was actually added; compensation is now residual */
+  compensation = _sub(corrected, (_sub(t, total)));
+
+  /* Algebraically, compensation should always be zero.
+     Beware overly-aggressive optimizing compilers! */
+  return t;
+};
+
+/**
+ * Implements addition as in the Kahan–Babuška–Neumaier summation algorithm.
+ *
+ * Arnold Neumaier (1974) has improved on {@link #SUM_ALGORITHM_KAHAN Kahan–Babuška summation}
+ * so that catastrophic cancellation is also avoided if if the running total
+ * is smaller than the next summand.
+ *
+ * This method is intended to be used as <var>strategy</var> argument
+ * for {@link #sum}, and requires a <var>compensation</var> variable
+ * in one of the callers (as provided by {@link #sum}).
+ *
+ * Neumaier, A. (1974). "Rundungsfehleranalyse einiger Verfahren zur Summation
+ * endlicher Summen" [Rounding Error Analysis of Some Methods for Summing
+ * Finite Sums] <http://www.mat.univie.ac.at/~neum/scan/01.pdf>.
+ * Zeitschrift für Angewandte Mathematik und Mechanik (in German). 54 (1): 39–51.
+ * doi:10.1002/zamm.19740540106.
+ *
+ * @param  {any} a First summand
+ * @param  {any} b Second summand
+ * @return {any} Result of the addition
+ * @see #sum()
+ * @see #SUM_ALGORITHM_KAHAN()
+ */
+jsx.math.SUM_ALGORITHM_NEUMAIER = function (total, summand) {
+  var _add = jsx.math.add;
+  var _sub = jsx.math.sub;
+  var _abs = jsx.math.abs;
+
+  var t = _add(total, summand);
+
+  compensation = _add(compensation,
+    (_abs(total) >= _abs(summand))
+      ? /* If sum is bigger, low-order digits of summand are lost; … */
+        _add(_sub(total, t), summand)
+      : /* … else low-order digits of total are lost. */
+        _add(_sub(summand, t), total)
+  );
+
+  return t;
+};
+
+/**
+ * Returns the sum of values using pairwise summation.
+ *
+ * The list of values is split in halves and the sum of the halves
+ * is calculated recursively.  This is more runtime-efficient than
+ * Kahan summation, but less precise (𝓞(log n) vs. 𝓞(1) error growth).
+ * Also, the number of values that can be summed is limited by the
+ * stack size and the type of values.  It is thus not used by
+ * default by <kbd>float.js</kbd>’s methods.
+ *
+ * @param  {[type]} values [description]
+ * @return {[type]}        [description]
+ */
+jsx.math.sumPairwise = function me (values) {
+  var _add = jsx.math.add;
+
+  var len = values.length;
+  if (len < 2) return values[0];
+  if (len < 3) return values.reduce(function (a, b) { return _add(a, b); });
+
+  var indexHalf = Math.ceil(len / 2);
+  return _add(me(values.slice(0, indexHalf)), me(values.slice(indexHalf)));
+};
+
+/**
  * Returns the average value of the arguments.
  *
  * @return number
@@ -203,6 +362,7 @@ jsx.math.max = (function () {
  *   enumerable non-function properties or (with Arrays) its
  *   number-indexed properties are evaluated.
  *   If no arguments are provided, <code>NaN</code> is returned.
+ * @todo Use Kahan–Babuška–Neumaier summation, see {@link #SUM_ALGORITHM_NEUMAIER()}.
  */
 jsx.math.avg = (function () {
   var getValue = jsx.math.getValue;
