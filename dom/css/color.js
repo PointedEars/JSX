@@ -97,6 +97,21 @@ jsx.dom.css.Color.diff = function (color1, color2) {
 };
 
 /**
+ * Calculates the alpha-composited RGBA color of this RGBA color over another
+ * @param  {jsx.dom.css.Color} backgroundColor Background color
+ * @return {jsx.dom.css.Color}                 Composite color
+ */
+jsx.dom.css.Color.prototype.over = function (backgroundColor) {
+  var alpha = this.opacity;
+  return new jsx.dom.css.Color(
+    this.red + backgroundColor.red * (1 - alpha),
+    this.green + backgroundColor.green * (1 - alpha),
+    this.blue + backgroundColor.blue * (1 - alpha),
+    this.opacity +  backgroundColor.opacity * (1 - alpha)
+  );
+};
+
+/**
  * Returns a <code>Color</code> object, identifying a color in the
  * sRGB color space, defined by given coordinates for that color
  * in the HSV (Hue, Saturation, Value) color space.
