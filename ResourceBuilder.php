@@ -66,7 +66,7 @@ class ResourceBuilder
     * Class version
    * @var string
    */
-  protected $_version = '0.4.5';
+  protected $_version = '0.4.6';
 
   /**
    * Common path prefix for all resources
@@ -384,14 +384,25 @@ class ResourceBuilder
    * @return string Processed source code
    * @todo Do not strip from within literals
    */
-  protected function stripJSdoc ($s)
+  protected function stripJSdoc ($in)
   {
-    $s = preg_replace_callback(
+    
+    $out = preg_replace_callback(
       '#[\\t ]*/\\*\\*(?:\\*[^/]|[^*])*\\*/(?:\\r?\\n|\\r)?#',
       array('self', 'commentReplacer'),
-      $s);
+      $in);
+      
+    if ($out === null)
+    {
+        $out = "/* ResourceBuilder::stripJSdoc(): preg_replace_callback() returned "
+            . 'NULL which indicates pcre.backtrack_limit=='
+            . ini_get('pcre.backtrack_limit') . ' was exceeded. Input length was '
+            . mb_strlen($in) . ' bytes. JSdoc was not stripped;'
+            . ' increase pcre.backtrack_limit if problem persists. */'
+            . "\n$in";
+    }
 
-    return $s;
+    return $out;
   }
 
   /**
@@ -535,13 +546,13 @@ class ResourceBuilder
       {
         /* Pass 1: Remove all single-line comments (i.e., disabled code) */
         $content = $this->uncomment($content);
-        
+      
         /*
          * Pass 2: Remove all JSdoc comments but the first one
          * (i.e., the copyright section)
          */
         $content = $this->stripJSdoc($content);
-        
+      
         /* Pass 3: Minimize (removes multi-line comments and extra whitespace) */
       }
 
