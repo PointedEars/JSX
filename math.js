@@ -6,7 +6,7 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2000-2011, 2013, 2014  Thomas Lahn &lt;math.js@PointedEars.de&gt;
+ *   (C) 2000-2011, 2013, 2014, 2020  Thomas Lahn &lt;math.js@PointedEars.de&gt;
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
