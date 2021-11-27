@@ -170,7 +170,7 @@ jsx.dom.geolocation = {
       function (positionError) {
         me.setPositionError(positionError);
         me = null;
-        if (typeof errorCallback =="function") errorCallback(positionError);
+        if (typeof errorCallback == "function") errorCallback(positionError);
       },
       options
     );
@@ -236,10 +236,10 @@ jsx.dom.geolocation = {
     }
 
     var longitude = position.coords.longitude;
-      return (longitude != null
-        ? Math.abs(longitude) + "°\xA0"
-          + (longitude < 0 ? this.TEXT_WEST_ABBR : this.TEXT_EAST_ABBR)
-        : this.TEXT_NOT_AVAILABLE);
+    return (longitude != null
+      ? Math.abs(longitude) + "°\xA0"
+        + (longitude < 0 ? this.TEXT_WEST_ABBR : this.TEXT_EAST_ABBR)
+      : this.TEXT_NOT_AVAILABLE);
   },
 
   /**
