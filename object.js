@@ -2,7 +2,7 @@
  * @fileOverview <title>Basic Object Library</title>
  * @file $Id$
  *
- * @author (C) 2004-2016 Thomas Lahn <js@PointedEars.de>
+ * @author (C) 2004-2016, 2024 Thomas Lahn <js@PointedEars.de>
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -210,7 +210,8 @@ de.pointedears.jsx = jsx;
         var value = oSource[name];
 
         /* NOTE: formerly, numeric flags was first argument of _clone() */
-        obj[name] = (typeof value != "number"
+          /* global _clone */
+          obj[key] = (typeof value != "number"
           ? _clone(value, iFlags)
           : value);
       }
@@ -418,13 +419,13 @@ de.pointedears.jsx = jsx;
    *   <code>true</code> if all arguments refer to methods,
    *   <code>false</code> otherwise.
    */
-  /*jshint -W098*/
+  /*eslint no-unused-vars: "off" */
   function _isNativeMethod (obj, prop)
   {
     /* NOTE: Thread-safe, argument-safe code reuse -- `this' is our ID */
     return _isMethod.apply(_isNativeMethod, arguments);
   }
-  /*jshint +W098*/
+
 
   /**
    * Determines if a value refers to an {@link Array}.
@@ -564,6 +565,7 @@ de.pointedears.jsx = jsx;
 
       var proto;
 
+      /*eslint no-prototype-builtins: "off" */
       return (_isMethod(obj, "hasOwnProperty")
         ? obj.hasOwnProperty(sProperty)
         : (typeof obj[sProperty] != "undefined"
@@ -1528,6 +1530,7 @@ de.pointedears.jsx = jsx;
     }
 
     /* For getFunctionName from JSdoc; TODO: Use ES parser library */
+    /*eslint no-useless-escape: "off" */
     var _srxUnicodeLetter = "\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}";
     var _srxUnicodeEscapeSequence = "\\\\u[\\da-fA-F]{4}";
     var _srxIdentifierStart = _srxUnicodeLetter + "$_" + _srxUnicodeEscapeSequence;
@@ -1579,6 +1582,7 @@ de.pointedears.jsx = jsx;
       }
 
       /* Return the empty string for null or undefined */
+      /*eslint no-sparse-arrays: "off" */
       return (aFunction != null
                && typeof aFunction.name != "undefined" && aFunction.name)
         || (String(aFunction).match(rx) || [, ""])[1];
@@ -1772,6 +1776,7 @@ de.pointedears.jsx = jsx;
           return true;
         }
       }
+      /* global opera */
       else if (typeof opera != "undefined"
                 && _isMethod(opera, "postError"))
       {
@@ -1865,6 +1870,7 @@ de.pointedears.jsx = jsx;
       fHandler = _clearErrorHandler;
     }
 
+    /* global _getFeature */
     var _assertFalse = _getFeature(jsx, "test", "assertFalse");
     if (typeof _assertFalse == "function")
     {
@@ -1967,6 +1973,7 @@ de.pointedears.jsx = jsx;
         /* DEBUG: set breakpoint here */
         if (!sContext)
         {
+          /* global _jsx_object */
           if (_jsx_object.isMethod(context))
           {
             sContext = (String(context).match(/^\s*(function.+\))/)
