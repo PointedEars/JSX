@@ -388,7 +388,11 @@ jsx.array = (/** @constructor */ function () {
    */
   function _getIndex (value)
   {
-    var index = +value;
+    /* Handle Symbol and other non-convertible ES6+ values */
+    var index = Number.NaN;
+    try {
+      index = +value;
+    } catch (e) {}
 
     if (!(isNaN(index) || index == 0 || Math.abs(index) == Infinity))
     {
@@ -491,7 +495,14 @@ jsx.array = (/** @constructor */ function () {
   var _BIGARRAY_MAX_LENGTH = Math.pow(2, 53) - 1;
 
   /**
-   * Array-like object which can hold up to 2<sup>53</sup>−1 elements.
+   * Array-like object which can hold up to $2^{53} - 1$ elements.
+   *
+   * To date (2024), ECMAScript Array objects can only handle up to $2^{32} - 1$
+   * indexable values.  This object works around that limitation.
+   * It also allows to access an element from the end of the array
+   * by specifying a negative index (e.g. the last element by index $-1$);
+   * for standard Array objects this is also possible, but requires
+   * a special call of <code>Array.prototype.slice()</code>.
    *
    * @function
    */

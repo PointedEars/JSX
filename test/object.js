@@ -1,8 +1,10 @@
+// eslint-disable-next-line no-unused-vars
 function runTests ()
 {
-  var assert = jsx.test.assert;
-  var assertFalse = jsx.test.assertFalse;
-  var assertTrue = jsx.test.assertTrue;
+  /* global jsx */
+  let assert = jsx.test.assert;
+  let assertFalse = jsx.test.assertFalse;
+  let assertTrue = jsx.test.assertTrue;
 
   jsx.test.runner.run({
     file: "object.js",
@@ -43,7 +45,7 @@ function runTests ()
         feature: "jsx.object.isMethod()",
         desc: "Missing argument throws exception",
         code: function () {
-          var ok = true;
+          let ok = true;
           jsx.tryThis("jsx.object.isMethod()", function() { ok = false; });
           assertFalse(ok);
         }
@@ -75,7 +77,7 @@ function runTests ()
         feature: "jsx.object.areMethods()",
         desc: "Missing argument throws exception",
         code: function () {
-          var ok = true;
+          let ok = true;
           jsx.tryThis("jsx.object.areMethods()", function() { ok = false; });
           assertFalse(ok);
         }
@@ -106,7 +108,7 @@ function runTests ()
         feature: "jsx.object.isNativeMethod()",
         desc: "Missing argument throws exception",
         code: function () {
-          var ok = true;
+          let ok = true;
           jsx.tryThis("jsx.object.isNativeMethod()", function() { ok = false; });
           assertFalse(ok);
         }
@@ -186,7 +188,7 @@ function runTests ()
         feature: 'jsx.object.getKeys()',
         desc: 'Throw exception',
         code: function () {
-          var success = jsx.tryThis(
+          let success = jsx.tryThis(
             function () {
               jsx.object.getKeys();
               return true;
@@ -199,7 +201,7 @@ function runTests ()
           assertFalse(success);
 
           /* Simulate missing Object.keys() */
-          var Object_keys = Object.keys;
+          let Object_keys = Object.keys;
           delete Object.keys;
 
           success = jsx.tryThis(
@@ -221,11 +223,11 @@ function runTests ()
         feature: 'jsx.object.getKeys({})',
         desc: 'Returns <code>[]</code>',
         code: function () {
-          var result = jsx.object.getKeys({});
+          let result = jsx.object.getKeys({});
           assertTrue(result && result.length === 0);
 
           /* Simulate missing Object.keys() */
-          var Object_keys = Object.keys;
+          let Object_keys = Object.keys;
           delete Object.keys;
 
           result = jsx.object.getKeys({});
@@ -239,11 +241,11 @@ function runTests ()
         feature: 'jsx.object.getKeys({foo: "bar"})',
         desc: 'Returns <code>["foo"]</code>',
         code: function () {
-          var result = jsx.object.getKeys({foo: "bar"});
+          let result = jsx.object.getKeys({foo: "bar"});
           assertTrue(result && result.length === 1 && result[0] === "foo");
 
           /* Simulate missing Object.keys() */
-          var Object_keys = Object.keys;
+          let Object_keys = Object.keys;
           delete Object.keys;
 
           result = jsx.object.getKeys({foo: "bar"});
@@ -264,13 +266,13 @@ function runTests ()
 
           Foo.prototype.bar = 42;
 
-          var foo = new Foo("baz");
+          let foo = new Foo("baz");
 
-          var result = jsx.object.getKeys(foo);
+          let result = jsx.object.getKeys(foo);
           assertTrue(result && result.length === 1 && result[0] === "baz");
 
           /* Simulate missing Object.keys() */
-          var Object_keys = Object.keys;
+          let Object_keys = Object.keys;
           delete Object.keys;
 
           result = jsx.object.getKeys(foo);
@@ -284,7 +286,7 @@ function runTests ()
         feature: 'jsx.object.clone()',
         desc: "Returns a shallow clone of <code>jsx.object</code>",
         code: function () {
-          var clone1 = jsx.object.clone();
+          let clone1 = jsx.object.clone();
           assertTrue(clone1.clone == jsx.object.clone);
         }
       },
@@ -292,10 +294,10 @@ function runTests ()
         feature: 'jsx.object.clone({foo: {bar: "baz"}})',
         desc: "Returns a shallow clone",
         code: function () {
-          var o2 = {bar: "baz"};
-          var o = {foo: o2};
+          let o2 = {bar: "baz"};
+          let o = {foo: o2};
 
-          var clone1 = jsx.object.clone(o);
+          let clone1 = jsx.object.clone(o);
           assertTrue(clone1 != o && clone1.foo == o2);
         }
       },
@@ -303,13 +305,13 @@ function runTests ()
         feature: 'jsx.object.clone({foo: {bar: "baz"}}, 0)',
         desc: "Returns a shallow clone",
         code: function () {
-          var o2 = {bar: "baz"};
-          var o = {foo: o2};
+          let o2 = {bar: "baz"};
+          let o = {foo: o2};
 
-          var clone1 = jsx.object.clone(o, 0);
+          let clone1 = jsx.object.clone(o, 0);
           assertTrue(clone1 != o && clone1.foo == o2);
 
-          var clone2 = jsx.object.clone(0, o);
+          let clone2 = jsx.object.clone(0, o);
           assertTrue(clone2 != o && clone2.foo == o2);
         }
       },
@@ -317,13 +319,13 @@ function runTests ()
         feature: 'jsx.object.clone({foo: {bar: "baz"}}, jsx.object.COPY_ENUM)',
         desc: "Returns a shallow clone",
         code: function () {
-          var o2 = {bar: "baz"};
-          var o = {foo: o2};
+          let o2 = {bar: "baz"};
+          let o = {foo: o2};
 
-          var clone1 = jsx.object.clone(o, jsx.object.COPY_ENUM);
+          let clone1 = jsx.object.clone(o, jsx.object.COPY_ENUM);
           assertTrue(clone1 != o && clone1.foo == o2);
 
-          var clone2 = jsx.object.clone(jsx.object.COPY_ENUM, o);
+          let clone2 = jsx.object.clone(jsx.object.COPY_ENUM, o);
           assertTrue(clone2 != o && clone2.foo == o2);
         }
       },
@@ -331,13 +333,13 @@ function runTests ()
         feature: 'jsx.object.clone({foo: {bar: "baz"}}, jsx.object.COPY_ENUM_DEEP)',
         desc: "Returns a deep clone",
         code: function () {
-          var o2 = {bar: "baz"};
-          var o = {foo: o2};
+          let o2 = {bar: "baz"};
+          let o = {foo: o2};
 
-          var clone1 = jsx.object.clone(o, jsx.object.COPY_ENUM_DEEP);
+          let clone1 = jsx.object.clone(o, jsx.object.COPY_ENUM_DEEP);
           assertTrue(clone1 != o && clone1.foo != o2 && clone1.foo.bar === "baz");
 
-          var clone2 = jsx.object.clone(jsx.object.COPY_ENUM_DEEP, o);
+          let clone2 = jsx.object.clone(jsx.object.COPY_ENUM_DEEP, o);
           assertTrue(clone2 != o && clone2.foo != o2 && clone2.foo.bar === "baz");
         }
       },
@@ -345,14 +347,16 @@ function runTests ()
         feature: 'jsx.object.clone({foo: {bar: "baz"}}, jsx.object.COPY_INHERIT)',
         desc: "Returns a new inheriting object",
         code: function () {
-          var o2 = {bar: "baz"};
-          var o = {foo: o2};
+          let o2 = {bar: "baz"};
+          let o = {foo: o2};
 
-          var clone1 = jsx.object.clone(o, jsx.object.COPY_INHERIT);
+          let clone1 = jsx.object.clone(o, jsx.object.COPY_INHERIT);
+          // eslint-disable-next-line no-prototype-builtins
           assertTrue(clone1 != o && !clone1.hasOwnProperty("foo")
             && clone1.foo == o2 && clone1.foo.bar === "baz");
 
-          var clone2 = jsx.object.clone(jsx.object.COPY_INHERIT, o);
+          let clone2 = jsx.object.clone(jsx.object.COPY_INHERIT, o);
+          // eslint-disable-next-line no-prototype-builtins
           assertTrue(clone2 != o && !clone2.hasOwnProperty("foo")
             && clone2.foo == o2 && clone2.foo.bar === "baz");
         }
@@ -362,7 +366,7 @@ function runTests ()
         feature: 'jsx.object.extend()',
         desc: "Throws <code>TypeError</code>",
         code: function () {
-          var success = jsx.tryThis(
+          let success = jsx.tryThis(
             function () {
               jsx.object.extend();
               return true;
@@ -379,7 +383,7 @@ function runTests ()
         feature: 'jsx.object.extend({})',
         desc: "Throws <code>TypeError</code>",
         code: function () {
-          var success = jsx.tryThis(
+          let success = jsx.tryThis(
             function () {
               jsx.object.extend({});
               return true;
@@ -396,9 +400,9 @@ function runTests ()
         feature: 'jsx.object.extend({}, {foo: "bar"})',
         desc: "Sets property, no cloning; returns extended object",
         code: function () {
-          var o = {};
-          var o2 = {bar: "baz"};
-          var result = jsx.object.extend(o, {foo: o2});
+          let o = {};
+          let o2 = {bar: "baz"};
+          let result = jsx.object.extend(o, {foo: o2});
 
           assertTrue(o.foo && o.foo == o2 && o.foo.bar === "baz");
           assertTrue(result === o);
@@ -408,7 +412,7 @@ function runTests ()
         feature: 'jsx.object.extend({foo: "bar"}, {foo: "baz"})',
         desc: "Does not modify existing property",
         code: function () {
-          var o = {foo: "bar"};
+          let o = {foo: "bar"};
           jsx.object.extend(o, {foo: "baz"});
 
           assertTrue(o.foo === "bar");
@@ -418,7 +422,7 @@ function runTests ()
         feature: 'jsx.object.extend({foo: "bar"}, {foo: "baz"}, jsx.object.ADD_OVERWRITE)',
         desc: "Modifies existing property",
         code: function () {
-          var o = {foo: "bar"};
+          let o = {foo: "bar"};
           jsx.object.extend(o, {foo: "baz"}, jsx.object.ADD_OVERWRITE);
 
           assertTrue(o.foo === "baz");
@@ -428,8 +432,8 @@ function runTests ()
         feature: 'jsx.object.extend({foo: "bar"}, {foo: "baz"}, jsx.object.COPY_ENUM_DEEP)',
         desc: "Sets property, with cloning",
         code: function () {
-          var o = {};
-          var o2 = {bar: "baz"};
+          let o = {};
+          let o2 = {bar: "baz"};
           jsx.object.extend(o, {foo: o2}, jsx.object.COPY_ENUM_DEEP);
 
           assertTrue(o.foo && o.foo != o2 && o.foo.bar === "baz");
@@ -439,8 +443,8 @@ function runTests ()
         feature: 'jsx.object.extend({foo: "bar"}, {foo: "baz"}, jsx.object.ADD_OVERWRITE | jsx.object.COPY_ENUM_DEEP)',
         desc: "Modifies existing property, with cloning",
         code: function () {
-          var o = {foo: "bar"};
-          var o2 = {bar: "baz"};
+          let o = {foo: "bar"};
+          let o2 = {bar: "baz"};
           jsx.object.extend(o, {foo: o2}, jsx.object.ADD_OVERWRITE | jsx.object.COPY_ENUM_DEEP);
 
           assertTrue(o.foo && o.foo != o2 && o.foo.bar === "baz");
@@ -451,7 +455,7 @@ function runTests ()
         feature: 'jsx.object.defineProperty()',
         desc: "Throws <code>TypeError</code>",
         code: function () {
-          var success = jsx.tryThis(
+          let success = jsx.tryThis(
             function () {
               jsx.object.defineProperty();
               return true;
@@ -468,7 +472,7 @@ function runTests ()
         feature: 'jsx.object.defineProperty(42)',
         desc: "Throws <code>TypeError</code>",
         code: function () {
-          var success = jsx.tryThis(
+          let success = jsx.tryThis(
             function () {
               jsx.object.defineProperty(42);
               return true;
@@ -485,7 +489,7 @@ function runTests ()
         feature: 'jsx.object.defineProperty(null)',
         desc: "Throws <code>TypeError</code>",
         code: function () {
-          var success = jsx.tryThis(
+          let success = jsx.tryThis(
             function () {
               jsx.object.defineProperty(null);
               return true;
@@ -502,7 +506,7 @@ function runTests ()
         feature: 'jsx.object.defineProperty({})',
         desc: "Missing descriptor throws <code>TypeError</code>",
         code: function () {
-          var success = jsx.tryThis(
+          let success = jsx.tryThis(
             function () {
               jsx.object.defineProperty({});
               return true;
@@ -519,7 +523,7 @@ function runTests ()
         feature: 'jsx.object.defineProperty({}, "foo")',
         desc: "Missing descriptor throws <code>TypeError</code>",
         code: function () {
-          var success = jsx.tryThis(
+          let success = jsx.tryThis(
             function () {
               jsx.object.defineProperty({}, "foo");
               return true;
@@ -536,7 +540,7 @@ function runTests ()
         feature: 'jsx.object.defineProperty({}, "foo", 42)',
         desc: "Invalid descriptor throws <code>TypeError</code>",
         code: function () {
-          var success = jsx.tryThis(
+          let success = jsx.tryThis(
             function () {
               jsx.object.defineProperty({}, "foo", 42);
               return true;
@@ -555,8 +559,8 @@ function runTests ()
             + ' with value <code>undefined</code>'
             + ' and returns correct value',
         code: function () {
-          var o = {};
-          var result = jsx.object.defineProperty(o, "foo", {});
+          let o = {};
+          let result = jsx.object.defineProperty(o, "foo", {});
 
           assertTrue("foo" in o);
           o.foo = 42;
@@ -570,8 +574,8 @@ function runTests ()
             + ' with value <code>42</code>'
             + ' and returns correct value',
         code: function () {
-          var o = {};
-          var result = jsx.object.defineProperty(o, "foo", {
+          let o = {};
+          let result = jsx.object.defineProperty(o, "foo", {
             value: 42
           });
 
@@ -586,8 +590,8 @@ function runTests ()
             + ' with initial value <code>42</code>'
             + ' and returns correct value',
         code: function () {
-          var o = {};
-          var result = jsx.object.defineProperty(o, "foo", {
+          let o = {};
+          let result = jsx.object.defineProperty(o, "foo", {
             value: 42,
             writable: true
           });
@@ -603,8 +607,8 @@ function runTests ()
         desc: 'Defines read-only <code>foo</code> property with getter'
             + ' and returns correct value',
         code: function () {
-          var o = {};
-          var result = jsx.object.defineProperty(o, "foo", {
+          let o = {};
+          let result = jsx.object.defineProperty(o, "foo", {
             "get": function () { return 42; }
           });
 
@@ -619,9 +623,9 @@ function runTests ()
         desc: 'Defines <code>foo</code> property with setter'
             + ' and returns correct value',
         code: function () {
-          var o = {};
-          var _x = "23";
-          var result = jsx.object.defineProperty(o, "foo", {
+          let o = {};
+          let _x = "23";
+          let result = jsx.object.defineProperty(o, "foo", {
             "set": function (value) { _x = value; }
           });
 
@@ -635,7 +639,7 @@ function runTests ()
         feature: 'jsx.object.defineProperties()',
         desc: "Throws <code>TypeError</code>",
         code: function () {
-          var success = jsx.tryThis(
+          let success = jsx.tryThis(
             function () {
               jsx.object.defineProperties();
               return true;
@@ -652,7 +656,7 @@ function runTests ()
         feature: 'jsx.object.defineProperties(42)',
         desc: "Throws <code>TypeError</code>",
         code: function () {
-          var success = jsx.tryThis(
+          let success = jsx.tryThis(
             function () {
               jsx.object.defineProperties(42);
               return true;
@@ -669,7 +673,7 @@ function runTests ()
         feature: 'jsx.object.defineProperties(null)',
         desc: "Throws <code>TypeError</code>",
         code: function () {
-          var success = jsx.tryThis(
+          let success = jsx.tryThis(
             function () {
               jsx.object.defineProperties(null);
               return true;
@@ -686,7 +690,7 @@ function runTests ()
         feature: 'jsx.object.defineProperties({})',
         desc: "Missing descriptor throws <code>TypeError</code>",
         code: function () {
-          var success = jsx.tryThis(
+          let success = jsx.tryThis(
             function () {
               jsx.object.defineProperties({});
               return true;
@@ -703,7 +707,7 @@ function runTests ()
         feature: 'jsx.object.defineProperties({}, {foo: 42})',
         desc: "Invalid descriptor throws <code>TypeError</code>",
         code: function () {
-          var success = jsx.tryThis(
+          let success = jsx.tryThis(
             function () {
               jsx.object.defineProperties({}, {foo: 42});
               return true;
@@ -722,8 +726,8 @@ function runTests ()
           + ' with value <code>undefined</code>'
           + ' and returns correct value',
           code: function () {
-            var o = {};
-            var result = jsx.object.defineProperties(o, {foo: {}});
+            let o = {};
+            let result = jsx.object.defineProperties(o, {foo: {}});
 
             assertTrue("foo" in o);
             o.foo = 42;
@@ -737,8 +741,8 @@ function runTests ()
           + ' with value <code>42</code>'
           + ' and returns correct value',
           code: function () {
-            var o = {};
-            var result = jsx.object.defineProperties(o, {
+            let o = {};
+            let result = jsx.object.defineProperties(o, {
               foo: {
                 value: 42
               }
@@ -755,8 +759,8 @@ function runTests ()
           + ' with initial value <code>42</code>'
           + ' and returns correct value',
           code: function () {
-            var o = {};
-            var result = jsx.object.defineProperties(o, {
+            let o = {};
+            let result = jsx.object.defineProperties(o, {
               foo: {
                 value: 42,
                 writable: true
@@ -774,8 +778,8 @@ function runTests ()
         desc: 'Defines read-only <code>foo</code> property with getter'
           + ' and returns correct value',
           code: function () {
-            var o = {};
-            var result = jsx.object.defineProperties(o, {
+            let o = {};
+            let result = jsx.object.defineProperties(o, {
               foo: {
                 "get": function () { return 42; }
               }
@@ -792,9 +796,9 @@ function runTests ()
         desc: 'Defines <code>foo</code> property with setter'
           + ' and returns correct value',
           code: function () {
-            var o = {};
-            var _x = "23";
-            var result = jsx.object.defineProperties(o, {
+            let o = {};
+            let _x = "23";
+            let result = jsx.object.defineProperties(o, {
               "foo": {
                 "set": function (value) { _x = value; }
               }
@@ -827,7 +831,7 @@ function runTests ()
           function MyType () {}
           MyType.prototype.answer = 42;
 
-          var o = new MyType();
+          let o = new MyType();
           o.x = 42;
 
           assertFalse(jsx.object._propertyIsEnumerable(o, "prototype"));
@@ -841,7 +845,7 @@ function runTests ()
         desc: 'Missing object returns <code>false</code>'
             + ' or throws <code>TypeError</code>',
         code: function () {
-          var success = jsx.tryThis(
+          let success = jsx.tryThis(
             function () {
               return jsx.object.hasPropertyValue();
             },
@@ -899,8 +903,8 @@ function runTests ()
           assert(jsx.object.findNewProperty({"a_": true}) === "b_");
           assert(jsx.object.findNewProperty({"a_": true, "b_": true}) === "c_");
 
-          var o = {};
-          for (var i = "a".charCodeAt(0), max = "z".charCodeAt(0); i <= max; ++i)
+          let o = {};
+          for (let i = "a".charCodeAt(0), max = "z".charCodeAt(0); i <= max; ++i)
           {
             o[String.fromCharCode(i) + "_"] = true;
           }
@@ -912,22 +916,7 @@ function runTests ()
         feature: 'jsx.object.getDataObject()',
         desc: 'Returns the correct value',
         code: function () {
-          var o = jsx.object.getDataObject();
-          assertFalse(typeof o.toString == "function");
-        }
-      },
-      {
-        feature: 'jsx.object.getDataObject()',
-        desc: 'Returns the correct value without Object.create()',
-        code: function () {
-          /* Simulate missing Object.create() */
-          var Object_create = Object.create;
-          delete Object.create;
-
-          o = jsx.object.getDataObject();
-
-          Object.create = Object_create;
-
+          let o = jsx.object.getDataObject();
           assertFalse(typeof o.toString == "function");
         }
       },
@@ -936,12 +925,12 @@ function runTests ()
         feature: 'jsx.object.getFeature(…)',
         desc: 'Returns the correct value',
         code: function () {
-          var o = {foo: {answer: 42}};
-          var result = jsx.object.getFeature(o, "foo", "answer");
+          let o = {foo: {answer: 42}};
+          let result = jsx.object.getFeature(o, "foo", "answer");
           assertTrue(result === 42);
 
           o = {foo: {answer: 42}};
-          var result = jsx.object.getFeature(o, "bar", "answer");
+          result = jsx.object.getFeature(o, "bar", "answer");
           assertTrue(result === void 0);
         }
       }

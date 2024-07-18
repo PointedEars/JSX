@@ -111,6 +111,7 @@ de.pointedears.jsx = jsx;
    *   of <code>errorHandlers</code> if an error occurred,
    *   unless <var>finalizer</var> is provided; if it is,
    *   the evaluation result of <var>finalizer</var>.
+   * @deprecated in favor of `try { ... } catch (...) { ... } finally { ... }`
    */
   jsx.tryThis =
   //  (function () {
@@ -146,9 +147,8 @@ de.pointedears.jsx = jsx;
   //             + 'catch (e) {\n  ' + sErrorHandlers + '\n}';
   //
   //    return eval(code);
-      var t = typeof statements;
-      var result;
-      /*jshint -W061*/
+      let t = typeof statements;
+      let result;
       try
       {
         result = (t == "function" ? statements() : eval(statements));
@@ -166,7 +166,6 @@ de.pointedears.jsx = jsx;
           result = (t == "function" ? finalizer() : eval(finalizer));
         }
       }
-      /*jshint +W061*/
 
       return result;
     };
@@ -199,26 +198,27 @@ de.pointedears.jsx = jsx;
    */
   function _createDataObject (oSource, iFlags)
   {
-    var obj = _inheritFrom(null);
+    let obj = Object.create(null);
 
     if (_isObject(oSource))
     {
-      for (var i = 0, keys = _getKeys(oSource), len = keys.length;
-           i < len; ++i)
-      {
-        var name = keys[i];
-        var value = oSource[name];
+      Object.keys(oSource).forEach(
+        function (key) {
+          let value = this[key];
 
-        /* NOTE: formerly, numeric flags was first argument of _clone() */
+          /* NOTE: formerly, numeric flags was first argument of _clone() */
           /* global _clone */
           obj[key] = (typeof value != "number"
-          ? _clone(value, iFlags)
-          : value);
-      }
+            ? _clone(value, iFlags)
+            : value);
+        },
+        oSource);
     }
 
     return obj;
   }
+
+  function Dummy () {}
 
   /**
    * Lets one object inherit from another
@@ -228,10 +228,11 @@ de.pointedears.jsx = jsx;
    *   <code>Object.prototype</code>.
    * @return {Object}
    *   Inheriting (child) object
+   * @deprecated in favor of {@link Object.create()}
    */
   function _inheritFrom (obj)
   {
-    var prototype = (typeof obj == "undefined"
+    let prototype = (typeof obj == "undefined"
       ? Object.prototype
       : (obj || null));
 
@@ -242,10 +243,8 @@ de.pointedears.jsx = jsx;
 
     if (typeof obj == "object" && obj == null)
     {
-      var result = {};
-      /*jshint -W103*/
+      let result = {};
       result.__proto__ = null;
-      /*jshint +W103*/
       return result;
     }
 
@@ -253,7 +252,7 @@ de.pointedears.jsx = jsx;
     return new Dummy();
   }
 
-  var
+  let
     rxUnknown = /^unknown$/,
     rxMethod = /^(function|object)$/;
 
@@ -293,7 +292,7 @@ de.pointedears.jsx = jsx;
   */
   function _isMethod (obj, prop)
   {
-    var len = arguments.length;
+    let len = arguments.length;
     if (len < 1)
     {
       jsx.throwThis("jsx.InvalidArgumentError",
@@ -304,9 +303,9 @@ de.pointedears.jsx = jsx;
     /*
     * Determine if we were apply'd by jsx.object.isNativeMethod;
     */
-    var checkNative = (this == _isNativeMethod);
+    let checkNative = (this == _isNativeMethod);
 
-    var t = typeof obj;
+    let t = typeof obj;
 
     /* When no property names are provided, test if the first argument is a method */
     if (len < 2)
@@ -326,7 +325,7 @@ de.pointedears.jsx = jsx;
       return false;
     }
 
-    for (var i = 1; i < len; i++)
+    for (let i = 1; i < len; i++)
     {
       prop = arguments[i];
 
@@ -336,7 +335,7 @@ de.pointedears.jsx = jsx;
         return false;
       }
 
-      var isLastSeg = (i == len - 1);
+      let isLastSeg = (i == len - 1);
       if (isLastSeg)
       {
         if (typeof prop.valueOf() == "string")
@@ -344,10 +343,11 @@ de.pointedears.jsx = jsx;
           prop = [prop];
         }
 
+        // eslint-disable-next-line no-var
         var aProp = prop;
       }
 
-      for (var j = (isLastSeg && aProp.length || 1); j--;)
+      for (let j = (isLastSeg && aProp.length || 1); j--;)
       {
         if (isLastSeg)
         {
@@ -426,6 +426,43 @@ de.pointedears.jsx = jsx;
     return _isMethod.apply(_isNativeMethod, arguments);
   }
 
+  /**
+   * Returns the value of an object's internal <code>[[Class]]</code>
+   * property.
+   *
+   * Calls the <code>Object.prototype.toString()</code> method on
+   * the object and returns the result of matching against
+   * the specified return value, which includes the value of
+   * the object's internal <code>[[Class]]</code> property. Although
+   * implementations use prototype-based inheritance, the property
+   * value is useful for determining the type of an object regardless
+   * of the current value of its <code>constructor</code> property.
+   * For example, that makes it possible to recognize <code>Array</code>
+   * instances independent of the global context in which they were
+   * constructed, even if {@link Array.isArray} is not provided by
+   * the ECMAScript implementation.
+   *
+   * @see ECMAScript Language Specification, Edition 5.1, section 15.4.3.2
+   * @see jsx.object.isArray()
+   * @function
+   */
+  let _getClass = (function () {
+    let _toString = ({}).toString;
+
+    /**
+     * @param obj
+     * @return {string|Undefined}
+     *   The value of an object's internal [[Class]] property, or
+     *   <code>undefined</code> if the property value cannot be determined.
+     */
+    function getClass (obj)
+    {
+      return (_toString.call(obj)
+        .match(/^\s*\[object\s+(\S+)\s*\]\s*$/) || [, ""])[1];
+    }
+
+    return getClass;
+  }());
 
   /**
    * Determines if a value refers to an {@link Array}.
@@ -438,6 +475,7 @@ de.pointedears.jsx = jsx;
    * @param a
    *   Potential <code>Array</code>
    * @return {boolean}
+   * @deprecated in favor of {@link Array.isArray()}
    */
   function _isArray (a)
   {
@@ -460,7 +498,7 @@ de.pointedears.jsx = jsx;
    */
   function _isObject (a)
   {
-    var t = typeof a;
+    let t = typeof a;
 
     return t == "function"
       || (t == "object"
@@ -473,7 +511,7 @@ de.pointedears.jsx = jsx;
    * @namespace
    */
   jsx.object = (/** @constructor */ function () {
-    var MAX_ARRAY_LENGTH = Math.pow(2, 32) - 1;
+    let MAX_ARRAY_LENGTH = Math.pow(2, 32) - 1;
 
     /**
      * Calls a property if it is likely to be callable, and
@@ -502,9 +540,9 @@ de.pointedears.jsx = jsx;
 
        if (fTester.apply(this, aPath))
        {
-         var method = _getFeature.apply(this, aPath);
-         var returnValue = method.apply(aPath[0], aArguments);
-         return {returnValue: returnValue};
+         let method = _getFeature.apply(this, aPath);
+         let returnValue = method.apply(aPath[0], aArguments);
+         return {returnValue};
        }
 
        return null;
@@ -521,7 +559,7 @@ de.pointedears.jsx = jsx;
       *   String to be determined a method type, i.e.
       *   <code>"object"</code> or <code>"unknown"</code> in MSHTML,
       *   <code>"function"</code> otherwise.  The type must have been
-      *   retrieved with the <code>typeof<code> operator.  Note that
+      *   retrieved with the <code>typeof</code> operator.  Note that
       *   this method may also return <code>true</code> if the value
       *   of the <code>typeof</code> operand is <code>null</code>;
       *   to be sure that the operand is a method reference, you
@@ -563,7 +601,7 @@ de.pointedears.jsx = jsx;
         obj = jsx_object;
       }
 
-      var proto;
+      let proto;
 
       /*eslint no-prototype-builtins: "off" */
       return (_isMethod(obj, "hasOwnProperty")
@@ -576,7 +614,7 @@ de.pointedears.jsx = jsx;
 
     function _isString (s)
     {
-      return ((typeof s == "string") || jsx.object.isInstanceOf(s, String));
+      return ((typeof s == "string") || s instanceof String);
     }
 
     /**
@@ -586,7 +624,7 @@ de.pointedears.jsx = jsx;
      *   Object from which to get the keys
      * @return {Array}
      *   Own enumerable properties of <var>obj</var>
-     * @see Object#keys
+     * @deprecated in favor of {@link Object.keys()}
      */
     function _getKeys (obj)
     {
@@ -601,9 +639,9 @@ de.pointedears.jsx = jsx;
           "jsx.object.getKeys() called on non-object");
       }
 
-      var names = [];
+      let names = [];
 
-      for (var p in obj)
+      for (let p in obj)
       {
         if (_hasOwnProperty(obj, p))
         {
@@ -614,47 +652,7 @@ de.pointedears.jsx = jsx;
       return names;
     }
 
-    function Dummy () {}
-
-    /**
-     * Returns the value of an object's internal <code>[[Class]]</code>
-     * property.
-     *
-     * Calls the <code>Object.prototype.toString()</code> method on
-     * the object and returns the result of matching against
-     * the specified return value, which includes the value of
-     * the object's internal <code>[[Class]]</code> property. Although
-     * implementations use prototype-based inheritance, the property
-     * value is useful for determining the type of an object regardless
-     * of the current value of its <code>constructor</code> property.
-     * For example, that makes it possible to recognize <code>Array</code>
-     * instances independent of the global context in which they were
-     * constructed, even if {@link Array.isArray} is not provided by
-     * the ECMAScript implementation.
-     *
-     * @see ECMAScript Language Specification, Edition 5.1, section 15.4.3.2
-     * @see jsx.object.isArray()
-     * @function
-     */
-    var _getClass = (function () {
-      var _toString = ({}).toString;
-
-      /**
-       * @param obj
-       * @return {string|Undefined}
-       *   The value of an object's internal [[Class]] property, or
-       *   <code>undefined</code> if the property value cannot be determined.
-       */
-      function getClass (obj)
-      {
-        return (_toString.call(obj)
-          .match(/^\s*\[object\s+(\S+)\s*\]\s*$/) || [, ""])[1];
-      }
-
-      return getClass;
-    }());
-
-    var _rxPrimitive = /^(boolean|function|number|object|string)$/;
+    let _rxPrimitive = /^(boolean|function|number|object|string)$/;
 
     /**
      * Determines if a value is a primitive value convertible to
@@ -665,13 +663,13 @@ de.pointedears.jsx = jsx;
      */
     function _isNativeObject (value)
     {
-      var t = (_isObject(value)
+      let t = (_isObject(value)
         && typeof value.valueOf == "function"
         && typeof value.valueOf());
 
       return (t
         && (_rxPrimitive.test(t)
-            || _isArray(value)
+            || Array.isArray(value)
             || /^(Date|Error|RegExp)$/.test(_getClass(value))
             || (typeof Math != "undefined" && value == Math)
             || (typeof JSON != "undefined" && value == JSON))
@@ -713,43 +711,43 @@ de.pointedears.jsx = jsx;
           ["", typeof flipper, "Function"]);
       }
 
-      var _Map = _getFeature(jsx, "map", "Map");
-      var flipped = _Map ? new _Map() : _createTypedObject(obj);
-      var keys = _getKeys(obj);
-      var _BigArray = _getFeature(jsx, "array", "BigArray");
-      var _Array = _BigArray || Array;
+      let _Map = _getFeature(jsx, "map", "Map");
+      let flipped = _Map ? new _Map() : _createTypedObject(obj);
+      let keys = Object.keys(obj);
+      let _BigArray = _getFeature(jsx, "array", "BigArray");
+      let _Array = _BigArray || Array;
 
-      for (var i = 0, len = keys.length; i < len; ++i)
+      for (let i = 0, len = keys.length; i < len; ++i)
       {
-        var key = keys[i];
+        let key = keys[i];
 
         if (flipper && !flipper.call(obj, key))
         {
           continue;
         }
 
-        var value = obj[key];
+        let value = obj[key];
 
-        var value_is_object = _isObject(value);
+        let value_is_object = _isObject(value);
         if (value_is_object && !_Map)
         {
           jsx.warn("Information loss because value is an object."
             + " Load jsx.map.Map to avoid.");
         }
 
-        var has_value_key = _Map
+        let has_value_key = _Map
           ? flipped.hasKey(value)
           : _hasOwnProperty(flipped, value);
 
-        var key_value = _Map
+        let key_value = _Map
           ? flipped.get(value)
           : flipped[value];
 
         if (has_value_key && bAccumulate)
         {
-          if (!_isArray(key_value))
+          if (!Array.isArray(key_value))
           {
-            var a = new _Array();
+            let a = new _Array();
             a.push(key_value);
 
             if (_Map)
@@ -800,26 +798,27 @@ de.pointedears.jsx = jsx;
      * Used by {@link #extend()} and {@link #setProperties()}
      * to overwrite existing properties.
      */
-    var _ADD_OVERWRITE = 1;
+    let _ADD_OVERWRITE = 1;
 
     /**
      * Used by {@link #extend()} and {@link #clone()}
      * to make a shallow copy of all enumerable properties (default).
      */
-    var _COPY_ENUM = 0;
+    let _COPY_ENUM = 0;
 
     /**
      * Used by {@link #extend()} and {@link #clone()}
      * to make a deep copy of all enumerable properties.
      */
-    var _COPY_ENUM_DEEP = 2;
+    let _COPY_ENUM_DEEP = 2;
 
     /**
      * Used by {@link #extend()} and {@link #clone()}
      * to copy a property by inheritance.
      */
-    var _COPY_INHERIT = 4;
+    let _COPY_INHERIT = 4;
 
+    /** @deprecated in favor of {@link Object.getPrototypeOf()} */
     function _getProto (o)
     {
       if (typeof Object.getPrototypeOf == "function"
@@ -828,15 +827,13 @@ de.pointedears.jsx = jsx;
         return Object.getPrototypeOf(o);
       }
 
-      /*jshint -W103*/
       return o.__proto__ || (o.constructor && o.constructor.prototype);
-      /*jshint +W103*/
     }
 
     function _createTypedObject (oOriginal)
     {
-      var prototype = _getProto(oOriginal);
-      return (prototype ? _inheritFrom(prototype) : _inheritFrom());
+      let prototype = Object.getPrototypeOf(oOriginal);
+      return Object.create(prototype || null);
     }
 
     /**
@@ -856,7 +853,7 @@ de.pointedears.jsx = jsx;
     {
       if (typeof oSource == "number")
       {
-        var tmp = oSource;
+        let tmp = oSource;
         oSource = iLevel;
         iLevel = tmp;
       }
@@ -873,35 +870,37 @@ de.pointedears.jsx = jsx;
 
       if (iLevel & _COPY_INHERIT)
       {
-        return _inheritFrom(oSource);
+        return Object.create(oSource);
       }
 
-      var me = _clone;
+      let me = _clone;
 
       /*
        * NOTE: For objects, valueOf() only copies the object reference,
        *       so we are creating an instance that inherits from the
        *       original's prototype, if possible.
        */
-      var o2 = (typeof oSource == "object" && oSource
+      let o2 = (typeof oSource == "object" && oSource
              ? _createTypedObject(oSource)
              : oSource.valueOf());
 
-      for (var p in oSource)
+      for (let p in oSource)
       {
         if (_hasOwnProperty(oSource, p))
         {
           if (iLevel && _isObject(oSource[p]))
           {
-            jsx.tryThis(function () {
+            try {
               o2[p] = me(oSource[p], iLevel);
-            });
+            // eslint-disable-next-line no-empty
+            } catch (e) {}
           }
           else
           {
-            jsx.tryThis(function () {
+            try {
               o2[p] = oSource[p];
-            });
+            // eslint-disable-next-line no-empty
+            } catch (e) {}
           }
         }
       }
@@ -910,23 +909,25 @@ de.pointedears.jsx = jsx;
        * "var p in ..." might not have copied (all) the array elements
        * (NN < 4.8 or user-defined non-enumerable elements only)
        */
-      if (_isArray(o2))
+      if (Array.isArray(o2))
       {
-        for (var i = oSource.length; i--;)
+        for (let i = oSource.length; i--;)
         {
           if (_hasOwnProperty(oSource, i) && !_hasOwnProperty(o2, i))
           {
             if (iLevel && _isObject(oSource[i]))
             {
-              jsx.tryThis(function () {
+              try {
                 o2[i] = me(oSource[i], iLevel);
-              });
+              // eslint-disable-next-line no-empty
+              } catch (e) {}
             }
             else
             {
-              jsx.tryThis(function () {
+              try {
                 o2[i] = oSource[i];
-              });
+              // eslint-disable-next-line no-empty
+              } catch (e) {}
             }
           }
         }
@@ -947,7 +948,7 @@ de.pointedears.jsx = jsx;
      * @function
      * @return {Object} Reference to the object
      */
-    var _defineProperty = (function () {
+    let _defineProperty = (function () {
       function _toPropertyDescriptor (obj)
       {
         if (!_isObject(obj))
@@ -955,7 +956,7 @@ de.pointedears.jsx = jsx;
           jsx.throwThis("TypeError", "Object expected");
         }
 
-        var desc = {};
+        let desc = {};
 
         if (_hasOwnProperty(obj, "enumerable"))
         {
@@ -967,19 +968,19 @@ de.pointedears.jsx = jsx;
           desc.configurable = !!obj.configurable;
         }
 
-        var hasValue = obj.hasOwnProperty("value");
+        let hasValue = obj.hasOwnProperty("value");
         if (hasValue)
         {
           desc.value = obj.value;
         }
 
-        var hasWritable = _hasOwnProperty(obj, "writable");
+        let hasWritable = _hasOwnProperty(obj, "writable");
         if (hasWritable)
         {
           desc.writable = !!obj.writable;
         }
 
-        var hasGetter = _hasOwnProperty(obj, "get");
+        let hasGetter = _hasOwnProperty(obj, "get");
         if (hasGetter)
         {
           if (typeof obj.get != "function")
@@ -990,7 +991,7 @@ de.pointedears.jsx = jsx;
           desc.get = obj.get;
         }
 
-        var hasSetter = _hasOwnProperty(obj, "set");
+        let hasSetter = _hasOwnProperty(obj, "set");
         if (hasSetter)
         {
           if (typeof obj.set != "function")
@@ -1046,49 +1047,45 @@ de.pointedears.jsx = jsx;
 
         if (_isGenericDescriptor(descriptor) || _isDataDescriptor(descriptor))
         {
-          var value = descriptor.value;
+          let value = descriptor.value;
           obj[propertyName] = value;
 
           if (!descriptor.writable)
           {
-            jsx.tryThis(
-              function () {
-                /* NOTE: Need getter because __defineSetter__() undefines value */
-                obj.__defineGetter__(propertyName, function () {
-                  return value;
-                });
-
-                obj.__defineSetter__(propertyName, function () {});
-              },
-              function () {
-                obj[propertyName] = value;
-
-                jsx.warn((context ? context + ": " : "")
-                  + "Could not define property `" + propertyName
-                  + "' as read-only");
+            try {
+              /* NOTE: Need getter because __defineSetter__() undefines value */
+              obj.__defineGetter__(propertyName, function () {
+                return value;
               });
+
+              obj.__defineSetter__(propertyName, function () {});
+            } catch (e) {
+              obj[propertyName] = value;
+
+              jsx.warn((context ? context + ": " : "")
+                + "Could not define property `" + propertyName
+                + "' as read-only");
+            }
           }
         }
         else
         {
           /* accessor property descriptor */
-          jsx.tryThis(
-            function () {
-              if (descriptor["get"])
-              {
-                obj.__defineGetter__(propertyName, descriptor["get"]);
-              }
+          try {
+            if (descriptor["get"])
+            {
+              obj.__defineGetter__(propertyName, descriptor["get"]);
+            }
 
-              if (descriptor["set"])
-              {
-                obj.__defineSetter__(propertyName, descriptor["set"]);
-              }
-            },
-            function () {
-              jsx.warn((context ? context + ": " : "")
-                + "Could not define special property `" + propertyName + "'."
-                + " Please use explicit getters and setters instead.");
-            });
+            if (descriptor["set"])
+            {
+              obj.__defineSetter__(propertyName, descriptor["set"]);
+            }
+          } catch (e) {
+            jsx.warn((context ? context + ": " : "")
+              + "Could not define special property `" + propertyName + "'."
+              + " Please use explicit getters and setters instead.");
+          }
         }
 
         return false;
@@ -1124,15 +1121,16 @@ de.pointedears.jsx = jsx;
       */
       function _defineProperty (o, propertyName, descriptor, sContext)
       {
-        var done = false;
+        let done = false;
 
         if (typeof Object.defineProperty == "function"
             && !Object.defineProperty._emulated)
         {
-          jsx.tryThis(function () {
+          try {
             Object.defineProperty(o, propertyName, descriptor);
             done = true;
-          });
+          // eslint-disable-next-line no-empty
+          } catch (e) {}
         }
 
         if (!done)
@@ -1142,8 +1140,8 @@ de.pointedears.jsx = jsx;
             return jsx.throwThis("TypeError", "Object expected");
           }
 
-          var name = String(propertyName);
-          var desc = _toPropertyDescriptor(descriptor);
+          let name = String(propertyName);
+          let desc = _toPropertyDescriptor(descriptor);
           _defineOwnProperty(o, name, desc, true, sContext);
         }
 
@@ -1173,26 +1171,26 @@ de.pointedears.jsx = jsx;
      */
     function _defineProperties (o, descriptor, sContext)
     {
-      var done = false;
+      let done = false;
 
       if (typeof Object.defineProperties == "function"
           && !Object.defineProperties._emulated)
       {
-        jsx.tryThis(function () {
+        try {
           Object.defineProperties(o, descriptor);
           done = true;
-        });
+        // eslint-disable-next-line no-empty
+        } catch (e) {}
       }
 
       if (!done)
       {
-        for (var i = 0, keys = _getKeys(descriptor), len = keys.length;
-              i < len; ++i)
-        {
-          var propertyName = keys[i];
-          _defineProperty(o, propertyName, descriptor[propertyName],
-            sContext);
-        }
+        Object.keys(descriptor).forEach(
+          function (key) {
+            _defineProperty(o, key, this[key],
+              sContext);
+          },
+          descriptor);
       }
 
       return o;
@@ -1226,29 +1224,27 @@ de.pointedears.jsx = jsx;
         iFlags = 0;
       }
 
-      var cloneLevel = (iFlags & (_COPY_ENUM_DEEP | _COPY_INHERIT));
+      let cloneLevel = (iFlags & (_COPY_ENUM_DEEP | _COPY_INHERIT));
 
-      for (var i = 0, keys = _getKeys(oSource), len = keys.length;
-           i < len; ++i)
-      {
-        var p = keys[i];
+      Object.keys(oSource).forEach(
+        function (key) {
+          if (typeof oTarget[key] == "undefined" || (iFlags & _ADD_OVERWRITE)) {
+            try {
+              /* TODO: Support cloning of property attributes */
+              oTarget[key] = (cloneLevel
+                ? _clone(this[key], cloneLevel)
+                : this[key]);
 
-        if (typeof oTarget[p] == "undefined" || (iFlags & _ADD_OVERWRITE))
-        {
-          jsx.tryThis(function () {
-            /* TODO: Support cloning of property attributes */
-            oTarget[p] = (cloneLevel
-              ? _clone(oSource[p], cloneLevel)
-              : oSource[p]);
-
-            /*
-             * FIXME: Throws a caught exception on primitive oTarget[p].
-             * Do we _really_ need this?
-             */
-            oTarget[p]._userDefined = true;
-          });
-        }
-      }
+              /*
+              * FIXME: Throws a caught exception on primitive oTarget[p].
+              * Do we _really_ need this?
+              */
+              oTarget[key]._userDefined = true;
+            // eslint-disable-next-line no-empty
+            } catch (e) {}
+          }
+        },
+        oSource);
 
       return oTarget;
     }
@@ -1277,7 +1273,7 @@ de.pointedears.jsx = jsx;
         return obj.propertyIsEnumerable(sProperty);
       }
 
-      for (var propertyName in obj)
+      for (let propertyName in obj)
       {
         if (propertyName == name && _hasOwnProperty(obj, propertyName))
         {
@@ -1327,14 +1323,14 @@ de.pointedears.jsx = jsx;
      */
     function _hasPropertyValue (obj, needle, params)
     {
-      for (var property in obj)
+      for (let property in obj)
       {
         if (params && params.exclude && params.exclude.indexOf(property) > -1)
         {
           continue;
         }
 
-        var propertyValue = obj[property];
+        let propertyValue = obj[property];
         if (params && params.recursive)
         {
           if (typeof propertyValue == "object" && propertyValue !== null)
@@ -1396,14 +1392,14 @@ de.pointedears.jsx = jsx;
         iLength = parseInt(iLength, 10);
       }
 
-      var prefix = "";
+      let prefix = "";
 
       while (prefix.length < iLength)
       {
-        for (var i = "a".charCodeAt(0), max = "z".charCodeAt(0); i <= max; ++i)
+        for (let i = "a".charCodeAt(0), max = "z".charCodeAt(0); i <= max; ++i)
         {
-          var ch = String.fromCharCode(i);
-          var newName = prefix + ch + "_";
+          let ch = String.fromCharCode(i);
+          let newName = prefix + ch + "_";
           if (!_hasOwnProperty(obj, newName))
           {
             return newName;
@@ -1437,18 +1433,18 @@ de.pointedears.jsx = jsx;
      */
     function _getFeature (obj, path)
     {
-      var realPath = path;
-      var start = 0;
+      let realPath = path;
+      let start = 0;
 
-      if (!_isArray(realPath))
+      if (!Array.isArray(realPath))
       {
         realPath = arguments;
         start = 1;
       }
 
-      for (var i = start, len = realPath.length; i < len; i++)
+      for (let i = start, len = realPath.length; i < len; i++)
       {
-        var component = realPath[i];
+        let component = realPath[i];
         if (_isObject(obj)
             && typeof obj[component] != "undefined" && obj[component])
         {
@@ -1509,7 +1505,7 @@ de.pointedears.jsx = jsx;
         return false;
       }
 
-      var proto = Constructor.prototype;
+      let proto = Constructor.prototype;
 
       if (!_isObject(proto))
       {
@@ -1518,7 +1514,7 @@ de.pointedears.jsx = jsx;
           _isInstanceOf);
       }
 
-      while ((obj = _getProto(obj)))
+      while ((obj = Object.getPrototypeOf(obj)))
       {
         if (proto == obj)
         {
@@ -1531,18 +1527,18 @@ de.pointedears.jsx = jsx;
 
     /* For getFunctionName from JSdoc; TODO: Use ES parser library */
     /*eslint no-useless-escape: "off" */
-    var _srxUnicodeLetter = "\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}";
-    var _srxUnicodeEscapeSequence = "\\\\u[\\da-fA-F]{4}";
-    var _srxIdentifierStart = _srxUnicodeLetter + "$_" + _srxUnicodeEscapeSequence;
-    var _srxUnicodeCombiningMark = "\p{Mn}\p{Mc}";
-    var _srxUnicodeDigit = "\\{Nd}";
-    var _srxUnicodeConnectorPunctuation = "\\p{Pc}";
-    var _srxIdentifierPart =
+    let _srxUnicodeLetter = "\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}";
+    let _srxUnicodeEscapeSequence = "\\\\u[\\da-fA-F]{4}";
+    let _srxIdentifierStart = _srxUnicodeLetter + "$_" + _srxUnicodeEscapeSequence;
+    let _srxUnicodeCombiningMark = "\p{Mn}\p{Mc}";
+    let _srxUnicodeDigit = "\\{Nd}";
+    let _srxUnicodeConnectorPunctuation = "\\p{Pc}";
+    let _srxIdentifierPart =
       + _srxIdentifierStart
       + _srxUnicodeCombiningMark
       + _srxUnicodeDigit
       + _srxUnicodeConnectorPunctuation;
-    var _srxIdentifierName = "[" + _srxIdentifierStart + "][" + _srxIdentifierPart + "]*";
+    let _srxIdentifierName = "[" + _srxIdentifierStart + "][" + _srxIdentifierPart + "]*";
 
     /**
      * Returns the name of a function
@@ -1557,18 +1553,15 @@ de.pointedears.jsx = jsx;
     function _getFunctionName (aFunction, bNoStackTrace)
     {
       /* TODO: Cache expression */
-      var rx, _RegExp;
+      let rx, _RegExp;
 
       if ((_RegExp = _getFeature(jsx, "regexp", "RegExp")))
       {
-        jsx.tryThis(
-          function () {
+        try {
             rx = new _RegExp("^\\s*function\\s+(" + _srxIdentifierName + ")");
-          },
-          function (e) {
-            jsx.warn("Could not use Unicode character properties: " + e.message, bNoStackTrace);
-          }
-        );
+        } catch (e) {
+          jsx.warn("Could not use Unicode character properties: " + e.message, bNoStackTrace);
+        }
       }
       else
       {
@@ -1584,7 +1577,7 @@ de.pointedears.jsx = jsx;
       /* Return the empty string for null or undefined */
       /*eslint no-sparse-arrays: "off" */
       return (aFunction != null
-               && typeof aFunction.name != "undefined" && aFunction.name)
+        && typeof aFunction.name != "undefined" && aFunction.name)
         || (String(aFunction).match(rx) || [, ""])[1];
     }
 
@@ -1632,7 +1625,7 @@ de.pointedears.jsx = jsx;
       return aDefault;
     }
 
-    var jsx_object = {
+    let jsx_object = {
       /**
        * @memberOf jsx.object
        * @version
@@ -1658,6 +1651,8 @@ de.pointedears.jsx = jsx;
       isNativeMethod: _isNativeMethod,
       areNativeMethods: _isNativeMethod,
       callIfMethod: _callIfMethod,
+
+      /** @deprecated in favor of {@link #isMethod(Object)} */
       isMethodType: _isMethodType,
 
       _hasOwnProperty: _hasOwnProperty,
@@ -1665,11 +1660,17 @@ de.pointedears.jsx = jsx;
       isObject: _isObject,
       isString: _isString,
 
+      /** @deprecated in favor of {@link Object.keys()} */
       getKeys: _getKeys,
+
+      /** @deprecated in favor of {@link Object.create()} */
       inheritFrom: _inheritFrom,
 
       getClass: _getClass,
+
+      /** @deprecated in favor of {@link Array.isArray()} */
       isArray: _isArray,
+
       isNativeObject: _isNativeObject,
       isHostObject: _isHostObject,
 
@@ -1719,7 +1720,7 @@ de.pointedears.jsx = jsx;
    * @function
    */
   jsx.dmsg = (function () {
-    var
+    let
       msgMap = {
         data: {
           info: "INFO",
@@ -1728,7 +1729,7 @@ de.pointedears.jsx = jsx;
         },
 
         getString: function (s) {
-          var data = this.data;
+          let data = this.data;
 
           if (typeof data[s] != "undefined")
           {
@@ -1832,7 +1833,7 @@ de.pointedears.jsx = jsx;
    * @return {boolean} <code>true</code>
    * @see #setErrorHandler()
    */
-  var _clearErrorHandler = jsx.clearErrorHandler = function () {
+  let _clearErrorHandler = jsx.clearErrorHandler = function () {
     if (typeof window != "undefined" && window !== null)
     {
       /*
@@ -1871,7 +1872,7 @@ de.pointedears.jsx = jsx;
     }
 
     /* global _getFeature */
-    var _assertFalse = _getFeature(jsx, "test", "assertFalse");
+    let _assertFalse = _getFeature(jsx, "test", "assertFalse");
     if (typeof _assertFalse == "function")
     {
       _assertFalse(typeof fHandler == "undefined", false,
@@ -1906,7 +1907,7 @@ de.pointedears.jsx = jsx;
    * @partof JSX:object.js
    */
   jsx.throwThis = (function () {
-    var
+    let
       _addslashes = function (e) {
         return (typeof e == "string"
           ? e.replace(/["'\\]/g, "\\$&").replace(/\r?\n|\r/g, "\\n")
@@ -1928,9 +1929,9 @@ de.pointedears.jsx = jsx;
      *   is an <code>Array</code>.
      */
     return function (errorType, message, context) {
-      var sErrorType = errorType;
-      var isError = false;
-      var messageIsArray = _isArray(message);
+      let sErrorType = errorType;
+      let isError = false;
+      let messageIsArray = Array.isArray(message);
 
       if (typeof Error == "function"
           && Error.prototype.isPrototypeOf(errorType))
@@ -1940,7 +1941,7 @@ de.pointedears.jsx = jsx;
       }
       else
       {
-        var t = typeof errorType;
+        let t = typeof errorType;
 
         if (t == "function" || t == "string")
         {
@@ -1962,9 +1963,9 @@ de.pointedears.jsx = jsx;
 
       if (!messageIsArray)
       {
-        var sContext = "";
+        let sContext = "";
 
-        var stack = jsx.getStackTrace();
+        let stack = jsx.getStackTrace();
         if (stack)
         {
           sContext = "\n\n" + stack;
@@ -1987,7 +1988,7 @@ de.pointedears.jsx = jsx;
       }
 
       /* DEBUG */
-      var throwStmt = 'throw ' + (sErrorType ? sErrorType : '')
+      let throwStmt = 'throw ' + (sErrorType ? sErrorType : '')
                     + (isError
                         ? ''
                         : (messageIsArray
@@ -1995,9 +1996,7 @@ de.pointedears.jsx = jsx;
                             : '(' + (message || '') + ')'))
                     + ';';
 
-      /*jshint -W061*/
       eval(throwStmt);
-      /*jshint +W061*/
     };
   }());
 
@@ -2006,13 +2005,9 @@ de.pointedears.jsx = jsx;
    *
    * @param {Error} exception
    */
-  /*jshint -W098*/
   jsx.rethrowThis = function (exception) {
-    /*jshint -W061*/
     eval("throw exception");
-    /*jshint +W061*/
   };
-  /*jshint +W098*/
 
   jsx.object.extend(jsx, {
     /**
@@ -2210,7 +2205,7 @@ de.pointedears.jsx = jsx;
          * @return {Object} Reference to the new object
          */
         function (prototype, descriptor) {
-          var o = jsx.object.inheritFrom(prototype);
+          let o = jsx.object.inheritFrom(prototype);
 
           if (typeof descriptor != "undefined")
           {
@@ -2246,9 +2241,11 @@ de.pointedears.jsx = jsx;
        * @param {Object} obj
        */
       Object.values = function (obj) {
-        return Object.keys(obj).map(function (key) {
-          return this[key];
-        }, obj);
+        return Object.keys(obj).map(
+          function (key) {
+            return this[key];
+          },
+          obj);
       };
 
       Object.values._emulated = true;
@@ -2263,9 +2260,11 @@ de.pointedears.jsx = jsx;
        * @see ECMAScript 2017, § 19.1.2.5
        */
       Object.entries = function (obj) {
-        return Object.keys(obj).map(function (key) {
-          return [key, this[key]];
-        }, obj);
+        return Object.keys(obj).map(
+          function (key) {
+            return [key, this[key]];
+          },
+          obj);
       };
 
       Object.entries._emulated = true;
@@ -2290,9 +2289,11 @@ de.pointedears.jsx = jsx;
         if (!propertyNames) propertyNames = Object.keys(obj);
         if (arguments.length < 4) thisValue = obj;
 
-        return propertyNames.forEach(function (name) {
-          return callback.call(thisValue || this, obj[name], name, obj);
-        }, obj);
+        return propertyNames.forEach(
+          function (name) {
+            return callback.call(thisValue || this, obj[name], name, obj);
+          },
+          obj);
       };
 
       Object.forEach._emulated = true;
@@ -2302,17 +2303,18 @@ de.pointedears.jsx = jsx;
       if (!propertyNames) propertyNames = Object.keys(obj);
       if (arguments.length < 4) thisValue = obj;
 
-      var propertiesDesc = Object.create(null);
-      propertyNames.forEach(function (name) {
-        var propertyDesc = Object.getOwnPropertyDescriptor(obj, name);
-        if ("value" in propertyDesc)
-        {
-          propertyDesc.value = mapper.call(thisValue, propertyDesc.value, name, obj);
-        }
+      let propertiesDesc = Object.create(null);
+      propertyNames.forEach(
+        function (name) {
+          let propertyDesc = Object.getOwnPropertyDescriptor(obj, name);
+          if ("value" in propertyDesc) {
+            propertyDesc.value = mapper.call(thisValue, propertyDesc.value, name, obj);
+          }
 
-        this[name] = propertyDesc;
-      }, propertiesDesc);
-      var mapped = Array.isArray(obj) ? [] : Object.create(Object.getPrototypeOf(obj));
+          this[name] = propertyDesc;
+        },
+        propertiesDesc);
+      let mapped = Array.isArray(obj) ? [] : Object.create(Object.getPrototypeOf(obj));
       return Object.defineProperties(mapped, propertiesDesc);
     };
 
@@ -2340,19 +2342,22 @@ de.pointedears.jsx = jsx;
 
         target = toObject(target);
 
-        for (var i = 1, len = arguments.length; i < len; ++i)
+        for (let i = 1, len = arguments.length; i < len; ++i)
         {
-          var source = arguments[i];
+          let source = arguments[i];
           if (source)
           {
-            Object.forEach(source, function (value, key) {
-              var desc = Object.getOwnPropertyDescriptor(this.source, key);
+            Object.forEach(
+              source,
+              function (value, key) {
+                let desc = Object.getOwnPropertyDescriptor(this.source, key);
 
-              if (typeof desc != "undefined" && desc.enumerable)
-              {
-                Object.defineProperty(this.target, key, desc);
-              }
-            }, null, {target: target, source: source});
+                if (typeof desc != "undefined" && desc.enumerable) {
+                  Object.defineProperty(this.target, key, desc);
+                }
+              },
+              null,
+              { target: target, source: source });
           }
         }
 
@@ -2374,14 +2379,14 @@ de.pointedears.jsx = jsx;
        * @params {Object} sources
        */
       Object.extend = function (obj) {
-        for (var i = 1, len = arguments.length; i < len; ++i)
+        for (let i = 1, len = arguments.length; i < len; ++i)
         {
-          var source = arguments[i];
+          let source = arguments[i];
 
           Object.forEach(source, function (value, key, source) {
             if (!(jsx.object._hasOwnProperty(obj, key)))
             {
-              var desc = (typeof Object.getOwnPropertyDescriptor == "function")
+              let desc = (typeof Object.getOwnPropertyDescriptor == "function")
                 && Object.getOwnPropertyDescriptor(source, key);
               if (desc && "value" in desc)
               {
@@ -2428,14 +2433,14 @@ de.pointedears.jsx = jsx;
        * @return Object
        */
       Object.merge = function (target) {
-        var clone = Object.clone(target, true);
+        let clone = Object.clone(target, true);
 
-        for (var i = 1, len = arguments.length; i < len; ++i)
+        for (let i = 1, len = arguments.length; i < len; ++i)
         {
-          var arg = arguments[i];
+          let arg = arguments[i];
 
           Object.getOwnPropertyNames(target).forEach(function (name) {
-            var sourceValue = this.source[name];
+            let sourceValue = this.source[name];
 
             if (name in this.target)
             {
@@ -2474,11 +2479,11 @@ de.pointedears.jsx = jsx;
      */
     function parseErrorStack(excp)
     {
-      var stack = [];
+      let stack = [];
 
       if (excp && excp.stack)
       {
-        var stacklist = excp.stack.split('\n');
+        let stacklist = excp.stack.split('\n');
 
   //      for (var i = 0; i < stacklist.length - 1; i++)
   //      {
@@ -2504,7 +2509,7 @@ de.pointedears.jsx = jsx;
       return stack;
     }
 
-    var result = '';
+    let result = '';
 
     if (typeof Error == "function")
     {
@@ -2524,9 +2529,9 @@ de.pointedears.jsx = jsx;
     if (!stack)
     {
       /* JScript and older JavaScript */
-      var caller =
+      let caller =
         (jsx.object._hasOwnProperty(jsx_getStackTrace, "caller") && jsx_getStackTrace.caller)
-        || (jsx.object._hasOwnProperty(arguments, "caller") && arguments.caller);
+        || (jsx.object._hasOwnProperty(arguments, "caller") && arguments.caller);
 
       if (caller)
       {
@@ -2567,7 +2572,7 @@ de.pointedears.jsx = jsx;
    * @namespace
    */
   jsx.array = (function (jsx_object) {
-    var _isMethod = jsx_object.isMethod;
+    let _isMethod = jsx_object.isMethod;
 
     /**
      * Returns <code>true</code> if a value can be used
@@ -2621,17 +2626,17 @@ de.pointedears.jsx = jsx;
        *   augmented with the specified properties and values.
        */
       destructure: function (a, properties, oTarget) {
-        var o = oTarget || jsx_object.getDataObject();
+        let o = oTarget || jsx_object.getDataObject();
 
         /* More efficient with sparse arrays */
-        var keys = jsx_object.getKeys(properties);
+        let keys = jsx_object.getKeys(properties);
 
-        for (var i = 0, len = keys.length; i < len; ++i)
+        for (let i = 0, len = keys.length; i < len; ++i)
         {
-          var index = keys[i];
+          let index = keys[i];
           if (jsx_array_isIndex(index))
           {
-            var propertyName = properties[index];
+            let propertyName = properties[index];
             if (propertyName != null)
             {
               o[propertyName] = a[index];
@@ -2664,18 +2669,18 @@ de.pointedears.jsx = jsx;
             this + ".map");
         }
 
-        var
+        let
           array_length = +array.length,
           res = [];
 
         /* More efficient with sparse arrays */
-        var keys = jsx_object.getKeys(array);
+        let keys = jsx_object.getKeys(array);
         keys.sort(function (a, b) { return a - b; });
 
         /* Start with highest index to reduce .length updates */
-        for (var i = keys.length; i--;)
+        for (let i = keys.length; i--;)
         {
-          var index = keys[i];
+          let index = keys[i];
           if (jsx_array_isIndex(index) && index < array_length)
           {
             res[index] = callback.call(oThis, array[index], index, array);
@@ -2720,11 +2725,11 @@ de.pointedears.jsx = jsx;
       oThis = iterable;
     }
 
-    var
+    let
       len = iterable.length >>> 0,
       res = [];
 
-    for (var i = 0; i < len; ++i)
+    for (let i = 0; i < len; ++i)
     {
       res[i] = (builder
         ? builder.call(oThis, iterable[i], i, iterable)
@@ -2810,7 +2815,7 @@ de.pointedears.jsx = jsx;
 
     Object.observe = (typeof Object.observe == "function")
       ? (function () {
-          var _observe = Object.observe;
+          let _observe = Object.observe;
 
           return function (obj, callback) {
             _observe(obj, callback);
@@ -2818,11 +2823,11 @@ de.pointedears.jsx = jsx;
           };
         }())
       : function (obj, callback) {
-          var proxy;
+          let proxy;
 
-          var handler = {
+          let handler = {
             "set": function (obj, prop, value) {
-              var type = "update";
+              let type = "update";
 
               if (jsx.object._hasOwnProperty(obj, prop))
               {
@@ -2848,8 +2853,8 @@ de.pointedears.jsx = jsx;
               }
             },
             "deleteProperty": function (obj, prop) {
-              var hadOwnProperty = jsx.object._hasOwnProperty(obj, prop);
-              var deleted = delete obj[prop];
+              let hadOwnProperty = jsx.object._hasOwnProperty(obj, prop);
+              let deleted = delete obj[prop];
 
               if (hadOwnProperty && deleted)
               {
@@ -2858,19 +2863,15 @@ de.pointedears.jsx = jsx;
             }
           };
 
-          jsx.tryThis(
-            function () {
-              proxy = new Proxy(obj, handler);
-            },
-            function () {
-              jsx.tryThis(
-                function () {
-                  proxy = Proxy.create(obj, handler);
-                },
-                function () {
-                  jsx.warn("Cannot observe object, Proxy is not implemented");
-                });
-            });
+          try {
+            proxy = new Proxy(obj, handler);
+          } catch (e) {
+            try {
+              proxy = Proxy.create(obj, handler);
+            } catch (e2) {
+              jsx.warn("Cannot observe object, Proxy is not implemented");
+            }
+          }
 
           return proxy;
         };
@@ -2906,7 +2907,7 @@ de.pointedears.jsx = jsx;
          * @function
          */
         apply: (function () {
-          var
+          let
             jsx_object = jsx.object,
             jsx_global = jsx.global;
 
@@ -2923,7 +2924,7 @@ de.pointedears.jsx = jsx;
               thisArg = jsx_global;
             }
 
-            var
+            let
               o = {},
               p = jsx_object.findNewProperty(o);
 
@@ -2931,15 +2932,13 @@ de.pointedears.jsx = jsx;
             {
               o[p] = thisArg || this;
 
-              var a = [];
-              for (var i = 0, len = argArray.length; i < len; i++)
+              let a = [];
+              for (let i = 0, len = argArray.length; i < len; i++)
               {
                 a[i] = "argArray[" + i + "]";
               }
 
-              /*jshint -W061*/
               eval("o[p](" + a + ")");
-              /*jshint +W061*/
 
               delete o[p];
             }
@@ -2958,9 +2957,9 @@ de.pointedears.jsx = jsx;
          *   Arguments for the object.
          */
         call: function (thisArg) {
-          var a = [];
+          let a = [];
 
-          for (var i = 1, len = arguments.length; i < len; i++)
+          for (let i = 1, len = arguments.length; i < len; i++)
           {
             a[i] = "arguments[" + i + "]";
           }
@@ -2970,16 +2969,14 @@ de.pointedears.jsx = jsx;
             thisArg = jsx.global;
           }
 
-          var
+          let
             o = {},
             p = jsx.object.findNewProperty(o);
 
           if (p)
           {
             o[p] = this;
-            /*jshint -W061*/
             eval("o[p](" + a + ")");
-            /*jshint +W061*/
             delete o[p];
             o = null;
           }
@@ -2995,8 +2992,8 @@ de.pointedears.jsx = jsx;
          * @see 15.3.4.5 Function.prototype.bind (thisArg [, arg1 [, arg2, ...]])
          */
         bind: (function () {
-          var _slice;
-          var _getClass = jsx.object.getClass;
+          let _slice;
+          let _getClass = jsx.object.getClass;
 
           /**
            * @param {Object} thisArg
@@ -3005,7 +3002,7 @@ de.pointedears.jsx = jsx;
            * @params Default parameters
            */
           return function (thisArg) {
-            var target = this;
+            let target = this;
             if (typeof target != "function")
             {
               return jsx.throwThis("TypeError");
@@ -3016,8 +3013,8 @@ de.pointedears.jsx = jsx;
               _slice = Array.prototype.slice;
             }
 
-            var boundArgs = _slice.call(arguments, 1);
-            var f = function () {
+            let boundArgs = _slice.call(arguments, 1);
+            let f = function () {
               return target.apply(thisArg, boundArgs.concat(_slice.call(arguments)));
             };
 
@@ -3058,17 +3055,15 @@ de.pointedears.jsx = jsx;
          * </p>
          */
         construct: (function () {
-          var _jsx_object = jsx.object;
-          var _inheritFrom = _jsx_object.inheritFrom;
-          var _isObject = _jsx_object.isObject;
+          let _isObject = jsx.object.isObject;
 
           /**
            * @param {Array} argArray
            * @return {Object} Reference to the new instance
            */
           return function (argArray) {
-            var o = _inheritFrom(this.prototype);
-            var result = this.apply(o, argArray);
+            let o = Object.create(this.prototype);
+            let result = this.apply(o, argArray);
 
             if (_isObject(result))
             {
@@ -3102,15 +3097,13 @@ de.pointedears.jsx = jsx;
        * @return {Date} Reference to the new instance
        */
       construct: function (argArray) {
-        var a = [];
-        for (var i = 0, len = argArray.length; i < len; ++i)
+        let a = [];
+        for (let i = 0, len = argArray.length; i < len; ++i)
         {
           a[i] = "argArray[" + i + "]";
         }
 
-        /*jshint -W061*/
         return eval("new this(" + a + ")");
-        /*jshint +W061*/
       }
     }, jsx.object.ADD_OVERWRITE);
   }
@@ -3146,15 +3139,15 @@ de.pointedears.jsx = jsx;
    *   if successful; <code>null</code> otherwise.
    */
   Function.prototype.extend = (function () {
-    var _jsx = jsx;
-    var _jsx_object = _jsx.object;
+    let _jsx = jsx;
+    let _jsx_object = _jsx.object;
 
     /**
      * @private
      * @function
      * @return {Object}
      */
-    var _iterator = (function () {
+    let _iterator = (function () {
       /* Optimize if ECMAScript 5 features were available */
       if (typeof Object.defineProperties == "function")
       {
@@ -3167,9 +3160,9 @@ de.pointedears.jsx = jsx;
         _jsx.warn("for (var p in o.iterator()) { f(); } is inefficient,"
           + " consider using o.forEach(f, ...) instead");
 
-        var o = {};
+        let o = {};
 
-        for (var p2 in this)
+        for (let p2 in this)
         {
           switch (p2)
           {
@@ -3190,7 +3183,7 @@ de.pointedears.jsx = jsx;
 
     function _forEach(fCallback, thisObj)
     {
-      var t = typeof fCallback;
+      let t = typeof fCallback;
       if (!_jsx_object.isMethod(fCallback))
       {
         return _jsx.throwThis(
@@ -3200,7 +3193,7 @@ de.pointedears.jsx = jsx;
           this + ".forEach");
       }
 
-      for (var p in this)
+      for (let p in this)
       {
         switch (p)
         {
@@ -3227,7 +3220,7 @@ de.pointedears.jsx = jsx;
      *   properties are ignored as they are used internally.
      */
     return function (fSuper, oProtoProps) {
-      var me = this;
+      let me = this;
 
       /*
        * Allows constructor to be null or undefined to inherit from
@@ -3260,7 +3253,7 @@ de.pointedears.jsx = jsx;
         fSuper = _jsx.global[fSuper];
       }
 
-      var t = typeof fSuper;
+      let t = typeof fSuper;
       if (t != "function")
       {
         _jsx.throwThis("TypeError",
@@ -3268,14 +3261,14 @@ de.pointedears.jsx = jsx;
         return null;
       }
 
-      var super_proto = fSuper.prototype;
+      let super_proto = fSuper.prototype;
       this.prototype = _jsx_object.inheritFrom(super_proto);
 
       if (oProtoProps)
       {
-        for (var p in oProtoProps)
+        for (let p in oProtoProps)
         {
-          var prop = this.prototype[p] = oProtoProps[p];
+          let prop = this.prototype[p] = oProtoProps[p];
 
           if (typeof prop == "function"
               && typeof super_proto[p] == "function")
@@ -3303,29 +3296,27 @@ de.pointedears.jsx = jsx;
       /* Optimize iteration if ECMAScript 5 features are available */
       if (typeof Object.defineProperties == "function")
       {
-        var
+        let
           userDefProtoProps = ["_super", "constructor", "iterator"],
           oDescriptors = {},
           proto = this.prototype;
 
-        for (var i = userDefProtoProps.length; i--;)
+        for (let i = userDefProtoProps.length; i--;)
         {
-          p = userDefProtoProps[i];
+          let p = userDefProtoProps[i];
           oDescriptors[p] = {
             value: proto[p],
             enumerable: false
           };
         }
 
-        _jsx.tryThis(
-          function () {
-            Object.defineProperties(proto, oDescriptors);
-          },
-          function (e) {
-            _jsx.warn(_jsx_object.getFunctionName(me) + ".extend("
-              + _jsx_object.getFunctionName(fSuper) + ", "
-              + oProtoProps + "): " + e.name + ': ' + e.message);
-          });
+        try {
+          Object.defineProperties(proto, oDescriptors);
+        } catch (e) {
+          _jsx.warn(_jsx_object.getFunctionName(me) + ".extend("
+            + _jsx_object.getFunctionName(fSuper) + ", "
+            + oProtoProps + "): " + e.name + ': ' + e.message);
+        }
       }
 
       if (typeof this.prototype.forEach != "function")
@@ -3344,21 +3335,18 @@ de.pointedears.jsx = jsx;
         /* Optimize iteration if ECMAScript 5 features are available */
         if (typeof Object.defineProperty == "function")
         {
-          _jsx.tryThis(
-            function () {
-              Object.defineProperty(me.prototype, "forEach", {
-                value: me.prototype.forEach,
-                enumerable: false
-              });
-            },
-            function (e) {
-              /* IE 8 goes here */
-              _jsx.warn(
-                'Borken implementation: Object.defineProperty is a method'
-                + ' but [[Call]](this.prototype, "forEach") throws exception ("'
-                + e.name + ': ' + e.message + '")');
-            }
-          );
+          try {
+            Object.defineProperty(me.prototype, "forEach", {
+              value: me.prototype.forEach,
+              enumerable: false
+            });
+          } catch (e) {
+            /* IE 8 goes here */
+            _jsx.warn(
+              'Borken implementation: Object.defineProperty is a method'
+              + ' but [[Call]](this.prototype, "forEach") throws exception ("'
+              + e.name + ': ' + e.message + '")');
+          }
         }
       }
 
@@ -3377,7 +3365,7 @@ de.pointedears.jsx = jsx;
    * @return {string}
    */
   jsx.absPath = function (relativePath, basePath) {
-    var uri = (basePath || document.URL).replace(/[?#].*$/, "").split("/");
+    let uri = (basePath || document.URL).replace(/[?#].*$/, "").split("/");
     relativePath = relativePath.split("/");
 
     if (uri[uri.length - 1] != "")
@@ -3385,9 +3373,9 @@ de.pointedears.jsx = jsx;
       uri.pop();
     }
 
-    for (var i = 0, len = relativePath.length; i < len; ++i)
+    for (let i = 0, len = relativePath.length; i < len; ++i)
     {
-      var component = relativePath[i];
+      let component = relativePath[i];
       if (component == "..")
       {
         uri.pop();
@@ -3411,10 +3399,8 @@ de.pointedears.jsx = jsx;
    * @function
    */
   jsx._import = (function () {
-    var _jsx_object = jsx.object;
-    var _getKeys = _jsx_object.getKeys;
-    var _hasOwnProperty = _jsx_object._hasOwnProperty;
-    var _isArray = _jsx_object.isArray;
+    let _jsx_object = jsx.object;
+    let _hasOwnProperty = _jsx_object._hasOwnProperty;
 
     /**
      * @param {Object} obj
@@ -3446,29 +3432,29 @@ de.pointedears.jsx = jsx;
           "jsx._import");
       }
 
-      var result = true;
+      let result = true;
 
-      var root = jsx.global;
+      let root = jsx.global;
       if (objAlias != null)
       {
         root[objAlias] = {};
         root = root[objAlias];
       }
 
-      var propertiesArg = properties;
+      let propertiesArg = properties;
       if (properties == null)
       {
-        properties = _getKeys(obj);
+        properties = Object.keys(obj);
       }
-      else if (!_isArray(properties))
+      else if (!Array.isArray(properties))
       {
         properties = [properties];
       }
 
-      var len = properties.length;
+      let len = properties.length;
       if (propertiesArg != null && propertyAliases != null)
       {
-        if (!_isArray(propertyAliases))
+        if (!Array.isArray(propertyAliases))
         {
           propertyAliases = [propertyAliases];
         }
@@ -3482,12 +3468,12 @@ de.pointedears.jsx = jsx;
         }
       }
 
-      for (var i = 0; i < len; ++i)
+      for (let i = 0; i < len; ++i)
       {
-        var sourceProperty = properties[i];
+        let sourceProperty = properties[i];
         if (propertiesArg == null || _hasOwnProperty(obj, sourceProperty))
         {
-          var targetProperty = sourceProperty;
+          let targetProperty = sourceProperty;
           if (propertiesArg != null && propertyAliases != null)
           {
             targetProperty = propertyAliases[i];
@@ -3524,8 +3510,8 @@ de.pointedears.jsx = jsx;
    */
   jsx.importFrom = (function () {
     /* Imports */
-    var _import = jsx._import;
-    var _Request;
+    let _import = jsx._import;
+    let _Request;
 
     /**
      * @param {string} uri
@@ -3549,13 +3535,13 @@ de.pointedears.jsx = jsx;
       }
 
       jsx_importFrom.lastImport = uri;
-      var req = new _Request(uri, "GET", false, function (response) {
+      let req = new _Request(uri, "GET", false, function (response) {
         /*
          * NOTE: Passing response.responseText to eval() is not ES5-compatible;
          *       conforming implementations create a new execution context with
          *       EMPTY scope chain.
          */
-        var script = document.createElement("script");
+        let script = document.createElement("script");
         script.type = "text/javascript";
 
         if (typeof script.text == "undefined")
@@ -3568,7 +3554,8 @@ de.pointedears.jsx = jsx;
         }
 
         /* NOTE: document.head was introduced with HTML5 WD */
-        (document.head || document.getElementsByTagName("head")[0]).appendChild(script);
+        (document.head || document.getElementsByTagName("head")[0])
+          .appendChild(script);
 
         if (arguments.length > 1)
         {
@@ -3592,9 +3579,9 @@ de.pointedears.jsx = jsx;
    * @see jsx#importFrom
    */
   jsx.importOnce = (function () {
-    var _getProperty = jsx.object.getProperty;
-    var _absPath = jsx.absPath;
-    var _importFrom = jsx.importFrom;
+    let _getProperty = jsx.object.getProperty;
+    let _absPath = jsx.absPath;
+    let _importFrom = jsx.importFrom;
 
     /**
      * @param {string} uri
@@ -3619,13 +3606,13 @@ de.pointedears.jsx = jsx;
        */
       function scriptIncluded (uri)
       {
-        var scripts = document.getElementsByTagName("script");
+        let scripts = document.getElementsByTagName("script");
         if (scripts)
         {
-          var uriAbsPath = _absPath(uri);
-          for (var i = 0, len = scripts.length; i < len; ++i)
+          let uriAbsPath = _absPath(uri);
+          for (let i = 0, len = scripts.length; i < len; ++i)
           {
-            var script = scripts[i];
+            let script = scripts[i];
             if (_absPath(script.src) == uriAbsPath)
             {
               return true;
@@ -3636,7 +3623,7 @@ de.pointedears.jsx = jsx;
         return false;
       }
 
-      var result = false;
+      let result = false;
 
       if (uri
           && !scriptIncluded(uri)
@@ -3657,7 +3644,7 @@ de.pointedears.jsx = jsx;
     return importOnce;
   }());
 
-  var
+  let
     _head = null,
     _body = null;
 
@@ -3681,8 +3668,8 @@ de.pointedears.jsx = jsx;
    *   <code>false</code> otherwise.
    * @see #require()
    */
-  var _loadScript = jsx.loadScript = function (uri, options) {
-    var
+  let _loadScript = jsx.loadScript = function (uri, options) {
+    let
       publicId,
       script =
         (document.doctype
@@ -3729,16 +3716,17 @@ de.pointedears.jsx = jsx;
 
     script.src = uri;
 
-    if (!_head && !_body) _head = document.head || document.getElementsByTagName("head")[0];
+    if (!_head && !_body) _head =
+      document.head || document.getElementsByTagName("head")[0];
     if (!_head && !_body) _body = document.body;
     if (!((options && options.parentNode) || _head || _body)) return false;
 
     ((options && options.parentNode) || _head || _body).appendChild(script);
   }
 
-  var _ModuleRegistry = (function  () {}).extend(null, {
+  let _ModuleRegistry = (function  () {}).extend(null, {
     add: function (id, properties) {
-      var module = new _Module(Object.assign(properties || _createDataObject(), {id: id}));
+      let module = new _Module(Object.assign(properties || _createDataObject(), {id: id}));
 
       if (!("_items" in this)) this._items = _createDataObject();
       this._items[id] = module;
@@ -3759,9 +3747,9 @@ de.pointedears.jsx = jsx;
     }
   });
 
-  var _modules = new _ModuleRegistry();
+  let _modules = new _ModuleRegistry();
 
-  var _Module = (function (properties) {
+  let _Module = (function (properties) {
     properties && Object.keys(properties).forEach(function (key) {
       /* Do not override inherited methods */
       if (typeof this[key] != "function")
@@ -3806,7 +3794,7 @@ de.pointedears.jsx = jsx;
    * @see #define() for defining a module dependency
    * @see #loadScript()
    */
-  var _require = jsx.require = function _require (dependencies, dependent) {
+  let _require = jsx.require = function _require (dependencies, dependent) {
     if (!Array.isArray(dependencies)) dependencies = [dependencies];
 
     /*
@@ -3824,12 +3812,12 @@ de.pointedears.jsx = jsx;
       });
     }
 
-    var failedDeps = [];
+    let failedDeps = [];
 
     dependencies.forEach(function (dependency) {
       if (!(_modules.has(dependency))) _modules.add(dependency);
 
-      var module = _modules.get(dependency);
+      let module = _modules.get(dependency);
 
       /*
        * Define <var>dependent</var> to be a dependent of module <var>dependency</var>,
@@ -3849,13 +3837,13 @@ de.pointedears.jsx = jsx;
       });
 
       /* Resolve URNs */
-      var
+      let
         uri = dependency,
         m;
       if ((m = uri.match(/^([^:]+):([^\/]|\/[^\/])/)))
       {
-        var scheme = m[1];
-        var prefixURI = (_require.urnPrefixes || Object.create(null))[scheme];
+        let scheme = m[1];
+        let prefixURI = (_require.urnPrefixes || Object.create(null))[scheme];
         if (typeof prefixURI != "undefined")
         {
           uri = uri.replace(m[0], prefixURI + m[2]);
@@ -3913,7 +3901,7 @@ de.pointedears.jsx = jsx;
 
     if (!(_modules.has(id))) _modules.add(id);
 
-    var module = _modules.get(id);
+    let module = _modules.get(id);
 
     Object.assign(module, {
       id: id,
@@ -3939,15 +3927,16 @@ de.pointedears.jsx = jsx;
    * @param {string} sMsg
    */
   jsx.Error = function jsx_Error (sMsg) {
-    var msg = (sMsg || "Unspecified error");
-    var _super = jsx_Error._super;
-    var e = null;
+    let msg = (sMsg || "Unspecified error");
+    let _super = jsx_Error._super;
+    let e = null;
 
     if (typeof _super == "function")
     {
       _super.call(this, msg);
 
-      jsx.tryThis(function () { e = new _super(); });
+      // eslint-disable-next-line no-empty
+      try { e = new _super(); } catch (e) {}
     }
 
     if (!this.message)
@@ -3968,7 +3957,7 @@ de.pointedears.jsx = jsx;
 
     if (!this.stack && e && e.stack)
     {
-      var stack = String(e.stack).split(/\r?\n|\r/).slice(2);
+      let stack = String(e.stack).split(/\r?\n|\r/).slice(2);
       this.stack = stack.join("\n");
     }
   };
@@ -3983,7 +3972,7 @@ de.pointedears.jsx = jsx;
       getMessage: function () { return this.message; },
       getStackTrace: function () { return this.stack; },
       printStackTrace: function () {
-        var s = this.getStackTrace();
+        let s = this.getStackTrace();
         jsx.dmsg(s) || window.alert(s);
     }
   });
@@ -4037,14 +4026,14 @@ de.pointedears.jsx = jsx;
           throw new TypeError();
         }
 
-        var t = Object(this);
+        let t = Object(this);
 
-        var len = t.length >>> 0;
+        let len = t.length >>> 0;
         if (len === 0) {
           return -1;
         }
 
-        var n = 0;
+        let n = 0;
         if (arguments.length > 0)
         {
           n = Number(fromIndex);
@@ -4063,7 +4052,7 @@ de.pointedears.jsx = jsx;
           return -1;
         }
 
-        var k = (n >= 0 ? n : Math.max(len - Math.abs(n), 0));
+        let k = (n >= 0 ? n : Math.max(len - Math.abs(n), 0));
         for (; k < len; k++)
         {
           if (k in t && t[k] === searchElement)
@@ -4094,19 +4083,19 @@ de.pointedears.jsx = jsx;
        * @return {Array}
        */
       slice: function (start, end) {
-        var a = [];
-        var len = this.length >>> 0;
-        var relativeStart = parseInt(start, 10);
-        var k = (relativeStart < 0
+        let a = [];
+        let len = this.length >>> 0;
+        let relativeStart = parseInt(start, 10);
+        let k = (relativeStart < 0
               ? Math.max(len + relativeStart, 0)
               : Math.min(relativeStart, len));
-        var relativeEnd = (typeof end == "undefined"
+        let relativeEnd = (typeof end == "undefined"
                         ? len
                         : parseInt(end, 10));
-        var _final = (relativeEnd < 0
+        let _final = (relativeEnd < 0
                    ? Math.max(len + relativeEnd, 0)
                    : Math.min(relativeEnd, len));
-        var n = 0;
+        let n = 0;
         while (k < _final)
         {
           if ((k in this))
@@ -4130,8 +4119,8 @@ de.pointedears.jsx = jsx;
    * @returns {string}
    */
   jsx.debugValue = function jsx_debugValue (value) {
-    var type = typeof value;
-    var _class = jsx.object.getClass(value);
+    let type = typeof value;
+    let _class = jsx.object.getClass(value);
 
     return (
       (_class == "Array"
@@ -4155,7 +4144,7 @@ de.pointedears.jsx = jsx;
    */
   jsx.InvalidArgumentError =
     function jsx_InvalidArgumentError (sReason, sGot, sExpected) {
-      var argc = arguments.length;
+      let argc = arguments.length;
 
       jsx_InvalidArgumentError._super.call(this,
         (sReason || "Invalid argument(s)")
