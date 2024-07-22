@@ -606,7 +606,7 @@ de.pointedears.jsx = jsx;
 
       let proto;
 
-            return (_isMethod(obj, "hasOwnProperty")
+      return (_isMethod(obj, "hasOwnProperty")
         // eslint-disable-next-line no-prototype-builtins
         ? obj.hasOwnProperty(sProperty)
         : (typeof obj[sProperty] != "undefined"
@@ -1533,7 +1533,7 @@ de.pointedears.jsx = jsx;
     }
 
     /* For getFunctionName from JSdoc; TODO: Use ES parser library */
-        let _srxUnicodeLetter = "\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}";
+    let _srxUnicodeLetter = "\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}";
     let _srxUnicodeEscapeSequence = "\\\\u[\\da-fA-F]{4}";
     let _srxIdentifierStart = _srxUnicodeLetter + "$_" + _srxUnicodeEscapeSequence;
     let _srxUnicodeCombiningMark = "\\p{Mn}\\p{Mc}";
@@ -1581,7 +1581,7 @@ de.pointedears.jsx = jsx;
       }
 
       /* Return the empty string for null or undefined */
-            return (aFunction != null
+      return (aFunction != null
         && typeof aFunction.name != "undefined" && aFunction.name)
         // eslint-disable-next-line no-sparse-arrays
         || (String(aFunction).match(rx) || [, ""])[1];
