@@ -25,6 +25,7 @@ if (typeof jsx == "undefined")
   /**
    * @namespace
    */
+  // eslint-disable-next-line no-var
   var jsx = {};
 }
 
@@ -34,6 +35,7 @@ if (typeof de == "undefined")
   /**
    * @namespace
    */
+  // eslint-disable-next-line no-var
   var de = {};
 }
 
@@ -419,7 +421,7 @@ de.pointedears.jsx = jsx;
    *   <code>true</code> if all arguments refer to methods,
    *   <code>false</code> otherwise.
    */
-  /*eslint no-unused-vars: "off" */
+  // eslint-disable-next-line no-unused-vars
   function _isNativeMethod (obj, prop)
   {
     /* NOTE: Thread-safe, argument-safe code reuse -- `this' is our ID */
@@ -458,6 +460,7 @@ de.pointedears.jsx = jsx;
     function getClass (obj)
     {
       return (_toString.call(obj)
+      // eslint-disable-next-line no-sparse-arrays
         .match(/^\s*\[object\s+(\S+)\s*\]\s*$/) || [, ""])[1];
     }
 
@@ -603,8 +606,8 @@ de.pointedears.jsx = jsx;
 
       let proto;
 
-      /*eslint no-prototype-builtins: "off" */
-      return (_isMethod(obj, "hasOwnProperty")
+            return (_isMethod(obj, "hasOwnProperty")
+        // eslint-disable-next-line no-prototype-builtins
         ? obj.hasOwnProperty(sProperty)
         : (typeof obj[sProperty] != "undefined"
             && (null == obj.constructor
@@ -819,6 +822,7 @@ de.pointedears.jsx = jsx;
     let _COPY_INHERIT = 4;
 
     /** @deprecated in favor of {@link Object.getPrototypeOf()} */
+    // eslint-disable-next-line no-unused-vars
     function _getProto (o)
     {
       if (typeof Object.getPrototypeOf == "function"
@@ -892,14 +896,14 @@ de.pointedears.jsx = jsx;
           {
             try {
               o2[p] = me(oSource[p], iLevel);
-            // eslint-disable-next-line no-empty
+            // eslint-disable-next-line no-unused-vars, no-empty
             } catch (e) {}
           }
           else
           {
             try {
               o2[p] = oSource[p];
-            // eslint-disable-next-line no-empty
+            // eslint-disable-next-line no-unused-vars, no-empty
             } catch (e) {}
           }
         }
@@ -919,14 +923,14 @@ de.pointedears.jsx = jsx;
             {
               try {
                 o2[i] = me(oSource[i], iLevel);
-              // eslint-disable-next-line no-empty
+              // eslint-disable-next-line no-unused-vars, no-empty
               } catch (e) {}
             }
             else
             {
               try {
                 o2[i] = oSource[i];
-              // eslint-disable-next-line no-empty
+              // eslint-disable-next-line no-unused-vars, no-empty
               } catch (e) {}
             }
           }
@@ -1059,6 +1063,7 @@ de.pointedears.jsx = jsx;
               });
 
               obj.__defineSetter__(propertyName, function () {});
+            // eslint-disable-next-line no-unused-vars
             } catch (e) {
               obj[propertyName] = value;
 
@@ -1081,6 +1086,7 @@ de.pointedears.jsx = jsx;
             {
               obj.__defineSetter__(propertyName, descriptor["set"]);
             }
+          // eslint-disable-next-line no-unused-vars
           } catch (e) {
             jsx.warn((context ? context + ": " : "")
               + "Could not define special property `" + propertyName + "'."
@@ -1129,7 +1135,7 @@ de.pointedears.jsx = jsx;
           try {
             Object.defineProperty(o, propertyName, descriptor);
             done = true;
-          // eslint-disable-next-line no-empty
+          // eslint-disable-next-line no-unused-vars, no-empty
           } catch (e) {}
         }
 
@@ -1179,7 +1185,7 @@ de.pointedears.jsx = jsx;
         try {
           Object.defineProperties(o, descriptor);
           done = true;
-        // eslint-disable-next-line no-empty
+        // eslint-disable-next-line no-unused-vars, no-empty
         } catch (e) {}
       }
 
@@ -1240,7 +1246,7 @@ de.pointedears.jsx = jsx;
               * Do we _really_ need this?
               */
               oTarget[key]._userDefined = true;
-            // eslint-disable-next-line no-empty
+            // eslint-disable-next-line no-unused-vars, no-empty
             } catch (e) {}
           }
         },
@@ -1270,6 +1276,7 @@ de.pointedears.jsx = jsx;
 
       if (_isMethod(obj, "propertyIsEnumerable"))
       {
+        // eslint-disable-next-line no-prototype-builtins
         return obj.propertyIsEnumerable(sProperty);
       }
 
@@ -1526,8 +1533,7 @@ de.pointedears.jsx = jsx;
     }
 
     /* For getFunctionName from JSdoc; TODO: Use ES parser library */
-    /*eslint no-useless-escape: "off" */
-    let _srxUnicodeLetter = "\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}";
+        let _srxUnicodeLetter = "\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}";
     let _srxUnicodeEscapeSequence = "\\\\u[\\da-fA-F]{4}";
     let _srxIdentifierStart = _srxUnicodeLetter + "$_" + _srxUnicodeEscapeSequence;
     let _srxUnicodeCombiningMark = "\p{Mn}\p{Mc}";
@@ -1575,14 +1581,15 @@ de.pointedears.jsx = jsx;
       }
 
       /* Return the empty string for null or undefined */
-      /*eslint no-sparse-arrays: "off" */
-      return (aFunction != null
+            return (aFunction != null
         && typeof aFunction.name != "undefined" && aFunction.name)
+        // eslint-disable-next-line no-sparse-arrays
         || (String(aFunction).match(rx) || [, ""])[1];
     }
 
     function _getFunctionParams (aFunction)
     {
+      // eslint-disable-next-line no-sparse-arrays
       return (String(aFunction).match(/\(([^\)]*)\)/) || [, ""])[1].match(/[^,]+/g) || "";
     }
 
@@ -1595,6 +1602,7 @@ de.pointedears.jsx = jsx;
     function _getDoc (aFunction)
     {
       return (String(aFunction).match(
+        // eslint-disable-next-line no-sparse-arrays
         /^\s*(function(\s+[A-Za-z_]\w*)?\s*\([^\)]*\))/) || [, ""])[1];
     }
 
@@ -1934,6 +1942,7 @@ de.pointedears.jsx = jsx;
       let messageIsArray = Array.isArray(message);
 
       if (typeof Error == "function"
+          // eslint-disable-next-line no-prototype-builtins
           && Error.prototype.isPrototypeOf(errorType))
       {
         isError = true;
@@ -1978,6 +1987,7 @@ de.pointedears.jsx = jsx;
           if (_jsx_object.isMethod(context))
           {
             sContext = (String(context).match(/^\s*(function.+\))/)
+              // eslint-disable-next-line no-sparse-arrays
               || [, null])[1];
             sContext = (sContext ? sContext + ': ' : '');
           }
@@ -2005,6 +2015,7 @@ de.pointedears.jsx = jsx;
    *
    * @param {Error} exception
    */
+  // eslint-disable-next-line no-unused-vars
   jsx.rethrowThis = function (exception) {
     eval("throw exception");
   };
@@ -2513,6 +2524,7 @@ de.pointedears.jsx = jsx;
 
     if (typeof Error == "function")
     {
+      // eslint-disable-next-line no-var
       var stack = parseErrorStack(new Error());
       result = stack.slice(2).join("\n");
   //    for (var i = 1; i < stack.length; i++)
@@ -2831,6 +2843,7 @@ de.pointedears.jsx = jsx;
 
               if (jsx.object._hasOwnProperty(obj, prop))
               {
+                // eslint-disable-next-line no-var
                 var oldValue = obj[prop];
               }
               else
@@ -2865,9 +2878,11 @@ de.pointedears.jsx = jsx;
 
           try {
             proxy = new Proxy(obj, handler);
+          // eslint-disable-next-line no-unused-vars
           } catch (e) {
             try {
               proxy = Proxy.create(obj, handler);
+            // eslint-disable-next-line no-unused-vars
             } catch (e2) {
               jsx.warn("Cannot observe object, Proxy is not implemented");
             }
@@ -3803,6 +3818,7 @@ de.pointedears.jsx = jsx;
      */
     if (typeof dependent == "function")
     {
+      // eslint-disable-next-line no-var
       var uuid = "module_" + (new Date()).getTime() + "_" + Math.floor(Math.random() * 1e13);
       _modules.add(uuid, {
         dependencies: dependencies,
@@ -3935,7 +3951,7 @@ de.pointedears.jsx = jsx;
     {
       _super.call(this, msg);
 
-      // eslint-disable-next-line no-empty
+      // eslint-disable-next-line no-unused-vars, no-empty
       try { e = new _super(); } catch (e) {}
     }
 
