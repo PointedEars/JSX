@@ -604,15 +604,10 @@ de.pointedears.jsx = jsx;
         obj = jsx_object;
       }
 
-      let proto;
-
       return (_isMethod(obj, "hasOwnProperty")
         // eslint-disable-next-line no-prototype-builtins
         ? obj.hasOwnProperty(sProperty)
-        : (typeof obj[sProperty] != "undefined"
-            && (null == obj.constructor
-                || ((proto = obj.constructor.prototype)
-                     && typeof proto[sProperty] == "undefined"))));
+        : {}.hasOwnProperty.call(obj, sProperty));
     }
 
     function _isString (s)
@@ -972,7 +967,7 @@ de.pointedears.jsx = jsx;
           desc.configurable = !!obj.configurable;
         }
 
-        let hasValue = obj.hasOwnProperty("value");
+        let hasValue = _hasOwnProperty(obj, "value");
         if (hasValue)
         {
           desc.value = obj.value;
@@ -1033,7 +1028,8 @@ de.pointedears.jsx = jsx;
             return false;
           }
 
-          return desc.hasOwnProperty("value") || _hasOwnProperty(desc, "writable");
+          return _hasOwnProperty(desc, "value")
+              || _hasOwnProperty(desc, "writable");
         }
 
         function _isGenericDescriptor (desc)
