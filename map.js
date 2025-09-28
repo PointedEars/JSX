@@ -128,12 +128,12 @@ var jsx;
               + (typeof unsafeKey.nodeName != "undefined"
                   ? unsafeKey.nodeName
                   : "")
+              + (typeof unsafeKey.className != "undefined"
+                && /\S/.test(unsafeKey.className)
+                  ? "." + unsafeKey.className.replace(/^\s+|\s+$/g, "").replace(/\s+/, ".")
+                  : "")
               + (typeof unsafeKey.id != "undefined"
                   ? "#" + unsafeKey.id
-                  : "")
-              + (typeof unsafeKey.className != "undefined"
-                  && /\S/.test(unsafeKey.className)
-                  ? "." + unsafeKey.className.replace(/\s+/, ".")
                   : "");
           }
 
@@ -453,7 +453,7 @@ var jsx;
            * @throws jsx.map#KeyError
            * @public
            */
-          this.put = function (key, value) {
+          this.set = function (key, value) {
             var k = _getSafeKey(_items, key);
             var v;
             var prevValue = _items[k];
@@ -690,6 +690,20 @@ var jsx;
         return new this.constructor(this);
       },
 
+      put: (function () {
+        var issuedWarning = false;
+
+        return function () {
+          if (!issuedWarning)
+          {
+            jsx.warn("Map.put(): For ECMAScript 2015+ compliant code, call set() instead");
+            issuedWarning = true;
+          }
+
+          this.set.apply(this, arguments);
+        };
+      }()),
+
       /**
        * Copies all of the mappings from the specified map to this map.
        * These mappings will replace any mappings that this map had
@@ -710,7 +724,7 @@ var jsx;
         {
           var o = a[i];
 
-          this.put(o[0], o[1]);
+          this.set(o[0], o[1]);
         }
       }
     }), {
