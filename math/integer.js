@@ -36,6 +36,29 @@ if (typeof jsx.math == "undefined")
 
 jsx.math.integer = {
   /**
+   * Return the common divisors of two or more integers.
+   *
+   * @params {int}
+   * @returns {Array<int>} Common divisors of the arguments
+   */
+  commonDivisors: function () {
+    const args = Array
+      .from(arguments)
+      .sort((a, b) => (a < b) ? -1 : ((a > b) ? 1 : 0));
+
+    const min = args[0];
+
+    const divisorCandidates = Array
+      .from({ length: min + 1 }, (_, x) => x)
+      .filter(x => (x > 0) && (x <= min));
+
+    const result = divisorCandidates
+      .filter(divisor => args.every(arg => (arg % divisor === 0)));
+
+    return result;
+  },
+
+  /**
    * Returns the greatest common divisor (GCD) of two integers
    * <code>a</code> and <code>b</code>, implementing (the optimized form of) the
    * Euclidean algorithm (also called Euclid's algorithm).  The
@@ -71,6 +94,24 @@ jsx.math.integer = {
     }
 
     return Math.abs(a);
+  },
+
+  /**
+   * Return the positive integers that are relative prime to and smaller than a positive integer.
+   *
+   * @param {int} n
+   * @returns {Array<int>}
+   */
+  relPrimes: function (n) {
+    const _commonDivisors = jsx.math.integer.commonDivisors;
+    const result = Array
+      .from({length: n}, (_, x) => x)
+      .filter(i => {
+        const commonDivs = _commonDivisors(i, n);
+        return (commonDivs.length === 1 && commonDivs[0] === 1);
+      });
+
+    return result;
   }
 };
 
