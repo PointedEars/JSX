@@ -6,7 +6,7 @@
  * @section Copyright & Disclaimer
  *
  * @author
- *   (C) 2000-2011  Thomas Lahn &lt;math.js@PointedEars.de&gt;
+ *   (C) 2000-2011, 2018, 2020, 2026  Thomas Lahn &lt;math.js@PointedEars.de&gt;
  *
  * @partof PointedEars' JavaScript Extensions (JSX)
  *
@@ -46,9 +46,9 @@ jsx.math.integer = {
    * be used for computation.
    *
    * @memberOf jsx.math.integer
-   * @param a : number
-   * @param b : number
-   * @return type number
+   * @param {number} a
+   * @param {number} b
+   * @returns {number}
    *   The GCD of <code>a</code> and <code>b</code>;
    *   <code>NaN</code> if an argument is not a number.
    * @see Math#floor(number)
