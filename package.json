@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "docs:object": "jsdoc2md object.js > docs/object-generated.md",
+    "docs": "mkdir -p docs && for f in *.js; do [ -f \"$f\" ] && npx jsdoc2md \"$f\" > \"docs/${f%.js}-generated.md\"; done"
+  },
+  "devDependencies": {
+    "jsdoc": "^4.0.5",
+    "jsdoc-to-markdown": "^9.1.3"
+  }
+}
