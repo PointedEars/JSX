@@ -1031,7 +1031,7 @@ de.pointedears.jsx = jsx;
     var jsx_object = {
       /**
        * @memberOf jsx.object
-       * @version
+       * @version $Revision$ ($Date$)
        */
       version: "$Revision$ ($Date$)",
 
